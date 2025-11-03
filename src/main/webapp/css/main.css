@@ -9,11 +9,11 @@ body {
 /* Sidebar */
 .sidebar {
     width: 250px;
-    background: #1c1f26;
+    background: linear-gradient(90deg, #192947, #1d314f);
     color: #fff;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     position: fixed;
     height: 100%;
     left: 0;
@@ -44,8 +44,8 @@ body {
 .menu {
     list-style: none;
     padding: 0;
-    /* content up down */
-    margin: -120px 0px 120px 0px ;
+    margin : 0px 10px 0px 10px;
+  	flex-grow:1;  
 }
  
 .menu li {
@@ -88,7 +88,7 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(90deg, #0096c7, #48cae4);
+    background: linear-gradient(90deg, #1d314f, #5aa7f0);
     padding: 15px 30px;
     color: white;
     display: flex;
@@ -120,3 +120,4 @@ iframe {
     height: calc(100vh - 70px);
     border: none;
 }
+

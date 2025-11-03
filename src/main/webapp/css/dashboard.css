@@ -1,8 +1,8 @@
 body {
     margin: 0;
     font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-    background: linear-gradient(to bottom right, #48cae4, #0096c7);
-    color: #fff;
+    background: #f5f6f8;
+    color: black;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -23,6 +23,7 @@ body {
     text-align: center;
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     transition: transform 0.3s ease;
+    width : 240px;
 }
 
 .card:hover {
@@ -38,4 +39,28 @@ body {
 .card p {
     font-size: 36px;
     font-weight: bold;
+}
+
+/* === Cards wrapper layout === */
+.cards-wrapper {
+  position: absolute;  /* or 'fixed' if you want it to stay when scrolling */
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 20px;           /* space between cards */
+  align-items: flex-start;
+  z-index: 10;
+}
+
+/* === Responsive (stack vertically on small screens) === */
+@media (max-width: 700px) {
+  .cards-wrapper {
+    flex-direction: column;
+    gap: 12px;
+    top: 12px;
+    left: 12px;
+  }
+  .card {
+    width: calc(100% - 24px);
+  }
 }

@@ -38,14 +38,23 @@
 
 <div class="sidebar">
     <div class="profile-section">
-        <img src="profile.jpg" alt="Profile" class="profile-pic">
+        <img src="images/user.png" alt="Profile" class="profile-pic">
         <div class="branch-name"><%= branchName %></div>
     </div>
 
     <ul class="menu">
-        <li onclick="loadPage('dashboard.jsp', 'Dashboard')" class="active">🏠 Dashboard</li>
-        <li onclick="loadPage('customers.jsp', 'Customers')">👥 Customers</li>
+    
+       <li onclick="loadPage('dashboard.jsp', 'Dashboard')" class="active">
+    		<img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+    		Dashboard
+	   </li>
+
+        <li onclick="loadPage('customers.jsp', 'Customers')">
+        	<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+         	Customers
+         </li>
         
+        <!-- Add new menu items here -->
         
     </ul>
 
@@ -56,6 +65,7 @@
 
 <div class="main-content">
     <header>
+    	
         <h1 id="pageTitle">Dashboard</h1>
         <div id="liveDate"></div>
     </header>

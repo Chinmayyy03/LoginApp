@@ -9,7 +9,7 @@
     }
 
     int totalCustomers = 0;
-    double totalLoan = 1230500.00; // static for now
+    double totalLoan = 0; // static for now
 
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=?")) {
@@ -31,14 +31,17 @@
 </head>
 <body>
     <div class="dashboard-container">
+    <div class="cards-wrapper">
         <div class="card">
             <h3>Total Customers</h3>
             <p><%= totalCustomers %></p>
         </div>
         <div class="card">
             <h3>Total Loan</h3>
-            <p>$<%= String.format("%,.2f", totalLoan) %></p>
+            <p><%= String.format("%,.2f", totalLoan) %></p>
         </div>
     </div>
+</div>
+
 </body>
 </html>
