@@ -59,7 +59,7 @@
     </ul>
 
     <div class="logout">
-        <a href="logout.jsp">⏻ Log Out</a>
+        <a href="#" onclick="showLogoutConfirmation(event)">⏻ Log Out</a>
     </div>
 </div>
 
@@ -71,6 +71,18 @@
     </header>
 
     <iframe id="contentFrame" src="dashboard.jsp" frameborder="0"></iframe>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="logout-modal">
+    <div class="logout-modal-content">
+        <h2>⚠️ Confirm Logout</h2>
+        <p>Are you sure you want to log out?</p>
+        <div class="logout-modal-buttons">
+            <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+            <button class="logout-btn logout-btn-confirm" onclick="confirmLogout()">Yes, Logout</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -90,6 +102,35 @@ function updateDate() {
 }
 setInterval(updateDate, 1000);
 updateDate();
+
+// Logout confirmation functions
+function showLogoutConfirmation(event) {
+    event.preventDefault();
+    document.getElementById("logoutModal").style.display = "block";
+}
+
+function closeLogoutModal() {
+    document.getElementById("logoutModal").style.display = "none";
+}
+
+function confirmLogout() {
+    window.location.href = "logout.jsp";
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById("logoutModal");
+    if (event.target === modal) {
+        closeLogoutModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeLogoutModal();
+    }
+});
 </script>
 
 </body>
