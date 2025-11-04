@@ -40,6 +40,7 @@
             <h3>Total Loan</h3>
             <p><%= String.format("%,.2f", totalLoan) %></p>
         </div>
+        
     </div>
 </div>
 

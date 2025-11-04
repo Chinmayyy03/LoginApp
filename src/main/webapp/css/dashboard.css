@@ -3,53 +3,82 @@ body {
     font-family: 'Segoe UI', Roboto, Arial, sans-serif;
     background: #f5f6f8;
     color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    /* ❌ Removed flex centering */
 }
 
+/* Dashboard container layout */
 .dashboard-container {
+    display: flex;
+    justify-content: flex-start; /* Align cards to the left */
+    align-items: flex-start;     /* Align cards to the top */
+    padding: 40px;
+    background-color: #f7f9fc;
+    min-height: 100vh;
+}
+
+/* Wrapper for multiple cards */
+.cards-wrapper {
     display: flex;
     gap: 30px;
     flex-wrap: wrap;
-    justify-content: center;
+    position: relative;
+    top: 0;
+    left: 0;
 }
 
+/* Individual card styling */
 .card {
-    background: rgba(255,255,255,0.1);
-    padding: 40px 60px;
+    background: linear-gradient(135deg, #1e90ff, #0077ff);
+    color: white;
+    padding: 25px 35px;
     border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease;
-    width : 240px;
+    width: 280px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.card:hover {
-    transform: scale(1.05);
+/* Subtle decorative overlay shapes */
+.card::before, 
+.card::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
 }
 
+.card::before {
+    width: 120px;
+    height: 120px;
+    top: -30px;
+    right: -30px;
+}
+
+.card::after {
+    width: 180px;
+    height: 180px;
+    bottom: -60px;
+    left: -60px;
+}
+
+/* Card text styling */
 .card h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    opacity: 0.9;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
 .card p {
-    font-size: 36px;
-    font-weight: bold;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
 }
 
-/* === Cards wrapper layout === */
-.cards-wrapper {
-  position: absolute;  /* or 'fixed' if you want it to stay when scrolling */
-  top: 20px;
-  left: 20px;
-  display: flex;
-  gap: 20px;           /* space between cards */
-  align-items: flex-start;
-  z-index: 10;
+/* Hover effect */
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* === Responsive (stack vertically on small screens) === */
@@ -57,8 +86,6 @@ body {
   .cards-wrapper {
     flex-direction: column;
     gap: 12px;
-    top: 12px;
-    left: 12px;
   }
   .card {
     width: calc(100% - 24px);
