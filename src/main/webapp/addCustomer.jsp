@@ -9,7 +9,7 @@
 <body>
 
   <div class="container">
-    <h2>Bank Account Creation Form</h2>
+    <!-- <h2>Bank Account Creation Form</h2> -->
 
     <!-- Moved buttons INSIDE the form -->
     <form id="accountForm" action="CreateAccountServlet" method="post" class="form-grid" onsubmit="return validateForm();">
@@ -19,15 +19,15 @@
         <legend>Personal Information</legend>
         <div class="row">
           <label>First Name:</label>
-          <input type="text" name="firstName" required>
+			<input type="text" name="NAMEFIRST" id="NAMEFIRST" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
         </div>
         <div class="row">
           <label>Middle Name:</label>
-          <input type="text" name="middleName">
+          <input type="text" name="middleName" id="middleName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
         </div>
         <div class="row">
           <label>Last Name:</label>
-          <input type="text" name="lastName" required>
+          <input type="text" name="lastName" id="lastName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
         </div>
         <div class="row">
           <label>Date of Birth:</label>
@@ -53,11 +53,11 @@
         </div>
         <div class="row">
           <label>Mobile Number:</label>
-          <input type="text" name="mobile" maxlength="10" required>
+          <input type="text" name="mobile" maxlength="10" id="mobile" oninput="this.value = this.value.replace(/[^0-9]/g, '')">  
         </div>
         <div class="row">
           <label>Alternate Number:</label>
-          <input type="text" name="alternateMobile" maxlength="10">
+          <input type="text" name="alternateMobile" maxlength="10" id="alternateMobile" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
       </fieldset>
 
@@ -74,15 +74,15 @@
         </div>
         <div class="row">
           <label>City:</label>
-          <input type="text" name="city" required>
+          <input type="text" name="city" id="city" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
         </div>
         <div class="row">
           <label>State:</label>
-          <input type="text" name="state" required>
+          <input type="text" name="state" id="state" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
         </div>
         <div class="row">
           <label>Pincode:</label>
-          <input type="text" name="pincode" maxlength="6" required>
+          <input type="text" name="pincode" maxlength="6" id="pincode" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
       </fieldset>
 
@@ -100,7 +100,7 @@
         </div>
         <div class="row">
           <label>Branch Name:</label>
-          <input type="text" name="branchName" required>
+          <input type="text" name="branchName" id="branchName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
         </div>
         <div class="row">
           <label>Initial Deposit Amount:</label>
@@ -113,11 +113,11 @@
         <legend>KYC Details</legend>
         <div class="row">
           <label>Aadhar Number:</label>
-          <input type="text" name="aadhar" maxlength="12" required>
+          <input type="text" name="aadhar" maxlength="12" id="aadhar" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
         <div class="row">
           <label>PAN Number:</label>
-          <input type="text" name="pan" maxlength="10" required>
+          <input type="text" name="pan"  maxlength="10" required>
         </div>
         <div class="row">
           <label>Occupation:</label>
@@ -130,15 +130,15 @@
         <legend>Nominee Details</legend>
         <div class="row">
           <label>Nominee Name:</label>
-          <input type="text" name="nomineeName" required>
+          <input type="text" name="nomineeName" id="nomineeName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
         </div>
         <div class="row">
           <label>Relationship:</label>
-          <input type="text" name="relationship" required>
+          <input type="text" name="relationship" id="relationship" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
         </div>
         <div class="row">
           <label>Nominee Age:</label>
-          <input type="number" name="nomineeAge" required>
+          <input type="number" name="nomineeAge" id="nomineeAge" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
       </fieldset>
 

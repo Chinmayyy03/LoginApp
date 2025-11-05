@@ -49,9 +49,9 @@
     		Dashboard
 	   </li>
 
-        <li onclick="loadPage('addCustomer.jsp', 'Customers')">
+        <li onclick="loadPage('addCustomer.jsp', 'Add Customer')">
         	<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-         	Customers
+         	Add Customer
          </li>
         
         <!-- Add new menu items here -->
