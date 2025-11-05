@@ -1,0 +1,117 @@
+* {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Arial;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 30px 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 15px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #023e8a;
+      margin-bottom: 25px;
+      font-size: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    fieldset {
+      border: 2px solid #00b4d8;
+      border-radius: 10px;
+      padding: 15px 20px;
+      background-color: #fdfdfd;
+      transition: 0.3s;
+    }
+
+    fieldset:hover {
+      box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+    }
+
+    legend {
+      font-weight: bold;
+      color: #0077b6;
+      padding: 0 10px;
+      font-size: 16px;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      padding: 8px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: #0077b6;
+      box-shadow: 0 0 4px #00b4d8;
+    }
+
+    .buttons {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px 10px 0 0;
+    }
+
+    .btn-primary {
+      background-color: #0077b6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #023e8a;
+    }
+
+    .btn-secondary {
+      background-color: #adb5bd;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background-color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      h2 {
+        text-align: center;
+      }
+      .buttons {
+        text-align: center;
+      }
+    }

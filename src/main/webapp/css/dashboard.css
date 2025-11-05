@@ -6,9 +6,13 @@ body {
 }
 
 .dashboard-container {
-    padding: 0;
-    background: #f5f7fa;
-    min-height: calc(100vh - 78px);
+    display: flex;
+    justify-content: flex-start;;
+    align-items: flex-start;
+    padding: 40px;
+    background-color: #f7f9fc;
+    min-height: 100vh;
+    margin: -10px 0px 0px -15;
 }
 
 /* Header */
@@ -50,16 +54,35 @@ body {
 .card {
     background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
     color: white;
-    padding: 30px 35px;
-    border-radius: 16px;
+    padding: 25px 35px;
+    border-radius: 20px;
     width: 280px;
-    box-shadow: 0 8px 20px rgba(74, 158, 255, 0.25);
-    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
-    cursor: pointer;
+}
+.card::before, 
+.card::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
 }
 
+.card::before {
+    width: 120px;
+    height: 120px;
+    top: -30px;
+    right: -30px;
+}
+
+.card::after {
+    width: 180px;
+    height: 180px;
+    bottom: -60px;
+    left: -60px;
+}
 .card h3 {
     font-size: 17px;
     font-weight: 600;
