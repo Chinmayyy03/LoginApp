@@ -122,22 +122,6 @@
         text-align: center;
       }
     }
-    @media (max-width: 600px) {
-  body {
-    padding: 15px;
-  }
-  h2 {
-    font-size: 20px;
-  }
-  fieldset {
-    padding: 12px 15px;
-  }
-  .btn-primary, .btn-secondary {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-}
-    
   </style>
 </head>
 <body>

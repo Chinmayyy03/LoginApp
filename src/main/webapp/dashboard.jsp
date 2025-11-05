@@ -32,8 +32,7 @@
 <body>
     <div class="dashboard-container">
     <div class="cards-wrapper">
-    
-        <div onclick="loadPage('customer_List.jsp')" class="card">
+        <div class="card">
             <h3>Total Customers</h3>
             <p><%= totalCustomers %></p>
         </div>
@@ -47,4 +46,3 @@
 
 </body>
 </html>
-
