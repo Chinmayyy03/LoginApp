@@ -49,7 +49,7 @@
     		Dashboard
 	   </li>
 
-        <li onclick="loadPage('customers.jsp', 'Customers')">
+        <li onclick="loadPage('customer_List.jsp', 'Customers')">
         	<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
          	Customers
          </li>
