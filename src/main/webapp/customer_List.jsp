@@ -3,256 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <title>Bank Account Creation</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background: #f5f7fa;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Roboto, Arial;
+      background-color: #f8f9fa;
       margin: 0;
-      padding: 20px;
+      padding: 30px 40px; /* top-left padding */
     }
 
-    /* Dashboard Layout */
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Top Section */
-    .top-section {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .card {
-      flex: 1;
-      background: linear-gradient(135deg, #007bff, #00bfff);
-      color: white;
-      text-align: center;
+    .container {
+      width: 100%;
+      max-width: 1200px;
       border-radius: 15px;
-      padding: 20px;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .card span {
-      display: block;
-      font-size: 1.8rem;
-      margin-top: 10px;
-    }
-
-    /* Content (Middle + Right Sections) */
-    .content {
-      display: flex;
-      gap: 20px;
-    }
-
-    .left-section {
-      flex: 2;
-    }
-
-    .right-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Monthly Income Chart */
-    .income-chart {
-      background: linear-gradient(135deg, #3a7bd5, #3a6073);
-      color: white;
-      border-radius: 20px;
-      padding: 20px;
+    h2 {
       text-align: left;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      color: #023e8a;
+      margin-bottom: 25px;
+      font-size: 24px;
     }
 
-    .income-chart h3 {
+    /* --- Grid Layout --- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    fieldset {
+      border: 2px solid #00b4d8;
+      border-radius: 10px;
+      padding: 15px 20px;
+      background-color: #fdfdfd;
+      transition: 0.3s;
+    }
+
+    fieldset:hover {
+      box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+    }
+
+    legend {
+      font-weight: bold;
+      color: #0077b6;
+      padding: 0 10px;
+      font-size: 16px;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
       margin-bottom: 10px;
-      font-size: 1.4rem;
     }
 
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px;
+    label {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 5px;
     }
 
-    /* Subscription Card */
-    .subscription-card {
-      background: #4caf50;
+    input, select {
+      padding: 8px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: #0077b6;
+      box-shadow: 0 0 4px #00b4d8;
+    }
+
+    .buttons {
+      text-align: left;
+      margin-top: 25px;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px 10px 0 0;
+    }
+
+    .btn-primary {
+      background-color: #0077b6;
       color: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .subscription-card h4 {
-      margin: 0 0 10px;
-      font-size: 1.2rem;
+    .btn-primary:hover {
+      background-color: #023e8a;
     }
 
-    .progress {
-      width: 80%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
-      margin-top: 10px;
-      position: relative;
+    .btn-secondary {
+      background-color: #adb5bd;
+      color: #fff;
     }
 
-    .progress::after {
-      content: '';
-      position: absolute;
-      height: 10px;
-      width: 25%;
-      background: white;
-      border-radius: 5px;
+    .btn-secondary:hover {
+      background-color: #6c757d;
     }
 
-    /* Recent Transactions */
-    .transactions {
-      background: #001f3f;
-      color: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .transactions h4 {
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-    }
-
-    .transactions ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .transactions li {
-      margin-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      padding-bottom: 5px;
-    }
-
-    .transactions b {
-      display: block;
-    }
-
-    .transactions .red {
-      color: #ff4d4d;
-      float: right;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .content {
-        flex-direction: column;
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
       }
-
-      .top-section {
-        flex-direction: column;
+      h2 {
+        text-align: center;
+      }
+      .buttons {
+        text-align: center;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="dashboard">
+  <div class="container">
+   <h2 style="text-align: center;">Bank Account Creation Form</h2>
 
-    <!-- Top Cards -->
-    <div class="top-section">
-      <div class="card">
-        Total Customers
-        <span>0</span>
-      </div>
-      <div class="card">
-        Total Loan
-        <span>0.00</span>
-      </div>
-      <div class="card">
-        Total Customers
-        <span>0</span>
-      </div>
-    </div>
-
-    <!-- Middle and Right Sections -->
-    <div class="content">
-      <!-- Left Section -->
-      <div class="left-section">
-        <div class="income-chart">
-          <h3>MONTHLY INCOME</h3>
-          <canvas id="incomeChart"></canvas>
+    <form action="CreateAccountServlet" method="post" class="form-grid">
+      
+      <!-- Personal Information -->
+      <fieldset>
+        <legend>Personal Information</legend>
+        <div class="row">
+          <label>First Name:</label>
+          <input type="text" name="firstName" required>
         </div>
-      </div>
-
-      <!-- Right Section -->
-      <div class="right-section">
-        <div class="subscription-card">
-          <h4>Subscription</h4>
-          <p>$500 / $2000</p>
-          <div class="progress"></div>
+        <div class="row">
+          <label>Middle Name:</label>
+          <input type="text" name="middleName">
         </div>
-
-        <div class="transactions">
-          <h4>Recent Transactions</h4>
-          <ul>
-            <li><b>DK0955</b> Retail ZARA <span class="red">-$70</span></li>
-            <li><b>DK0955</b> Retail Home <span class="red">-$45</span></li>
-            <li><b>DK0955</b> Retail Online <span class="red">-$10</span></li>
-          </ul>
+        <div class="row">
+          <label>Last Name:</label>
+          <input type="text" name="lastName" required>
         </div>
-      </div>
+        <div class="row">
+          <label>Date of Birth:</label>
+          <input type="date" name="dob" required>
+        </div>
+        <div class="row">
+          <label>Gender:</label>
+          <select name="gender" required>
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- Contact Information -->
+      <fieldset>
+        <legend>Contact Information</legend>
+        <div class="row">
+          <label>Email ID:</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="row">
+          <label>Mobile Number:</label>
+          <input type="text" name="mobile" maxlength="10" required>
+        </div>
+        <div class="row">
+          <label>Alternate Number:</label>
+          <input type="text" name="alternateMobile" maxlength="10">
+        </div>
+      </fieldset>
+
+      <!-- Address Information -->
+      <fieldset>
+        <legend>Address Information</legend>
+        <div class="row">
+          <label>Address Line 1:</label>
+          <input type="text" name="address1" required>
+        </div>
+        <div class="row">
+          <label>Address Line 2:</label>
+          <input type="text" name="address2">
+        </div>
+        <div class="row">
+          <label>City:</label>
+          <input type="text" name="city" required>
+        </div>
+        <div class="row">
+          <label>State:</label>
+          <input type="text" name="state" required>
+        </div>
+        <div class="row">
+          <label>Pincode:</label>
+          <input type="text" name="pincode" maxlength="6" required>
+        </div>
+      </fieldset>
+
+      <!-- Account Details -->
+      <fieldset>
+        <legend>Account Details</legend>
+        <div class="row">
+          <label>Account Type:</label>
+          <select name="accountType" required>
+            <option value="">Select</option>
+            <option>Savings Account</option>
+            <option>Current Account</option>
+            <option>Fixed Deposit</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Branch Name:</label>
+          <input type="text" name="branchName" required>
+        </div>
+        <div class="row">
+          <label>Initial Deposit Amount (₹):</label>
+          <input type="number" name="depositAmount" min="1000" required>
+        </div>
+      </fieldset>
+
+      <!-- KYC Details -->
+      <fieldset>
+        <legend>KYC Details</legend>
+        <div class="row">
+          <label>Aadhar Number:</label>
+          <input type="text" name="aadhar" maxlength="12" required>
+        </div>
+        <div class="row">
+          <label>PAN Number:</label>
+          <input type="text" name="pan" maxlength="10" required>
+        </div>
+        <div class="row">
+          <label>Occupation:</label>
+          <input type="text" name="occupation">
+        </div>
+      </fieldset>
+
+      <!-- Nominee Details -->
+      <fieldset>
+        <legend>Nominee Details</legend>
+        <div class="row">
+          <label>Nominee Name:</label>
+          <input type="text" name="nomineeName" required>
+        </div>
+        <div class="row">
+          <label>Relationship:</label>
+          <input type="text" name="relationship" required>
+        </div>
+        <div class="row">
+          <label>Nominee Age:</label>
+          <input type="number" name="nomineeAge" required>
+        </div>
+      </fieldset>
+
+    </form>
+
+    <!-- Buttons -->
+    <div class="buttons" style="text-align: center;">
+      <button type="submit" class="btn-primary">Create Account</button>
+      <button type="reset" class="btn-secondary">Reset</button>
     </div>
   </div>
-
-  <!-- Chart.js Script -->
-  <script>
-    const ctx = document.getElementById('incomeChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Income',
-          data: [80000, 95000, 90000, 105000, 98000, 120000],
-          borderColor: '#ffffff',
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#fff',
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          borderWidth: 2
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#fff' },
-            grid: { display: false }
-          },
-          y: {
-            ticks: { color: '#fff' },
-            grid: { color: 'rgba(255,255,255,0.2)' }
-          }
-        }
-      }
-    });
-  </script>
 
 </body>
 </html>
