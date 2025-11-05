@@ -13,7 +13,7 @@
       font-family: 'Segoe UI', Roboto, Arial;
       background-color: #f8f9fa;
       margin: 0;
-      padding: 30px 40px; /* top-left padding */
+      padding: 30px 40px;
     }
 
     .container {
@@ -23,13 +23,12 @@
     }
 
     h2 {
-      text-align: left;
+      text-align: center;
       color: #023e8a;
       margin-bottom: 25px;
       font-size: 24px;
     }
 
-    /* --- Grid Layout --- */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -81,7 +80,7 @@
     }
 
     .buttons {
-      text-align: left;
+      text-align: center;
       margin-top: 25px;
     }
 
@@ -128,10 +127,11 @@
 <body>
 
   <div class="container">
-   <h2 style="text-align: center;">Bank Account Creation Form</h2>
+    <h2>Bank Account Creation Form</h2>
 
-    <form action="CreateAccountServlet" method="post" class="form-grid">
-      
+    <!-- Moved buttons INSIDE the form -->
+    <form id="accountForm" action="CreateAccountServlet" method="post" class="form-grid" onsubmit="return validateForm();">
+
       <!-- Personal Information -->
       <fieldset>
         <legend>Personal Information</legend>
@@ -260,14 +260,31 @@
         </div>
       </fieldset>
 
-    </form>
+      <!-- Buttons -->
+      <div class="buttons">
+        <button type="submit" class="btn-primary">Create Account</button>
+        <button type="reset" class="btn-secondary">Reset</button>
+      </div>
 
-    <!-- Buttons -->
-    <div class="buttons" style="text-align: center;">
-      <button type="submit" class="btn-primary">Create Account</button>
-      <button type="reset" class="btn-secondary">Reset</button>
-    </div>
+    </form>
   </div>
+
+  <script>
+    // ✅ Validation before submission
+    function validateForm() {
+      const form = document.getElementById("accountForm");
+      const requiredFields = form.querySelectorAll("[required]");
+      for (let field of requiredFields) {
+        if (!field.value.trim()) {
+          alert("⚠️ Please fill all required details before submitting.");
+          field.focus();
+          return false;
+        }
+      }
+      alert("✅ All details filled successfully!");
+      return true;
+    }
+  </script>
 
 </body>
 </html>
