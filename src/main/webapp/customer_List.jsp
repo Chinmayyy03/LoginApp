@@ -221,7 +221,7 @@
           <input type="text" name="branchName" required>
         </div>
         <div class="row">
-          <label>Initial Deposit Amount (₹):</label>
+          <label>Initial Deposit Amount:</label>
           <input type="number" name="depositAmount" min="1000" required>
         </div>
       </fieldset>
