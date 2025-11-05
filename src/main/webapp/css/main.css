@@ -19,6 +19,8 @@ body {
     height: 100%;
     left: 0;
     box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    z-index: 100;
 }
 
 .profile-section {
@@ -123,11 +125,12 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: linear-gradient(135deg, #1b2c4a, #56abe7);
+    background: linear-gradient(90deg, #1b2c4a, #56abe7);
     padding: 20px;
+    transition: margin-left 0.3s ease;
 }
 
-/* Iframe wrapper with gradient border effect */
+/* Iframe wrapper */
 .iframe-wrapper {
     flex: 1;
     border-radius: 16px;
@@ -135,17 +138,15 @@ body {
     box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
 }
 
-/* Iframe */
 iframe {
-    width: 1240px;
+    width: 100%;
     height: 100%;
     border: none;
     background: #fff;
     border-radius: 14px;
-    margin-left: -22px;
 }
 
-/* Logout confirmation modal styles */
+/* Logout modal */
 .logout-modal {
     display: none;
     position: fixed;
@@ -171,79 +172,73 @@ iframe {
     animation: slideDown 0.3s;
 }
 
-.logout-modal-content h2 {
-    margin-top: 0;
-    color: #fff;
-    font-size: 26px;
-    margin-bottom: 12px;
-}
-
-.logout-modal-content p {
-    color: #d4e3f7;
-    font-size: 16px;
-    margin-bottom: 30px;
-}
-
-.logout-modal-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-
-.logout-btn {
-    padding: 12px 32px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.logout-btn-confirm {
-    background: linear-gradient(45deg, #d32f2f, #f44336);
-    color: white;
-}
-
-.logout-btn-confirm:hover {
-    background: linear-gradient(45deg, #b71c1c, #d32f2f);
-    box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4);
-    transform: translateY(-2px);
-}
-
-.logout-btn-cancel {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.logout-btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideDown {
-    from { 
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to { 
-        transform: translateY(0);
-        opacity: 1;
-    }
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ✅ Responsive Enhancements */
+@media (max-width: 1024px) {
     .sidebar {
-        width: 220px;
+        width: 230px;
     }
     .main-content {
-        margin-left: 220px;
+        margin-left: 230px;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        overflow: auto;
+    }
+
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: space-around;
+        box-shadow: none;
+    }
+
+    .profile-section {
+        display: none;
+    }
+
+    .menu {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px;
+    }
+
+    .menu li {
+        font-size: 14px;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 10px;
+        height: auto;
+    }
+
+    .iframe-wrapper {
+        height: 85vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu li {
+        font-size: 12px;
+        padding: 8px;
+    }
+    .logout a {
+        font-size: 13px;
+        padding: 8px 12px;
     }
 }
