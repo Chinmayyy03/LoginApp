@@ -31,6 +31,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Dashboard</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
@@ -44,17 +45,15 @@
 
     <ul class="menu">
     
-       <li onclick="loadPage('dashboard.jsp', 'Dashboard')" class="active">
-    		<img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-    		Dashboard
-	   </li>
+       <li onclick="loadPage('dashboard.jsp')" class="active">
+            <img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+            Dashboard
+       </li>
 
-        <li onclick="loadPage('customer_List.jsp', 'Customers')">
-        	<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-         	Customers
-         </li>
-        
-        <!-- Add new menu items here -->
+        <li onclick="loadPage('customer_List.jsp')">
+            <img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+            Customers
+        </li>
         
     </ul>
 
@@ -64,13 +63,9 @@
 </div>
 
 <div class="main-content">
-    <header>
-    	
-        <h1 id="pageTitle">Dashboard</h1>
-        <div id="liveDate"></div>
-    </header>
-
-    <iframe id="contentFrame" src="dashboard.jsp" frameborder="0"></iframe>
+    <div class="iframe-wrapper">
+        <iframe id="contentFrame" src="dashboard.jsp" frameborder="0"></iframe>
+    </div>
 </div>
 
 <!-- Logout Confirmation Modal -->
@@ -86,22 +81,12 @@
 </div>
 
 <script>
-function loadPage(page, title) {
+function loadPage(page) {
     document.getElementById("contentFrame").src = page;
-    document.getElementById("pageTitle").innerText = title;
 
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
-    event.target.classList.add("active");
+    event.target.closest("li").classList.add("active");
 }
-
-// Live date updater
-function updateDate() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById("liveDate").innerText = now.toLocaleDateString('en-US', options);
-}
-setInterval(updateDate, 1000);
-updateDate();
 
 // Logout confirmation functions
 function showLogoutConfirmation(event) {
