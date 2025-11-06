@@ -44,15 +44,26 @@
 
     <ul class="menu">
     
-       <li onclick="loadPage('dashboard.jsp', 'Dashboard')" class="active">
+       <li class="active">
+  			<a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', this); return false;">
     		<img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
     		Dashboard
+  			</a>
 	   </li>
 
-        <li onclick="loadPage('addCustomer.jsp', 'Add Customer')">
-        	<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-         	Add Customer
-         </li>
+        <li>
+        	<a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
+    		<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+    		Add Customer
+  			</a>
+		</li>
+		
+		<li>
+        	<a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
+    		<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+    		Add Customer
+  			</a>
+		</li>
         
         <!-- Add new menu items here -->
         
@@ -86,12 +97,16 @@
 </div>
 
 <script>
-function loadPage(page, title) {
+function loadPage(page, title, anchorEl) {
+    // load page & title
     document.getElementById("contentFrame").src = page;
     document.getElementById("pageTitle").innerText = title;
 
+    // reset active classes and add to the clicked li
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
-    event.target.classList.add("active");
+    if (anchorEl && anchorEl.closest) {
+        anchorEl.closest('li').classList.add("active");
+    }
 }
 
 // Live date updater

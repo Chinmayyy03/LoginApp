@@ -48,17 +48,61 @@ body {
   	flex-grow:1;  
 }
  
-.menu li {
-    padding: 15px 20px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.3s;
+.menu li a {
+  display: flex;                 /* keeps icon + text aligned */
+  align-items: center;
+  gap: 8px;                      /* space between icon and text */
+  text-decoration: none;
+  color: inherit;                /* inherit color from li/sidebar */
+  padding: 15px 20px;
+  width: 100%;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  box-sizing: border-box;
+  border-radius: 6px;
 }
 
-.menu li:hover,
-.menu li.active {
-    background: #0077b6;
-    border-radius: 6px;
+/* hover effect background (subtle) */
+.menu li a:hover {
+  background-color: rgba(166, 166, 166, 0.06);
+}
+
+/* sliding overlay from left */
+.menu li a::before {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 100%;
+  background: #0077b6; /* slightly translucent overlay */
+  left: 0;
+  top: 0;
+  transition: all 0.4s;
+  z-index: -1;
+}
+
+/* expand overlay on hover */
+.menu li a:hover::before {
+  width: 100%;
+}
+
+/* active state styling for li -> apply to the anchor too */
+.menu li.active > a {
+  background: #0077b6; /* you already used this for active li */
+  color: #fff;
+}
+
+.menu li.active > a::before {
+  width: 100%;
+  background: rgba(0,0,0,0.08);
+}
+
+/* ensure images inside anchors don't overflow */
+.menu li a img {
+  display: inline-block;
+  vertical-align: middle;
+  flex: 0 0 auto;
 }
 
 /* Logout section */
