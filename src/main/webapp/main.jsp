@@ -39,7 +39,7 @@
 <div class="sidebar">
     <div class="profile-section">
         <img src="images/user.png" alt="Profile" class="profile-pic">
-        <div class="branch-name"><%= branchName %></div>
+        <div class="branch-name"><%= branchName.toUpperCase() %></div>
     </div>
 
     <ul class="menu">
