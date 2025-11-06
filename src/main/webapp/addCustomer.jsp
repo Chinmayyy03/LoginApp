@@ -1,3 +1,27 @@
+<%@ page import="java.sql.*, db.DBConnection" %>
+<%@ page contentType="text/html; charset=UTF-8" %>
+
+<%
+    String branchCode = (String) session.getAttribute("branchCode");
+    if (branchCode == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    int totalCustomers = 0;
+    double totalLoan = 0; // static for now
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=?")) {
+        ps.setString(1, branchCode);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            totalCustomers = rs.getInt(1);
+        }
+    } catch (Exception e) {
+        totalCustomers = 0;
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,18 +176,18 @@
   </div>
 
   <script>
-    // ✅ Validation before submission
+    // â Validation before submission
     function validateForm() {
       const form = document.getElementById("accountForm");
       const requiredFields = form.querySelectorAll("[required]");
       for (let field of requiredFields) {
         if (!field.value.trim()) {
-          alert("⚠️ Please fill all required details before submitting.");
+          alert("â ï¸ Please fill all required details before submitting.");
           field.focus();
           return false;
         }
       }
-      alert("✅ All details filled successfully!");
+      alert("â All details filled successfully!");
       return true;
     }
   </script>
