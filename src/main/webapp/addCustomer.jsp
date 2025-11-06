@@ -33,7 +33,7 @@
 <body>
 
   <div class="container">
-    <!-- <h2>Bank Account Creation Form</h2> -->
+     <h2>Bank Account Creation Form</h2> 
 
     <!-- Moved buttons INSIDE the form -->
     <form id="accountForm" action="CreateAccountServlet" method="post" class="form-grid" onsubmit="return validateForm();">
