@@ -58,8 +58,6 @@
   			</a>
 		</li>
 		
-		</li>
-        
         <!-- Add new menu items here -->
         
     </ul>

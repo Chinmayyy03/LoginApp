@@ -32,17 +32,29 @@
 <body>
     <div class="dashboard-container">
     <div class="cards-wrapper">
-        <div class="card">
+        <div class="card" onclick="openInParentFrame('customers.jsp')">
             <h3>Total Customers</h3>
             <p><%= totalCustomers %></p>
         </div>
-        <div class="card">
+        <div class="card"onclick="openInParentFrame('loanDetails.jsp')">
             <h3>Total Loan</h3>
             <p><%= String.format("%,.2f", totalLoan) %></p>
         </div>
         
     </div>
 </div>
-
+ <script>
+        function openInParentFrame(page) {
+            // Access iframe in parent page and change its src
+            if (window.parent && window.parent.document) {
+                const iframe = window.parent.document.getElementById("contentFrame");
+                if (iframe) {
+                    iframe.src = page;
+                } else {
+                    alert("Iframe not found in parent page!");
+                }
+            }
+        }
+    </script>
 </body>
 </html>
