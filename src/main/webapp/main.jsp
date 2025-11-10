@@ -58,11 +58,6 @@
   			</a>
 		</li>
 		
-		<li>
-        	<a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
-    		<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-    		Add Customer
-  			</a>
 		</li>
         
         <!-- Add new menu items here -->
