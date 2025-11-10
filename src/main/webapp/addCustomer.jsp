@@ -34,7 +34,7 @@
 <body>
 
 <form>
-  <!-- Main customer details -->
+  <!----------------------------------------------------------------------- Main customer details -------------------------------------------------------------------->
   <fieldset>
     <legend>Customer Information</legend>
     <div class="form-grid">
@@ -210,7 +210,9 @@
       </div>
       
   </fieldset>
-<!-- Personal Info -->
+  
+  
+<!------------------------------------------------------------------ Personal Info --------------------------------------------------------------------------------->
     <fieldset>
   <legend>Personal Information</legend>
   <div class="personal-grid">
@@ -229,9 +231,9 @@
     <div>
       <label>Marital Status</label>
       <div class="radio-group">
-        <label><input type="radio" name="maritalStatus" value="Married"> Married</label>
-        <label><input type="radio" name="maritalStatus" value="Single"> Single</label>
-        <label><input type="radio" name="maritalStatus" value="Other"> Other</label>
+        <label><input type="radio" name="maritalStatus" value="Married" onclick="toggleMarriedFields()"> Married</label>
+        <label><input type="radio" name="maritalStatus" value="Single" onclick="toggleMarriedFields()"> Single</label>
+        <label><input type="radio" name="maritalStatus" value="Other" onclick="toggleMarriedFields()"> Other</label>
       </div>
     </div>
 
@@ -249,7 +251,7 @@
 </fieldset>
 
 
-  <!-- Permanent/Address Info -->
+  <!------------------------------------------------------------- Permanent/Address Info ---------------------------------------------------------------------------->
   <fieldset>
   <legend>Permanent / Address Information</legend>
   <div class="address-grid">
@@ -349,7 +351,7 @@
 </fieldset>
 
 
-  <!-- KYC and Document Checklist -->
+  <!------------------------------------------------------------------ KYC and Document Checklist ----------------------------------------------------------------->
 <fieldset class="kyc-fieldset">
   <legend>KYC Document Details</legend>
 
@@ -366,11 +368,12 @@
             } else {
               this.setCustomValidity('');
             }"></td></tr>
-        <tr><td>PAN Card</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Election Card</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Driving License</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>NREGA Job Card</td><td><input type="date"></td><td><input type="text"></td></tr>
+        <tr><td>PAN Card</td><td><input type="date"></td><td><input type="text" name="pan" id="pan" maxlength="10" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" style="text-transform:uppercase;" required></td></tr>
+        <tr><td>Election Card</td><td><input type="date"></td><td><input type="text" name="voterid" id="voterid" maxlength="10" pattern="[A-Z]{3}[0-9]{7}" title="Enter valid Voter ID (e.g., ABC1234567)" style="text-transform:uppercase;" required></td></tr>
+        <tr><td>Driving License</td><td><input type="date"></td><td><input type="text" name="dl" id="dl" maxlength="16" pattern="^[A-Z]{2}[0-9]{2}\s?[0-9]{11}$" title="Enter valid Driving Licence No (e.g., MH14 20220012345)" style="text-transform:uppercase;" required></td></tr>
+        <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text" pattern="^[2-9][0-9]{11}$" maxlength="12" inputmode="numeric" title="Enter a valid 12-digit number starting with 2-9" required oninput="this.value=this.value.replace(/\D/g,'').slice(0,12); while(this.value && !/^[2-9]/.test(this.value)) this.value=this.value.slice(1)">
+</td></tr>
+        <tr><td>NREGA Job Card</td><td><input type="date"></td><td><input type="text" name="nrega" id="nrega" maxlength="20" pattern="^[A-Z]{2}-\d{2}-\d{3}-\d{3}-\d{7}$" title="Enter valid NREGA Job Card No (e.g., MH-12-123-001-0001234)" style="text-transform:uppercase;" required></td></tr>
       </table>
     </div>
 
@@ -386,9 +389,10 @@
         <tr><td>Bank Statement</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Govt. Documents</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Electricity Bill</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Ration Card</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Passport</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text"></td></tr>
+        <tr><td>Ration Card</td><td><input type="date"></td><td><input type="text" name="ration" id="ration" maxlength="15" pattern="^[A-Z]{2}-\d{2}-\d{6,7}$" title="Enter valid Ration Card No (e.g., TN-10-1234567)" style="text-transform:uppercase;" required></td></tr>
+        <tr><td>Passport</td><td><input type="date"></td><td><input type="text" name="passport" id="passport" maxlength="8" pattern="^[A-PR-WYa-pr-wy][1-9][0-9]{6}$" title="Enter valid Indian Passport No (e.g., A1234567)" style="text-transform:uppercase;" required></td></tr>
+        <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text" pattern="^[2-9][0-9]{11}$" maxlength="12" inputmode="numeric" title="Enter a valid 12-digit number starting with 2-9" required oninput="this.value=this.value.replace(/\D/g,'').slice(0,12); while(this.value && !/^[2-9]/.test(this.value)) this.value=this.value.slice(1)">
+</td></tr>
       </table>
     </div>
   </div>
@@ -448,24 +452,24 @@ function toggleMinorFields() {
   }
 }
 
+function toggleMarriedFields() {
+	  const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked').value;
+	  const noOFChildren = document.getElementById('children');
+	  const noOfDependents = document.getElementById('dependents');
 
-function toggleMinorFields() {
-	  const isMinor = document.querySelector('input[name="isMinor"]:checked').value;
-	  const guardianName = document.getElementById('guardianName');
-	  const relationGuardian = document.getElementById('relationGuardian');
-
-	  if (isMinor === 'yes') {
-	    guardianName.disabled = false;
-	    relationGuardian.disabled = false;
+	  if (maritalStatus === 'Single') {
+		  noOFChildren.disabled = true;
+		  noOfDependents.disabled = true;
 	  } else {
-	    guardianName.disabled = true;
-	    relationGuardian.disabled = true;
+		  noOFChildren.disabled = false;
+		  noOfDependents.disabled = false;
 
 	    // Optional: clear fields when disabled
-	    guardianName.value = '';
-	    relationGuardian.value = 'NOT SPECIFIED';
+	    noOFChildren.value = '';
+	    noOfDependents.value = 'NOT SPECIFIED';
 	  }
 	}
+
 	
 </script>
 </body>
