@@ -83,10 +83,10 @@
         <label>Middle Name</label>
         <input type="text" name="middleName" id="middleName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
       </div>
-
+      
       <div>
-        <label>Registration Date</label>
-        <input type="date" name="registrationDate" >
+        <label>Customer Name</label>
+        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
       </div>
 
       <div>
@@ -95,6 +95,11 @@
       </div>
 <!-- Row 3 -->
       <div>
+        <label>Registration Date</label>
+        <input type="date" name="registrationDate" >
+      </div>
+      
+      <div>
         <label>Is Minor</label>
         <div style="flex-direction: row;" class="radio-group">
           <label><input type="radio" name="isMinor" value="yes" onclick="toggleMinorFields()"> Yes</label>
@@ -102,10 +107,7 @@
         </div>
       </div>
 
-      <div>
-        <label>Customer Name</label>
-        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
-      </div>
+      
 
       <div>
         <label>Guardian Name</label>
@@ -127,58 +129,25 @@
         <input type="text" name="religionCode">
       </div>
 
-      <div>
-        <label>Passport Number</label>
-        <input type="text" name="passportNumber" id="passportNumber" maxlength="8"oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
-            if(!/^[A-PR-WY][1-9]\d{0,6}$/.test(this.value) && this.value.length > 0){
-              this.setCustomValidity('Invalid passport format (e.g. A1234567)');
-            } else {
-              this.setCustomValidity('');
-            }">
-        
-      </div>
+    
 
       <div>
         <label>Caste Code</label>
         <input type="text" name="casteCode">
       </div>
-
-      <div>
-        <label>Pan Number</label>
-        <input type="text" name="panNumber" maxlength="10" required>
-      </div>
-<!-- Row 5 -->
-      <div>
-        <label>Aadhar Card No</label>
-        <input type="text" name="aadharNo" maxlength="12" id="aadharNo" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-      </div>
-
-      <div>
-        <label>Form60</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="form60" value="yes"> Yes</label>
-          <label><input type="radio" name="form60" value="no"> No</label>
-        </div>
-      </div>
-
-      <div>
-        <label>Form61</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="form61" value="yes"> Yes</label>
-          <label><input type="radio" name="form61" value="no"> No</label>
-        </div>
-      </div>
-
+      
       <div>
         <label>Category Code</label>
         <input type="text" name="categoryCode" value="PUBLIC">
       </div>
-<!-- Row 6 -->
+      
       <div>
         <label>Sub Category Code</label>
         <input type="text" name="subCategoryCode" value="1">
       </div>
 
+      
+<!-- Row 5 -->
       <div>
         <label>Constitution Code</label>
         <input type="text" name="constitutionCode">
@@ -201,21 +170,14 @@
           <option>BIKE</option>
         </select>
       </div>
-<!-- Row 7 -->
-      <div>
-        <label>Customer Group Code</label>
-        <select name="customerGroupCode">
-          <option>NON GROUP</option>
-          <option>GROUP A</option>
-          <option>GROUP B</option>
-        </select>
-      </div>
 
-      <div>
+       <div>
         <label>Member Type</label>
         <input type="text" name="memberType" value="B">
       </div>
 
+      
+<!-- Row 6 -->
       <div>
         <label>Email ID</label>
         <input type="email" name="email">
@@ -225,7 +187,7 @@
         <label>GSTIN No</label>
         <input type="text" name="gstinNo">
       </div>
-<!-- Row 8 -->
+      
       <div>
         <label>Member Number</label>
         <input type="text" name="memberNumber" value="0">
@@ -236,7 +198,9 @@
         <input type="text" name="ckyNo">
       </div>
 
-      <div>
+      
+<!-- Row 7 -->
+     <div>
         <label>Risk Category</label>
         <select name="riskCategory">
           <option>LOW</option>
@@ -244,12 +208,7 @@
           <option>HIGH</option>
         </select>
       </div>
-
-      <div class="full-width">
-        <label>Message</label>
-        <input type="text" name="message">
-      </div>
-    </div>
+      
   </fieldset>
 <!-- Personal Info -->
     <fieldset>
@@ -286,12 +245,7 @@
       <label for="dependents">No. of Dependents</label>
       <input type="number" id="dependents" name="dependents" value="0" min="0">
     </div>
-
-    <div class="full-width">
-      <label for="message">Message</label>
-      <input type="text" id="message" name="message">
-    </div>
-  </div>
+    
 </fieldset>
 
 
@@ -391,11 +345,6 @@
       <label>Office Phone</label>
       <input type="number" name="officePhone" value="0">
     </div>
-
-    <div class="full-width">
-      <label>Message</label>
-      <input type="text" name="message">
-    </div>
   </div>
 </fieldset>
 
@@ -411,11 +360,15 @@
       <h4>Savings Account (ID Proof)</h4>
       <table>
         <tr><th>Document</th><th>Expiry Date</th><th>Document Number</th></tr>
-        <tr><td>Passport</td><td><input type="date"></td><td><input type="text"></td></tr>
+        <tr><td>Passport</td><td><input type="date"></td><td><input type="text" name="passportNumber" id="passportNumber" maxlength="8"oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
+            if(!/^[A-PR-WY][1-9]\d{0,6}$/.test(this.value) && this.value.length > 0){
+              this.setCustomValidity('Invalid passport format (e.g. A1234567)');
+            } else {
+              this.setCustomValidity('');
+            }"></td></tr>
         <tr><td>PAN Card</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Election Card</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Driving License</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>–</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>NREGA Job Card</td><td><input type="date"></td><td><input type="text"></td></tr>
       </table>
@@ -435,7 +388,6 @@
         <tr><td>Electricity Bill</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Ration Card</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Passport</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td>–</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text"></td></tr>
       </table>
     </div>
