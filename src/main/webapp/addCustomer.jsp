@@ -190,7 +190,7 @@
       
       <div>
         <label>Member Number</label>
-        <input type="text" name="memberNumber" value="0">
+        <input type="text" name="memberNumber" value="">
       </div>
 
       <div>
@@ -240,12 +240,12 @@
     <!-- Row 2 -->
     <div>
       <label for="children">No. of Children</label>
-      <input type="number" id="children" name="children" value="0" min="0">
+      <input type="number" id="children" name="children" value="" min="0">
     </div>
 
     <div>
       <label for="dependents">No. of Dependents</label>
-      <input type="number" id="dependents" name="dependents" value="0" min="0">
+      <input type="number" id="dependents" name="dependents" value="" min="0">
     </div>
     
 </fieldset>
@@ -326,26 +326,26 @@
     <!-- Row 4 -->
     <div>
       <label>Zip</label>
-      <input type="number" name="zip" value="0">
+      <input type="number" name="zip" value="">
     </div>
 
     <div>
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
         <input type="text" value="+91" style="width: 45px; text-align: center;" readonly>
-        <input type="number" name="mobileNo" value="0">
+        <input type="number" name="mobileNo" value="">
       </div>
     </div>
 
     <div>
       <label>Residence Phone</label>
-      <input type="number" name="residencePhone" value="0">
+      <input type="number" name="residencePhone" value="">
     </div>
 
     <!-- Row 5 -->
     <div>
       <label>Office Phone</label>
-      <input type="number" name="officePhone" value="0">
+      <input type="number" name="officePhone" value="">
     </div>
   </div>
 </fieldset>
