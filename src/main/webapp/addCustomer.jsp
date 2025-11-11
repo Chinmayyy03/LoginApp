@@ -14,7 +14,7 @@
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=?")) {
         ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
+        ResultSet rs = ps.executeQuery();		
         if (rs.next()) {
             totalCustomers = rs.getInt(1);
         }
@@ -478,7 +478,7 @@
       PreparedStatement psCity = null;
       ResultSet rsCity = null;
       try (Connection conn6 = DBConnection.getConnection()) {
-          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY CITY_CODE ";
+          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME) ";
           psCity = conn6.prepareStatement(sql);
           rsCity = psCity.executeQuery();
           while (rsCity.next()) {
@@ -508,7 +508,7 @@
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
         <input type="text" value="+91" style="width: 45px; text-align: center;" readonly>
-        <input type="number" name="mobileNo" value="">
+        <input type="number" name="mobileNo">
       </div>
     </div>
 

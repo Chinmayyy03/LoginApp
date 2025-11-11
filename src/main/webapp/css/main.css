@@ -118,7 +118,7 @@ body {
 }
 
 .logout a:hover {
-    color: #fff;
+    color: red;
 }
 
 /* Main content */
