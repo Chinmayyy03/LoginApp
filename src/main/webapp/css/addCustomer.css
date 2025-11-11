@@ -337,6 +337,11 @@ td input[type="checkbox"] {
   margin: 0px 0px 0px 0px;
 }
 
+input:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
 /* 🔹 Responsive Adjustments */
 @media (max-width: 900px) {
   .kyc-row {

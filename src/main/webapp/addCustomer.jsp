@@ -704,7 +704,26 @@ function toggleMarriedFields() {
 	  }
 	}
 
-	
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Select all rows inside the KYC tables
+  document.querySelectorAll(".kyc-section table tr").forEach(row => {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const inputs = row.querySelectorAll('input[type="date"], input[type="text"]');
+    
+    if (checkbox) {
+      // Initially disable all input fields
+      inputs.forEach(input => input.disabled = true);
+
+      // Toggle enable/disable based on checkbox status
+      checkbox.addEventListener("change", () => {
+        inputs.forEach(input => input.disabled = !checkbox.checked);
+      });
+    }
+  });
+});
+
+
 </script>
 </body>
 </html>
