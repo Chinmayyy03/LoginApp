@@ -116,12 +116,30 @@
 
       <div>
         <label>Relation with Guardian</label>
-        <select name="relationGuardian" id="relationGuardian" disabled>
-          <option>NOT SPECIFIED</option>
-          <option>FATHER</option>
-          <option>MOTHER</option>
-          <option>BROTHER</option>
-        </select>
+        <select name="relationGuardian" id="relationGuardian" required>
+    <option value="">-- Select Relation with Guardian --</option>
+    <%
+      PreparedStatement psRelationWithGuardian = null;
+      ResultSet rsRelationWithGuardian = null;
+      try (Connection conn9 = DBConnection.getConnection()) {
+          String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
+          psRelationWithGuardian = conn9.prepareStatement(sql);
+          rsRelationWithGuardian = psRelationWithGuardian.executeQuery();
+          while (rsRelationWithGuardian.next()) {
+              String relationWithGuardian = rsRelationWithGuardian.getString("DESCRIPTION");
+    %>
+              <option value="<%= relationWithGuardian %>"><%= relationWithGuardian %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Relation With Guardian</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsRelationWithGuardian != null) rsRelationWithGuardian.close();
+          if (psRelationWithGuardian != null) psRelationWithGuardian.close();
+      }
+    %>
+  </select>
       </div>
 <!-- Row 4 -->
       <div>
