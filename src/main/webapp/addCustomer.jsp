@@ -126,20 +126,89 @@
 <!-- Row 4 -->
       <div>
         <label>Religion Code</label>
-        <input type="text" name="religionCode">
-      </div>
+        <select name="religionyCode" required>
+    <option value="">-- Select Religion Code --</option>
+    <%
+      PreparedStatement psReligionCode = null;
+      ResultSet rsReligionCode = null;
+      try (Connection conn7 = DBConnection.getConnection()) {
+          String sql = "SELECT RELIGION_CODE FROM GLOBALCONFIG.RELIGIONCASTE ORDER BY RELIGION_CODE";
+          psReligionCode = conn7.prepareStatement(sql);
+          rsReligionCode = psReligionCode.executeQuery();
+          while (rsReligionCode.next()) {
+              String religionCode = rsReligionCode.getString("RELIGION_CODE");
+    %>
+              <option value="<%= religionCode %>"><%= religionCode %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Religion Code</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsReligionCode != null) rsReligionCode.close();
+          if (psReligionCode != null) psReligionCode.close();
+      }
+    %>
+  </select>
+</div>
 
     
 
       <div>
         <label>Caste Code</label>
-        <input type="text" name="casteCode">
+        <select name="Caste Code" required>
+    <option value="">-- Select Caste Code --</option>
+    <%
+      PreparedStatement psCasteCode = null;
+      ResultSet rsCasteCode = null;
+      try (Connection conn8 = DBConnection.getConnection()) {
+          String sql = "SELECT CASTE_CODE FROM GLOBALCONFIG.RELIGIONCASTE ORDER BY CASTE_CODE";
+          psCasteCode = conn8.prepareStatement(sql);
+          rsCasteCode = psCasteCode.executeQuery();
+          while (rsCasteCode.next()) {
+              String casteCode = rsCasteCode.getString("CASTE_CODE");
+    %>
+              <option value="<%= casteCode %>"><%= casteCode %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Caste Code</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsCasteCode != null) rsCasteCode.close();
+          if (psCasteCode != null) psCasteCode.close();
+      }
+    %>
+  </select>
       </div>
       
       <div>
-        <label>Category Code</label>
-        <input type="text" name="categoryCode" value="PUBLIC">
-      </div>
+  <label>Category Code</label>
+  <select name="categoryCode" required>
+    <option value="">-- Select Category --</option>
+    <%
+      PreparedStatement psCategory = null;
+      ResultSet rsCategory = null;
+      try (Connection conn2 = DBConnection.getConnection()) {
+          String sql = "SELECT CATEGORY_CODE FROM GLOBALCONFIG.CATEGORY ORDER BY CATEGORY_CODE";
+          psCategory = conn2.prepareStatement(sql);
+          rsCategory = psCategory.executeQuery();
+          while (rsCategory.next()) {
+              String categoryCode = rsCategory.getString("CATEGORY_CODE");
+    %>
+              <option value="<%= categoryCode %>"><%= categoryCode %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading categories</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsCategory != null) rsCategory.close();
+          if (psCategory != null) psCategory.close();
+      }
+    %>
+  </select>
+</div>
       
       <div>
         <label>Sub Category Code</label>
@@ -149,18 +218,60 @@
       
 <!-- Row 5 -->
       <div>
-        <label>Constitution Code</label>
-        <input type="text" name="constitutionCode">
-      </div>
+  <label>Constitution Code</label>
+  <select name="categoryCode" required>
+    <option value="">-- Select Constitution Code --</option>
+    <%
+      PreparedStatement psConstitutionCode = null;
+      ResultSet rsConstitutionCode = null;
+      try (Connection conn3 = DBConnection.getConnection()) {
+          String sql = "SELECT CONSTITUTION_CODE FROM GLOBALCONFIG.CONSTITUTION ORDER BY CONSTITUTION_CODE";
+          psConstitutionCode = conn3.prepareStatement(sql);
+          rsConstitutionCode = psConstitutionCode.executeQuery();
+          while (rsConstitutionCode.next()) {
+              String constitutionCode = rsConstitutionCode.getString("CONSTITUTION_CODE");
+    %>
+              <option value="<%= constitutionCode %>"><%= constitutionCode %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Constitution Code</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsConstitutionCode != null) rsConstitutionCode.close();
+          if (psConstitutionCode != null) psConstitutionCode.close();
+      }
+    %>
+  </select>
+</div>
 
       <div>
-        <label>Occupation Code</label>
-        <select name="occupationCode">
-          <option>NOT DEFINE</option>
-          <option>EMPLOYED</option>
-          <option>SELF EMPLOYED</option>
-        </select>
-      </div>
+  <label>Occupation Code</label>
+  <select name="occupationCode" required>
+    <option value="">-- Select Occupation Code --</option>
+    <%
+      PreparedStatement psOccupationCode = null;
+      ResultSet rsOccupationCode = null;
+      try (Connection conn4 = DBConnection.getConnection()) {
+          String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.OCCUPATION ORDER BY OCCUPATION_ID";
+          psOccupationCode = conn4.prepareStatement(sql);
+          rsOccupationCode = psOccupationCode.executeQuery();
+          while (rsOccupationCode.next()) {
+              String occupationCode = rsOccupationCode.getString("DESCRIPTION");
+    %>
+              <option value="<%= occupationCode %>"><%= occupationCode %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Occupation Code</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsOccupationCode != null) rsOccupationCode.close();
+          if (psOccupationCode != null) psOccupationCode.close();
+      }
+    %>
+  </select>
+</div>
 
       <div>
         <label>Vehicle Owned</label>
@@ -168,12 +279,17 @@
           <option>NOT APPLICABLE</option>
           <option>CAR</option>
           <option>BIKE</option>
+          <option>BOTH</option>
         </select>
       </div>
 
        <div>
         <label>Member Type</label>
-        <input type="text" name="memberType" value="B">
+        <select name="memberType">
+          <option>A</option>
+          <option>B</option>
+          <option>O</option>
+        </select>
       </div>
 
       
@@ -262,21 +378,41 @@
     </div>
 
     <div>
-      <label>Residence Type</label>
-      <select name="residenceType">
-        <option>NOT APPLICABLE</option>
-        <option>OWNED</option>
-        <option>RENTED</option>
-        <option>LEASED</option>
-      </select>
-    </div>
+  <label>Residence Type</label>
+  <select name="residenceType" required>
+    <option value="">-- Select Residence Type --</option>
+    <%
+      PreparedStatement psResidenceType = null;
+      ResultSet rsResidenceType = null;
+      try (Connection conn5 = DBConnection.getConnection()) {
+          String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RESIDENCETYPE ORDER BY RESIDENCETYPE_ID ";
+          psResidenceType = conn5.prepareStatement(sql);
+          rsResidenceType = psResidenceType.executeQuery();
+          while (rsResidenceType.next()) {
+              String residenceType = rsResidenceType.getString("DESCRIPTION");
+    %>
+              <option value="<%= residenceType %>"><%= residenceType %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Residence Type</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsResidenceType != null) rsResidenceType.close();
+          if (psResidenceType != null) psResidenceType.close();
+      }
+    %>
+  </select>
+</div>
 
     <div>
       <label>Residence Status</label>
       <select name="residenceStatus">
         <option>NOT APPLICABLE</option>
-        <option>PERMANENT</option>
-        <option>TEMPORARY</option>
+        <option>BANGLOW</option>
+        <option>ROW HOUSE</option>
+        <option>FLAT</option>
+        <option>OTHER</option>
       </select>
     </div>
 
@@ -314,14 +450,35 @@
         <option>Goa</option>
       </select>
     </div>
+    
+    
     <div>
       <label>City</label>
-      <select name="city">
-        <option>GADAG</option>
-        <option>DHARWAD</option>
-        <option>HUBLI</option>
-      </select>
-    </div>
+      <select name="city" required>
+    <option value="">-- Select City --</option>
+    <%
+      PreparedStatement psCity = null;
+      ResultSet rsCity = null;
+      try (Connection conn6 = DBConnection.getConnection()) {
+          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY CITY_CODE ";
+          psCity = conn6.prepareStatement(sql);
+          rsCity = psCity.executeQuery();
+          while (rsCity.next()) {
+              String city = rsCity.getString("NAME");
+    %>
+              <option value="<%= city %>"><%= city %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Residence Type</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsCity != null) rsCity.close();
+          if (psCity != null) psCity.close();
+      }
+    %>
+  </select>
+</div>
 
     <!-- Row 4 -->
     <div>
@@ -390,9 +547,7 @@
         <tr><td>Govt. Documents</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Electricity Bill</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr><td>Ration Card</td><td><input type="date"></td><td><input type="text" name="ration" id="ration" maxlength="15" pattern="^[A-Z]{2}-\d{2}-\d{6,7}$" title="Enter valid Ration Card No (e.g., TN-10-1234567)" style="text-transform:uppercase;" required></td></tr>
-        <tr><td>Passport</td><td><input type="date"></td><td><input type="text" name="passport" id="passport" maxlength="8" pattern="^[A-PR-WYa-pr-wy][1-9][0-9]{6}$" title="Enter valid Indian Passport No (e.g., A1234567)" style="text-transform:uppercase;" required></td></tr>
-        <tr><td>Aadhar Card</td><td><input type="date"></td><td><input type="text" pattern="^[2-9][0-9]{11}$" maxlength="12" inputmode="numeric" title="Enter a valid 12-digit number starting with 2-9" required oninput="this.value=this.value.replace(/\D/g,'').slice(0,12); while(this.value && !/^[2-9]/.test(this.value)) this.value=this.value.slice(1)">
-</td></tr>
+
       </table>
     </div>
   </div>
