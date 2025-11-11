@@ -323,6 +323,20 @@ hr {
   margin: 15px 0;
 }
 
+/* ✅ Bigger Checkboxes Styling */
+input[type="checkbox"] {
+  width: 20px !important;   /* increase width */
+  height: 20px !important;  /* increase height */
+  cursor: pointer;
+}
+
+/* ✅ Center checkboxes neatly in table cells */
+td input[type="checkbox"] {
+  vertical-align: middle;
+  display: block;
+  margin: 0px 0px 0px 0px;
+}
+
 /* 🔹 Responsive Adjustments */
 @media (max-width: 900px) {
   .kyc-row {
@@ -390,3 +404,5 @@ hr {
     padding: 10px;
   }
 }
+
+
