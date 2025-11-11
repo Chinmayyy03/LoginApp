@@ -406,3 +406,18 @@ td input[type="checkbox"] {
 }
 
 
+
+
+/* Hide arrows in Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
+}
+
+/* Hide arrows in Firefox */
+input[type=number] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
