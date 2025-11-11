@@ -507,7 +507,7 @@
     <div>
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
-        <input type="text" value="+91" style="width: 45px; text-align: center;" readonly>
+
         <input type="number" name="mobileNo">
       </div>
     </div>
