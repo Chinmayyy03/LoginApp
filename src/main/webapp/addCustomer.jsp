@@ -33,7 +33,7 @@
 </head>
 <body>
 
-<form>
+<form action="AddCustomerServlet" method="post" onsubmit="return validateForm()">
   <!----------------------------------------------------------------------- Main customer details -------------------------------------------------------------------->
   <%
     // Generate a new Customer ID based on total customers
@@ -189,7 +189,7 @@
 
       <div>
         <label>Caste Code</label>
-        <select name="Caste Code" required>
+        <select name="casteCode" required>
     <option value="">-- Select Caste Code --</option>
     <%
       PreparedStatement psCasteCode = null;
@@ -252,7 +252,7 @@
 <!-- Row 5 -->
       <div>
   <label>Constitution Code</label>
-  <select name="categoryCode" required>
+  <select name="constitutionCode" required>
     <option value="">-- Select Constitution Code --</option>
     <%
       PreparedStatement psConstitutionCode = null;
@@ -548,7 +548,7 @@
 
   <!-- Row 1: ID Proof / Address Proof -->
   <div class="kyc-row">
-    <!-- Left Column -->
+    <!-- Left Column: ID Proof -->
     <div class="kyc-section">
       <h4>Savings Account (ID Proof)</h4>
       <table>
@@ -558,61 +558,47 @@
         <tr>
           <td><input type="checkbox" name="passport_check"></td>
           <td>Passport</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="passportNumber" id="passportNumber" maxlength="8"
-            oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
-              if(!/^[A-PR-WY][1-9]\d{0,6}$/.test(this.value) && this.value.length > 0){
-                this.setCustomValidity('Invalid passport format (e.g. A1234567)');
-              } else {
-                this.setCustomValidity('');
-              }">
+          <td><input type="date" name="passport_expiry"></td>
+          <td><input type="text" name="passportNumber" id="passportNumber">
           </td>
         </tr>
         <tr>
           <td><input type="checkbox" name="pan_check"></td>
           <td>PAN Card</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="pan" id="pan" maxlength="10"
-            pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)"
-            style="text-transform:uppercase;" required>
+          <td><input type="date" name="pan_expiry"></td>
+          <td><input type="text" name="pan" id="pan"
+            style="text-transform:uppercase;">
           </td>
         </tr>
         <tr>
           <td><input type="checkbox" name="voterid_check"></td>
           <td>Election Card</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="voterid" id="voterid" maxlength="10"
-            pattern="[A-Z]{3}[0-9]{7}" title="Enter valid Voter ID (e.g., ABC1234567)"
-            style="text-transform:uppercase;" required>
+          <td><input type="date" name="voterid_expiry"></td>
+          <td><input type="text" name="voterid" id="voterid"
+            style="text-transform:uppercase;">
           </td>
         </tr>
         <tr>
           <td><input type="checkbox" name="dl_check"></td>
           <td>Driving License</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="dl" id="dl" maxlength="16"
-            pattern="^[A-Z]{2}[0-9]{2}\s?[0-9]{11}$" title="Enter valid Driving Licence No (e.g., MH14 20220012345)"
-            style="text-transform:uppercase;" required>
+          <td><input type="date" name="dl_expiry"></td>
+          <td><input type="text" name="dl" id="dl"
+            style="text-transform:uppercase;">
           </td>
         </tr>
         <tr>
           <td><input type="checkbox" name="aadhar_check"></td>
           <td>Aadhar Card</td>
-          <td><input type="date"></td>
-          <td><input type="text" pattern="^[2-9][0-9]{11}$" maxlength="12"
-            inputmode="numeric" title="Enter a valid 12-digit number starting with 2-9"
-            required oninput="this.value=this.value.replace(/\D/g,'').slice(0,12);
-              while(this.value && !/^[2-9]/.test(this.value)) this.value=this.value.slice(1)">
+          <td><input type="date" name="aadhar_expiry"></td>
+          <td><input type="text" name="aadhar">
           </td>
         </tr>
         <tr>
           <td><input type="checkbox" name="nrega_check"></td>
           <td>NREGA Job Card</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="nrega" id="nrega" maxlength="21"
-            pattern="^[A-Z]{2}-\d{2}-\d{3}-\d{3}-\d{7}$"
-            title="Enter valid NREGA Job Card No (e.g., MH-12-123-001-0001234)"
-            style="text-transform:uppercase;" required>
+          <td><input type="date" name="nrega_expiry"></td>
+          <td><input type="text" name="nrega" id="nrega"
+            style="text-transform:uppercase;">
           </td>
         </tr>
       </table>
@@ -621,25 +607,43 @@
     <!-- Vertical Divider -->
     <div class="kyc-divider"></div>
 
-    <!-- Right Column -->
+    <!-- Right Column: Address Proof -->
     <div class="kyc-section">
       <h4>Savings Account (Address Proof)</h4>
       <table>
         <tr>
           <th>Select</th><th>Document</th><th>Expiry Date</th><th>Document Number</th>
         </tr>
-        <tr><td><input type="checkbox"></td><td>Telephone Bill</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Bank Statement</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Govt. Documents</td><td><input type="date"></td><td><input type="text"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Electricity Bill</td><td><input type="date"></td><td><input type="text"></td></tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" name="telephone_check"></td>
+          <td>Telephone Bill</td>
+          <td><input type="date" name="telephone_expiry"></td>
+          <td><input type="text" name="telephone"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="bank_check"></td>
+          <td>Bank Statement</td>
+          <td><input type="date" name="bank_expiry"></td>
+          <td><input type="text" name="bank_statement"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="govt_check"></td>
+          <td>Govt. Documents</td>
+          <td><input type="date" name="govt_expiry"></td>
+          <td><input type="text" name="govt_doc"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="electricity_check"></td>
+          <td>Electricity Bill</td>
+          <td><input type="date" name="electricity_expiry"></td>
+          <td><input type="text" name="electricity"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="ration_check"></td>
           <td>Ration Card</td>
-          <td><input type="date"></td>
-          <td><input type="text" name="ration" id="ration" maxlength="15"
-            pattern="^[A-Z]{2}-\d{2}-\d{6,7}$"
-            title="Enter valid Ration Card No (e.g., TN-10-1234567)"
-            style="text-transform:uppercase;" required>
+          <td><input type="date" name="ration_expiry"></td>
+          <td><input type="text" name="ration" id="ration"
+            style="text-transform:uppercase;">
           </td>
         </tr>
       </table>
@@ -654,11 +658,31 @@
       <h4>Accounts of Proprietary Concern</h4>
       <table>
         <tr><th>Select</th><th>Document</th><th>Expiry Date</th></tr>
-        <tr><td><input type="checkbox"></td><td>Registered Rent Agreement Copy</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Certificate / License</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Sales and Income Tax Returns</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>CST / VAT Certificate</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>License issued by Registering Authority</td><td><input type="date"></td></tr>
+        <tr>
+          <td><input type="checkbox" name="rent_check"></td>
+          <td>Registered Rent Agreement Copy</td>
+          <td><input type="date" name="rent_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="cert_check"></td>
+          <td>Certificate / License</td>
+          <td><input type="date" name="cert_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="tax_check"></td>
+          <td>Sales and Income Tax Returns</td>
+          <td><input type="date" name="tax_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="cst_check"></td>
+          <td>CST / VAT Certificate</td>
+          <td><input type="date" name="cst_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="reg_check"></td>
+          <td>License issued by Registering Authority</td>
+          <td><input type="date" name="reg_expiry"></td>
+        </tr>
       </table>
     </div>
 
@@ -668,9 +692,21 @@
       <h4>Business Concern</h4>
       <table>
         <tr><th>Select</th><th>Document</th><th>Expiry Date</th></tr>
-        <tr><td><input type="checkbox"></td><td>Certificate of Incorporation</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Resolution of the Board of Directors</td><td><input type="date"></td></tr>
-        <tr><td><input type="checkbox"></td><td>Power of Attorney granted to its Managers</td><td><input type="date"></td></tr>
+        <tr>
+          <td><input type="checkbox" name="inc_check"></td>
+          <td>Certificate of Incorporation</td>
+          <td><input type="date" name="inc_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="board_check"></td>
+          <td>Resolution of the Board of Directors</td>
+          <td><input type="date" name="board_expiry"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" name="poa_check"></td>
+          <td>Power of Attorney granted to its Managers</td>
+          <td><input type="date" name="poa_expiry"></td>
+        </tr>
       </table>
     </div>
   </div>
@@ -737,7 +773,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
-
 
 </script>
 </body>
