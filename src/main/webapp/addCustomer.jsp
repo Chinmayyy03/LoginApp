@@ -35,6 +35,21 @@
 
 <form>
   <!----------------------------------------------------------------------- Main customer details -------------------------------------------------------------------->
+  <%
+    // Generate a new Customer ID based on total customers
+    int newCustomerNumber = totalCustomers + 1;
+    String customerId = String.format("0001", newCustomerNumber); // Example: CUST0001
+%>
+
+<!-- Customer ID Field (UI only) -->
+<div class="form-grid" style="margin-bottom: 10px;">
+  <div style="flex-direction: row;">
+    <label>Customer ID</label>
+    <input style="width:100px; margin-left: 10px; margin-top:-5px; font-size : 15px; background-color:#e8e4fc; " type="text" name="customerId" value="<%= customerId %>" readonly>
+  </div>
+</div>
+  
+  
   <fieldset>
     <legend>Customer Information</legend>
     <div class="form-grid">
@@ -594,7 +609,7 @@
           <td><input type="checkbox" name="nrega_check"></td>
           <td>NREGA Job Card</td>
           <td><input type="date"></td>
-          <td><input type="text" name="nrega" id="nrega" maxlength="20"
+          <td><input type="text" name="nrega" id="nrega" maxlength="21"
             pattern="^[A-Z]{2}-\d{2}-\d{3}-\d{3}-\d{7}$"
             title="Enter valid NREGA Job Card No (e.g., MH-12-123-001-0001234)"
             style="text-transform:uppercase;" required>
