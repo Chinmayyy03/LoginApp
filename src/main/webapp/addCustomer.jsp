@@ -339,7 +339,7 @@
       
       <div>
         <label>Member Number</label>
-        <input type="text" name="memberNumber" value="">
+        <input type="text" name="memberNumber" value="" maxlength="2">
       </div>
 
       <div>
@@ -516,26 +516,26 @@
     <!-- Row 4 -->
     <div>
       <label>Zip</label>
-      <input type="number" name="zip" value="">
+      <input type="text" name="zip" value="">
     </div>
 
     <div>
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
 
-        <input type="number" name="mobileNo">
+        <input type="text" name="mobileNo">
       </div>
     </div>
 
     <div>
       <label>Residence Phone</label>
-      <input type="number" name="residencePhone" value="">
+      <input type="text" name="residencePhone" value="">
     </div>
 
     <!-- Row 5 -->
     <div>
       <label>Office Phone</label>
-      <input type="number" name="officePhone" value="">
+      <input type="text" name="officePhone" value="">
     </div>
   </div>
 </fieldset>
@@ -774,6 +774,348 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
+
+
+//Validation patterns
+const validationPatterns = {
+    gstin: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+    pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+    aadhar: /^[0-9]{12}$/,
+    mobile: /^[6-9][0-9]{9}$/,
+    phone: /^[0-9]{10,11}$/,
+    zip: /^[0-9]{6}$/,
+    voterId: /^[A-Z]{3}[0-9]{7}$/,
+    drivingLicense: /^[A-Z]{2}[0-9]{13}$/,
+    passport: /^[A-Z]{1}[0-9]{7}$/,
+    nrega: /^[A-Z]{2}-[0-9]{2}-[0-9]{3}-[0-9]{3}-[0-9]{6}$/
+};
+
+// Real-time input formatting and validation
+function setupFieldValidations() {
+    // GSTIN validation
+    const gstinField = document.querySelector('input[name="gstinNo"]');
+    if (gstinField) {
+        gstinField.maxLength = 15;
+        gstinField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        gstinField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.gstin.test(this.value)) {
+                showError(this, 'Invalid GSTIN format (e.g., 22AAAAA0000A1Z5)');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Member Number validation (only 2 digits)
+    const memberField = document.querySelector('input[name="memberNumber"]');
+    if (memberField) {
+        memberField.maxLength = 2;
+        memberField.addEventListener('input', function(e) {
+            // Only allow numbers, max 2 digits
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
+        });
+        memberField.addEventListener('blur', function() {
+            if (this.value && this.value.length !== 2) {
+                showError(this, 'Member Number must be exactly 2 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // ZIP Code validation
+    const zipField = document.querySelector('input[name="zip"]');
+    if (zipField) {
+        zipField.maxLength = 6;
+        zipField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
+        zipField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.zip.test(this.value)) {
+                showError(this, 'ZIP code must be 6 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Mobile Number validation
+    const mobileField = document.querySelector('input[name="mobileNo"]');
+    if (mobileField) {
+        mobileField.maxLength = 10;
+        mobileField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+        mobileField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.mobile.test(this.value)) {
+                showError(this, 'Mobile number must be 10 digits starting with 6-9');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Residence Phone validation
+    const residencePhoneField = document.querySelector('input[name="residencePhone"]');
+    if (residencePhoneField) {
+        residencePhoneField.maxLength = 11;
+        residencePhoneField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+        });
+        residencePhoneField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.phone.test(this.value)) {
+                showError(this, 'Phone number must be 10-11 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Office Phone validation
+    const officePhoneField = document.querySelector('input[name="officePhone"]');
+    if (officePhoneField) {
+        officePhoneField.maxLength = 11;
+        officePhoneField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+        });
+        officePhoneField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.phone.test(this.value)) {
+                showError(this, 'Phone number must be 10-11 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Passport Number validation
+    const passportField = document.getElementById('passportNumber');
+    if (passportField) {
+        passportField.maxLength = 8;
+        passportField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        passportField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.passport.test(this.value)) {
+                showError(this, 'Passport format: 1 letter + 7 digits (e.g., A1234567)');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // PAN Card validation
+    const panField = document.getElementById('pan');
+    if (panField) {
+        panField.maxLength = 10;
+        panField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        panField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.pan.test(this.value)) {
+                showError(this, 'PAN format: ABCDE1234F (5 letters, 4 digits, 1 letter)');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Voter ID validation
+    const voterIdField = document.getElementById('voterid');
+    if (voterIdField) {
+        voterIdField.maxLength = 10;
+        voterIdField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        voterIdField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.voterId.test(this.value)) {
+                showError(this, 'Voter ID format: ABC1234567 (3 letters + 7 digits)');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Driving License validation
+    const dlField = document.getElementById('dl');
+    if (dlField) {
+        dlField.maxLength = 15;
+        dlField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        dlField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.drivingLicense.test(this.value)) {
+                showError(this, 'DL format: AB1234567890123 (2 letters + 13 digits)');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // Aadhar Card validation
+    const aadharField = document.querySelector('input[name="aadhar"]');
+    if (aadharField) {
+        aadharField.maxLength = 12;
+        aadharField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
+        });
+        aadharField.addEventListener('blur', function() {
+            if (this.value && !validationPatterns.aadhar.test(this.value)) {
+                showError(this, 'Aadhar must be exactly 12 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
+
+    // NREGA Job Card validation
+    const nregaField = document.getElementById('nrega');
+    if (nregaField) {
+        nregaField.maxLength = 22;
+        nregaField.addEventListener('input', function(e) {
+            let value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            // Auto-format: AB-12-345-678-901234
+            if (value.length > 2 && value[2] !== '-') {
+                value = value.slice(0, 2) + '-' + value.slice(2);
+            }
+            if (value.length > 5 && value[5] !== '-') {
+                value = value.slice(0, 5) + '-' + value.slice(5);
+            }
+            if (value.length > 9 && value[9] !== '-') {
+                value = value.slice(0, 9) + '-' + value.slice(9);
+            }
+            if (value.length > 13 && value[13] !== '-') {
+                value = value.slice(0, 13) + '-' + value.slice(13);
+            }
+            this.value = value;
+        });
+    }
+
+    // Document number validations (alphanumeric)
+    const docFields = ['telephone', 'bank_statement', 'govt_doc', 'electricity'];
+    docFields.forEach(fieldName => {
+        const field = document.querySelector(`input[name="${fieldName}"]`);
+        if (field) {
+            field.maxLength = 20;
+            field.addEventListener('input', function(e) {
+                this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            });
+        }
+    });
+
+    // Ration Card validation
+    const rationField = document.getElementById('ration');
+    if (rationField) {
+        rationField.maxLength = 15;
+        rationField.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    }
+}
+
+// Show error message
+function showError(field, message) {
+    clearError(field);
+    field.style.borderColor = '#ff0000';
+    field.style.backgroundColor = '#ffe6e6';
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.color = '#ff0000';
+    errorDiv.style.fontSize = '11px';
+    errorDiv.style.marginTop = '3px';
+    errorDiv.textContent = message;
+    
+    field.parentNode.appendChild(errorDiv);
+}
+
+// Clear error message
+function clearError(field) {
+    field.style.borderColor = '';
+    field.style.backgroundColor = '';
+    
+    const errorDiv = field.parentNode.querySelector('.error-message');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
+}
+
+// Enhanced form validation before submit
+function validateForm() {
+    let isValid = true;
+    const errors = [];
+
+    // Validate GSTIN if filled
+    const gstin = document.querySelector('input[name="gstinNo"]').value;
+    if (gstin && !validationPatterns.gstin.test(gstin)) {
+        errors.push('Invalid GSTIN number');
+        isValid = false;
+    }
+
+    // Validate Mobile Number (required)
+    const mobile = document.querySelector('input[name="mobileNo"]').value;
+    if (!mobile) {
+        errors.push('Mobile number is required');
+        isValid = false;
+    } else if (!validationPatterns.mobile.test(mobile)) {
+        errors.push('Invalid mobile number');
+        isValid = false;
+    }
+
+    // Validate ZIP if filled
+    const zip = document.querySelector('input[name="zip"]').value;
+    if (zip && !validationPatterns.zip.test(zip)) {
+        errors.push('Invalid ZIP code');
+        isValid = false;
+    }
+
+    // Validate PAN if filled
+    const pan = document.getElementById('pan').value;
+    if (pan && !validationPatterns.pan.test(pan)) {
+        errors.push('Invalid PAN card number');
+        isValid = false;
+    }
+
+    // Validate Aadhar if filled
+    const aadhar = document.querySelector('input[name="aadhar"]').value;
+    if (aadhar && !validationPatterns.aadhar.test(aadhar)) {
+        errors.push('Invalid Aadhar number');
+        isValid = false;
+    }
+
+    // Validate Passport if filled
+    const passport = document.getElementById('passportNumber').value;
+    if (passport && !validationPatterns.passport.test(passport)) {
+        errors.push('Invalid Passport number');
+        isValid = false;
+    }
+
+    // Validate Voter ID if filled
+    const voterId = document.getElementById('voterid').value;
+    if (voterId && !validationPatterns.voterId.test(voterId)) {
+        errors.push('Invalid Voter ID');
+        isValid = false;
+    }
+
+    // Validate Driving License if filled
+    const dl = document.getElementById('dl').value;
+    if (dl && !validationPatterns.drivingLicense.test(dl)) {
+        errors.push('Invalid Driving License number');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        alert('Please fix the following errors:\n\n' + errors.join('\n'));
+    }
+
+    return isValid;
+}
+
+// Initialize validations when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupFieldValidations();
+});
 </script>
 </body>
 </html>
