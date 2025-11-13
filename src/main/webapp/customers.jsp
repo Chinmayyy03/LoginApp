@@ -20,7 +20,7 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #fafafa;
+        background-color: #e8e4fc;
         margin: 0;
     }
     h2 {
