@@ -119,7 +119,7 @@
 
       <div>
         <label>Birth Date</label>
-        <input type="date" name="birthDate">
+        <input type="date" name="birthDate" required>
       </div>
 <!-- Row 3 -->
       <div>
