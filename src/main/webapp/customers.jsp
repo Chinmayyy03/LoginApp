@@ -1,266 +1,155 @@
+<%@ page import="java.sql.*, db.DBConnection" %>
+<%@ page contentType="text/html; charset=UTF-8" %>
+
 <%
-    String branchCode = (String) session.getAttribute("branchCode");
-    if (branchCode == null) {
+    // ✅ Get branch code from session
+    HttpSession sess = request.getSession(false);
+    if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+
+    String branchCode = (String) sess.getAttribute("branchCode");
 %>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
+<meta charset="UTF-8">
+<title>Customer Data - Branch <%= branchCode %></title>
+<style>
     body {
-      background: #f5f7fa;
-      
-      margin: 0;
-      padding: 20px;
+        font-family: Arial, sans-serif;
+        background-color: #fafafa;
+        margin: 0;
     }
-
-    /* Dashboard Layout */
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    h2 {
+        text-align: center;
+        color: #2b0d73;
+        margin-top: 20px;
     }
-
-    /* Top Section */
-    .top-section {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
+    .search-container {
+        text-align: center;
+        margin: 10px 0;
     }
-
-    .card {
-      flex: 1;
-      background: linear-gradient(135deg, #007bff, #00bfff);
-      color: white;
-      text-align: center;
-      border-radius: 15px;
-      padding: 20px;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    .search-container input {
+        width: 40%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
     }
-
-    .card span {
-      display: block;
-      font-size: 1.8rem;
-      margin-top: 10px;
+    .table-container {
+        overflow-x: auto;
+        margin: 20px;
+        border: 1px solid #ccc;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-
-    /* Content (Middle + Right Sections) */
-    .content {
-      display: flex;
-      gap: 20px;
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        white-space: nowrap;
     }
-
-    .left-section {
-      flex: 2;
+    th, td {
+        border: 1px solid #ccc;
+        padding: 6px 8px;
+        text-align: left;
     }
-
-    .right-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    th {
+        background-color: #2b0d73;
+        color: white;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 2;
     }
-
-    /* Monthly Income Chart */
-    .income-chart {
-      background: linear-gradient(135deg, #3a7bd5, #3a6073);
-      color: white;
-      border-radius: 20px;
-      padding: 20px;
-      text-align: left;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
     }
-
-    .income-chart h3 {
-      margin-bottom: 10px;
-      font-size: 1.4rem;
+    .no-data {
+        text-align: center;
+        color: red;
+        font-weight: bold;
+        padding: 10px;
     }
+</style>
+<script>
+    // ✅ Live search filter (client-side)
+    function searchTable() {
+        var input = document.getElementById("searchInput");
+        var filter = input.value.toLowerCase();
+        var table = document.getElementById("customerTable");
+        var trs = table.getElementsByTagName("tr");
 
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px;
+        // Skip header row
+        for (var i = 1; i < trs.length; i++) {
+            var tds = trs[i].getElementsByTagName("td");
+            var found = false;
+            for (var j = 0; j < tds.length; j++) {
+                if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+            trs[i].style.display = found ? "" : "none";
+        }
     }
-
-    /* Subscription Card */
-    .subscription-card {
-      background: #4caf50;
-      color: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .subscription-card h4 {
-      margin: 0 0 10px;
-      font-size: 1.2rem;
-    }
-
-    .progress {
-      width: 80%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
-      margin-top: 10px;
-      position: relative;
-    }
-
-    .progress::after {
-      content: '';
-      position: absolute;
-      height: 10px;
-      width: 25%;
-      background: white;
-      border-radius: 5px;
-    }
-
-    /* Recent Transactions */
-    .transactions {
-      background: #001f3f;
-      color: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .transactions h4 {
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-    }
-
-    .transactions ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .transactions li {
-      margin-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      padding-bottom: 5px;
-    }
-
-    .transactions b {
-      display: block;
-    }
-
-    .transactions .red {
-      color: #ff4d4d;
-      float: right;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .content {
-        flex-direction: column;
-      }
-
-      .top-section {
-        flex-direction: column;
-      }
-    }
-  </style>
+</script>
 </head>
 <body>
 
-  <div class="dashboard">
+<h2>Customer Data for Branch: <%= branchCode %></h2>
 
-    <!-- Top Cards -->
-    <div class="top-section">
-      <div class="card">
-        Total Customers
-        <span>0</span>
-      </div>
-      <div class="card">
-        Total Loan
-        <span>0.00</span>
-      </div>
-      <div class="card">
-        Total Customers
-        <span>0</span>
-      </div>
-    </div>
+<div class="search-container">
+    🔍 <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search by any detail... (e.g. Name, Customer ID, Aadhaar)">
+</div>
 
-    <!-- Middle and Right Sections -->
-    <div class="content">
-      <!-- Left Section -->
-      <div class="left-section">
-        <div class="income-chart">
-          <h3>MONTHLY INCOME</h3>
-          <canvas id="incomeChart"></canvas>
-        </div>
-      </div>
+<div class="table-container">
+<table id="customerTable">
+<%
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(
+             "SELECT * FROM CUSTOMERS WHERE BRANCH_CODE = ? ORDER BY CUSTOMER_ID")) {
 
-      <!-- Right Section -->
-      <div class="right-section">
-        <div class="subscription-card">
-          <h4>Subscription</h4>
-          <p>$500 / $2000</p>
-          <div class="progress"></div>
-        </div>
+        ps.setString(1, branchCode);
+        ResultSet rs = ps.executeQuery();
+        ResultSetMetaData meta = rs.getMetaData();
+        int colCount = meta.getColumnCount();
 
-        <div class="transactions">
-          <h4>Recent Transactions</h4>
-          <ul>
-            <li><b>DK0955</b> Retail ZARA <span class="red">-$70</span></li>
-            <li><b>DK0955</b> Retail Home <span class="red">-$45</span></li>
-            <li><b>DK0955</b> Retail Online <span class="red">-$10</span></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Chart.js Script -->
-  <script>
-    const ctx = document.getElementById('incomeChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Income',
-          data: [80000, 95000, 90000, 105000, 98000, 120000],
-          borderColor: '#ffffff',
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#fff',
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          borderWidth: 2
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#fff' },
-            grid: { display: false }
-          },
-          y: {
-            ticks: { color: '#fff' },
-            grid: { color: 'rgba(255,255,255,0.2)' }
-          }
+        // ✅ Table Header
+        out.println("<tr>");
+        for (int i = 1; i <= colCount; i++) {
+            out.println("<th>" + meta.getColumnName(i) + "</th>");
         }
-      }
-    });
-  </script>
+        out.println("</tr>");
+
+        boolean hasData = false;
+
+        // ✅ Data Rows
+        while (rs.next()) {
+            hasData = true;
+            out.println("<tr>");
+            for (int i = 1; i <= colCount; i++) {
+                Object val = rs.getObject(i);
+                out.println("<td>" + (val == null ? "" : val.toString()) + "</td>");
+            }
+            out.println("</tr>");
+        }
+
+        if (!hasData) {
+            out.println("<tr><td colspan='" + colCount + "' class='no-data'>No customers found for this branch.</td></tr>");
+        }
+
+    } catch (Exception e) {
+        out.println("<tr><td colspan='95' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
+        e.printStackTrace();
+    }
+%>
+</table>
+</div>
 
 </body>
 </html>

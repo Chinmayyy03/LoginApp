@@ -36,19 +36,32 @@
 <form action="AddCustomerServlet" method="post" onsubmit="return validateForm()">
   <!----------------------------------------------------------------------- Main customer details -------------------------------------------------------------------->
   <%
-    // Generate a new Customer ID based on total customers
-    int newCustomerNumber = totalCustomers + 1;
-    String customerId = String.format("0001", newCustomerNumber); // Example: CUST0001
+    String lastCustomerId = (String) session.getAttribute("lastCustomerId");
+    String nextCustomerId = "CUST0001"; // default if no customer yet
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT MAX(CUSTOMER_ID) FROM CUSTOMERS");
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next() && rs.getString(1) != null) {
+            String maxId = rs.getString(1); // e.g., "CUST0004"
+            int numPart = Integer.parseInt(maxId.substring(4)); // extract 0004
+            nextCustomerId = String.format("CUST%04d", numPart + 1); // next = CUST0005
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 %>
 
-<!-- Customer ID Field (UI only) -->
+<!-- Customer ID Field (UI) -->
 <div class="form-grid" style="margin-bottom: 10px;">
   <div style="flex-direction: row;">
     <label>Customer ID</label>
-    <input style="width:100px; margin-left: 10px; margin-top:-5px; font-size : 15px; background-color:#e8e4fc; " type="text" name="customerId" value="<%= customerId %>" readonly>
+    <input style="width:120px; margin-left:10px; margin-top:-5px; font-size:15px; background-color:#e8e4fc;"
+           type="text" name="customerId" value="<%= nextCustomerId %>" readonly>
   </div>
 </div>
-  
+
   
   <fieldset>
     <legend>Customer Information</legend>
