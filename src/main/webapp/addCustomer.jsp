@@ -1120,6 +1120,17 @@ function updateCustomerName() {
 
     document.getElementById("customerName").value = fullName;
   }
+  
+  
+  
+  
+
+//Update breadcrumb on page load
+window.onload = function() {
+ if (window.parent && window.parent.updateParentBreadcrumb) {
+     window.parent.updateParentBreadcrumb('Add Customer');
+ }
+};
 </script>
 </body>
 </html>

@@ -31,25 +31,30 @@
 </head>
 <body>
     <div class="dashboard-container">
-    <div class="cards-wrapper">
-        <div class="card" onclick="openInParentFrame('customers.jsp')">
-            <h3>Total Customers</h3>
-            <p><%= totalCustomers %></p>
+        <div class="cards-wrapper">
+            <div class="card" onclick="openInParentFrame('customers.jsp', 'Dashboard > Total Customers')">
+                <h3>Total Customers</h3>
+                <p><%= totalCustomers %></p>
+            </div>
+            <div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Total Loan')">
+                <h3>Total Loan</h3>
+                <p><%= String.format("%,.2f", totalLoan) %></p>
+            </div>
         </div>
-        <div class="card"onclick="openInParentFrame('loanDetails.jsp')">
-            <h3>Total Loan</h3>
-            <p><%= String.format("%,.2f", totalLoan) %></p>
-        </div>
-        
     </div>
-</div>
- <script>
-        function openInParentFrame(page) {
+    
+    <script>
+        function openInParentFrame(page, breadcrumbPath) {
             // Access iframe in parent page and change its src
             if (window.parent && window.parent.document) {
                 const iframe = window.parent.document.getElementById("contentFrame");
                 if (iframe) {
                     iframe.src = page;
+                    
+                    // Update breadcrumb in parent
+                    if (window.parent.updateParentBreadcrumb) {
+                        window.parent.updateParentBreadcrumb(breadcrumbPath);
+                    }
                 } else {
                     alert("Iframe not found in parent page!");
                 }

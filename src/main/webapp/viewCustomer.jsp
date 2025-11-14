@@ -38,7 +38,34 @@
         background:#eee;
         width:30%;
     }
+    .back-btn {
+        background:#2b0d73;
+        color:white;
+        padding:6px 15px;
+        text-decoration:none;
+        border-radius:5px;
+        display:inline-block;
+    }
+    .back-btn:hover {
+        background:#1a0849;
+    }
 </style>
+<script>
+    // Update breadcrumb on page load
+    window.onload = function() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
+        }
+    };
+    
+    // Function to go back and update breadcrumb
+    function goBackToList() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
+        }
+        window.location.href = 'customers.jsp';
+    }
+</script>
 </head>
 <body>
 
@@ -81,7 +108,7 @@ try (Connection conn = DBConnection.getConnection();
 
 <br>
 <div style="text-align:center;">
-    <a href="customers.jsp" style="background:#2b0d73;color:white;padding:6px 15px;text-decoration:none;border-radius:5px;">
+    <a href="#" onclick="goBackToList(); return false;" class="back-btn">
         ← Back to List
     </a>
 </div>

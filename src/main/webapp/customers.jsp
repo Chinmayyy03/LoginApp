@@ -39,6 +39,21 @@
             trs[i].style.display = found ? "" : "none";
         }
     }
+    
+    // Update breadcrumb on page load
+    window.onload = function() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Total Customers');
+        }
+    };
+    
+    // Function to view customer details and update breadcrumb
+    function viewCustomer(customerId) {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
+        }
+        window.location.href = 'viewCustomer.jsp?cid=' + customerId;
+    }
 </script>
 </head>
 <body>
@@ -81,8 +96,8 @@ try (Connection conn = DBConnection.getConnection();
         out.println("<td>" + rs.getString("CUSTOMER_NAME") + "</td>");
         out.println("<td>" + rs.getString("MOBILE_NO") + "</td>");
         
-        // View button
-        out.println("<td><a href='viewCustomer.jsp?cid=" + cid + "' ");
+        // View button with onclick
+        out.println("<td><a href='#' onclick=\"viewCustomer('" + cid + "'); return false;\" ");
         out.println("style='background:#2b0d73;color:white;padding:4px 10px;");
         out.println("border-radius:4px;text-decoration:none;'>View Details</a></td>");
 
@@ -90,11 +105,11 @@ try (Connection conn = DBConnection.getConnection();
     }
 
     if (!hasData) {
-        out.println("<tr><td colspan='4' class='no-data'>No customers found for this branch.</td></tr>");
+        out.println("<tr><td colspan='5' class='no-data'>No customers found for this branch.</td></tr>");
     }
 
 } catch (Exception e) {
-    out.println("<tr><td colspan='4' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
+    out.println("<tr><td colspan='5' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
     e.printStackTrace();
 }
 %>

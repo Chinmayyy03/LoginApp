@@ -33,6 +33,7 @@
     <meta charset="UTF-8">
     <title>Main Dashboard</title>
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/breadcrumb.css">
 </head>
 <body>
 
@@ -45,20 +46,28 @@
     <ul class="menu">
     
        <li class="active">
-  			<a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', this); return false;">
-    		<img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-    		Dashboard
-  			</a>
-	   </li>
+            <a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
+                <img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+                Dashboard
+            </a>
+       </li>
 
         <li>
-        	<a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
-    		<img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
-    		Add Customer
-  			</a>
-		</li>
-		
+            <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
+                <img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+                Add Customer
+            </a>
+        </li>
+        
         <!-- Add new menu items here -->
+        <!-- Example: 
+        <li>
+            <a href="#" onclick="loadPage('loans.jsp', 'Loans', 'Loans', this); return false;">
+                <img src="images/loan.png" width="20" height="20">
+                Loans
+            </a>
+        </li>
+        -->
         
     </ul>
 
@@ -69,8 +78,9 @@
 
 <div class="main-content">
     <header>
-    	
-        <h1 id="pageTitle">Dashboard</h1>
+        <div id="breadcrumbNav" class="breadcrumb-container">
+            <!-- Breadcrumb will be dynamically inserted here -->
+        </div>
         <div id="liveDate"></div>
     </header>
 
@@ -90,17 +100,90 @@
 </div>
 
 <script>
-function loadPage(page, title, anchorEl) {
-    // load page & title
-    document.getElementById("contentFrame").src = page;
-    document.getElementById("pageTitle").innerText = title;
+// Breadcrumb navigation function
+function updateBreadcrumb(path) {
+    const breadcrumbNav = document.getElementById("breadcrumbNav");
+    const parts = path.split(' > ');
+    
+    let breadcrumbHTML = '';
+    
+    parts.forEach((part, index) => {
+        if (index === parts.length - 1) {
+            // Last item (current page) - not clickable
+            breadcrumbHTML += '<span class="breadcrumb-current">' + part + '</span>';
+        } else {
+            // Previous items - clickable
+            const isHome = (part === 'Dashboard');
+            const pageName = isHome ? 'dashboard.jsp' : getPageForBreadcrumb(part);
+            const previousPath = getPreviousPath(parts, index);
+            
+            breadcrumbHTML += '<div class="breadcrumb-item">' +
+                '<a href="#" class="breadcrumb-link" onclick="loadPageFromBreadcrumb(\'' + pageName + '\', \'' + part + '\', \'' + previousPath + '\'); return false;">' +
+                part +
+                '</a>' +
+                '<span class="breadcrumb-separator">></span>' +
+                '</div>';
+        }
+    });
+    
+    breadcrumbNav.innerHTML = breadcrumbHTML;
+}
 
-    // reset active classes and add to the clicked li
+// Helper function to get page URL from breadcrumb text
+function getPageForBreadcrumb(pageName) {
+    const pageMap = {
+        'Dashboard': 'dashboard.jsp',
+        'Add Customer': 'addCustomer.jsp',
+        'Total Customers': 'customers.jsp',
+        'Loan Details': 'loanDetails.jsp'
+    };
+    return pageMap[pageName] || 'dashboard.jsp';
+}
+
+// Helper function to reconstruct path up to a certain index
+function getPreviousPath(parts, endIndex) {
+    return parts.slice(0, endIndex + 1).join(' > ');
+}
+
+// Load page from breadcrumb click
+function loadPageFromBreadcrumb(page, title, path) {
+    document.getElementById("contentFrame").src = page;
+    updateBreadcrumb(path);
+    
+    // Update active menu item
+    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
+    const menuLink = Array.from(document.querySelectorAll(".menu li a")).find(
+        a => a.textContent.trim().includes(title)
+    );
+    if (menuLink) {
+        menuLink.closest('li').classList.add("active");
+    }
+}
+
+// Main page load function
+function loadPage(page, title, breadcrumbPath, anchorEl) {
+    // Load page
+    document.getElementById("contentFrame").src = page;
+    
+    // Update breadcrumb
+    updateBreadcrumb(breadcrumbPath);
+    
+    // Reset active classes and add to the clicked li
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
     if (anchorEl && anchorEl.closest) {
         anchorEl.closest('li').classList.add("active");
     }
 }
+
+// Function to be called from iframe (for card clicks)
+window.updateParentBreadcrumb = function(path) {
+    updateBreadcrumb(path);
+};
+
+// Initialize breadcrumb on page load
+window.onload = function() {
+    updateBreadcrumb('Dashboard');
+};
 
 // Live date updater
 function updateDate() {
