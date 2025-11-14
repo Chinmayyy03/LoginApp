@@ -59,26 +59,25 @@ public class AddCustomerServlet extends HttpServlet {
         }
     }
 
-    // Generate Customer ID based on branch code
+    // Generate GLOBALLY UNIQUE Customer ID based on branch code
     private String generateCustomerId(Connection conn, String branchCode) throws Exception {
         // Format branch code to 4 digits (pad with zeros if needed)
         String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
         
-        // Get the count of customers for this branch
-        String countSQL = "SELECT COUNT(*) FROM CUSTOMERS WHERE CUSTOMER_ID LIKE ?";
+        // Get the TOTAL count of ALL customers across ALL branches (globally unique)
+        String countSQL = "SELECT COUNT(*) FROM CUSTOMERS";
         PreparedStatement pstmt = conn.prepareStatement(countSQL);
-        pstmt.setString(1, branchPrefix + "%");
         ResultSet rs = pstmt.executeQuery();
         
-        int customerCount = 0;
+        int totalCustomers = 0;
         if (rs.next()) {
-            customerCount = rs.getInt(1);
+            totalCustomers = rs.getInt(1);
         }
         rs.close();
         pstmt.close();
         
-        // Generate new customer ID: branchCode (4 digits) + sequential number (6 digits)
-        String customerId = branchPrefix + String.format("%06d", customerCount + 1);
+        // Generate new customer ID: branchCode (4 digits) + global sequential number (6 digits)
+        String customerId = branchPrefix + String.format("%06d", totalCustomers + 1);
         return customerId;
     }
 
@@ -111,7 +110,7 @@ public class AddCustomerServlet extends HttpServlet {
             conn = DBConnection.getConnection();
             System.out.println("Database connected successfully");
 
-            // Generate Customer ID based on branch code
+            // Generate Customer ID based on branch code (GLOBALLY UNIQUE)
             customerId = generateCustomerId(conn, branchCode);
             System.out.println("Generated Customer ID: " + customerId);
 
