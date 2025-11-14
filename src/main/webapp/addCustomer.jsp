@@ -99,22 +99,22 @@
 
       <div>
         <label>First Name</label>
-        <input type="text" name="firstName" id="firstName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
+        <input type="text" name="firstName" id="firstName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ''); updateCustomerName();">
       </div>
 <!-- Row 2 -->
       <div>
         <label>Surname Name</label>
-        <input type="text" name="surname" id="surname" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
+        <input type="text" name="surname" id="surname" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ''); updateCustomerName();">
       </div>
 
       <div>
         <label>Middle Name</label>
-        <input type="text" name="middleName" id="middleName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')">
+        <input type="text" name="middleName" id="middleName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ''); updateCustomerName();">
       </div>
       
       <div>
         <label>Customer Name</label>
-        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')">
+        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')" readonly>
       </div>
 
       <div>
@@ -1129,6 +1129,19 @@ function validateForm() {
 document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidations();
 });
+
+
+// for add name in customer name from input fields
+function updateCustomerName() {
+    const first = document.getElementById("firstName").value.trim();
+    const middle = document.getElementById("middleName").value.trim();
+    const surname = document.getElementById("surname").value.trim();
+
+    // Build full name (only include non-empty parts)
+    const fullName = [first, middle, surname].filter(Boolean).join(" ");
+
+    document.getElementById("customerName").value = fullName;
+  }
 </script>
 </body>
 </html>
