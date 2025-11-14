@@ -52,44 +52,53 @@
 <div class="table-container">
 <table id="customerTable">
 <%
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement(
-             "SELECT * FROM CUSTOMERS WHERE BRANCH_CODE = ? ORDER BY CUSTOMER_ID")) {
+try (Connection conn = DBConnection.getConnection();
+     PreparedStatement ps = conn.prepareStatement(
+        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? ORDER BY CUSTOMER_ID")) {
 
-        ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
-        ResultSetMetaData meta = rs.getMetaData();
-        int colCount = meta.getColumnCount();
+    ps.setString(1, branchCode);
+    ResultSet rs = ps.executeQuery();
 
-        // ✅ Table Header
+    boolean hasData = false;
+
+    // Table Header
+    out.println("<tr>");
+    out.println("<th>BRANCH CODE</th>");
+    out.println("<th>CUSTOMER ID</th>");
+    out.println("<th>CUSTOMER NAME</th>");
+    out.println("<th>MOBILE NO</th>");
+    out.println("<th>ACTION</th>");
+    out.println("</tr>");
+
+    // Data Rows
+    while (rs.next()) {
+        hasData = true;
+        String cid = rs.getString("CUSTOMER_ID");
+
         out.println("<tr>");
-        for (int i = 1; i <= colCount; i++) {
-            out.println("<th>" + meta.getColumnName(i) + "</th>");
-        }
+        out.println("<td>" + rs.getString("BRANCH_CODE") + "</td>");
+        out.println("<td>" + rs.getString("CUSTOMER_ID") + "</td>");
+        out.println("<td>" + rs.getString("CUSTOMER_NAME") + "</td>");
+        out.println("<td>" + rs.getString("MOBILE_NO") + "</td>");
+        
+        // View button
+        out.println("<td><a href='viewCustomer.jsp?cid=" + cid + "' ");
+        out.println("style='background:#2b0d73;color:white;padding:4px 10px;");
+        out.println("border-radius:4px;text-decoration:none;'>View Details</a></td>");
+
         out.println("</tr>");
-
-        boolean hasData = false;
-
-        // ✅ Data Rows
-        while (rs.next()) {
-            hasData = true;
-            out.println("<tr>");
-            for (int i = 1; i <= colCount; i++) {
-                Object val = rs.getObject(i);
-                out.println("<td>" + (val == null ? "" : val.toString()) + "</td>");
-            }
-            out.println("</tr>");
-        }
-
-        if (!hasData) {
-            out.println("<tr><td colspan='" + colCount + "' class='no-data'>No customers found for this branch.</td></tr>");
-        }
-
-    } catch (Exception e) {
-        out.println("<tr><td colspan='95' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
-        e.printStackTrace();
     }
+
+    if (!hasData) {
+        out.println("<tr><td colspan='4' class='no-data'>No customers found for this branch.</td></tr>");
+    }
+
+} catch (Exception e) {
+    out.println("<tr><td colspan='4' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
+    e.printStackTrace();
+}
 %>
+
 </table>
 </div>
 
