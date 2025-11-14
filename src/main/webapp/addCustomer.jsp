@@ -796,21 +796,25 @@ function setupFieldValidations() {
     }
 
     // Member Number validation (only 2 digits)
-    const memberField = document.querySelector('input[name="memberNumber"]');
-    if (memberField) {
-        memberField.maxLength = 2;
-        memberField.addEventListener('input', function(e) {
-            // Only allow numbers, max 2 digits
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
-        });
-        memberField.addEventListener('blur', function() {
-            if (this.value && this.value.length !== 2) {
-                showError(this, 'Member Number must be exactly 2 digits');
-            } else {
-                clearError(this);
-            }
-        });
-    }
+  const memberField = document.querySelector('input[name="memberNumber"]');
+if (memberField) {
+    memberField.maxLength = 2;
+
+    memberField.addEventListener('input', function(e) {
+        // Allow only numbers, max 2 digits
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
+    });
+
+    memberField.addEventListener('blur', function() {
+        if (!this.value) {
+            showError(this, 'Member Number is required');
+        } else if (this.value.length < 1 || this.value.length > 2) {
+            showError(this, 'Member Number must be 1 or 2 digits');
+        } else {
+            clearError(this);
+        }
+    });
+}
 
     // ZIP Code validation
     const zipField = document.querySelector('input[name="zip"]');
