@@ -59,6 +59,29 @@ public class AddCustomerServlet extends HttpServlet {
         }
     }
 
+    // Generate Customer ID based on branch code
+    private String generateCustomerId(Connection conn, String branchCode) throws Exception {
+        // Format branch code to 4 digits (pad with zeros if needed)
+        String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
+        
+        // Get the count of customers for this branch
+        String countSQL = "SELECT COUNT(*) FROM CUSTOMERS WHERE CUSTOMER_ID LIKE ?";
+        PreparedStatement pstmt = conn.prepareStatement(countSQL);
+        pstmt.setString(1, branchPrefix + "%");
+        ResultSet rs = pstmt.executeQuery();
+        
+        int customerCount = 0;
+        if (rs.next()) {
+            customerCount = rs.getInt(1);
+        }
+        rs.close();
+        pstmt.close();
+        
+        // Generate new customer ID: branchCode (4 digits) + sequential number (6 digits)
+        String customerId = branchPrefix + String.format("%06d", customerCount + 1);
+        return customerId;
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -81,25 +104,15 @@ public class AddCustomerServlet extends HttpServlet {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+        String customerId = null;
 
         try {
             System.out.println("Attempting database connection...");
             conn = DBConnection.getConnection();
             System.out.println("Database connected successfully");
 
-            // Generate Customer ID (unique across all branches)
-            String countSQL = "SELECT COUNT(*) FROM CUSTOMERS";
-            pstmt = conn.prepareStatement(countSQL);
-            rs = pstmt.executeQuery();
-            
-            int customerCount = 0;
-            if (rs.next()) {
-                customerCount = rs.getInt(1);
-            }
-            rs.close();
-            pstmt.close();
-            
-            String customerId = String.format("CUST%04d", customerCount + 1);
+            // Generate Customer ID based on branch code
+            customerId = generateCustomerId(conn, branchCode);
             System.out.println("Generated Customer ID: " + customerId);
 
             // Simplified INSERT with exact parameter count
@@ -330,7 +343,7 @@ public class AddCustomerServlet extends HttpServlet {
 
             if (rows > 0) {
                 System.out.println("Customer added successfully!");
-                out.println("<script>alert('Customer added successfully! Customer ID: " + customerId + "');window.location='addCustomer.jsp';</script>");
+                out.println("<script>alert('New customer added successfully!\\nCustomer ID: " + customerId + "');window.location='addCustomer.jsp';</script>");
             } else {
                 System.out.println("Failed to insert customer");
                 out.println("<script>alert('Failed to add customer. Please try again.');window.location='addCustomer.jsp';</script>");
