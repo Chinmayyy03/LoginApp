@@ -44,17 +44,16 @@
     </div>
 
     <ul class="menu">
-    
        <li class="active">
             <a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
-                <img src="images/dashboard.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+                <img src="images/dashboard.png" width="20" height="20">
                 Dashboard
             </a>
        </li>
 
         <li>
             <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
-                <img src="images/addCustomer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+                <img src="images/addCustomer.png" width="20" height="20">
                 Add Customer
             </a>
         </li>
@@ -66,7 +65,7 @@
             </a>
         </li>
         
-        <!-- Add new menu items here -->
+        <!-- Add new menu items here following the same pattern -->
         <!-- Example: 
         <li>
             <a href="#" onclick="loadPage('loans.jsp', 'Loans', 'Loans', this); return false;">
@@ -75,7 +74,6 @@
             </a>
         </li>
         -->
-        
     </ul>
 
     <div class="logout">
@@ -85,9 +83,7 @@
 
 <div class="main-content">
     <header>
-        <div id="breadcrumbNav" class="breadcrumb-container">
-            <!-- Breadcrumb will be dynamically inserted here -->
-        </div>
+        <div id="breadcrumbNav" class="breadcrumb-container"></div>
         <div id="liveDate"></div>
     </header>
 
@@ -107,57 +103,57 @@
 </div>
 
 <script>
-// Breadcrumb navigation function
+// Complete page mapping - ADD ALL YOUR PAGES HERE
+const pageMap = {
+    'Dashboard': 'dashboard.jsp',
+    'Add Customer': 'addCustomer.jsp',
+    'Total Customers': 'totalCustomers.jsp',
+    'Authorization Pending': 'authorizationPending.jsp',
+    'Loan Details': 'loanDetails.jsp'
+};
+
+// Update breadcrumb display
 function updateBreadcrumb(path) {
     const breadcrumbNav = document.getElementById("breadcrumbNav");
-    const parts = path.split(' > ');
+    if (!breadcrumbNav) return;
     
+    const parts = path.split(' > ');
     let breadcrumbHTML = '';
     
     parts.forEach((part, index) => {
         if (index === parts.length - 1) {
-            // Last item (current page) - not clickable
             breadcrumbHTML += '<span class="breadcrumb-current">' + part + '</span>';
         } else {
-            // Previous items - clickable
-            const isHome = (part === 'Dashboard');
-            const pageName = isHome ? 'dashboard.jsp' : getPageForBreadcrumb(part);
-            const previousPath = getPreviousPath(parts, index);
+            const pageName = pageMap[part] || 'dashboard.jsp';
+            const previousPath = parts.slice(0, index + 1).join(' > ');
             
             breadcrumbHTML += '<div class="breadcrumb-item">' +
-                '<a href="#" class="breadcrumb-link" onclick="loadPageFromBreadcrumb(\'' + pageName + '\', \'' + part + '\', \'' + previousPath + '\'); return false;">' +
-                part +
-                '</a>' +
-                '<span class="breadcrumb-separator">></span>' +
-                '</div>';
+                '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumb(\'' + 
+                pageName + '\', \'' + part + '\', \'' + previousPath + '\'); return false;">' +
+                part + '</a><span class="breadcrumb-separator">></span></div>';
         }
     });
     
     breadcrumbNav.innerHTML = breadcrumbHTML;
 }
 
-// Helper function to get page URL from breadcrumb text
-function getPageForBreadcrumb(pageName) {
-    const pageMap = {
-        'Dashboard': 'dashboard.jsp',
-        'Add Customer': 'addCustomer.jsp',
-        'Total Customers': 'customers.jsp',
-        'Loan Details': 'loanDetails.jsp'
-    };
-    return pageMap[pageName] || 'dashboard.jsp';
-}
-
-// Helper function to reconstruct path up to a certain index
-function getPreviousPath(parts, endIndex) {
-    return parts.slice(0, endIndex + 1).join(' > ');
-}
-
-// Load page from breadcrumb click
-function loadPageFromBreadcrumb(page, title, path) {
+function navigateToBreadcrumb(page, title, path) {
     document.getElementById("contentFrame").src = page;
     updateBreadcrumb(path);
+    updateActiveMenu(title);
+}
+
+function loadPage(page, title, breadcrumbPath, anchorEl) {
+    document.getElementById("contentFrame").src = page;
+    updateBreadcrumb(breadcrumbPath);
     
-    // Update active menu item
+    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
+    if (anchorEl && anchorEl.closest) {
+        anchorEl.closest('li').classList.add("active");
+    }
+}
+
+function updateActiveMenu(title) {
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
     const menuLink = Array.from(document.querySelectorAll(".menu li a")).find(
         a => a.textContent.trim().includes(title)
@@ -167,41 +163,25 @@ function loadPageFromBreadcrumb(page, title, path) {
     }
 }
 
-// Main page load function
-function loadPage(page, title, breadcrumbPath, anchorEl) {
-    // Load page
-    document.getElementById("contentFrame").src = page;
-    
-    // Update breadcrumb
-    updateBreadcrumb(breadcrumbPath);
-    
-    // Reset active classes and add to the clicked li
-    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
-    if (anchorEl && anchorEl.closest) {
-        anchorEl.closest('li').classList.add("active");
-    }
-}
-
-// Function to be called from iframe (for card clicks)
 window.updateParentBreadcrumb = function(path) {
     updateBreadcrumb(path);
 };
 
-// Initialize breadcrumb on page load
 window.onload = function() {
     updateBreadcrumb('Dashboard');
 };
 
-// Live date updater
 function updateDate() {
     const now = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById("liveDate").innerText = now.toLocaleDateString('en-US', options);
+    const dateElement = document.getElementById("liveDate");
+    if (dateElement) {
+        dateElement.innerText = now.toLocaleDateString('en-US', options);
+    }
 }
 setInterval(updateDate, 1000);
 updateDate();
 
-// Logout confirmation functions
 function showLogoutConfirmation(event) {
     event.preventDefault();
     document.getElementById("logoutModal").style.display = "block";
@@ -215,7 +195,6 @@ function confirmLogout() {
     window.location.href = "logout.jsp";
 }
 
-// Close modal when clicking outside of it
 window.onclick = function(event) {
     const modal = document.getElementById("logoutModal");
     if (event.target === modal) {
@@ -223,7 +202,6 @@ window.onclick = function(event) {
     }
 }
 
-// Close modal with Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeLogoutModal();

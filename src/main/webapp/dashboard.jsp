@@ -12,7 +12,7 @@
     double totalLoan = 0; // static for now
 
     try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=?")) {
+         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'A' ")) {
         ps.setString(1, branchCode);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
@@ -33,39 +33,42 @@
     <div class="dashboard-container">
         <div class="cards-wrapper">
             <div class="card" onclick="openInParentFrame('totalCustomers.jsp', 'Dashboard > Total Customers')">
-                <h3>Total Customers</h3>
-                <p><%= totalCustomers %></p>
-            </div>
-            
-            <div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Total Loan')">
-                <h3>Total Loan</h3>
-                <p><%= String.format("%,.2f", totalLoan) %></p>
-            </div>
-            
-            <div class="card" onclick="openInParentFrame('authorizationPending.jsp', 'Authorization Pending')">
-                <h3>Authorization Pending</h3>
-                <p><%= String.format("0", totalLoan) %></p>
-            </div>
+    <h3>Total Customers</h3>
+    <p><%= totalCustomers %></p>
+</div>
+
+<div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Loan Details')">
+    <h3>Total Loan</h3>
+    <p><%= String.format("%,.2f", totalLoan) %></p>
+</div>
+
+<div class="card" onclick="openInParentFrame('authorizationPending.jsp', 'Authorization Pending')">
+    <h3>Authorization Pending</h3>
+    <p>0</p>
+</div>
         </div>
     </div>
     
     <script>
-        function openInParentFrame(page, breadcrumbPath) {
-            // Access iframe in parent page and change its src
-            if (window.parent && window.parent.document) {
-                const iframe = window.parent.document.getElementById("contentFrame");
-                if (iframe) {
-                    iframe.src = page;
-                    
-                    // Update breadcrumb in parent
-                    if (window.parent.updateParentBreadcrumb) {
-                        window.parent.updateParentBreadcrumb(breadcrumbPath);
-                    }
-                } else {
-                    alert("Iframe not found in parent page!");
+ // Update breadcrumb when dashboard loads
+    window.onload = function() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Dashboard');
+        }
+    };
+
+    function openInParentFrame(page, breadcrumbPath) {
+        if (window.parent && window.parent.document) {
+            const iframe = window.parent.document.getElementById("contentFrame");
+            if (iframe) {
+                iframe.src = page;
+                
+                if (window.parent.updateParentBreadcrumb) {
+                    window.parent.updateParentBreadcrumb(breadcrumbPath);
                 }
             }
         }
+    }
     </script>
 </body>
 </html>

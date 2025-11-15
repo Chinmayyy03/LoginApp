@@ -137,20 +137,20 @@ body {
 }
 </style>
 <script>
-    // Update breadcrumb on page load
-    window.onload = function() {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
-        }
-    };
-    
-    // Function to go back and update breadcrumb
-    function goBackToList() {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
-        }
-        window.location.href = 'totalCustomers.jsp';
+//Update breadcrumb on page load
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
     }
+};
+
+// Go back to list
+function goBackToList() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
+    }
+    window.location.href = 'totalCustomers.jsp';
+}
 </script>
 </head>
 <body>

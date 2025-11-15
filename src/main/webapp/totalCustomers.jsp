@@ -19,41 +19,40 @@
 <title>Customer Data - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="css/totalCustomers.css">
 <script>
-    // ✅ Live search filter (client-side)
-    function searchTable() {
-        var input = document.getElementById("searchInput");
-        var filter = input.value.toLowerCase();
-        var table = document.getElementById("customerTable");
-        var trs = table.getElementsByTagName("tr");
+    // Live search filter
+function searchTable() {
+    var input = document.getElementById("searchInput");
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById("customerTable");
+    var trs = table.getElementsByTagName("tr");
 
-        // Skip header row
-        for (var i = 1; i < trs.length; i++) {
-            var tds = trs[i].getElementsByTagName("td");
-            var found = false;
-            for (var j = 0; j < tds.length; j++) {
-                if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
+    for (var i = 1; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        var found = false;
+        for (var j = 0; j < tds.length; j++) {
+            if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
             }
-            trs[i].style.display = found ? "" : "none";
         }
+        trs[i].style.display = found ? "" : "none";
     }
-    
-    // Update breadcrumb on page load
-    window.onload = function() {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
-        }
-    };
-    
-    // Function to view customer details and update breadcrumb
-    function viewCustomer(customerId) {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
-        }
-        window.location.href = 'viewCustomer.jsp?cid=' + customerId;
+}
+
+// Update breadcrumb on page load
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
     }
+};
+
+// View customer and update breadcrumb
+function viewCustomer(customerId) {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
+    }
+    window.location.href = 'viewCustomer.jsp?cid=' + customerId;
+}
 </script>
 </head>
 <body>
