@@ -342,16 +342,17 @@ public class AddCustomerServlet extends HttpServlet {
 
             if (rows > 0) {
                 System.out.println("Customer added successfully!");
-                out.println("<script>alert('New customer added successfully!\\nCustomer ID: " + customerId + "');window.location='addCustomer.jsp';</script>");
+                response.sendRedirect("addCustomer.jsp?status=success&customerId=" + customerId);
             } else {
                 System.out.println("Failed to insert customer");
-                out.println("<script>alert('Failed to add customer. Please try again.');window.location='addCustomer.jsp';</script>");
+                response.sendRedirect("addCustomer.jsp?status=error&message=Failed to add customer");
             }
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
             e.printStackTrace();
-            out.println("<script>alert('Error: " + e.getMessage() + "');window.location='addCustomer.jsp';</script>");
+            String errorMsg = e.getMessage().replace("'", "\\'");
+            response.sendRedirect("addCustomer.jsp?status=error&message=" + java.net.URLEncoder.encode(errorMsg, "UTF-8"));
         } finally {
             try { if (rs != null) rs.close(); } catch (Exception ignored) {}
             try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}

@@ -29,7 +29,11 @@
   <meta charset="UTF-8">
   <title>Complete Bank Customer Form</title>
   <link rel="stylesheet" href="css/addCustomer.css">
- 
+ <!-- Add Toastify CSS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  
+  <!-- Add Toastify JS -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
 <body>
 
@@ -1123,14 +1127,66 @@ function updateCustomerName() {
   
   
   
-  
-
 //Update breadcrumb on page load
 window.onload = function() {
  if (window.parent && window.parent.updateParentBreadcrumb) {
      window.parent.updateParentBreadcrumb('Add Customer');
  }
 };
+
+
+
+
+//Check URL parameters for success/error messages
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const customerId = urlParams.get('customerId');
+    const message = urlParams.get('message');
+    
+    if (status === 'success') {
+        Toastify({
+            text: "✅ Customer added successfully!\nCustomer ID: " + customerId,
+            duration: 5000,
+            close: true,
+            gravity: "top", // top or bottom
+            position: "center", // left, center or right
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px"
+            },
+            stopOnFocus: true,
+            onClick: function(){} // Callback after click
+        }).showToast();
+        
+        // Clear URL parameters after showing toast
+        setTimeout(function() {
+            window.history.replaceState({}, document.title, "addCustomer.jsp");
+        }, 100);
+    } else if (status === 'error') {
+        Toastify({
+            text: "❌ Error: " + (message || "Failed to add customer"),
+            duration: 5000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px"
+            },
+            stopOnFocus: true
+        }).showToast();
+        
+        // Clear URL parameters after showing toast
+        setTimeout(function() {
+            window.history.replaceState({}, document.title, "addCustomer.jsp");
+        }, 100);
+    }
+});
 </script>
 </body>
 </html>
