@@ -54,8 +54,15 @@
 
         <li>
             <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
-                <img src="images/customer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
+                <img src="images/addCustomer.png" width="20" height="20" style="vertical-align: middle; margin-right: 8px;">
                 Add Customer
+            </a>
+        </li>
+        
+        <li>
+            <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
+                <img src="images/authorizationPending.png" width="22" height="22">
+                Authorization Pending
             </a>
         </li>
         

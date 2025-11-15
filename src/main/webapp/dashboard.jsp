@@ -36,9 +36,15 @@
                 <h3>Total Customers</h3>
                 <p><%= totalCustomers %></p>
             </div>
+            
             <div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Total Loan')">
                 <h3>Total Loan</h3>
                 <p><%= String.format("%,.2f", totalLoan) %></p>
+            </div>
+            
+            <div class="card" onclick="openInParentFrame('authorizationPending.jsp', 'Authorization Pending')">
+                <h3>Authorization Pending</h3>
+                <p><%= String.format("0", totalLoan) %></p>
             </div>
         </div>
     </div>
