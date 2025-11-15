@@ -74,12 +74,11 @@
         </li>
         
         <li>
-    		<a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
-        		<img src="images/authorizationPending.png" width="22" height="22">
-        			Authorization Pending <span id="pendingCount"></span>
-    		</a>
-		</li>
-
+            <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
+                <img src="images/authorizationPending.png" width="22" height="22">
+                Authorization Pending<span id="pendingCount"></span>
+            </a>
+        </li>
         
         <!-- Add new menu items here following the same pattern -->
         <!-- Example: 
@@ -227,7 +226,6 @@ document.addEventListener('keydown', function(event) {
 function updatePendingCount(count) {
     document.getElementById("pendingCount").innerText = "(" + count + ")";
 }
-
 updatePendingCount(<%= pendingCount %>);
 </script>
 
