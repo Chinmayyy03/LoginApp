@@ -25,6 +25,21 @@
     } catch (Exception e) {
         branchName = "Unknown Branch";
     }
+    
+    int pendingCount = 0;
+    try (Connection conn2 = DBConnection.getConnection();
+         PreparedStatement ps2 = conn2.prepareStatement(
+            "SELECT COUNT(*) FROM CUSTOMERS WHERE STATUS='P' AND BRANCH_CODE=?")) {
+
+        ps2.setString(1, branchCode);
+        ResultSet rs2 = ps2.executeQuery();
+        if (rs2.next()) {
+            pendingCount = rs2.getInt(1);
+        }
+
+    } catch (Exception e) {
+        pendingCount = 0;
+    }
 %>
 
 <!DOCTYPE html>
@@ -59,11 +74,12 @@
         </li>
         
         <li>
-            <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
-                <img src="images/authorizationPending.png" width="22" height="22">
-                Authorization Pending
-            </a>
-        </li>
+    		<a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
+        		<img src="images/authorizationPending.png" width="22" height="22">
+        			Authorization Pending <span id="pendingCount"></span>
+    		</a>
+		</li>
+
         
         <!-- Add new menu items here following the same pattern -->
         <!-- Example: 
@@ -207,6 +223,12 @@ document.addEventListener('keydown', function(event) {
         closeLogoutModal();
     }
 });
+
+function updatePendingCount(count) {
+    document.getElementById("pendingCount").innerText = "(" + count + ")";
+}
+
+updatePendingCount(<%= pendingCount %>);
 </script>
 
 </body>

@@ -9,6 +9,7 @@
     }
 
     int totalCustomers = 0;
+    int totalPendingCustomers = 0;
     double totalLoan = 0; // static for now
 
     try (Connection conn = DBConnection.getConnection();
@@ -21,6 +22,16 @@
     } catch (Exception e) {
         totalCustomers = 0;
     }
+    try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'P' ")) {
+           ps.setString(1, branchCode);
+           ResultSet rs = ps.executeQuery();
+           if (rs.next()) {
+               totalPendingCustomers = rs.getInt(1);
+           }
+       } catch (Exception e) {
+           totalPendingCustomers = 0;
+       }
 %>
 
 <!DOCTYPE html>
@@ -44,7 +55,7 @@
 
 <div class="card" onclick="openInParentFrame('authorizationPending.jsp', 'Authorization Pending')">
     <h3>Authorization Pending</h3>
-    <p>0</p>
+    <p><%= totalPendingCustomers %></p>
 </div>
         </div>
     </div>
