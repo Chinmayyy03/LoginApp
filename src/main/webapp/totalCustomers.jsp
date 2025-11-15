@@ -17,7 +17,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Customer Data - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/customers.css">
+<link rel="stylesheet" href="css/totalCustomers.css">
 <script>
     // ✅ Live search filter (client-side)
     function searchTable() {
@@ -43,7 +43,7 @@
     // Update breadcrumb on page load
     window.onload = function() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Total Customers');
+            window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
         }
     };
     

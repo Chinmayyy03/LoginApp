@@ -149,7 +149,7 @@ body {
         if (window.parent && window.parent.updateParentBreadcrumb) {
             window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
         }
-        window.location.href = 'customers.jsp';
+        window.location.href = 'totalCustomers.jsp';
     }
 </script>
 </head>

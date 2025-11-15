@@ -32,7 +32,7 @@
 <body>
     <div class="dashboard-container">
         <div class="cards-wrapper">
-            <div class="card" onclick="openInParentFrame('customers.jsp', 'Dashboard > Total Customers')">
+            <div class="card" onclick="openInParentFrame('totalCustomers.jsp', 'Dashboard > Total Customers')">
                 <h3>Total Customers</h3>
                 <p><%= totalCustomers %></p>
             </div>
