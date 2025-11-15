@@ -197,11 +197,11 @@ body {
         </div>
         <div>
           <label>Birth Date</label>
-          <input type="date" readonly value="<%= formatDateForInput(rs,"BIRTH_DATE") %>">
+          <input  readonly value="<%= formatDateForInput(rs,"BIRTH_DATE") %>">
         </div>
         <div>
           <label>Registration Date</label>
-          <input type="date" readonly value="<%= formatDateForInput(rs,"REGISTRATION_DATE") %>">
+          <input  readonly value="<%= formatDateForInput(rs,"REGISTRATION_DATE") %>">
         </div>
         <div>
           <label>Is Minor</label>
@@ -370,42 +370,42 @@ body {
             <tr>
               <td>Passport</td>
               <td><%= yesNo(rs,"PASSPORT_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"PASSPORT_EXPIRY") %>"></td>
+              <td><input readonly value="<%= formatDateForInput(rs,"PASSPORT_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"PASSPORT_NUMBER") %>"></td>
             </tr>
 
             <tr>
               <td>PAN</td>
               <td><%= yesNo(rs,"PAN_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"PAN_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"PAN_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"PAN") %>"></td>
             </tr>
 
             <tr>
               <td>Voter ID</td>
               <td><%= yesNo(rs,"VOTERID_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"VOTERID_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"VOTERID_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"VOTERID") %>"></td>
             </tr>
 
             <tr>
               <td>Driving License</td>
               <td><%= yesNo(rs,"DL_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"DL_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"DL_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"DL") %>"></td>
             </tr>
 
             <tr>
               <td>Aadhar</td>
               <td><%= yesNo(rs,"AADHAR_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"AADHAR_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"AADHAR_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"AADHAR") %>"></td>
             </tr>
 
             <tr>
               <td>NREGA</td>
               <td><%= yesNo(rs,"NREGA_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"NREGA_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"NREGA_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"NREGA") %>"></td>
             </tr>
           </table>
@@ -421,35 +421,35 @@ body {
             <tr>
               <td>Telephone Bill</td>
               <td><%= yesNo(rs,"TELEPHONE_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"TELEPHONE_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"TELEPHONE_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"TELEPHONE") %>"></td>
             </tr>
 
             <tr>
               <td>Bank Statement</td>
               <td><%= yesNo(rs,"BANK_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"BANK_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"BANK_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"BANK_STATEMENT") %>"></td>
             </tr>
 
             <tr>
               <td>Govt Docs</td>
               <td><%= yesNo(rs,"GOVT_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"GOVT_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"GOVT_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"GOVT_DOC") %>"></td>
             </tr>
 
             <tr>
               <td>Electricity Bill</td>
               <td><%= yesNo(rs,"ELECTRICITY_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"ELECTRICITY_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"ELECTRICITY_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"ELECTRICITY") %>"></td>
             </tr>
 
             <tr>
               <td>Ration Card</td>
               <td><%= yesNo(rs,"RATION_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"RATION_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"RATION_EXPIRY") %>"></td>
               <td><input readonly value="<%= getStringSafe(rs,"RATION") %>"></td>
             </tr>
           </table>
@@ -467,31 +467,31 @@ body {
             <tr>
               <td>Registered Rent Agreement</td>
               <td><%= yesNo(rs,"RENT_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"RENT_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"RENT_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>Certificate / License</td>
               <td><%= yesNo(rs,"CERT_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"CERT_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"CERT_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>Sales & Income Tax Returns</td>
               <td><%= yesNo(rs,"TAX_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"TAX_EXPIRY") %>"></td>
+              <td><input readonly value="<%= formatDateForInput(rs,"TAX_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>CST / VAT Certificate</td>
               <td><%= yesNo(rs,"CST_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"CST_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"CST_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>License by Registering Authority</td>
               <td><%= yesNo(rs,"REG_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"REG_EXPIRY") %>"></td>
+              <td><input readonly value="<%= formatDateForInput(rs,"REG_EXPIRY") %>"></td>
             </tr>
           </table>
         </div>
@@ -506,19 +506,19 @@ body {
             <tr>
               <td>Certificate of Incorporation</td>
               <td><%= yesNo(rs,"INC_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"INC_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"INC_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>Resolution of Board</td>
               <td><%= yesNo(rs,"BOARD_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"BOARD_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"BOARD_EXPIRY") %>"></td>
             </tr>
 
             <tr>
               <td>Power of Attorney</td>
               <td><%= yesNo(rs,"POA_CHECK") %></td>
-              <td><input type="date" readonly value="<%= formatDateForInput(rs,"POA_EXPIRY") %>"></td>
+              <td><input  readonly value="<%= formatDateForInput(rs,"POA_EXPIRY") %>"></td>
             </tr>
           </table>
         </div>
