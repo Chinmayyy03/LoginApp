@@ -134,19 +134,19 @@ public class AddCustomerServlet extends HttpServlet {
                 "RATION_CHECK, RATION_EXPIRY, RATION, RENT_CHECK, RENT_EXPIRY, " +
                 "CERT_CHECK, CERT_EXPIRY, TAX_CHECK, TAX_EXPIRY, CST_CHECK, " +
                 "CST_EXPIRY, REG_CHECK, REG_EXPIRY, INC_CHECK, INC_EXPIRY, " +
-                "BOARD_CHECK, BOARD_EXPIRY, POA_CHECK, POA_EXPIRY" +
+                "BOARD_CHECK, BOARD_EXPIRY, POA_CHECK, POA_EXPIRY, STATUS" +
                 ") VALUES (" +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
-                "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?" +
+                "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?" +
                 ")";
 
             pstmt = conn.prepareStatement(insertSQL);
             System.out.println("PreparedStatement created");
 
-            // Set all parameters - EXACT count: 94 parameters
+            // Set all parameters - EXACT count: 95 parameters
             int idx = 1;
             
             // 1-5
@@ -334,6 +334,9 @@ public class AddCustomerServlet extends HttpServlet {
             // 93-94: POA
             pstmt.setString(idx++, getCheckValue(request, "poa_check"));
             pstmt.setDate(idx++, parseDate(request.getParameter("poa_expiry")));
+            
+            // 95: STATUS
+            pstmt.setString(idx++, "P");  // DEFAULT STATUS 'P'
 
             System.out.println("All parameters set. Total parameters: " + (idx - 1));
             
