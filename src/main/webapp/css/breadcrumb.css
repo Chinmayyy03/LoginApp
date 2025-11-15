@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 15px;
+    font-size: 20px;
     color: #e0f7fa;
 }
 
@@ -19,6 +19,7 @@
     font-weight: 500;
     transition: all 0.3s ease;
     padding: 4px 8px;
+    font-size: 22px;
     border-radius: 4px;
 }
 
