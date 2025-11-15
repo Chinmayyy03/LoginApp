@@ -1137,7 +1137,22 @@ window.onload = function() {
 
 
 
-//Check URL parameters for success/error messages
+//Add custom CSS for toast overlay positioning
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `
+    .toastify {
+        position: fixed !important;
+        z-index: 9999 !important;
+        pointer-events: auto !important;
+    }
+    
+    .toastify.on {
+        position: fixed !important;
+    }
+`;
+document.head.appendChild(toastStyle);
+
+// Check URL parameters for success/error messages
 window.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
@@ -1145,41 +1160,94 @@ window.addEventListener('DOMContentLoaded', function() {
     const message = urlParams.get('message');
     
     if (status === 'success') {
-        Toastify({
+        const toast = Toastify({
             text: "✅ Customer added successfully!\nCustomer ID: " + customerId,
             duration: 5000,
             close: true,
             gravity: "top", // top or bottom
             position: "center", // left, center or right
             style: {
-                background: "linear-gradient(to right, #00b09b, #96c93d)",
+                background: "#fff",
+                color: "#333",
                 borderRadius: "8px",
                 fontSize: "14px",
-                padding: "16px 24px"
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #4caf50",
+                marginTop: "20px"
             },
             stopOnFocus: true,
             onClick: function(){} // Callback after click
         }).showToast();
         
+        // Add progress bar animation
+        const toastElement = toast.toastElement;
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: #4caf50;
+            animation: shrink 5s linear forwards;
+        `;
+        
+        // Add keyframe animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shrink {
+                from { width: 100%; }
+                to { width: 0%; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        toastElement.style.position = 'relative';
+        toastElement.style.overflow = 'hidden';
+        toastElement.appendChild(progressBar);
+        
         // Clear URL parameters after showing toast
         setTimeout(function() {
             window.history.replaceState({}, document.title, "addCustomer.jsp");
         }, 100);
+        
     } else if (status === 'error') {
-        Toastify({
+        const toast = Toastify({
             text: "❌ Error: " + (message || "Failed to add customer"),
             duration: 5000,
             close: true,
             gravity: "top",
             position: "center",
             style: {
-                background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                background: "#fff",
+                color: "#333",
                 borderRadius: "8px",
                 fontSize: "14px",
-                padding: "16px 24px"
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #f44336",
+                marginTop: "20px"
             },
             stopOnFocus: true
         }).showToast();
+        
+        // Add progress bar animation for error
+        const toastElement = toast.toastElement;
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: #f44336;
+            animation: shrink 5s linear forwards;
+        `;
+        
+        toastElement.style.position = 'relative';
+        toastElement.style.overflow = 'hidden';
+        toastElement.appendChild(progressBar);
         
         // Clear URL parameters after showing toast
         setTimeout(function() {
