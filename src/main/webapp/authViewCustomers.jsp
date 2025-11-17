@@ -1,5 +1,15 @@
 <%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
+<%
+    // ✅ Get branch code from session
+    HttpSession sess = request.getSession(false);
+    if (sess == null || sess.getAttribute("branchCode") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    String branchCode = (String) sess.getAttribute("branchCode");
+%>
 <%! 
     // safe getter for strings
     String getStringSafe(ResultSet r, String col) throws SQLException {
