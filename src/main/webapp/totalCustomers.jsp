@@ -60,7 +60,7 @@ function viewCustomer(customerId) {
 <h2>Customer Data for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
-    🔍 <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search by any detail... (e.g. Name, Customer ID)">
+     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Name, Customer ID">
 </div>
 
 <div class="table-container">
