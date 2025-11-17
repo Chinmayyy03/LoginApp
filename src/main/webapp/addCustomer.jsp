@@ -1036,7 +1036,7 @@ function clearError(field) {
     }
 }
 
-// Enhanced form validation before submit
+//Enhanced form validation before submit
 function validateForm() {
     let isValid = true;
     const errors = [];
@@ -1044,67 +1044,122 @@ function validateForm() {
     // Validate GSTIN if filled
     const gstin = document.querySelector('input[name="gstinNo"]').value;
     if (gstin && !validationPatterns.gstin.test(gstin)) {
-        errors.push('Invalid GSTIN number');
+        errors.push('• Invalid GSTIN number');
         isValid = false;
     }
 
     // Validate Mobile Number (required)
     const mobile = document.querySelector('input[name="mobileNo"]').value;
     if (!mobile) {
-        errors.push('Mobile number is required');
+        errors.push('• Mobile number is required');
         isValid = false;
     } else if (!validationPatterns.mobile.test(mobile)) {
-        errors.push('Invalid mobile number');
+        errors.push('• Invalid mobile number');
         isValid = false;
     }
 
     // Validate ZIP if filled
     const zip = document.querySelector('input[name="zip"]').value;
     if (zip && !validationPatterns.zip.test(zip)) {
-        errors.push('Invalid ZIP code');
+        errors.push('• Invalid ZIP code');
         isValid = false;
     }
 
     // Validate PAN if filled
     const pan = document.getElementById('pan').value;
     if (pan && !validationPatterns.pan.test(pan)) {
-        errors.push('Invalid PAN card number');
+        errors.push('• Invalid PAN card number');
         isValid = false;
     }
 
     // Validate Aadhar if filled
     const aadhar = document.querySelector('input[name="aadhar"]').value;
     if (aadhar && !validationPatterns.aadhar.test(aadhar)) {
-        errors.push('Invalid Aadhar number');
+        errors.push('• Invalid Aadhar number');
         isValid = false;
     }
 
     // Validate Passport if filled
     const passport = document.getElementById('passportNumber').value;
     if (passport && !validationPatterns.passport.test(passport)) {
-        errors.push('Invalid Passport number');
+        errors.push('• Invalid Passport number');
         isValid = false;
     }
 
     // Validate Voter ID if filled
     const voterId = document.getElementById('voterid').value;
     if (voterId && !validationPatterns.voterId.test(voterId)) {
-        errors.push('Invalid Voter ID');
+        errors.push('• Invalid Voter ID');
         isValid = false;
     }
 
     // Validate Driving License if filled
     const dl = document.getElementById('dl').value;
     if (dl && !validationPatterns.drivingLicense.test(dl)) {
-        errors.push('Invalid Driving License number');
+        errors.push('• Invalid Driving License number');
+        isValid = false;
+    }
+
+    // ✅ Validate at least one ID Proof document is filled
+    const idProofFilled = 
+        (document.querySelector('input[name="passport_check"]').checked && document.querySelector('input[name="passportNumber"]').value.trim()) ||
+        (document.querySelector('input[name="pan_check"]').checked && document.getElementById('pan').value.trim()) ||
+        (document.querySelector('input[name="voterid_check"]').checked && document.getElementById('voterid').value.trim()) ||
+        (document.querySelector('input[name="dl_check"]').checked && document.getElementById('dl').value.trim()) ||
+        (document.querySelector('input[name="aadhar_check"]').checked && document.querySelector('input[name="aadhar"]').value.trim()) ||
+        (document.querySelector('input[name="nrega_check"]').checked && document.getElementById('nrega').value.trim());
+
+    if (!idProofFilled) {
+        errors.push('• At least one ID Proof document must be selected and filled');
+        isValid = false;
+    }
+
+    // ✅ Validate at least one Address Proof document is filled
+    const addressProofFilled = 
+        (document.querySelector('input[name="telephone_check"]').checked && document.querySelector('input[name="telephone"]').value.trim()) ||
+        (document.querySelector('input[name="bank_check"]').checked && document.querySelector('input[name="bank_statement"]').value.trim()) ||
+        (document.querySelector('input[name="govt_check"]').checked && document.querySelector('input[name="govt_doc"]').value.trim()) ||
+        (document.querySelector('input[name="electricity_check"]').checked && document.querySelector('input[name="electricity"]').value.trim()) ||
+        (document.querySelector('input[name="ration_check"]').checked && document.getElementById('ration').value.trim());
+
+    if (!addressProofFilled) {
+        errors.push('• At least one Address Proof document must be selected and filled');
         isValid = false;
     }
 
     if (!isValid) {
-        alert('Please fix the following errors:\n\n' + errors.join('\n'));
+        // Show toast notification with all errors
+        showValidationToast(errors);
     }
 
     return isValid;
+}
+
+// Function to show validation errors as toast
+function showValidationToast(errors) {
+    const errorMessage = '❌ Please fix the following errors:\n\n' + errors.join('\n');
+    
+    Toastify({
+        text: errorMessage,
+        duration: 6000, 
+        close: true,
+        gravity: "top",
+        position: "center",
+        style: {
+            background: "#fff",
+            color: "#333",
+            borderRadius: "8px",
+            fontSize: "14px",
+            padding: "20px 30px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            borderLeft: "5px solid #f44336",
+            marginTop: "20px",
+            maxWidth: "500px",
+            whiteSpace: "pre-line"
+        },
+        stopOnFocus: true,
+        onClick: function(){} 
+    }).showToast();
 }
 
 // Initialize validations when page loads
