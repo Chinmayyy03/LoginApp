@@ -527,9 +527,13 @@ function goBackToList() {
     </fieldset>
 
     <div style="text-align:center;">
-    <a href="#" onclick="goBackToList(); return false;" class="back-btn">
-        ← Back to List
-    </a>
+    <button type="button" onclick="goBackToList();" class="back-btn"
+        style="padding:10px 22px; background:#0d6efd; color:white;
+                   border:none; border-radius:6px; cursor:pointer;
+                   font-size:16px; font-weight:bold;">
+    ← Back to List
+</button>
+
 </div>
 </div>
   </form>
