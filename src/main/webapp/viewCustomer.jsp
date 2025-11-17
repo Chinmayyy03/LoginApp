@@ -456,7 +456,7 @@ function goBackToList() {
         </div>
       </div>
 
-      <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+      <hr>
 
       <div class="kyc-row">
         <div class="kyc-section">
