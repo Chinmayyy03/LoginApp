@@ -54,7 +54,6 @@
 
     try {
         conn = DBConnection.getConnection();
-        // adjust table name if your table is CUSTOMER_MASTER instead of CUSTOMERS
         ps = conn.prepareStatement("SELECT * FROM CUSTOMERS WHERE CUSTOMER_ID = ?");
         ps.setString(1, cid);
         rs = ps.executeQuery();
@@ -71,73 +70,9 @@
   <meta charset="utf-8">
   <title>View Customer — <%= cid %></title>
   <link rel="stylesheet" href="css/addCustomer.css">
- <style>
-/* Whole page background */
-body {
-    background: #e8e4fc;
-    font-family: Arial, sans-serif;
-}
-
-/* Fieldset Box */
-.fieldset-box {
-    border: 1px solid #cbc3ff;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-   
-}
-
-/* Fieldset Legend */
-.fieldset-box legend {
-    font-size: 20px;
-    padding: 0 12px;
-    font-weight: bold;
-    color: #2b0d73;
-}
-
-/* Label */
-.form-label {
-    font-size: 14px;
-    font-weight: bold;
-    color: #2b0d73;
-    display: block;
-    margin-bottom: 5px;
-}
-
-/* Input, Select, Readonly Field */
-.form-input, .form-select {
-    width: 100%;
-    padding: 8px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #333;
-}
-
-/* Make them readonly visually */
-.form-input[readonly], .form-select[disabled] {
-    background: #f8f8f8;
-    color: #555;
-}
-
-/* 3-column Grid Layout */
-.grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px 20px;
-    margin-top: 15px;
-}
-
-/* Radio buttons group spacing */
-.radio-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-</style>
+  <link rel="stylesheet" href="css/authViewCustomers.css">
 <script>
-//Update breadcrumb on page load
+// Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending > View Details');
@@ -151,6 +86,56 @@ function goBackToList() {
     }
     window.location.href = 'authorizationPending.jsp';
 }
+
+// Show confirmation modal for Authorize
+function showAuthorizeConfirmation(event) {
+    event.preventDefault();
+    document.getElementById('authorizeModal').style.display = 'block';
+}
+
+// Show confirmation modal for Reject
+function showRejectConfirmation(event) {
+    event.preventDefault();
+    document.getElementById('rejectModal').style.display = 'block';
+}
+
+// Close modals
+function closeAuthorizeModal() {
+    document.getElementById('authorizeModal').style.display = 'none';
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+
+// Confirm actions
+function confirmAuthorize() {
+    document.getElementById('authorizeForm').submit();
+}
+
+function confirmReject() {
+    document.getElementById('rejectForm').submit();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const authorizeModal = document.getElementById('authorizeModal');
+    const rejectModal = document.getElementById('rejectModal');
+    if (event.target === authorizeModal) {
+        closeAuthorizeModal();
+    }
+    if (event.target === rejectModal) {
+        closeRejectModal();
+    }
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeAuthorizeModal();
+        closeRejectModal();
+    }
+});
 </script>
 </head>
 <body>
@@ -542,12 +527,12 @@ function goBackToList() {
 <div style="text-align:center; margin-top:30px;">
 
     <!-- AUTHORIZE BUTTON -->
-    <form action="UpdateCustomerStatusServlet" method="post" style="display:inline;">
+    <form id="authorizeForm" action="UpdateCustomerStatusServlet" method="post" style="display:inline;" onsubmit="return showAuthorizeConfirmation(event)">
         <input type="hidden" name="cid" value="<%= cid %>">
         <input type="hidden" name="status" value="A">
 
         <button type="submit"
-            style="padding:10px 22px; background:green; color:white;
+            style="padding:10px 22px; background:linear-gradient(45deg, #28a745, #34ce57); color:white;
                    border:none; border-radius:6px; cursor:pointer;
                    font-size:16px; font-weight:bold;">
             ✔ Authorize
@@ -557,28 +542,51 @@ function goBackToList() {
     &nbsp;&nbsp;&nbsp;
 
     <!-- REJECT BUTTON -->
-    <form action="UpdateCustomerStatusServlet" method="post" style="display:inline;">
+    <form id="rejectForm" action="UpdateCustomerStatusServlet" method="post" style="display:inline;" onsubmit="return showRejectConfirmation(event)">
         <input type="hidden" name="cid" value="<%= cid %>">
         <input type="hidden" name="status" value="R">
 
         <button type="submit"
-            style="padding:10px 22px; background:red; color:white;
+            style="padding:10px 22px; background:linear-gradient(45deg, #dc3545, #e74c3c); color:white;
                    border:none; border-radius:6px; cursor:pointer;
                    font-size:16px; font-weight:bold;">
             ✘ Reject
         </button>
     </form>
 
+</div>
 
+<!-- Authorize Confirmation Modal -->
+<div id="authorizeModal" class="confirmation-modal">
+    <div class="confirmation-modal-content">
+        <h2>✔ Confirm Authorization</h2>
+        <p>Are you sure you want to <strong>authorize</strong> this customer?<br>Customer ID: <strong><%= cid %></strong></p>
+        <div class="confirmation-modal-buttons">
+            <button class="confirmation-btn confirmation-btn-cancel" onclick="closeAuthorizeModal()">Cancel</button>
+            <button class="confirmation-btn confirmation-btn-confirm" onclick="confirmAuthorize()">Yes, Authorize</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Confirmation Modal -->
+<div id="rejectModal" class="confirmation-modal">
+    <div class="confirmation-modal-content">
+        <h2>✘ Confirm Rejection</h2>
+        <p>Are you sure you want to <strong>reject</strong> this customer?<br>Customer ID: <strong><%= cid %></strong></p>
+        <div class="confirmation-modal-buttons">
+            <button class="confirmation-btn confirmation-btn-cancel" onclick="closeRejectModal()">Cancel</button>
+            <button class="confirmation-btn confirmation-btn-reject" onclick="confirmReject()">Yes, Reject</button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
 
 <%
     } catch (Exception e) {
-        // show a readable message to user and log stacktrace to server log (avoid printStackTrace(out))
         out.println("<pre style='color:red'>Error: " + e.getMessage() + "</pre>");
-        e.printStackTrace(); // server log
+        e.printStackTrace();
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ex) {}
         try { if (ps != null) ps.close(); } catch (Exception ex) {}

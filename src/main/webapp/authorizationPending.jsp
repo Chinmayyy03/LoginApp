@@ -51,7 +51,7 @@ function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending > View Details');
     }
-    window.location.href = 'authviewCustomers.jsp?cid=' + customerId;
+    window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
 }
 </script>
 </head>
