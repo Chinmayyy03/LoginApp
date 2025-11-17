@@ -57,7 +57,7 @@ function viewCustomer(customerId) {
 </head>
 <body>
 
-<h2>Customer Data for Branch: <%= branchCode %></h2>
+<h2>Authorization Pending list for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
      <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Name, Customer ID">
