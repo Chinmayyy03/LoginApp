@@ -56,7 +56,7 @@
       <div>
         <label>Gender</label>
         <select name="gender">
-          <option value="">Select Gender</option>
+          <option value="">-- Select Gender --</option>
           <option>Male</option>
           <option>Female</option>
           <option>Other</option>
@@ -66,7 +66,7 @@
       <div>
         <label>Salutation Code</label>
        <select name="salutationCode" id="salutationCode" required>
-  			<option value=""> Select Salutation</option>
+  			<option value="">-- Select Salutation --</option>
   			<option value="MR">Mr.</option>
  	 		<option value="MS">Ms.</option>
   			<option value="MRS">Mrs.</option>
@@ -122,7 +122,7 @@
 
       <div>
         <label>Relation with Guardian</label>
-        <select name="relationGuardian" id="relationGuardian" required>
+        <select name="relationGuardian" id="relationGuardian" disabled>
     <option value="">-- Select Relation with Guardian --</option>
     <%
       PreparedStatement psRelationWithGuardian = null;
@@ -469,8 +469,8 @@
     <div>
       <label>State</label>
       <select name="state">
-        <option>Karnataka</option>
         <option>Maharashtra</option>
+        <option>Karnataka</option>
         <option>Goa</option>
       </select>
     </div>
