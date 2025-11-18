@@ -80,7 +80,7 @@
     </ul>
 
     <div class="logout">
-        <a href="#" onclick="showLogoutConfirmation(event)">⏻ Log Out</a>
+        <a href="#" onclick="showLogoutConfirmation(event)">𓉘➜ Log Out</a>
     </div>
 </div>
 
