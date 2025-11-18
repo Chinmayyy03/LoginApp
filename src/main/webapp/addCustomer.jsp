@@ -1182,7 +1182,6 @@ function updateCustomerName() {
   
   
   
-//Update breadcrumb on page load
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
