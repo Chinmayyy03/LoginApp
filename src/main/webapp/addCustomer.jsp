@@ -55,7 +55,7 @@
 
       <div>
         <label>Gender</label>
-        <select name="gender">
+        <select name="gender" id="gender">
           <option value="">-- Select Gender --</option>
           <option>Male</option>
           <option>Female</option>
@@ -97,7 +97,7 @@
 
       <div>
         <label>Birth Date</label>
-        <input type="date" name="birthDate">
+        <input type="date" name="birthDate" id="birthDate">
       </div>
 <!-- Row 3 -->
       <div>
@@ -243,7 +243,7 @@
 <!-- Row 5 -->
       <div>
   <label>Constitution Code</label>
-  <select name="constitutionCode" required>
+  <select name="constitutionCode" id="constitutionCode" required>
     <option value="">-- Select Constitution Code --</option>
     <%
       PreparedStatement psConstitutionCode = null;
@@ -325,7 +325,7 @@
 
       <div>
         <label>GSTIN No</label>
-        <input type="text" name="gstinNo">
+        <input type="text" name="gstinNo" id="gstinNo">
       </div>
       
       <div>
@@ -371,9 +371,9 @@
     <div>
       <label>Marital Status</label>
       <div class="radio-group">
-        <label><input type="radio" name="maritalStatus" value="Married" onclick="toggleMarriedFields()"> Married</label>
-        <label><input type="radio" name="maritalStatus" value="Single" onclick="toggleMarriedFields()"> Single</label>
-        <label><input type="radio" name="maritalStatus" value="Other" onclick="toggleMarriedFields()"> Other</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" onclick="toggleMarriedFields()"> Married</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Single" onclick="toggleMarriedFields()"> Single</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Other" onclick="toggleMarriedFields()"> Other</label>
       </div>
     </div>
 
@@ -792,5 +792,65 @@
 </div>
 
 <script src="js/addCustomer.js"></script>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    function toggleFieldsByIndividual(isIndividual) {
+        // Individual-specific fields
+        let individualFields = [
+            'firstName',
+            'middleName',
+            'surname',
+            'customerName',
+            'birthDate',
+            'gender',
+            'salutationCode',
+            'motherName',
+            'fatherName',
+            'maritalStatus',
+            'children',
+            'dependents'
+        ];
+        // Non-individual fields
+        let nonIndividualFields = [
+            'guardianName',
+            'relationGuardian',
+            'gstinNo',
+            'constitutionCode'
+        ];
+        // Individual selected
+        if (isIndividual) {
+            individualFields.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.disabled = false;
+            });
+            nonIndividualFields.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.disabled = true;
+            });
+        // Non-Individual selected
+        } else {
+            individualFields.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.disabled = true;
+            });
+            nonIndividualFields.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.disabled = false;
+            });
+        }
+    }
+    // Attach event listeners to radio buttons
+    let individualRadios = document.querySelectorAll('input[name="isIndividual"]');
+    individualRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            toggleFieldsByIndividual(this.value === 'yes');
+        });
+    });
+    // Initialize on load based on selected value
+    let checked = Array.from(individualRadios).find(r => r.checked);
+    toggleFieldsByIndividual(checked ? checked.value === 'yes' : true);
+});
+</script>
+
 </body>
 </html>
