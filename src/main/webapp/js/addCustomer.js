@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Select all rows inside the KYC tables
   document.querySelectorAll(".kyc-section table tr").forEach(row => {
     const checkbox = row.querySelector('input[type="checkbox"]');
-    const inputs = row.querySelectorAll('input[type="date"], input[type="text"]');
+    const inputs = row.querySelectorAll('input[id="date"], input[type="text"]');
     
     if (checkbox) {
       // Initially disable all input fields
