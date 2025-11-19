@@ -1,152 +1,154 @@
 body {
-      background-color: #e8e4fc; /* soft violet */
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-    }
+  background-color: #e8e4fc;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  padding: 0;
+}
 
-    fieldset {
-      background: #e8e4fc; /* same as body */
-      border: 2px solid #aaa;
-      margin: 32px 0;
-      padding: 15px 20px;
-      min-width: 320px;
-      border-radius: 9px;
-    }
+fieldset {
+  background: #e8e4fc;
+  border: 2px solid #aaa;
+  margin: 32px 0;
+  padding: 15px 20px;
+  min-width: 320px;
+  border-radius: 9px;
+}
 
-    legend {
-      font-weight: bold;
-      letter-spacing: 1px;
-      font-size: 1.18em;
-      padding: 0 10px;
-      color: #373279;
-    }
+legend {
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 1.18em;
+  padding: 0 10px;
+  color: #373279;
+}
 
-    /* Grid Layout */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px 20px;
-    }
+/* Grid Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px 20px;
+}
 
-    .form-grid div {
-      display: flex;
-      flex-direction: column;
-    }
+.form-grid div {
+  display: flex;
+  flex-direction: column;
+}
 
-    label {
-      min-width: 10px;
-      font-size: 13px;
-      margin-bottom: 3px;
-      font-weight: bold;
-      color: #373279;
-    }
+label {
+  min-width: 10px;
+  font-size: 13px;
+  margin-bottom: 3px;
+  font-weight: bold;
+  color: #373279;
+}
 
-    input[type="text"],
-    input[type="date"],
-    input[type="email"],
-    select {
-      padding: 4px 6px;
-      font-size: 13px;
-      width: 95%;
-      box-sizing: border-box;
-    }
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="number"],
+select {
+  padding: 4px 6px;
+  font-size: 13px;
+  width: 95%;
+  box-sizing: border-box;
+}
 
-    .radio-group {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 13px;
-    }
+.radio-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
 
-    input[type="radio"] {
-      transform: scale(0.9);
-    }
+input[type="radio"] {
+  transform: scale(0.9);
+}
 
-    .full-width {
-      grid-column: span 4;
-    }
+.full-width {
+  grid-column: span 4;
+}
 
-    /* Responsive Adjustments */
-    @media (max-width: 1024px) {
-      .form-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .full-width {
-        grid-column: span 2;
-      }
-    }
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .full-width {
+    grid-column: span 2;
+  }
+}
 
-    @media (max-width: 600px) {
-      body {
-        margin: 10px;
-      }
+@media (max-width: 600px) {
+  body {
+    margin: 10px;
+  }
 
-      fieldset {
-        padding: 10px 15px;
-      }
+  fieldset {
+    padding: 10px 15px;
+  }
 
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 
-      .full-width {
-        grid-column: span 1;
-      }
+  .full-width {
+    grid-column: span 1;
+  }
 
-      label {
-        font-size: 12px;
-      }
+  label {
+    font-size: 12px;
+  }
 
-      input[type="text"],
-      input[type="date"],
-      input[type="email"],
-      select {
-        width: 100%;
-        font-size: 12px;
-      }
+  input[type="text"],
+  input[type="date"],
+  input[type="email"],
+  input[type="number"],
+  select {
+    width: 100%;
+    font-size: 12px;
+  }
 
-      legend {
-        font-size: 1em;
-      }
-    }
+  legend {
+    font-size: 1em;
+  }
+}
 
-    /* Additional styling for non-grid sections */
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
+/* Additional styling for non-grid sections */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
 
-    .form-label {
-      min-width: 140px;
-      font-weight: bold;
-      color: #373279;
-      font-size: 13px;
-    }
+.form-label {
+  min-width: 140px;
+  font-weight: bold;
+  color: #373279;
+  font-size: 13px;
+}
 
-    .form-input {
-      flex: 1;
-      padding: 4px 6px;
-      font-size: 13px;
-    }
+.form-input {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 13px;
+}
 
-    @media (max-width: 600px) {
-      .form-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .form-label {
-        min-width: auto;
-      }
-      .form-input {
-        width: 100%;
-      }
-    }
-    
-   /* PERSONAL INFO SPECIFIC */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .form-label {
+    min-width: auto;
+  }
+  .form-input {
+    width: 100%;
+  }
+}
+
+/* PERSONAL INFO SPECIFIC */
 .personal-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -161,10 +163,10 @@ body {
 
 .personal-grid label {
   min-width: 10px;
-      font-size: 13px;
-      margin-bottom: 3px;
-      font-weight: bold;
-      color: #373279;
+  font-size: 13px;
+  margin-bottom: 3px;
+  font-weight: bold;
+  color: #373279;
 }
 
 .personal-grid input[type="text"],
@@ -205,7 +207,6 @@ body {
     grid-column: span 1;
   }
 }
-
 
 /* ADDRESS INFO GRID */
 .address-grid {
@@ -259,9 +260,7 @@ body {
   }
 }
 
-/*for kyc fieldset */
-
-
+/* KYC FIELDSET */
 .kyc-row {
   display: flex;
   justify-content: space-between;
@@ -276,7 +275,7 @@ body {
 }
 
 .kyc-section h4 {
-  color:#373279;
+  color: #373279;
   text-align: center;
   font-weight: bold;
   text-decoration: underline;
@@ -323,14 +322,14 @@ hr {
   margin: 15px 0;
 }
 
-/* ✅ Bigger Checkboxes Styling */
+/* Bigger Checkboxes Styling */
 input[type="checkbox"] {
-  width: 20px !important;   /* increase width */
-  height: 20px !important;  /* increase height */
+  width: 20px !important;
+  height: 20px !important;
   cursor: pointer;
 }
 
-/* ✅ Center checkboxes neatly in table cells */
+/* Center checkboxes neatly in table cells */
 td input[type="checkbox"] {
   vertical-align: middle;
   display: block;
@@ -342,7 +341,7 @@ input:disabled {
   cursor: not-allowed;
 }
 
-/* 🔹 Responsive Adjustments */
+/* Responsive Adjustments */
 @media (max-width: 900px) {
   .kyc-row {
     flex-direction: column;
@@ -367,7 +366,7 @@ input:disabled {
   }
 }
 
- /* Button Styling */
+/* Button Styling */
 .form-buttons {
   display: flex;
   justify-content: center;
@@ -409,26 +408,6 @@ input:disabled {
     padding: 10px;
   }
 }
-
-
-
-
-/* Hide arrows in Chrome, Safari, Edge, Opera */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  margin: 0 !important;
-}
-
-/* Hide arrows in Firefox */
-input[type=number] {
-  -moz-appearance: textfield !important;
-  appearance: textfield !important;
-}
-
-
-
 
 /* Hide arrows in Chrome, Safari, Edge, Opera */
 input[type=number]::-webkit-inner-spin-button, 
@@ -519,7 +498,7 @@ input[type=number] {
 
 /* Options Modal Styles */
 .options-modal {
-  display: none !important;
+  display: none;
   position: fixed;
   z-index: 10000;
   left: 0;
@@ -544,6 +523,7 @@ input[type=number] {
   position: relative;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   text-align: center;
+  animation: slideDown 0.3s;
 }
 
 .options-modal-content h3 {
@@ -702,6 +682,23 @@ input[type=number] {
   background: #e0dcff;
 }
 
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { 
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .upload-container {
@@ -717,5 +714,18 @@ input[type=number] {
   .camera-modal-content {
     width: 95%;
     padding: 20px;
+  }
+  
+  .options-modal-content {
+    width: 95%;
+    padding: 30px 20px;
+  }
+  
+  .options-buttons {
+    flex-direction: column;
+  }
+  
+  .option-btn {
+    width: 100%;
   }
 }

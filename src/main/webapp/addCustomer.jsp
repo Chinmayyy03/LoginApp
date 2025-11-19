@@ -710,7 +710,7 @@
   
   <div class="upload-container">
     <!-- Upload Photo Card -->
-    <div class="upload-card" id="photoCard" onclick="showPhotoOptions(event)">
+    <div class="upload-card" id="photoCard">
       <h3>Upload Photo</h3>
       <div class="upload-icon-container">
         <svg class="upload-icon" id="photoPreviewIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -720,14 +720,14 @@
         </svg>
       </div>
       <p class="upload-text">Upload a photo</p>
-      <p class="upload-subtext">Drag and drop files here</p>
+      <p class="upload-subtext">Click or drag and drop files here</p>
       
       <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
       <input type="hidden" id="photoData" name="photoData">
     </div>
 
     <!-- Upload Signature Card -->
-    <div class="upload-card" id="signatureCard" onclick="showSignatureOptions(event)">
+    <div class="upload-card" id="signatureCard">
       <h3>Upload Signature</h3>
       <div class="upload-icon-container">
         <svg class="upload-icon" id="signaturePreviewIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -737,7 +737,7 @@
         </svg>
       </div>
       <p class="upload-text">Upload a signature</p>
-      <p class="upload-subtext">Drag and drop files here</p>
+      <p class="upload-subtext">Click or drag and drop files here</p>
       
       <input type="file" id="signatureInput" name="signature" accept="image/*" style="display: none;">
       <input type="hidden" id="signatureData" name="signatureData">
@@ -786,7 +786,7 @@
       </button>
       <button type="button" class="option-btn" onclick="document.getElementById('signatureInput').click(); closeSignatureOptions();">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.0391 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13 2V9H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>Browse</span>

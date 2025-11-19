@@ -9,31 +9,26 @@ function toggleMinorFields() {
   } else {
     guardianName.disabled = true;
     relationGuardian.disabled = true;
-
-    // Optional: clear fields when disabled
     guardianName.value = '';
     relationGuardian.value = 'NOT SPECIFIED';
   }
 }
 
 function toggleMarriedFields() {
-	  const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked').value;
-	  const noOFChildren = document.getElementById('children');
-	  const noOfDependents = document.getElementById('dependents');
+  const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked').value;
+  const noOFChildren = document.getElementById('children');
+  const noOfDependents = document.getElementById('dependents');
 
-	  if (maritalStatus === 'Single') {
-		  noOFChildren.disabled = true;
-		  noOfDependents.disabled = true;
-	  } else {
-		  noOFChildren.disabled = false;
-		  noOfDependents.disabled = false;
-
-	    // Optional: clear fields when disabled
-	    noOFChildren.value = '';
-	    noOfDependents.value = 'NOT SPECIFIED';
-	  }
-	}
-
+  if (maritalStatus === 'Single') {
+    noOFChildren.disabled = true;
+    noOfDependents.disabled = true;
+  } else {
+    noOFChildren.disabled = false;
+    noOfDependents.disabled = false;
+    noOFChildren.value = '';
+    noOfDependents.value = 'NOT SPECIFIED';
+  }
+}
 
 document.addEventListener("DOMContentLoaded", function() {
   // Select all rows inside the KYC tables
@@ -42,10 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const inputs = row.querySelectorAll('input[type="date"], input[type="text"]');
     
     if (checkbox) {
-      // Initially disable all input fields
       inputs.forEach(input => input.disabled = true);
-
-      // Toggle enable/disable based on checkbox status
       checkbox.addEventListener("change", () => {
         inputs.forEach(input => input.disabled = !checkbox.checked);
       });
@@ -53,9 +45,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
-
-
-//Validation patterns
+// Validation patterns
 const validationPatterns = {
     gstin: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
     pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
@@ -71,7 +61,6 @@ const validationPatterns = {
 
 // Real-time input formatting and validation
 function setupFieldValidations() {
-    // GSTIN validation
     const gstinField = document.querySelector('input[name="gstinNo"]');
     if (gstinField) {
         gstinField.maxLength = 15;
@@ -87,28 +76,23 @@ function setupFieldValidations() {
         });
     }
 
-    // Member Number validation (only 2 digits)
-  const memberField = document.querySelector('input[name="memberNumber"]');
-if (memberField) {
-    memberField.maxLength = 2;
+    const memberField = document.querySelector('input[name="memberNumber"]');
+    if (memberField) {
+        memberField.maxLength = 2;
+        memberField.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
+        });
+        memberField.addEventListener('blur', function() {
+            if (!this.value) {
+                showError(this, 'Member Number is required');
+            } else if (this.value.length < 1 || this.value.length > 2) {
+                showError(this, 'Member Number must be 1 or 2 digits');
+            } else {
+                clearError(this);
+            }
+        });
+    }
 
-    memberField.addEventListener('input', function(e) {
-        // Allow only numbers, max 2 digits
-        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2);
-    });
-
-    memberField.addEventListener('blur', function() {
-        if (!this.value) {
-            showError(this, 'Member Number is required');
-        } else if (this.value.length < 1 || this.value.length > 2) {
-            showError(this, 'Member Number must be 1 or 2 digits');
-        } else {
-            clearError(this);
-        }
-    });
-}
-
-    // ZIP Code validation
     const zipField = document.querySelector('input[name="zip"]');
     if (zipField) {
         zipField.maxLength = 6;
@@ -124,7 +108,6 @@ if (memberField) {
         });
     }
 
-    // Mobile Number validation
     const mobileField = document.querySelector('input[name="mobileNo"]');
     if (mobileField) {
         mobileField.maxLength = 10;
@@ -140,7 +123,6 @@ if (memberField) {
         });
     }
 
-    // Residence Phone validation
     const residencePhoneField = document.querySelector('input[name="residencePhone"]');
     if (residencePhoneField) {
         residencePhoneField.maxLength = 11;
@@ -156,7 +138,6 @@ if (memberField) {
         });
     }
 
-    // Office Phone validation
     const officePhoneField = document.querySelector('input[name="officePhone"]');
     if (officePhoneField) {
         officePhoneField.maxLength = 11;
@@ -172,7 +153,6 @@ if (memberField) {
         });
     }
 
-    // Passport Number validation
     const passportField = document.getElementById('passportNumber');
     if (passportField) {
         passportField.maxLength = 8;
@@ -188,7 +168,6 @@ if (memberField) {
         });
     }
 
-    // PAN Card validation
     const panField = document.getElementById('pan');
     if (panField) {
         panField.maxLength = 10;
@@ -204,7 +183,6 @@ if (memberField) {
         });
     }
 
-    // Voter ID validation
     const voterIdField = document.getElementById('voterid');
     if (voterIdField) {
         voterIdField.maxLength = 10;
@@ -220,7 +198,6 @@ if (memberField) {
         });
     }
 
-    // Driving License validation
     const dlField = document.getElementById('dl');
     if (dlField) {
         dlField.maxLength = 15;
@@ -236,7 +213,6 @@ if (memberField) {
         });
     }
 
-    // Aadhar Card validation
     const aadharField = document.querySelector('input[name="aadhar"]');
     if (aadharField) {
         aadharField.maxLength = 12;
@@ -252,13 +228,11 @@ if (memberField) {
         });
     }
 
-    // NREGA Job Card validation
     const nregaField = document.getElementById('nrega');
     if (nregaField) {
         nregaField.maxLength = 22;
         nregaField.addEventListener('input', function(e) {
             let value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
-            // Auto-format: AB-12-345-678-901234
             if (value.length > 2 && value[2] !== '-') {
                 value = value.slice(0, 2) + '-' + value.slice(2);
             }
@@ -275,7 +249,6 @@ if (memberField) {
         });
     }
 
-    // Document number validations (alphanumeric)
     const docFields = ['telephone', 'bank_statement', 'govt_doc', 'electricity'];
     docFields.forEach(fieldName => {
         const field = document.querySelector(`input[name="${fieldName}"]`);
@@ -287,7 +260,6 @@ if (memberField) {
         }
     });
 
-    // Ration Card validation
     const rationField = document.getElementById('ration');
     if (rationField) {
         rationField.maxLength = 15;
@@ -297,7 +269,6 @@ if (memberField) {
     }
 }
 
-// Show error message
 function showError(field, message) {
     clearError(field);
     field.style.borderColor = '#ff0000';
@@ -313,7 +284,6 @@ function showError(field, message) {
     field.parentNode.appendChild(errorDiv);
 }
 
-// Clear error message
 function clearError(field) {
     field.style.borderColor = '';
     field.style.backgroundColor = '';
@@ -324,19 +294,16 @@ function clearError(field) {
     }
 }
 
-//Enhanced form validation before submit
 function validateForm() {
     let isValid = true;
     const errors = [];
 
-    // Validate GSTIN if filled
     const gstin = document.querySelector('input[name="gstinNo"]').value;
     if (gstin && !validationPatterns.gstin.test(gstin)) {
         errors.push('• Invalid GSTIN number');
         isValid = false;
     }
 
-    // Validate Mobile Number (required)
     const mobile = document.querySelector('input[name="mobileNo"]').value;
     if (!mobile) {
         errors.push('• Mobile number is required');
@@ -346,49 +313,42 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate ZIP if filled
     const zip = document.querySelector('input[name="zip"]').value;
     if (zip && !validationPatterns.zip.test(zip)) {
         errors.push('• Invalid ZIP code');
         isValid = false;
     }
 
-    // Validate PAN if filled
     const pan = document.getElementById('pan').value;
     if (pan && !validationPatterns.pan.test(pan)) {
         errors.push('• Invalid PAN card number');
         isValid = false;
     }
 
-    // Validate Aadhar if filled
     const aadhar = document.querySelector('input[name="aadhar"]').value;
     if (aadhar && !validationPatterns.aadhar.test(aadhar)) {
         errors.push('• Invalid Aadhar number');
         isValid = false;
     }
 
-    // Validate Passport if filled
     const passport = document.getElementById('passportNumber').value;
     if (passport && !validationPatterns.passport.test(passport)) {
         errors.push('• Invalid Passport number');
         isValid = false;
     }
 
-    // Validate Voter ID if filled
     const voterId = document.getElementById('voterid').value;
     if (voterId && !validationPatterns.voterId.test(voterId)) {
         errors.push('• Invalid Voter ID');
         isValid = false;
     }
 
-    // Validate Driving License if filled
     const dl = document.getElementById('dl').value;
     if (dl && !validationPatterns.drivingLicense.test(dl)) {
         errors.push('• Invalid Driving License number');
         isValid = false;
     }
 
-    // ✅ Validate at least one ID Proof document is filled
     const idProofFilled = 
         (document.querySelector('input[name="passport_check"]').checked && document.querySelector('input[name="passport_expiry"]').value && document.querySelector('input[name="passportNumber"]').value.trim()) ||
         (document.querySelector('input[name="pan_check"]').checked && document.querySelector('input[name="pan_expiry"]').value && document.getElementById('pan').value.trim()) ||
@@ -402,7 +362,6 @@ function validateForm() {
         isValid = false;
     }
 
-    // ✅ Validate at least one Address Proof document is filled
     const addressProofFilled = 
         (document.querySelector('input[name="telephone_check"]').checked && document.querySelector('input[name="telephone_expiry"]').value && document.querySelector('input[name="telephone"]').value.trim()) ||
         (document.querySelector('input[name="bank_check"]').checked && document.querySelector('input[name="bank_expiry"]').value && document.querySelector('input[name="bank_statement"]').value.trim()) ||
@@ -416,14 +375,12 @@ function validateForm() {
     }
 
     if (!isValid) {
-        // Show toast notification with all errors
         showValidationToast(errors);
     }
 
     return isValid;
 }
 
-// Function to show validation errors as toast
 function showValidationToast(errors) {
     const errorMessage = '❌ Please fix the following errors:\n\n' + errors.join('\n');
     
@@ -450,37 +407,24 @@ function showValidationToast(errors) {
     }).showToast();
 }
 
-// Initialize validations when page loads
 document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidations();
 });
 
-
-// for add name in customer name from input fields
 function updateCustomerName() {
     const first = document.getElementById("firstName").value.trim();
     const middle = document.getElementById("middleName").value.trim();
     const surname = document.getElementById("surname").value.trim();
-
-    // Build full name (only include non-empty parts)
     const fullName = [first, middle, surname].filter(Boolean).join(" ");
-
     document.getElementById("customerName").value = fullName;
-  }
-  
-  
-  
-// Update breadcrumb on page load
+}
+
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Add Customer');
     }
 };
 
-
-
-
-//Add custom CSS for toast overlay positioning
 const toastStyle = document.createElement('style');
 toastStyle.textContent = `
     .toastify {
@@ -495,7 +439,6 @@ toastStyle.textContent = `
 `;
 document.head.appendChild(toastStyle);
 
-// Check URL parameters for success/error messages
 window.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
@@ -507,8 +450,8 @@ window.addEventListener('DOMContentLoaded', function() {
             text: "✅ Customer added successfully!\nCustomer ID: " + customerId,
             duration: 5000,
             close: true,
-            gravity: "top", // top or bottom
-            position: "center", // left, center or right
+            gravity: "top",
+            position: "center",
             style: {
                 background: "#fff",
                 color: "#333",
@@ -520,10 +463,9 @@ window.addEventListener('DOMContentLoaded', function() {
                 marginTop: "20px"
             },
             stopOnFocus: true,
-            onClick: function(){} // Callback after click
+            onClick: function(){} 
         }).showToast();
         
-        // Add progress bar animation
         const toastElement = toast.toastElement;
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
@@ -536,7 +478,6 @@ window.addEventListener('DOMContentLoaded', function() {
             animation: shrink 5s linear forwards;
         `;
         
-        // Add keyframe animation
         const style = document.createElement('style');
         style.textContent = `
             @keyframes shrink {
@@ -550,7 +491,6 @@ window.addEventListener('DOMContentLoaded', function() {
         toastElement.style.overflow = 'hidden';
         toastElement.appendChild(progressBar);
         
-        // Clear URL parameters after showing toast
         setTimeout(function() {
             window.history.replaceState({}, document.title, "addCustomer.jsp");
         }, 100);
@@ -575,7 +515,6 @@ window.addEventListener('DOMContentLoaded', function() {
             stopOnFocus: true
         }).showToast();
         
-        // Add progress bar animation for error
         const toastElement = toast.toastElement;
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
@@ -592,76 +531,57 @@ window.addEventListener('DOMContentLoaded', function() {
         toastElement.style.overflow = 'hidden';
         toastElement.appendChild(progressBar);
         
-        // Clear URL parameters after showing toast
         setTimeout(function() {
             window.history.replaceState({}, document.title, "addCustomer.jsp");
         }, 100);
     }
 });
 
-
-
-// ========== PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
+// ========== PHOTO & SIGNATURE UPLOAD FUNCTIONALITY (FIXED) ==========
 
 let photoStream = null;
 let signatureStream = null;
 
-// Show Photo Options Modal
+// Show Photo Options Modal - FIXED
 function showPhotoOptions(event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
+    event.preventDefault();
+    event.stopPropagation();
+    
     const modal = document.getElementById('photoOptionsModal');
     modal.style.display = 'block';
-    modal.classList.add('show');
+    setTimeout(function() {
+        modal.classList.add('show');
+    }, 10);
 }
 
 // Close Photo Options Modal
 function closePhotoOptions() {
     const modal = document.getElementById('photoOptionsModal');
-    modal.style.display = 'none';
     modal.classList.remove('show');
+    setTimeout(function() {
+        modal.style.display = 'none';
+    }, 300);
 }
 
-// Show Signature Options Modal
+// Show Signature Options Modal - FIXED
 function showSignatureOptions(event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
+    event.preventDefault();
+    event.stopPropagation();
+    
     const modal = document.getElementById('signatureOptionsModal');
     modal.style.display = 'block';
-    modal.classList.add('show');
+    setTimeout(function() {
+        modal.classList.add('show');
+    }, 10);
 }
 
 // Close Signature Options Modal
 function closeSignatureOptions() {
     const modal = document.getElementById('signatureOptionsModal');
-    modal.style.display = 'none';
     modal.classList.remove('show');
-}
-
-// Browse Photo File
-function browsePhotoFile() {
-    closePhotoOptions();
     setTimeout(function() {
-        const input = document.getElementById('photoInput');
-        if (input) {
-            input.click();
-        }
-    }, 100);
-}
-
-// Browse Signature File
-function browseSignatureFile() {
-    closeSignatureOptions();
-    setTimeout(function() {
-        const input = document.getElementById('signatureInput');
-        if (input) {
-            input.click();
-        }
-    }, 100);
+        modal.style.display = 'none';
+    }, 300);
 }
 
 // Handle Photo File
@@ -674,7 +594,7 @@ function handlePhotoFile(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const container = document.querySelector('#photoCard .upload-icon-container');
-        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
         document.getElementById('photoData').value = e.target.result;
         
         showToast('✅ Photo uploaded successfully!');
@@ -692,7 +612,7 @@ function handleSignatureFile(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const container = document.querySelector('#signatureCard .upload-icon-container');
-        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
         document.getElementById('signatureData').value = e.target.result;
         
         showToast('✅ Signature uploaded successfully!');
@@ -700,7 +620,7 @@ function handleSignatureFile(file) {
     reader.readAsDataURL(file);
 }
 
-// Initialize file input handlers when DOM is ready
+// Initialize file input handlers and card click events
 (function() {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initFileInputs);
@@ -709,6 +629,22 @@ function handleSignatureFile(file) {
     }
     
     function initFileInputs() {
+        // Photo Card Click Handler
+        const photoCard = document.getElementById('photoCard');
+        if (photoCard) {
+            photoCard.addEventListener('click', function(e) {
+                showPhotoOptions(e);
+            });
+        }
+
+        // Signature Card Click Handler
+        const signatureCard = document.getElementById('signatureCard');
+        if (signatureCard) {
+            signatureCard.addEventListener('click', function(e) {
+                showSignatureOptions(e);
+            });
+        }
+
         // Photo Upload - Browse
         const photoInput = document.getElementById('photoInput');
         if (photoInput) {
@@ -717,7 +653,6 @@ function handleSignatureFile(file) {
                 if (file) {
                     handlePhotoFile(file);
                 }
-                // Reset input so same file can be selected again
                 this.value = '';
             });
         }
@@ -730,7 +665,6 @@ function handleSignatureFile(file) {
                 if (file) {
                     handleSignatureFile(file);
                 }
-                // Reset input so same file can be selected again
                 this.value = '';
             });
         }
@@ -783,7 +717,7 @@ function capturePhoto() {
     const imageData = canvas.toDataURL('image/jpeg');
     
     const container = document.querySelector('#photoCard .upload-icon-container');
-    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
     document.getElementById('photoData').value = imageData;
     
     closePhotoCamera();
@@ -836,7 +770,7 @@ function captureSignature() {
     const imageData = canvas.toDataURL('image/jpeg');
     
     const container = document.querySelector('#signatureCard .upload-icon-container');
-    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
     document.getElementById('signatureData').value = imageData;
     
     closeSignatureCamera();
@@ -844,54 +778,58 @@ function captureSignature() {
 }
 
 // Drag and Drop for Photo
-const photoCard = document.getElementById('photoCard');
-photoCard.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.add('dragover');
-});
+const photoCardDrag = document.getElementById('photoCard');
+if (photoCardDrag) {
+    photoCardDrag.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
 
-photoCard.addEventListener('dragleave', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.remove('dragover');
-});
+    photoCardDrag.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
 
-photoCard.addEventListener('drop', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.remove('dragover');
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        handlePhotoFile(file);
-    }
-});
+    photoCardDrag.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handlePhotoFile(file);
+        }
+    });
+}
 
 // Drag and Drop for Signature
-const signatureCard = document.getElementById('signatureCard');
-signatureCard.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.add('dragover');
-});
+const signatureCardDrag = document.getElementById('signatureCard');
+if (signatureCardDrag) {
+    signatureCardDrag.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
 
-signatureCard.addEventListener('dragleave', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.remove('dragover');
-});
+    signatureCardDrag.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
 
-signatureCard.addEventListener('drop', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.classList.remove('dragover');
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        handleSignatureFile(file);
-    }
-});
+    signatureCardDrag.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handleSignatureFile(file);
+        }
+    });
+}
 
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {
@@ -941,12 +879,5 @@ function showToast(message) {
         }).showToast();
     }
 }
-
-// Update breadcrumb on page load
-window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Add Customer');
-    }
-};
 
 // ========== END PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
