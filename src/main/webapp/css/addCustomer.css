@@ -1,154 +1,152 @@
 body {
-  background-color: #e8e4fc;
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  padding: 0;
-}
+      background-color: #e8e4fc; /* soft violet */
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
 
-fieldset {
-  background: #e8e4fc;
-  border: 2px solid #aaa;
-  margin: 32px 0;
-  padding: 15px 20px;
-  min-width: 320px;
-  border-radius: 9px;
-}
+    fieldset {
+      background: #e8e4fc; /* same as body */
+      border: 2px solid #aaa;
+      margin: 32px 0;
+      padding: 15px 20px;
+      min-width: 320px;
+      border-radius: 9px;
+    }
 
-legend {
-  font-weight: bold;
-  letter-spacing: 1px;
-  font-size: 1.18em;
-  padding: 0 10px;
-  color: #373279;
-}
+    legend {
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.18em;
+      padding: 0 10px;
+      color: #373279;
+    }
 
-/* Grid Layout */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px 20px;
-}
+    /* Grid Layout */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px 20px;
+    }
 
-.form-grid div {
-  display: flex;
-  flex-direction: column;
-}
+    .form-grid div {
+      display: flex;
+      flex-direction: column;
+    }
 
-label {
-  min-width: 10px;
-  font-size: 13px;
-  margin-bottom: 3px;
-  font-weight: bold;
-  color: #373279;
-}
+    label {
+      min-width: 10px;
+      font-size: 13px;
+      margin-bottom: 3px;
+      font-weight: bold;
+      color: #373279;
+    }
 
-input[type="text"],
-input[type="date"],
-input[type="email"],
-input[type="number"],
-select {
-  padding: 4px 6px;
-  font-size: 13px;
-  width: 95%;
-  box-sizing: border-box;
-}
+    input[type="text"],
+    input[type="date"],
+    input[type="email"],
+    select {
+      padding: 4px 6px;
+      font-size: 13px;
+      width: 95%;
+      box-sizing: border-box;
+    }
 
-.radio-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-}
+    .radio-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+    }
 
-input[type="radio"] {
-  transform: scale(0.9);
-}
+    input[type="radio"] {
+      transform: scale(0.9);
+    }
 
-.full-width {
-  grid-column: span 4;
-}
+    .full-width {
+      grid-column: span 4;
+    }
 
-/* Responsive Adjustments */
-@media (max-width: 1024px) {
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .full-width {
-    grid-column: span 2;
-  }
-}
+    /* Responsive Adjustments */
+    @media (max-width: 1024px) {
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .full-width {
+        grid-column: span 2;
+      }
+    }
 
-@media (max-width: 600px) {
-  body {
-    margin: 10px;
-  }
+    @media (max-width: 600px) {
+      body {
+        margin: 10px;
+      }
 
-  fieldset {
-    padding: 10px 15px;
-  }
+      fieldset {
+        padding: 10px 15px;
+      }
 
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
 
-  .full-width {
-    grid-column: span 1;
-  }
+      .full-width {
+        grid-column: span 1;
+      }
 
-  label {
-    font-size: 12px;
-  }
+      label {
+        font-size: 12px;
+      }
 
-  input[type="text"],
-  input[type="date"],
-  input[type="email"],
-  input[type="number"],
-  select {
-    width: 100%;
-    font-size: 12px;
-  }
+      input[type="text"],
+      input[type="date"],
+      input[type="email"],
+      select {
+        width: 100%;
+        font-size: 12px;
+      }
 
-  legend {
-    font-size: 1em;
-  }
-}
+      legend {
+        font-size: 1em;
+      }
+    }
 
-/* Additional styling for non-grid sections */
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 10px;
-  gap: 10px;
-}
+    /* Additional styling for non-grid sections */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
 
-.form-label {
-  min-width: 140px;
-  font-weight: bold;
-  color: #373279;
-  font-size: 13px;
-}
+    .form-label {
+      min-width: 140px;
+      font-weight: bold;
+      color: #373279;
+      font-size: 13px;
+    }
 
-.form-input {
-  flex: 1;
-  padding: 4px 6px;
-  font-size: 13px;
-}
+    .form-input {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 13px;
+    }
 
-@media (max-width: 600px) {
-  .form-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .form-label {
-    min-width: auto;
-  }
-  .form-input {
-    width: 100%;
-  }
-}
-
-/* PERSONAL INFO SPECIFIC */
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .form-label {
+        min-width: auto;
+      }
+      .form-input {
+        width: 100%;
+      }
+    }
+    
+   /* PERSONAL INFO SPECIFIC */
 .personal-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -163,10 +161,10 @@ input[type="radio"] {
 
 .personal-grid label {
   min-width: 10px;
-  font-size: 13px;
-  margin-bottom: 3px;
-  font-weight: bold;
-  color: #373279;
+      font-size: 13px;
+      margin-bottom: 3px;
+      font-weight: bold;
+      color: #373279;
 }
 
 .personal-grid input[type="text"],
@@ -207,6 +205,7 @@ input[type="radio"] {
     grid-column: span 1;
   }
 }
+
 
 /* ADDRESS INFO GRID */
 .address-grid {
@@ -260,7 +259,9 @@ input[type="radio"] {
   }
 }
 
-/* KYC FIELDSET */
+/*for kyc fieldset */
+
+
 .kyc-row {
   display: flex;
   justify-content: space-between;
@@ -275,7 +276,7 @@ input[type="radio"] {
 }
 
 .kyc-section h4 {
-  color: #373279;
+  color:#373279;
   text-align: center;
   font-weight: bold;
   text-decoration: underline;
@@ -322,14 +323,14 @@ hr {
   margin: 15px 0;
 }
 
-/* Bigger Checkboxes Styling */
+/* ✅ Bigger Checkboxes Styling */
 input[type="checkbox"] {
-  width: 20px !important;
-  height: 20px !important;
+  width: 20px !important;   /* increase width */
+  height: 20px !important;  /* increase height */
   cursor: pointer;
 }
 
-/* Center checkboxes neatly in table cells */
+/* ✅ Center checkboxes neatly in table cells */
 td input[type="checkbox"] {
   vertical-align: middle;
   display: block;
@@ -341,7 +342,7 @@ input:disabled {
   cursor: not-allowed;
 }
 
-/* Responsive Adjustments */
+/* 🔹 Responsive Adjustments */
 @media (max-width: 900px) {
   .kyc-row {
     flex-direction: column;
@@ -366,7 +367,7 @@ input:disabled {
   }
 }
 
-/* Button Styling */
+ /* Button Styling */
 .form-buttons {
   display: flex;
   justify-content: center;
@@ -409,6 +410,26 @@ input:disabled {
   }
 }
 
+
+
+
+/* Hide arrows in Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
+}
+
+/* Hide arrows in Firefox */
+input[type=number] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+
+
+
 /* Hide arrows in Chrome, Safari, Edge, Opera */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button {
@@ -441,7 +462,6 @@ input[type=number] {
   width: 280px;
   text-align: center;
   transition: all 0.3s ease;
-  cursor: pointer;
 }
 
 .upload-card:hover {
@@ -472,12 +492,13 @@ input[type=number] {
 }
 
 .upload-icon {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
-.upload-icon-container img.preview-image,
-.upload-icon-container svg.preview-image {
+.upload-icon-container img.preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -496,98 +517,36 @@ input[type=number] {
   margin-bottom: 20px;
 }
 
-/* Options Modal Styles */
-.options-modal {
-  display: none;
-  position: fixed;
-  z-index: 10000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  animation: fadeIn 0.3s;
-}
-
-.options-modal.show {
-  display: block !important;
-}
-
-.options-modal-content {
-  background: white;
-  margin: 15% auto;
-  padding: 40px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 450px;
-  position: relative;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  animation: slideDown 0.3s;
-}
-
-.options-modal-content h3 {
-  color: #373279;
-  margin-top: 0;
-  margin-bottom: 30px;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.options-close {
-  color: #888;
-  position: absolute;
-  right: 20px;
-  top: 15px;
-  font-size: 32px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.3s;
-  line-height: 1;
-}
-
-.options-close:hover {
-  color: #373279;
-}
-
-.options-buttons {
+.upload-buttons {
   display: flex;
-  gap: 20px;
+  gap: 10px;
   justify-content: center;
-  flex-wrap: wrap;
+  margin-top: 20px;
 }
 
-.option-btn {
-  background: linear-gradient(135deg, #373279, #4a4a8a);
+.upload-btn {
+  background: #373279;
   color: white;
   border: none;
-  padding: 25px 35px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   transition: all 0.3s ease;
-  min-width: 140px;
-  box-shadow: 0 4px 15px rgba(55, 50, 121, 0.2);
 }
 
-.option-btn:hover {
-  background: linear-gradient(135deg, #2b0d73, #373279);
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(55, 50, 121, 0.4);
+.upload-btn:hover {
+  background: #2b0d73;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(55, 50, 121, 0.3);
 }
 
-.option-btn svg {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.option-btn span {
-  font-size: 16px;
-  letter-spacing: 0.5px;
+.upload-btn img {
+  filter: brightness(0) invert(1);
 }
 
 /* Camera Modal Styles */
@@ -682,23 +641,6 @@ input[type=number] {
   background: #e0dcff;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideDown {
-  from { 
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to { 
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .upload-container {
@@ -714,18 +656,5 @@ input[type=number] {
   .camera-modal-content {
     width: 95%;
     padding: 20px;
-  }
-  
-  .options-modal-content {
-    width: 95%;
-    padding: 30px 20px;
-  }
-  
-  .options-buttons {
-    flex-direction: column;
-  }
-  
-  .option-btn {
-    width: 100%;
   }
 }
