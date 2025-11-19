@@ -1,23 +1,18 @@
-<%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date" %>
+<%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date, java.util.Base64" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
-    // ✅ Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
-
     String branchCode = (String) sess.getAttribute("branchCode");
 %>
 <%! 
-    // safe getter for strings
     String getStringSafe(ResultSet r, String col) throws SQLException {
         String v = r.getString(col);
         return (v == null) ? "" : v;
     }
-
-    // yes/no helper for check flags
     String yesNo(ResultSet r, String col) throws SQLException {
         String v = r.getString(col);
         if (v == null) return "No";
@@ -26,14 +21,11 @@
         if (v.equalsIgnoreCase("N") || v.equalsIgnoreCase("NO") || v.equals("0") || v.equalsIgnoreCase("false")) return "No";
         return v;
     }
-
-    // format SQL date/timestamp to yyyy-MM-dd for input[type=date] (or human readable if empty)
     String formatDateForInput(ResultSet r, String col) throws SQLException {
         java.sql.Timestamp ts = null;
         try {
             ts = r.getTimestamp(col);
         } catch (Exception ex) {
-            // try date
             try {
                 java.sql.Date d = r.getDate(col);
                 if (d != null) ts = new java.sql.Timestamp(d.getTime());
@@ -43,24 +35,31 @@
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(new Date(ts.getTime()));
     }
-
-    // format date to human readable (fallback)
     String formatDateHuman(ResultSet r, String col) throws SQLException {
         String val = formatDateForInput(r, col);
         return val.isEmpty() ? getStringSafe(r, col) : val;
+    }
+    
+    // Convert BLOB to Base64 for image display
+    String blobToBase64(Blob blob) throws SQLException {
+        if (blob == null) return null;
+        byte[] bytes = blob.getBytes(1, (int) blob.length());
+        return Base64.getEncoder().encodeToString(bytes);
     }
 %>
 
 <%
     String cid = request.getParameter("cid");
     if (cid == null || cid.trim().isEmpty()) {
-        out.println("<h3 style='color:red;'>Customer ID (cid) not provided in query string.</h3>");
+        out.println("<h3 style='color:red;'>Customer ID (cid) not provided.</h3>");
         return;
     }
 
     Connection conn = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
+    PreparedStatement ps = null, psPhoto = null, psSign = null;
+    ResultSet rs = null, rsPhoto = null, rsSign = null;
+    String photoBase64 = null;
+    String signatureBase64 = null;
 
     try {
         conn = DBConnection.getConnection();
@@ -72,6 +71,28 @@
             out.println("<h3 style='color:red;'>No customer found with ID: " + cid + "</h3>");
             return;
         }
+        
+        // Get photo
+        psPhoto = conn.prepareStatement("SELECT PHOTO FROM SIGNATURES.CUSTOMERPHOTO WHERE CUSTOMER_ID = ?");
+        psPhoto.setString(1, cid);
+        rsPhoto = psPhoto.executeQuery();
+        if (rsPhoto.next()) {
+            Blob photoBlob = rsPhoto.getBlob("PHOTO");
+            if (photoBlob != null) {
+                photoBase64 = "data:image/jpeg;base64," + blobToBase64(photoBlob);
+            }
+        }
+        
+        // Get signature
+        psSign = conn.prepareStatement("SELECT SIGNATURE FROM SIGNATURES.CUSTOMERSIGNATURE WHERE CUSTOMER_ID = ?");
+        psSign.setString(1, cid);
+        rsSign = psSign.executeQuery();
+        if (rsSign.next()) {
+            Blob signBlob = rsSign.getBlob("SIGNATURE");
+            if (signBlob != null) {
+                signatureBase64 = "data:image/jpeg;base64," + blobToBase64(signBlob);
+            }
+        }
 %>
 
 <!doctype html>
@@ -81,15 +102,55 @@
   <title>View Customer — <%= cid %></title>
   <link rel="stylesheet" href="css/addCustomer.css">
   <link rel="stylesheet" href="css/authViewCustomers.css">
+  <style>
+  .image-preview-section {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+  }
+  .image-preview-card {
+      text-align: center;
+      background: #f5f3ff;
+      border: 2px solid #9c8ed8;
+      border-radius: 12px;
+      padding: 20px;
+      width: 280px;
+  }
+  .image-preview-card h3 {
+      color: #373279;
+      margin-bottom: 15px;
+      font-size: 18px;
+  }
+  .image-preview-container {
+      background: #e8e4fc;
+      border-radius: 8px;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+  }
+  .image-preview-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+  }
+  .no-image-text {
+      color: #888;
+      font-size: 14px;
+  }
+  </style>
 <script>
-// Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending > View Details');
     }
 };
 
-// Go back to list
 function goBackToList() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending');
@@ -97,19 +158,16 @@ function goBackToList() {
     window.location.href = 'authorizationPending.jsp';
 }
 
-// Show confirmation modal for Authorize
 function showAuthorizeConfirmation(event) {
     event.preventDefault();
     document.getElementById('authorizeModal').style.display = 'block';
 }
 
-// Show confirmation modal for Reject
 function showRejectConfirmation(event) {
     event.preventDefault();
     document.getElementById('rejectModal').style.display = 'block';
 }
 
-// Close modals
 function closeAuthorizeModal() {
     document.getElementById('authorizeModal').style.display = 'none';
 }
@@ -118,7 +176,6 @@ function closeRejectModal() {
     document.getElementById('rejectModal').style.display = 'none';
 }
 
-// Confirm actions
 function confirmAuthorize() {
     document.getElementById('authorizeForm').submit();
 }
@@ -127,7 +184,6 @@ function confirmReject() {
     document.getElementById('rejectForm').submit();
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
     const authorizeModal = document.getElementById('authorizeModal');
     const rejectModal = document.getElementById('rejectModal');
@@ -139,7 +195,6 @@ window.onclick = function(event) {
     }
 }
 
-// Close on Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeAuthorizeModal();
@@ -149,8 +204,35 @@ document.addEventListener('keydown', function(event) {
 </script>
 </head>
 <body>
+  <!-- Photo & Signature Preview Section -->
+  <fieldset>
+      <legend>Photo & Signature</legend>
+      <div class="image-preview-section">
+          <div class="image-preview-card">
+              <h3>Customer Photo</h3>
+              <div class="image-preview-container">
+                  <% if (photoBase64 != null) { %>
+                      <img src="<%= photoBase64 %>" alt="Customer Photo">
+                  <% } else { %>
+                      <p class="no-image-text">No photo uploaded</p>
+                  <% } %>
+              </div>
+          </div>
+          
+          <div class="image-preview-card">
+              <h3>Customer Signature</h3>
+              <div class="image-preview-container">
+                  <% if (signatureBase64 != null) { %>
+                      <img src="<%= signatureBase64 %>" alt="Customer Signature">
+                  <% } else { %>
+                      <p class="no-image-text">No signature uploaded</p>
+                  <% } %>
+              </div>
+          </div>
+      </div>
+  </fieldset>
+
   <form>
-    <!-- CUSTOMER INFORMATION -->
     <fieldset>
       <legend>Customer Information</legend>
       <div class="form-grid">
@@ -266,7 +348,6 @@ document.addEventListener('keydown', function(event) {
       </div>
     </fieldset>
 
-    <!-- PERSONAL INFORMATION -->
     <fieldset>
       <legend>Personal Information</legend>
       <div class="personal-grid">
@@ -293,7 +374,6 @@ document.addEventListener('keydown', function(event) {
       </div>
     </fieldset>
 
-    <!-- ADDRESS INFORMATION -->
     <fieldset>
       <legend>Address Information</legend>
       <div class="address-grid">
@@ -352,7 +432,6 @@ document.addEventListener('keydown', function(event) {
       </div>
     </fieldset>
 
-    <!-- KYC / DOCUMENT CHECKLIST -->
     <fieldset class="kyc-fieldset">
       <legend>KYC Document Details</legend>
 
@@ -533,14 +612,10 @@ document.addEventListener('keydown', function(event) {
 </div>
   </form>
   
-<!-- AUTHORIZE / REJECT BUTTONS -->
 <div style="text-align:center; margin-top:30px;">
-
-    <!-- AUTHORIZE BUTTON -->
     <form id="authorizeForm" action="UpdateCustomerStatusServlet" method="post" style="display:inline;" onsubmit="return showAuthorizeConfirmation(event)">
         <input type="hidden" name="cid" value="<%= cid %>">
         <input type="hidden" name="status" value="A">
-
         <button type="submit"
             style="padding:10px 22px; background:linear-gradient(45deg, #28a745, #34ce57); color:white;
                    border:none; border-radius:6px; cursor:pointer;
@@ -551,11 +626,9 @@ document.addEventListener('keydown', function(event) {
 
     &nbsp;&nbsp;&nbsp;
 
-    <!-- REJECT BUTTON -->
     <form id="rejectForm" action="UpdateCustomerStatusServlet" method="post" style="display:inline;" onsubmit="return showRejectConfirmation(event)">
         <input type="hidden" name="cid" value="<%= cid %>">
         <input type="hidden" name="status" value="R">
-
         <button type="submit"
             style="padding:10px 22px; background:linear-gradient(45deg, #dc3545, #e74c3c); color:white;
                    border:none; border-radius:6px; cursor:pointer;
@@ -563,10 +636,8 @@ document.addEventListener('keydown', function(event) {
             ✘ Reject
         </button>
     </form>
-
 </div>
 
-<!-- Authorize Confirmation Modal -->
 <div id="authorizeModal" class="confirmation-modal">
     <div class="confirmation-modal-content">
         <h2>✔ Confirm Authorization</h2>
@@ -578,7 +649,6 @@ document.addEventListener('keydown', function(event) {
     </div>
 </div>
 
-<!-- Reject Confirmation Modal -->
 <div id="rejectModal" class="confirmation-modal">
     <div class="confirmation-modal-content">
         <h2>✘ Confirm Rejection</h2>
@@ -599,7 +669,11 @@ document.addEventListener('keydown', function(event) {
         e.printStackTrace();
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ex) {}
+        try { if (rsPhoto != null) rsPhoto.close(); } catch (Exception ex) {}
+        try { if (rsSign != null) rsSign.close(); } catch (Exception ex) {}
         try { if (ps != null) ps.close(); } catch (Exception ex) {}
+        try { if (psPhoto != null) psPhoto.close(); } catch (Exception ex) {}
+        try { if (psSign != null) psSign.close(); } catch (Exception ex) {}
         try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
 %>

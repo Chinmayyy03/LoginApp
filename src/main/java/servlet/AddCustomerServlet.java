@@ -345,6 +345,13 @@ public class AddCustomerServlet extends HttpServlet {
 
             if (rows > 0) {
                 System.out.println("Customer added successfully!");
+             // Upload photo and signature
+                String photoData = request.getParameter("photoData");
+                String signatureData = request.getParameter("signatureData");
+                String registrationDate = request.getParameter("registrationDate");
+                String userId = (String) session.getAttribute("userId");
+                
+                uploadPhotoAndSignature(customerId, userId, photoData, signatureData, registrationDate);
                 response.sendRedirect("addCustomer.jsp?status=success&customerId=" + customerId);
             } else {
                 System.out.println("Failed to insert customer");
@@ -362,4 +369,72 @@ public class AddCustomerServlet extends HttpServlet {
             try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
     }
+    private void uploadPhotoAndSignature(String customerId, String userId, String photoData, 
+            String signatureData, String registrationDate) {
+Connection conn = null;
+PreparedStatement psPhoto = null;
+PreparedStatement psSignature = null;
+
+try {
+conn = DBConnection.getConnection();
+
+// Insert Photo
+if (photoData != null && !photoData.isEmpty()) {
+if (photoData.contains(",")) {
+photoData = photoData.split(",")[1];
+}
+
+byte[] photoBytes = java.util.Base64.getDecoder().decode(photoData);
+String photoFilename = "PHOTO_" + customerId + ".jpg";
+
+String sqlPhoto = "INSERT INTO SIGNATURES.CUSTOMERPHOTO " +
+  "(CUSTOMER_ID, PHOTO, USER_ID, OFFICER_ID, DATEOFREGISTRATION, PHOTOFILENAME, UPLOAD_ID) " +
+  "VALUES (?, ?, ?, NULL, ?, ?, ?)";
+
+psPhoto = conn.prepareStatement(sqlPhoto);
+psPhoto.setString(1, customerId);
+psPhoto.setBytes(2, photoBytes);
+psPhoto.setString(3, userId);
+psPhoto.setDate(4, parseDate(registrationDate));
+psPhoto.setString(5, photoFilename);
+psPhoto.setString(6, userId);
+
+psPhoto.executeUpdate();
+System.out.println("✅ Photo uploaded for customer: " + customerId);
+}
+
+// Insert Signature
+if (signatureData != null && !signatureData.isEmpty()) {
+if (signatureData.contains(",")) {
+signatureData = signatureData.split(",")[1];
+}
+
+byte[] signatureBytes = java.util.Base64.getDecoder().decode(signatureData);
+String signatureFilename = "SIGN_" + customerId + ".jpg";
+
+String sqlSignature = "INSERT INTO SIGNATURES.CUSTOMERSIGNATURE " +
+      "(CUSTOMER_ID, SIGNATURE, USER_ID, OFFICER_ID, DATEOFREGISTRATION, SIGNATUREFILENAME, UPLOAD_ID) " +
+      "VALUES (?, ?, ?, NULL, ?, ?, ?)";
+
+psSignature = conn.prepareStatement(sqlSignature);
+psSignature.setString(1, customerId);
+psSignature.setBytes(2, signatureBytes);
+psSignature.setString(3, userId);
+psSignature.setDate(4, parseDate(registrationDate));
+psSignature.setString(5, signatureFilename);
+psSignature.setString(6, userId);
+
+psSignature.executeUpdate();
+System.out.println("✅ Signature uploaded for customer: " + customerId);
+}
+
+} catch (Exception e) {
+System.out.println("❌ Photo/Signature upload error: " + e.getMessage());
+e.printStackTrace();
+} finally {
+try { if (psPhoto != null) psPhoto.close(); } catch (Exception ignored) {}
+try { if (psSignature != null) psSignature.close(); } catch (Exception ignored) {}
+try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+}
+}
 }
