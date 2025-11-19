@@ -598,3 +598,355 @@ window.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
 });
+
+
+
+// ========== PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
+
+let photoStream = null;
+let signatureStream = null;
+
+// Show Photo Options Modal
+function showPhotoOptions(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const modal = document.getElementById('photoOptionsModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+}
+
+// Close Photo Options Modal
+function closePhotoOptions() {
+    const modal = document.getElementById('photoOptionsModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+}
+
+// Show Signature Options Modal
+function showSignatureOptions(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const modal = document.getElementById('signatureOptionsModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+}
+
+// Close Signature Options Modal
+function closeSignatureOptions() {
+    const modal = document.getElementById('signatureOptionsModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+}
+
+// Browse Photo File
+function browsePhotoFile() {
+    closePhotoOptions();
+    setTimeout(function() {
+        const input = document.getElementById('photoInput');
+        if (input) {
+            input.click();
+        }
+    }, 100);
+}
+
+// Browse Signature File
+function browseSignatureFile() {
+    closeSignatureOptions();
+    setTimeout(function() {
+        const input = document.getElementById('signatureInput');
+        if (input) {
+            input.click();
+        }
+    }, 100);
+}
+
+// Handle Photo File
+function handlePhotoFile(file) {
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const container = document.querySelector('#photoCard .upload-icon-container');
+        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+        document.getElementById('photoData').value = e.target.result;
+        
+        showToast('✅ Photo uploaded successfully!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Handle Signature File
+function handleSignatureFile(file) {
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const container = document.querySelector('#signatureCard .upload-icon-container');
+        container.innerHTML = '<img src="' + e.target.result + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+        document.getElementById('signatureData').value = e.target.result;
+        
+        showToast('✅ Signature uploaded successfully!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Initialize file input handlers when DOM is ready
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFileInputs);
+    } else {
+        initFileInputs();
+    }
+    
+    function initFileInputs() {
+        // Photo Upload - Browse
+        const photoInput = document.getElementById('photoInput');
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handlePhotoFile(file);
+                }
+                // Reset input so same file can be selected again
+                this.value = '';
+            });
+        }
+
+        // Signature Upload - Browse
+        const signatureInput = document.getElementById('signatureInput');
+        if (signatureInput) {
+            signatureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleSignatureFile(file);
+                }
+                // Reset input so same file can be selected again
+                this.value = '';
+            });
+        }
+    }
+})();
+
+// Open Photo Camera
+function openPhotoCamera() {
+    closePhotoOptions();
+    const modal = document.getElementById('photoCameraModal');
+    const video = document.getElementById('photoVideo');
+    
+    modal.style.display = 'block';
+    
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(function(stream) {
+            photoStream = stream;
+            video.srcObject = stream;
+        })
+        .catch(function(err) {
+            alert('Error accessing camera: ' + err.message);
+            closePhotoCamera();
+        });
+}
+
+// Close Photo Camera
+function closePhotoCamera() {
+    const modal = document.getElementById('photoCameraModal');
+    const video = document.getElementById('photoVideo');
+    
+    if (photoStream) {
+        photoStream.getTracks().forEach(track => track.stop());
+        photoStream = null;
+    }
+    
+    video.srcObject = null;
+    modal.style.display = 'none';
+}
+
+// Capture Photo
+function capturePhoto() {
+    const video = document.getElementById('photoVideo');
+    const canvas = document.getElementById('photoCanvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = canvas.toDataURL('image/jpeg');
+    
+    const container = document.querySelector('#photoCard .upload-icon-container');
+    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+    document.getElementById('photoData').value = imageData;
+    
+    closePhotoCamera();
+    showToast('✅ Photo captured successfully!');
+}
+
+// Open Signature Camera
+function openSignatureCamera() {
+    closeSignatureOptions();
+    const modal = document.getElementById('signatureCameraModal');
+    const video = document.getElementById('signatureVideo');
+    
+    modal.style.display = 'block';
+    
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(stream) {
+            signatureStream = stream;
+            video.srcObject = stream;
+        })
+        .catch(function(err) {
+            alert('Error accessing camera: ' + err.message);
+            closeSignatureCamera();
+        });
+}
+
+// Close Signature Camera
+function closeSignatureCamera() {
+    const modal = document.getElementById('signatureCameraModal');
+    const video = document.getElementById('signatureVideo');
+    
+    if (signatureStream) {
+        signatureStream.getTracks().forEach(track => track.stop());
+        signatureStream = null;
+    }
+    
+    video.srcObject = null;
+    modal.style.display = 'none';
+}
+
+// Capture Signature
+function captureSignature() {
+    const video = document.getElementById('signatureVideo');
+    const canvas = document.getElementById('signatureCanvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = canvas.toDataURL('image/jpeg');
+    
+    const container = document.querySelector('#signatureCard .upload-icon-container');
+    container.innerHTML = '<img src="' + imageData + '" class="preview-image" style="width:100%; height:100%; object-fit:cover;">';
+    document.getElementById('signatureData').value = imageData;
+    
+    closeSignatureCamera();
+    showToast('✅ Signature captured successfully!');
+}
+
+// Drag and Drop for Photo
+const photoCard = document.getElementById('photoCard');
+photoCard.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.add('dragover');
+});
+
+photoCard.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.remove('dragover');
+});
+
+photoCard.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.remove('dragover');
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        handlePhotoFile(file);
+    }
+});
+
+// Drag and Drop for Signature
+const signatureCard = document.getElementById('signatureCard');
+signatureCard.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.add('dragover');
+});
+
+signatureCard.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.remove('dragover');
+});
+
+signatureCard.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.classList.remove('dragover');
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        handleSignatureFile(file);
+    }
+});
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    if (event.target.id === 'photoOptionsModal') {
+        closePhotoOptions();
+    }
+    if (event.target.id === 'signatureOptionsModal') {
+        closeSignatureOptions();
+    }
+    if (event.target.id === 'photoCameraModal') {
+        closePhotoCamera();
+    }
+    if (event.target.id === 'signatureCameraModal') {
+        closeSignatureCamera();
+    }
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closePhotoOptions();
+        closeSignatureOptions();
+        closePhotoCamera();
+        closeSignatureCamera();
+    }
+});
+
+// Toast notification helper
+function showToast(message) {
+    if (typeof Toastify !== 'undefined') {
+        Toastify({
+            text: message,
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "#fff",
+                color: "#333",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #4caf50",
+                marginTop: "20px"
+            }
+        }).showToast();
+    }
+}
+
+// Update breadcrumb on page load
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Add Customer');
+    }
+};
+
+// ========== END PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========

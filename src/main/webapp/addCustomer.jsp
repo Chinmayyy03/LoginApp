@@ -702,6 +702,99 @@
     </div>
   </div>
 </fieldset>
+
+
+<!-- Photo & Signature Upload Section -->
+<fieldset>
+  <legend>Photo & Signature Upload</legend>
+  
+  <div class="upload-container">
+    <!-- Upload Photo Card -->
+    <div class="upload-card" id="photoCard" onclick="showPhotoOptions(event)">
+      <h3>Upload Photo</h3>
+      <div class="upload-icon-container">
+        <svg class="upload-icon" id="photoPreviewIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#4a4a8a" stroke-width="2"/>
+          <circle cx="8.5" cy="9.5" r="1.5" fill="#4a4a8a"/>
+          <path d="M3 15L7 11L11 15L17 9L21 13V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V15Z" fill="#4a4a8a"/>
+        </svg>
+      </div>
+      <p class="upload-text">Upload a photo</p>
+      <p class="upload-subtext">Drag and drop files here</p>
+      
+      <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
+      <input type="hidden" id="photoData" name="photoData">
+    </div>
+
+    <!-- Upload Signature Card -->
+    <div class="upload-card" id="signatureCard" onclick="showSignatureOptions(event)">
+      <h3>Upload Signature</h3>
+      <div class="upload-icon-container">
+        <svg class="upload-icon" id="signaturePreviewIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 17C3 17 5 15 7 15C9 15 11 17 13 17C15 17 17 15 19 15C21 15 23 17 23 17" stroke="#4a4a8a" stroke-width="2" stroke-linecap="round"/>
+          <path d="M4 12C4 12 6 10 8 10C10 10 12 12 14 12C16 12 18 10 20 10C22 10 24 12 24 12" stroke="#4a4a8a" stroke-width="2" stroke-linecap="round"/>
+          <path d="M5 7C5 7 7 5 9 5C11 5 13 7 15 7C17 7 19 5 21 5" stroke="#4a4a8a" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="upload-text">Upload a signature</p>
+      <p class="upload-subtext">Drag and drop files here</p>
+      
+      <input type="file" id="signatureInput" name="signature" accept="image/*" style="display: none;">
+      <input type="hidden" id="signatureData" name="signatureData">
+    </div>
+  </div>
+</fieldset>
+
+<!-- Photo Options Modal -->
+<div id="photoOptionsModal" class="options-modal">
+  <div class="options-modal-content">
+    <span class="options-close" onclick="closePhotoOptions()">&times;</span>
+    <h3>Select Upload Method</h3>
+    <div class="options-buttons">
+      <button type="button" class="option-btn" onclick="openPhotoCamera()">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="5" width="20" height="14" rx="2" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2"/>
+          <path d="M15 5L16 3H8L9 5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Camera</span>
+      </button>
+      <button type="button" class="option-btn" onclick="document.getElementById('photoInput').click(); closePhotoOptions();">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 2V9H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Browse</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Signature Options Modal -->
+<div id="signatureOptionsModal" class="options-modal">
+  <div class="options-modal-content">
+    <span class="options-close" onclick="closeSignatureOptions()">&times;</span>
+    <h3>Select Upload Method</h3>
+    <div class="options-buttons">
+      <button type="button" class="option-btn" onclick="openSignatureCamera()">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="5" width="20" height="14" rx="2" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" stroke="white" stroke-width="2"/>
+          <path d="M15 5L16 3H8L9 5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Camera</span>
+      </button>
+      <button type="button" class="option-btn" onclick="document.getElementById('signatureInput').click(); closeSignatureOptions();">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.0391 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 2V9H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Browse</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Submit & Reset Buttons -->
   <div class="form-buttons">
     <button type="submit">Submit</button>
@@ -709,6 +802,35 @@
   </div>
   
 </form>
+
+<!-- Camera Modal for Photo -->
+<div id="photoCameraModal" class="camera-modal">
+  <div class="camera-modal-content">
+    <span class="camera-close" onclick="closePhotoCamera()">&times;</span>
+    <h3>Take Photo</h3>
+    <video id="photoVideo" autoplay></video>
+    <canvas id="photoCanvas" style="display: none;"></canvas>
+    <div class="camera-controls">
+      <button type="button" class="camera-btn" onclick="capturePhoto()">Capture</button>
+      <button type="button" class="camera-btn camera-btn-cancel" onclick="closePhotoCamera()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Camera Modal for Signature -->
+<div id="signatureCameraModal" class="camera-modal">
+  <div class="camera-modal-content">
+    <span class="camera-close" onclick="closeSignatureCamera()">&times;</span>
+    <h3>Take Signature Photo</h3>
+    <video id="signatureVideo" autoplay></video>
+    <canvas id="signatureCanvas" style="display: none;"></canvas>
+    <div class="camera-controls">
+      <button type="button" class="camera-btn" onclick="captureSignature()">Capture</button>
+      <button type="button" class="camera-btn camera-btn-cancel" onclick="closeSignatureCamera()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/addCustomer.js"></script>
 </body>
 </html>
