@@ -1,4 +1,4 @@
-<%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date" %>
+<%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date, java.util.Base64" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
     // ✅ Get branch code from session
@@ -49,6 +49,13 @@
         String val = formatDateForInput(r, col);
         return val.isEmpty() ? getStringSafe(r, col) : val;
     }
+    
+    // Convert BLOB to Base64 for image display
+    String blobToBase64(Blob blob) throws SQLException {
+        if (blob == null) return null;
+        byte[] bytes = blob.getBytes(1, (int) blob.length());
+        return Base64.getEncoder().encodeToString(bytes);
+    }
 %>
 
 <%
@@ -59,12 +66,13 @@
     }
 
     Connection conn = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
+    PreparedStatement ps = null, psPhoto = null, psSign = null;
+    ResultSet rs = null, rsPhoto = null, rsSign = null;
+    String photoBase64 = null;
+    String signatureBase64 = null;
 
     try {
         conn = DBConnection.getConnection();
-        // adjust table name if your table is CUSTOMER_MASTER instead of CUSTOMERS
         ps = conn.prepareStatement("SELECT * FROM CUSTOMERS WHERE CUSTOMER_ID = ?");
         ps.setString(1, cid);
         rs = ps.executeQuery();
@@ -72,6 +80,28 @@
         if (!rs.next()) {
             out.println("<h3 style='color:red;'>No customer found with ID: " + cid + "</h3>");
             return;
+        }
+        
+        // Get photo
+        psPhoto = conn.prepareStatement("SELECT PHOTO FROM SIGNATURES.CUSTOMERPHOTO WHERE CUSTOMER_ID = ?");
+        psPhoto.setString(1, cid);
+        rsPhoto = psPhoto.executeQuery();
+        if (rsPhoto.next()) {
+            Blob photoBlob = rsPhoto.getBlob("PHOTO");
+            if (photoBlob != null) {
+                photoBase64 = "data:image/jpeg;base64," + blobToBase64(photoBlob);
+            }
+        }
+        
+        // Get signature
+        psSign = conn.prepareStatement("SELECT SIGNATURE FROM SIGNATURES.CUSTOMERSIGNATURE WHERE CUSTOMER_ID = ?");
+        psSign.setString(1, cid);
+        rsSign = psSign.executeQuery();
+        if (rsSign.next()) {
+            Blob signBlob = rsSign.getBlob("SIGNATURE");
+            if (signBlob != null) {
+                signatureBase64 = "data:image/jpeg;base64," + blobToBase64(signBlob);
+            }
         }
 %>
 
@@ -94,7 +124,6 @@ body {
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 25px;
-   
 }
 
 /* Fieldset Legend */
@@ -145,6 +174,53 @@ body {
     align-items: center;
     gap: 10px;
 }
+
+/* Photo & Signature Display Styles */
+.image-preview-section {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.image-preview-card {
+    text-align: center;
+    background: #f5f3ff;
+    border: 2px solid #9c8ed8;
+    border-radius: 12px;
+    padding: 20px;
+    width: 280px;
+}
+
+.image-preview-card h3 {
+    color: #373279;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.image-preview-container {
+    background: #e8e4fc;
+    border-radius: 8px;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.image-preview-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.no-image-text {
+    color: #888;
+    font-size: 14px;
+}
 </style>
 <script>
 //Update breadcrumb on page load
@@ -164,6 +240,35 @@ function goBackToList() {
 </script>
 </head>
 <body>
+  
+  <!-- Photo & Signature Preview Section -->
+  <fieldset>
+      <legend>Photo & Signature</legend>
+      <div class="image-preview-section">
+          <div class="image-preview-card">
+              <h3>Customer Photo</h3>
+              <div class="image-preview-container">
+                  <% if (photoBase64 != null) { %>
+                      <img src="<%= photoBase64 %>" alt="Customer Photo">
+                  <% } else { %>
+                      <p class="no-image-text">No photo uploaded</p>
+                  <% } %>
+              </div>
+          </div>
+          
+          <div class="image-preview-card">
+              <h3>Customer Signature</h3>
+              <div class="image-preview-container">
+                  <% if (signatureBase64 != null) { %>
+                      <img src="<%= signatureBase64 %>" alt="Customer Signature">
+                  <% } else { %>
+                      <p class="no-image-text">No signature uploaded</p>
+                  <% } %>
+              </div>
+          </div>
+      </div>
+  </fieldset>
+
   <form>
     <!-- CUSTOMER INFORMATION -->
     <fieldset>
@@ -551,12 +656,15 @@ function goBackToList() {
 
 <%
     } catch (Exception e) {
-        // show a readable message to user and log stacktrace to server log (avoid printStackTrace(out))
         out.println("<pre style='color:red'>Error: " + e.getMessage() + "</pre>");
-        e.printStackTrace(); // server log
+        e.printStackTrace();
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ex) {}
+        try { if (rsPhoto != null) rsPhoto.close(); } catch (Exception ex) {}
+        try { if (rsSign != null) rsSign.close(); } catch (Exception ex) {}
         try { if (ps != null) ps.close(); } catch (Exception ex) {}
+        try { if (psPhoto != null) psPhoto.close(); } catch (Exception ex) {}
+        try { if (psSign != null) psSign.close(); } catch (Exception ex) {}
         try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
 %>
