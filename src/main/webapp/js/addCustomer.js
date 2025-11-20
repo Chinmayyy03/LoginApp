@@ -391,11 +391,11 @@ function validateForm() {
     // ✅ Validate at least one ID Proof document is filled
     const idProofFilled = 
         (document.querySelector('input[name="passport_check"]').checked && document.querySelector('input[name="passport_expiry"]').value && document.querySelector('input[name="passportNumber"]').value.trim()) ||
-        (document.querySelector('input[name="pan_check"]').checked && document.querySelector('input[name="pan_expiry"]').value && document.getElementById('pan').value.trim()) ||
-        (document.querySelector('input[name="voterid_check"]').checked && document.querySelector('input[name="voterid_expiry"]').value && document.getElementById('voterid').value.trim()) ||
+        (document.querySelector('input[name="pan_check"]').checked && document.getElementById('pan').value.trim()) ||
+        (document.querySelector('input[name="voterid_check"]').checked && document.getElementById('voterid').value.trim()) ||
         (document.querySelector('input[name="dl_check"]').checked && document.querySelector('input[name="dl_expiry"]').value && document.getElementById('dl').value.trim()) ||
-        (document.querySelector('input[name="aadhar_check"]').checked && document.querySelector('input[name="aadhar_expiry"]').value && document.querySelector('input[name="aadhar"]').value.trim()) ||
-        (document.querySelector('input[name="nrega_check"]').checked && document.querySelector('input[name="nrega_expiry"]').value && document.getElementById('nrega').value.trim());
+        (document.querySelector('input[name="aadhar_check"]').checked && document.querySelector('input[name="aadhar"]').value.trim()) ||
+        (document.querySelector('input[name="nrega_check"]').checked && document.getElementById('nrega').value.trim());
 
     if (!idProofFilled) {
         errors.push('• At least one ID Proof document must be selected and filled');
@@ -408,7 +408,7 @@ function validateForm() {
         (document.querySelector('input[name="bank_check"]').checked && document.querySelector('input[name="bank_expiry"]').value && document.querySelector('input[name="bank_statement"]').value.trim()) ||
         (document.querySelector('input[name="govt_check"]').checked && document.querySelector('input[name="govt_expiry"]').value && document.querySelector('input[name="govt_doc"]').value.trim()) ||
         (document.querySelector('input[name="electricity_check"]').checked && document.querySelector('input[name="electricity_expiry"]').value && document.querySelector('input[name="electricity"]').value.trim()) ||
-        (document.querySelector('input[name="ration_check"]').checked && document.querySelector('input[name="ration_expiry"]').value && document.getElementById('ration').value.trim());
+        (document.querySelector('input[name="ration_check"]').checked && document.getElementById('ration').value.trim());
 
     if (!addressProofFilled) {
         errors.push('• At least one Address Proof document must be selected and filled');
