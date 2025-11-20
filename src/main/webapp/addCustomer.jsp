@@ -108,8 +108,8 @@
       <div>
         <label>Is Minor</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="isMinor" value="yes" onclick="toggleMinorFields()"> Yes</label>
-          <label><input type="radio" name="isMinor" value="no" onclick="toggleMinorFields()"> No</label>
+          <label><input type="radio" name="isMinor" id="isMinor1" value="yes" onclick="toggleMinorFields()"> Yes</label>
+          <label><input type="radio" name="isMinor" id="isMinor2" value="no" onclick="toggleMinorFields()"> No</label>
         </div>
       </div>
 
@@ -372,8 +372,8 @@
       <label>Marital Status</label>
       <div class="radio-group">
         <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" onclick="toggleMarriedFields()"> Married</label>
-        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Single" onclick="toggleMarriedFields()"> Single</label>
-        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Other" onclick="toggleMarriedFields()"> Other</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus1" value="Single" onclick="toggleMarriedFields()"> Single</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus2" value="Other" onclick="toggleMarriedFields()"> Other</label>
       </div>
     </div>
 
@@ -807,6 +807,10 @@ document.addEventListener('DOMContentLoaded', function () {
             'motherName',
             'fatherName',
             'maritalStatus',
+            'isMinor1',
+            'isMinor2',
+            'maritalStatus1',
+            'maritalStatus2',
             'children',
             'dependents'
         ];
