@@ -568,7 +568,7 @@ input[type=number] {
   padding: 30px;
   border-radius: 12px;
   width: 90%;
-  max-width: 640px;
+  max-width: 550px;
   position: relative;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
