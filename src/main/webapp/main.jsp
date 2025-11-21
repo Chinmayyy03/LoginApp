@@ -68,6 +68,13 @@
             </a>
         </li>
         
+        <li>
+            <a href="#" onclick="loadPage('newApplication.jsp', 'New Application', 'New Application', this); return false;">
+                <img src="images/newApplication.png" width="22" height="22">
+                New Application
+            </a>
+        </li>
+        
         <!-- Add new menu items here following the same pattern -->
         <!-- Example: 
         <li>
