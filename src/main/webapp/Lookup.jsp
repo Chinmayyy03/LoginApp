@@ -34,11 +34,19 @@ th, td {
     padding: 10px;
     cursor: pointer;
 }
-tr:hover { background-color: #eee; }
+th {
+    background-color: #373279;
+    color: white;
+    font-weight: bold;
+}
+tr:hover { 
+    background-color: #e8e4fc;
+}
 .lookup-title {
     font-size: 20px;
     margin-bottom: 10px;
     font-weight: bold;
+    color: #373279;
 }
 </style>
 
@@ -58,16 +66,25 @@ tr:hover { background-color: #eee; }
         String desc = rs.getString(2);
 %>
 
-    <tr onclick="sendBack('<%=code%>', '<%=desc%>')">
+    <tr onclick="sendBack('<%=code%>', '<%=desc%>', '<%=type%>')">
         <td><%=code%></td>
         <td><%=desc%></td>
     </tr>
 
-<% } con.close(); %>
+<% } 
+   rs.close();
+   ps.close();
+   con.close(); 
+%>
 </table>
 
 <script>
-function sendBack(code, desc) {
-    window.parent.setValue(code, desc, "<%=type%>");
+function sendBack(code, desc, type) {
+    // Call the parent window's function to set values
+    if (window.parent && window.parent.setValueFromLookup) {
+        window.parent.setValueFromLookup(code, desc, type);
+    } else {
+        console.error("Parent function setValueFromLookup not found!");
+    }
 }
 </script>
