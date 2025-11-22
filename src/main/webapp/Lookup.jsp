@@ -78,13 +78,3 @@ tr:hover {
 %>
 </table>
 
-<script>
-function sendBack(code, desc, type) {
-    // Call the parent window's function to set values
-    if (window.parent && window.parent.setValueFromLookup) {
-        window.parent.setValueFromLookup(code, desc, type);
-    } else {
-        console.error("Parent function setValueFromLookup not found!");
-    }
-}
-</script>

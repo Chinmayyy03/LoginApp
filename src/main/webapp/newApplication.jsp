@@ -170,28 +170,28 @@
                     <div>
                         <div class="label">Account Type</div>
                         <div class="input-box">
-                            <input type="text" name="accountType" id="accountType" placeholder="Enter code">
+                            <input type="text" name="accountType" id="accountType" placeholder="Enter code" readonly>
                             <button type="button" class="icon-btn" onclick="openLookup('account')">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="accDescription" id="accDescription" placeholder="Description" style="width: 230px;">
+                        <input type="text" name="accDescription" id="accDescription" placeholder="Description" style="width: 230px;" readonly>
                     </div>
 
                     <!-- Product Code -->
                     <div>
                         <div class="label">Product Code</div>
                         <div class="input-box">
-                            <input type="text" name="productCode" id="productCode" placeholder="Enter code">
+                            <input type="text" name="productCode" id="productCode" placeholder="Enter code" readonly>
                             <button type="button" class="icon-btn" onclick="openLookup('product', document.getElementById('accountType').value)">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="prodDescription" id="prodDescription" placeholder="Description" style="width: 230px;">
+                        <input type="text" name="prodDescription" id="prodDescription" placeholder="Description" style="width: 230px;" readonly>
                     </div>
 
                 </div>
@@ -255,8 +255,8 @@ function checkForm(event) {
         alert("No page found for Account Type: " + accType + " and Product Code: " + prodCode);
     }
 }
-</script>
-<script>
+
+
 function openLookup(type, accType = "") {
 
     let url = "Lookup.jsp?type=" + type;
@@ -277,7 +277,9 @@ function openLookup(type, accType = "") {
 function closeLookup() {
     document.getElementById("lookupModal").style.display = "none";
 }
-
+function sendBack(code, desc, type) {
+    setValueFromLookup(code, desc, type);
+}
 // This is called by lookup.jsp when a row is clicked
 function setValueFromLookup(code, desc, type) {
 
