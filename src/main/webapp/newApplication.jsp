@@ -131,6 +131,26 @@
         .submit-btn:hover {
             background: #28B863;
         }
+        .modal {
+		    display: none;
+		    position: fixed;
+		    top: 0; left: 0;
+		    width: 100%; height: 100%;
+		    background: rgba(0,0,0,0.4);
+		    z-index: 9999;
+		}
+.modal-content {
+    background: #fff;
+    width: 60%;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 12px;
+}
+.close {
+    float: right;
+    font-size: 22px;
+    cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -138,46 +158,146 @@
 <div class="container">
     <h1>LIST OF PRODUCT</h1>
 
-   
-    <form action="SaveProduct.jsp" method="post">
+    <form id="productForm" method="post" target="resultFrame" onsubmit="checkForm(event)">
         <div class="card">
 
             <fieldset>
                 <legend>Product Details</legend>
 
                 <div class="row">
+
+                    <!-- Account Type -->
                     <div>
                         <div class="label">Account Type</div>
                         <div class="input-box">
-                            <input type="text" name="accountType" placeholder="Enter code">
-                            <button type="button" class="icon-btn">…</button>
+                            <input type="text" name="accountType" id="accountType" placeholder="Enter code">
+                            <button type="button" class="icon-btn" onclick="openLookup('account')">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="accDescription" placeholder="Description" style="width: 230px;">
+                        <input type="text" name="accDescription" id="accDescription" placeholder="Description" style="width: 230px;">
                     </div>
 
+                    <!-- Product Code -->
                     <div>
                         <div class="label">Product Code</div>
                         <div class="input-box">
-                            <input type="text" name="productCode" placeholder="Enter code">
-                            <button type="button" class="icon-btn">…</button>
+                            <input type="text" name="productCode" id="productCode" placeholder="Enter code">
+                            <button type="button" class="icon-btn" onclick="openLookup('product', document.getElementById('accountType').value)">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="prodDescription" placeholder="Description" style="width: 230px;">
+                        <input type="text" name="prodDescription" id="prodDescription" placeholder="Description" style="width: 230px;">
                     </div>
+
                 </div>
             </fieldset>
 
             <button class="submit-btn">Submit</button>
+
         </div>
     </form>
+
+    <!-- 🔽 IFRAME for loading dynamic pages -->
+    <iframe id="resultFrame" name="resultFrame"
+            style="width:100%; height:800px; border:1px solid #ccc; margin-top:20px;">
+    </iframe>
+
 </div>
+<!-- LOOKUP MODAL -->
+<div id="lookupModal" style="
+    display:none; 
+    position:fixed; 
+    top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); 
+    justify-content:center; 
+    align-items:center;
+">
+    <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
+        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <div id="lookupContent"></div>
+    </div>
+</div>
+
+
+<script>
+function checkForm(event) {
+
+    event.preventDefault(); // stop default submit
+
+    let accType = document.querySelector("input[name='accountType']").value.trim();
+    let prodCode = document.querySelector("input[name='productCode']").value.trim();
+
+    // 🔥 MAPPING: accountType + productCode → JSP page
+    const pageMap = {
+        "SB_201": "savingacc.jsp",
+        "SB_202": "sbcharges.jsp",
+        "CA_101": "currentacc.jsp",
+        "FD_301": "fixeddeposit.jsp",
+        "RD_401": "recurringdeposit.jsp"
+        // ➕ Add more here...
+    };
+
+    // create key
+    let key = accType + "_" + prodCode;
+
+    console.log("Lookup key =", key);
+
+    if (pageMap[key]) {
+        // set form action to correct JSP
+        document.getElementById("productForm").action = pageMap[key];
+        document.getElementById("productForm").submit();  // now submit
+    } else {
+        alert("No page found for Account Type: " + accType + " and Product Code: " + prodCode);
+    }
+}
+</script>
+<script>
+function openLookup(type, accType = "") {
+
+    let url = "Lookup.jsp?type=" + type;
+
+    if (accType !== "") {
+        url += "&accType=" + accType;
+    }
+
+    // Load JSP content into modal using fetch()
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("lookupContent").innerHTML = html;
+            document.getElementById("lookupModal").style.display = "flex";
+        });
+}
+
+function closeLookup() {
+    document.getElementById("lookupModal").style.display = "none";
+}
+
+// This is called by lookup.jsp when a row is clicked
+function setValueFromLookup(code, desc, type) {
+
+    if (type === "account") {
+        document.getElementById("accountType").value = code;
+        document.getElementById("accDescription").value = desc;
+    }
+
+    if (type === "product") {
+        document.getElementById("productCode").value = code;
+        document.getElementById("prodDescription").value = desc;
+    }
+
+    closeLookup();
+}
+
+</script>
+
+
+
 
 </body>
 </html>
