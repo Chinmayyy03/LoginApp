@@ -1,6 +1,17 @@
 <%@ page import="java.sql.*, db.DBConnection" %> 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
+
+
+    // ✅ Get branch code from session
+    HttpSession sess = request.getSession(false);
+    if (sess == null || sess.getAttribute("branchCode") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    String branchCode = (String) sess.getAttribute("branchCode");
+
     String type = request.getParameter("type");
     String accType = request.getParameter("accType");
 

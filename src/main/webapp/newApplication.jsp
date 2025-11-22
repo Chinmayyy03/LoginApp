@@ -1,11 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+
 <%
-    // Example dynamic values (replace as needed)
-    String bankCode = "0100";
-    String branchCode = "";
-    String userName = "";
-    String date = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+    // ✅ Get branch code from session
+    HttpSession sess = request.getSession(false);
+    if (sess == null || sess.getAttribute("branchCode") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    String branchCode = (String) sess.getAttribute("branchCode");
 %>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
