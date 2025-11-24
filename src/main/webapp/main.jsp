@@ -69,9 +69,9 @@
         </li>
         
         <li>
-            <a href="#" onclick="loadPage('newApplication.jsp', 'New Application', 'New Application', this); return false;">
+            <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', 'Open Account', this); return false;">
                 <img src="images/newApplication.png" width="22" height="22">
-                New Application
+                Open Account
             </a>
         </li>
         

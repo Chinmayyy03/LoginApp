@@ -164,7 +164,7 @@ input:focus {
         .submit-btn {
             display: block;
             margin: 35px auto 0;
-            background: #2ECC71;
+            background: #2b0d73;
             border: none;
             padding: 12px 35px;
             border-radius: 30px;
@@ -174,10 +174,15 @@ input:focus {
             transition: 0.3s;
             box-shadow: 0px 6px 15px rgba(46,204,113,0.4);
         }
-
         .submit-btn:hover {
-            background: #28B863;
-        }
+  background-color: #2b0d73;
+  transform: scale(1.05);
+}
+
+.submit-btn:active {
+  transform: scale(0.97);
+}
+
         .modal {
 		    display: none;
 		    position: fixed;
