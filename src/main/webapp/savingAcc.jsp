@@ -373,10 +373,7 @@
 	<div>
       <label>Account Operation Capacity</label>
       <select name="AccountOperationCapacity">
-        <option>NOT APPLICABLE</option>
-        <option>SELF</option>
-        <option>ONLY FIRST</option>
-        <option>ANYONE</option>
+        
       </select>
     </div>
 
