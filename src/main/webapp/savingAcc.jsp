@@ -340,20 +340,20 @@
       </div>
 	<div>
         <label>Introducer A/c Code</label>
-        <input type="text" name="categoryCode" value="PUBLIC">
+        <input type="text" name="IntroducerA/cCode" >
       </div>
 	<div>
         <label>Introducer A/c Name</label>
-        <input type="text" name="categoryCode" value="PUBLIC">
+        <input type="text" name="IntroducerA/cName">
       </div>
       <div>
-        <label>Birth Date</label>
-        <input type="date" name="birthDate">
+        <label>Date Of Application</label>
+        <input type="date" name="DateOfApplication">
       </div>
 
 	<div>
       <label>Account Operation Capacity</label>
-      <select name="Account Operation Capacity">
+      <select name="AccountOperationCapacity">
         <option>NOT APPLICABLE</option>
         <option>SELF</option>
         <option>ONLY FIRST</option>
@@ -363,7 +363,7 @@
 
 	<div>
       <label>MinBalance ID</label>
-      <select name="Account Operation Capacity">
+      <select name="MinBalanceID">
         <option>0</option>
         <option>100</option>
         <option>500</option>
@@ -388,8 +388,8 @@
 
     <!-- Row 1 -->
     <div>
-      <label for="motherName">Nominee Name</label>
-      <input type="text" id="motherName" name="motherName">
+      <label>Nominee Name</label>
+      <input type="text" id="Nominee Name" name="Nominee Name">
     </div>
 	<div>
       <label>Address 1</label>
@@ -424,29 +424,65 @@
     </div>
     <div>
       <label>City</label>
-      <select name="city">
-        <option>GADAG</option>
-        <option>DHARWAD</option>
-        <option>HUBLI</option>
-      </select>
-    </div>
+      <select name="city" required>
+    <option value="">-- Select City --</option>
+    <%
+      PreparedStatement psCity = null;
+      ResultSet rsCity = null;
+      try (Connection conn6 = DBConnection.getConnection()) {
+          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME) ";
+          psCity = conn6.prepareStatement(sql);
+          rsCity = psCity.executeQuery();
+          while (rsCity.next()) {
+              String city = rsCity.getString("NAME");
+    %>
+              <option value="<%= city %>"><%= city %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Residence Type</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsCity != null) rsCity.close();
+          if (psCity != null) psCity.close();
+      }
+    %>
+  </select>
+</div>
 
     <!-- Row 4 -->
     <div>
       <label>Zip</label>
       <input type="number" name="zip" value="0">
     </div>
+     
       <div>
         <label>Relation with Guardian</label>
         <select name="relationGuardian" id="relationGuardian">
-          <option>NOT SPECIFIED</option>
-          <option>FATHER</option>
-          <option>MOTHER</option>
-          <option>BROTHER</option>
-        </select>
+    <option value="">-- Select Relation with Guardian --</option>
+    <%
+      PreparedStatement psRelationWithGuardian = null;
+      ResultSet rsRelationWithGuardian = null;
+      try (Connection conn9 = DBConnection.getConnection()) {
+          String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
+          psRelationWithGuardian = conn9.prepareStatement(sql);
+          rsRelationWithGuardian = psRelationWithGuardian.executeQuery();
+          while (rsRelationWithGuardian.next()) {
+              String relationWithGuardian = rsRelationWithGuardian.getString("DESCRIPTION");
+    %>
+              <option value="<%= relationWithGuardian %>"><%= relationWithGuardian %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Relation With Guardian</option>");
+          e.printStackTrace();
+      } finally {
+          if (rsRelationWithGuardian != null) rsRelationWithGuardian.close();
+          if (psRelationWithGuardian != null) psRelationWithGuardian.close();
+      }
+    %>
+  </select>
       </div>
-
-
 
     
 </fieldset>
@@ -458,8 +494,8 @@
   <div class="address-grid">
       <!-- Row 1 -->
     <div>
-      <label for="motherName">Nominee Name</label>
-      <input type="text" id="motherName" name="motherName">
+      <label>Nominee Name</label>
+      <input type="text" id="Nominee Name" name="Nominee Name">
     </div>
 	<div>
       <label>Address 1</label>
@@ -494,13 +530,31 @@
     </div>
     <div>
       <label>City</label>
-      <select name="city">
-        <option>GADAG</option>
-        <option>DHARWAD</option>
-        <option>HUBLI</option>
-      </select>
-    </div>
-
+      <select name="city" required>
+    <option value="">-- Select City --</option>
+    <%
+      PreparedStatement pssCity = null;
+      ResultSet rssCity = null;
+      try (Connection conn7 = DBConnection.getConnection()) {
+          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME) ";
+          pssCity = conn7.prepareStatement(sql);
+          rssCity = pssCity.executeQuery();
+          while (rssCity.next()) {
+              String city = rssCity.getString("NAME");
+    %>
+              <option value="<%= city %>"><%= city %></option>
+    <%
+          }
+      } catch (Exception e) {
+          out.println("<option disabled>Error loading Residence Type</option>");
+          e.printStackTrace();
+      } finally {
+          if (rssCity != null) rssCity.close();
+          if (pssCity != null) pssCity.close();
+      }
+    %>
+  </select>
+</div>
     <!-- Row 4 -->
     <div>
       <label>Zip</label>
