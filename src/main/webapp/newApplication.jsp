@@ -66,60 +66,100 @@
         }
 
         fieldset {
-            background-color: white;
-            border: 2px solid #BBADED;
-            border-radius: 12px;
-            padding: 20px;
-        }
+    background-color: white;
+    border: 2px solid #BBADED;
+    border-radius: 12px;
+    padding: 20px;
+}
 
-        legend {
-            font-size: 18px;
-            padding: 0 10px;
-            color: #3D316F;
-        }
+legend {
+    font-size: 18px;
+    padding: 0 10px;
+    color: #3D316F;
+}
 
-        .row {
-            display: flex;
-            gap: 25px;
-            margin-bottom: 20px;
-        }
+.row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 20px;
+}
 
-        .label {
-            font-weight: bold;
-            font-size: 14px;
-            color: #3D316F;
-        }
+.label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #3D316F;
+}
 
-        .input-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        input {
-            padding: 10px;
-            width: 180px;
-            border: 2px solid #C8B7F6;
-            border-radius: 8px;
-            background-color: #F4EDFF;
-            outline: none;
-            font-size: 14px;
-        }
+input {
+    padding: 10px;
+    width: 180px;
+    border: 2px solid #C8B7F6;
+    border-radius: 8px;
+    background-color: #F4EDFF;
+    outline: none;
+    font-size: 14px;
+}
 
-        input:focus {
-            border-color: #8066E8;
-        }
+input:focus {
+    border-color: #8066E8;
+}
 
-        .icon-btn {
-            background-color: #2D2B80;
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-        }
+.icon-btn {
+    background-color: #2D2B80;
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* ---------------- Responsive CSS Added ---------------- */
+
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    .input-box {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    fieldset {
+        padding: 15px;
+    }
+
+    legend {
+        font-size: 16px;
+    }
+
+    input {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .icon-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+}
+
 
         .submit-btn {
             display: block;
@@ -241,8 +281,9 @@ function checkForm(event) {
 
     // 🔥 MAPPING: accountType + productCode → JSP page
     const pageMap = {
-        "SB_201": "savingacc.jsp",
-        "SB_211": "sbcharges.jsp",
+        "SB_201": "savingAcc.jsp",
+        "SB_211": "savingAcc.jsp",
+        "SB_210": "savingAcc.jsp",
         "CA_101": "currentacc.jsp",
         "FD_301": "fixeddeposit.jsp",
         "RD_401": "recurringdeposit.jsp"
@@ -266,7 +307,7 @@ function checkForm(event) {
 
 function openLookup(type, accType = "") {
 
-    let url = "Lookup.jsp?type=" + type;
+    let url = "LookupForNewAppCode.jsp?type=" + type;
 
     if (accType !== "") {
         url += "&accType=" + accType;
@@ -293,6 +334,12 @@ function setValueFromLookup(code, desc, type) {
     if (type === "account") {
         document.getElementById("accountType").value = code;
         document.getElementById("accDescription").value = desc;
+        
+     // 👉 Clear product fields and IFrame when new account type selected
+        document.getElementById("productCode").value = "";
+        document.getElementById("prodDescription").value = "";
+        document.getElementById("resultFrame").src = "";
+
     }
 
     if (type === "product") {
@@ -304,9 +351,5 @@ function setValueFromLookup(code, desc, type) {
 }
 
 </script>
-
-
-
-
 </body>
 </html>
