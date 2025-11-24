@@ -242,7 +242,7 @@ function checkForm(event) {
     // 🔥 MAPPING: accountType + productCode → JSP page
     const pageMap = {
         "SB_201": "savingacc.jsp",
-        "SB_202": "sbcharges.jsp",
+        "SB_211": "sbcharges.jsp",
         "CA_101": "currentacc.jsp",
         "FD_301": "fixeddeposit.jsp",
         "RD_401": "recurringdeposit.jsp"
