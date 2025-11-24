@@ -355,7 +355,7 @@
      
         <div>
         <label>Category Code</label>
-        <input type="text" name="categoryCode" value="PUBLIC">
+        <input type="text" name="categoryCode" >
       </div>
 	<div>
         <label>Introducer A/c Code</label>
@@ -371,11 +371,33 @@
       </div>
 
 	<div>
-      <label>Account Operation Capacity</label>
-      <select name="AccountOperationCapacity">
-        
-      </select>
-    </div>
+    <label>Account Operation Capacity</label>
+    <select name="AccountOperationCapacity" required>
+        <option value="">-- Select Account Operation Capacity --</option>
+        <%
+            PreparedStatement psAccOpCap = null;
+            ResultSet rsAccOpCap = null;
+            try (Connection connAccOp = DBConnection.getConnection()) {
+                String sql = "SELECT ACCOUNTOPERATIONCAPACITY_ID, DESCRIPTION FROM GLOBALCONFIG.ACCOUNTOPERATIONCAPACITY ORDER BY ACCOUNTOPERATIONCAPACITY_ID";
+                psAccOpCap = connAccOp.prepareStatement(sql);
+                rsAccOpCap = psAccOpCap.executeQuery();
+                while (rsAccOpCap.next()) {
+                    String capacityId = rsAccOpCap.getString("ACCOUNTOPERATIONCAPACITY_ID");
+                    String description = rsAccOpCap.getString("DESCRIPTION");
+        %>
+                    <option value="<%= capacityId %>"><%= description %></option>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading Account Operation Capacity</option>");
+                e.printStackTrace();
+            } finally {
+                if (rsAccOpCap != null) rsAccOpCap.close();
+                if (psAccOpCap != null) psAccOpCap.close();
+            }
+        %>
+    </select>
+</div>
 
 	<div>
       <label>MinBalance ID</label>
