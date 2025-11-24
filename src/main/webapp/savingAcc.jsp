@@ -314,7 +314,26 @@
     padding: 10px;
   }
 }
- 
+.nominee-card {
+    background: #e8e4fc;
+    border: 1px solid #d0d0d0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
+}
+
+.nominee-remove {
+    float: right;
+    background: #c62828;
+    border: none;
+    color: white;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -381,191 +400,243 @@
       </div>
 
   </fieldset>
-<!-- Personal Info -->
-    <fieldset>
-  <legend>Nominee</legend>
-  <div class="personal-grid">
+  <!-- ================= NOMINEE SECTION ================= -->
+<fieldset id="nomineeFieldset">
+  <legend>
+    Nominee
+    <button type="button" onclick="addNominee()" 
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+      border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
 
-    <!-- Row 1 -->
-    <div>
-      <label>Nominee Name</label>
-      <input type="text" id="Nominee Name" name="Nominee Name">
-    </div>
-	<div>
-      <label>Address 1</label>
-      <input type="text" name="address1">
-    </div>
+  <!-- FIRST NOMINEE BLOCK -->
+  <div class="nominee-card nominee-block">
 
-    <div>
-      <label>Address 2</label>
-      <input type="text" name="address2">
-    </div>
+    <!-- REMOVE BUTTON -->
+    <button type="button" class="nominee-remove" onclick="removeNominee(this)">✖</button>
 
-    <div>
-      <label>Address 3</label>
-      <input type="text" name="address3">
-    </div>
-<div>
-      <label>Country</label>
-      <select name="country">
-        <option>INDIA</option>
-        <option>USA</option>
-        <option>UK</option>
-      </select>
+    <!-- SERIAL NUMBER (NEW) -->
+    <div class="nominee-title" 
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+        Nominee <span class="nominee-serial">1</span>
     </div>
 
-    <div>
-      <label>State</label>
-      <select name="state">
-        <option>Karnataka</option>
-        <option>Maharashtra</option>
-        <option>Goa</option>
-      </select>
-    </div>
-    <div>
-      <label>City</label>
-      <select name="city" required>
-    <option value="">-- Select City --</option>
-    <%
-      PreparedStatement psCity = null;
-      ResultSet rsCity = null;
-      try (Connection conn6 = DBConnection.getConnection()) {
-          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME) ";
-          psCity = conn6.prepareStatement(sql);
-          rsCity = psCity.executeQuery();
-          while (rsCity.next()) {
-              String city = rsCity.getString("NAME");
-    %>
-              <option value="<%= city %>"><%= city %></option>
-    <%
-          }
-      } catch (Exception e) {
-          out.println("<option disabled>Error loading Residence Type</option>");
-          e.printStackTrace();
-      } finally {
-          if (rsCity != null) rsCity.close();
-          if (psCity != null) psCity.close();
-      }
-    %>
-  </select>
-</div>
+    <div class="personal-grid">
 
-    <!-- Row 4 -->
-    <div>
-      <label>Zip</label>
-      <input type="number" name="zip" value="0">
-    </div>
-     
       <div>
-        <label>Relation with Guardian</label>
-        <select name="relationGuardian" id="relationGuardian">
-    <option value="">-- Select Relation with Guardian --</option>
-    <%
-      PreparedStatement psRelationWithGuardian = null;
-      ResultSet rsRelationWithGuardian = null;
-      try (Connection conn9 = DBConnection.getConnection()) {
-          String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
-          psRelationWithGuardian = conn9.prepareStatement(sql);
-          rsRelationWithGuardian = psRelationWithGuardian.executeQuery();
-          while (rsRelationWithGuardian.next()) {
-              String relationWithGuardian = rsRelationWithGuardian.getString("DESCRIPTION");
-    %>
-              <option value="<%= relationWithGuardian %>"><%= relationWithGuardian %></option>
-    <%
-          }
-      } catch (Exception e) {
-          out.println("<option disabled>Error loading Relation With Guardian</option>");
-          e.printStackTrace();
-      } finally {
-          if (rsRelationWithGuardian != null) rsRelationWithGuardian.close();
-          if (psRelationWithGuardian != null) psRelationWithGuardian.close();
-      }
-    %>
-  </select>
+        <label>Nominee Name</label>
+        <input type="text" name="nomineeName[]">
       </div>
 
-    
+      <div>
+        <label>Address 1</label>
+        <input type="text" name="nomineeAddress1[]">
+      </div>
+
+      <div>
+        <label>Address 2</label>
+        <input type="text" name="nomineeAddress2[]">
+      </div>
+
+      <div>
+        <label>Address 3</label>
+        <input type="text" name="nomineeAddress3[]">
+      </div>
+
+      <div>
+        <label>Country</label>
+        <select name="nomineeCountry[]">
+          <option>INDIA</option>
+          <option>USA</option>
+          <option>UK</option>
+        </select>
+      </div>
+
+      <div>
+        <label>State</label>
+        <select name="nomineeState[]">
+          <option>Karnataka</option>
+          <option>Maharashtra</option>
+          <option>Goa</option>
+        </select>
+      </div>
+
+      <div>
+        <label>City</label>
+        <select name="nomineeCity[]">
+          <option value="">-- Select City --</option>
+          <% 
+            PreparedStatement psCity = null;
+            ResultSet rsCity = null;
+            try (Connection conn6 = DBConnection.getConnection()) {
+                String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+                psCity = conn6.prepareStatement(sql);
+                rsCity = psCity.executeQuery();
+                while (rsCity.next()) {
+                    String city = rsCity.getString("NAME");
+          %>
+                    <option value="<%= city %>"><%= city %></option>
+          <% 
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading cities</option>");
+            } finally {
+                if (rsCity != null) rsCity.close();
+                if (psCity != null) psCity.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Zip</label>
+        <input type="number" name="nomineeZip[]" value="0">
+      </div>
+
+      <div>
+        <label>Relation with Guardian</label>
+        <select name="nomineeRelation[]">
+          <option value="">-- Select Relation --</option>
+          <% 
+            PreparedStatement psRelation = null;
+            ResultSet rsRelation = null;
+            try (Connection conn9 = DBConnection.getConnection()) {
+                String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
+                psRelation = conn9.prepareStatement(sql);
+                rsRelation = psRelation.executeQuery();
+                while (rsRelation.next()) {
+                    String rel = rsRelation.getString("DESCRIPTION");
+          %>
+                    <option value="<%= rel %>"><%= rel %></option>
+          <% 
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading relation</option>");
+            } finally {
+                if (rsRelation != null) rsRelation.close();
+                if (psRelation != null) psRelation.close();
+            }
+          %>
+        </select>
+      </div>
+
+    </div>
+  </div>
 </fieldset>
+
+
 
 
   <!-- Permanent/Address Info -->
-  <fieldset>
-  <legend>Joint Holder</legend>
-  <div class="address-grid">
-      <!-- Row 1 -->
-    <div>
-      <label>Nominee Name</label>
-      <input type="text" id="Nominee Name" name="Nominee Name">
-    </div>
-	<div>
-      <label>Address 1</label>
-      <input type="text" name="address1">
+ <fieldset id="jointFieldset">
+  <legend>
+    Joint Holder
+    <button type="button" onclick="addJointHolder()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+      border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+
+  <!-- FIRST JOINT HOLDER BLOCK -->
+  <div class="nominee-card joint-block">
+
+    <!-- REMOVE BUTTON -->
+    <button type="button" class="nominee-remove" onclick="removeJointHolder(this)">✖</button>
+
+    <!-- SERIAL NUMBER (NEW) -->
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+        Joint Holder <span class="joint-serial">1</span>
     </div>
 
-    <div>
-      <label>Address 2</label>
-      <input type="text" name="address2">
-    </div>
+    <div class="address-grid">
 
-    <div>
-      <label>Address 3</label>
-      <input type="text" name="address3">
-    </div>
-<div>
-      <label>Country</label>
-      <select name="country">
-        <option>INDIA</option>
-        <option>USA</option>
-        <option>UK</option>
-      </select>
-    </div>
+      <div>
+        <label>Joint Holder Name</label>
+        <input type="text" name="jointName[]">
+      </div>
 
-    <div>
-      <label>State</label>
-      <select name="state">
-        <option>Karnataka</option>
-        <option>Maharashtra</option>
-        <option>Goa</option>
-      </select>
-    </div>
-    <div>
-      <label>City</label>
-      <select name="city" required>
-    <option value="">-- Select City --</option>
-    <%
-      PreparedStatement pssCity = null;
-      ResultSet rssCity = null;
-      try (Connection conn7 = DBConnection.getConnection()) {
-          String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME) ";
-          pssCity = conn7.prepareStatement(sql);
-          rssCity = pssCity.executeQuery();
-          while (rssCity.next()) {
-              String city = rssCity.getString("NAME");
-    %>
+      <div>
+        <label>Address 1</label>
+        <input type="text" name="jointAddress1[]">
+      </div>
+
+      <div>
+        <label>Address 2</label>
+        <input type="text" name="jointAddress2[]">
+      </div>
+
+      <div>
+        <label>Address 3</label>
+        <input type="text" name="jointAddress3[]">
+      </div>
+
+      <div>
+        <label>Country</label>
+        <select name="jointCountry[]">
+          <option>INDIA</option>
+          <option>USA</option>
+          <option>UK</option>
+        </select>
+      </div>
+
+      <div>
+        <label>State</label>
+        <select name="jointState[]">
+          <option>Karnataka</option>
+          <option>Maharashtra</option>
+          <option>Goa</option>
+        </select>
+      </div>
+
+      <div>
+        <label>City</label>
+        <select name="jointCity[]">
+          <option value="">-- Select City --</option>
+
+          <% 
+            // SAME CITY QUERY USED HERE
+            PreparedStatement psCityJ = null;
+            ResultSet rsCityJ = null;
+            try (Connection connJ = DBConnection.getConnection()) {
+                String sql = "SELECT NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+                psCityJ = connJ.prepareStatement(sql);
+                rsCityJ = psCityJ.executeQuery();
+                while (rsCityJ.next()) {
+                    String city = rsCityJ.getString("NAME");
+          %>
               <option value="<%= city %>"><%= city %></option>
-    <%
-          }
-      } catch (Exception e) {
-          out.println("<option disabled>Error loading Residence Type</option>");
-          e.printStackTrace();
-      } finally {
-          if (rssCity != null) rssCity.close();
-          if (pssCity != null) pssCity.close();
-      }
-    %>
-  </select>
-</div>
-    <!-- Row 4 -->
-    <div>
-      <label>Zip</label>
-      <input type="number" name="zip" value="0">
+          <% 
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading cities</option>");
+            } finally {
+                if (rsCityJ != null) rsCityJ.close();
+                if (psCityJ != null) psCityJ.close();
+            }
+          %>
+
+        </select>
+      </div>
+
+      <div>
+        <label>Zip</label>
+        <input type="number" name="jointZip[]" value="0">
+      </div>
+
     </div>
+
+  </div>
 </fieldset>
+
 
 <!-------------------------------- submit and reset button---------------------->
 
 <div class="form-buttons">
-    <button type="submit">Submit</button>
+    <button type="submit">Save</button>
     <button type="reset" onclick="resetPreview()">Reset</button>
   </div>
 
@@ -665,6 +736,88 @@ function closeModal() {
 }
 
 </script>
+<script>
+function addNominee() {
+    let fieldset = document.getElementById("nomineeFieldset");
+    let original = fieldset.querySelector(".nominee-block");
+
+    let clone = original.cloneNode(true);
+
+    clone.querySelectorAll("input, select").forEach(el => el.value = "");
+
+    clone.querySelector(".nominee-remove").onclick = function() {
+        removeNominee(this);
+    };
+
+    fieldset.appendChild(clone);
+    updateNomineeSerials();
+}
+
+function removeNominee(btn) {
+    let blocks = document.querySelectorAll(".nominee-block");
+
+    if (blocks.length <= 1) {
+        alert("At least one nominee is required.");
+        return;
+    }
+
+    btn.parentNode.remove();
+    updateNomineeSerials();
+}
+
+function updateNomineeSerials() {
+    let blocks = document.querySelectorAll(".nominee-block");
+
+    blocks.forEach((block, index) => {
+        let serial = block.querySelector(".nominee-serial");
+        if (serial) {
+            serial.textContent = (index + 1);
+        }
+    });
+}
+
+
+function addJointHolder() {
+    let fieldset = document.getElementById("jointFieldset");
+    let original = fieldset.querySelector(".joint-block");
+    
+    let clone = original.cloneNode(true);
+
+    clone.querySelectorAll("input, select").forEach(el => el.value = "");
+
+    clone.querySelector(".nominee-remove").onclick = function() {
+        removeJointHolder(this);
+    };
+
+    fieldset.appendChild(clone);
+    updateJointSerials();
+}
+
+function removeJointHolder(btn) {
+    let blocks = document.querySelectorAll(".joint-block");
+
+    if (blocks.length <= 1) {
+        alert("At least one joint holder is required.");
+        return;
+    }
+
+    btn.parentNode.remove();
+    updateJointSerials();
+}
+
+function updateJointSerials() {
+    let blocks = document.querySelectorAll(".joint-block");
+
+    blocks.forEach((block, index) => {
+        let serial = block.querySelector(".joint-serial");
+        if (serial) {
+            serial.textContent = (index + 1);
+        }
+    });
+}
+
+</script>
+
 <!-- Modal -->
 <div id="imageModal" onclick="closeModal()">
     <img id="modalImg">
