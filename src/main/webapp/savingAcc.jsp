@@ -424,7 +424,17 @@
     </div>
 
     <div class="personal-grid">
-
+	  <div>
+        <label>Salutation Code</label>
+       <select name="salutationCode" id="salutationCode" required>
+  			<option value="">-- Select Salutation --</option>
+  			<option value="MR">Mr.</option>
+ 	 		<option value="MS">Ms.</option>
+  			<option value="MRS">Mrs.</option>
+  			<option value="DR">Dr.</option>
+  			<option value="PROF">Prof.</option>
+		</select>
+      </div>
       <div>
         <label>Nominee Name</label>
         <input type="text" name="nomineeName[]">
@@ -553,7 +563,17 @@
     </div>
 
     <div class="address-grid">
-
+	  <div>
+        <label>Salutation Code</label>
+       <select name="salutationCode" id="salutationCode" required>
+  			<option value="">-- Select Salutation --</option>
+  			<option value="MR">Mr.</option>
+ 	 		<option value="MS">Ms.</option>
+  			<option value="MRS">Mrs.</option>
+  			<option value="DR">Dr.</option>
+  			<option value="PROF">Prof.</option>
+		</select>
+      </div>
       <div>
         <label>Joint Holder Name</label>
         <input type="text" name="jointName[]">
