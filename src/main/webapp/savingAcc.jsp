@@ -86,6 +86,7 @@
   width: 100%;
   padding-right: 40px;   /* space for icon */
   height: 30px;
+  cursor: pointer;
   box-sizing: border-box;
 }
 
