@@ -77,35 +77,29 @@
       cursor: not-allowed;
     }
 
-    .input-with-icon {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
+.input-icon-box {
+  position: relative;
+  width: 90%;
+}
 
-    .input-with-icon input {
-      flex: 1;
-      width: auto !important;
-    }
+.input-icon-box input {
+  width: 100%;
+  padding-right: 40px;   /* space for icon */
+  height: 30px;
+  box-sizing: border-box;
+}
 
-    .icon-btn {
-      background-color: #373279;
-      color: white;
-      border: none;
-      width: 35px;
-      height: 35px;
-      border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.3s;
-      flex-shrink: 0;
-    }
-
-    .icon-btn:hover {
-      background-color: #2b0d73;
-      transform: scale(1.05);
-    }
+.input-icon-box .inside-icon-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #373279;
+}
 
     .customer-modal {
       display: none;
@@ -314,12 +308,16 @@
     <legend>Application</legend>
     <div class="form-grid">
       <div>
-        <label>Customer ID *</label>
-        <div class="input-with-icon">
-          <input type="text" id="customerId" name="customerId" placeholder="Click to search" readonly required>
-          <button type="button" class="icon-btn" onclick="openCustomerLookup()" title="Search Customer">🔍</button>
-        </div>
-      </div>
+  		<label>Customer ID</label>
+  		<div class="input-icon-box">
+    	<input type="text" id="customerId" name="customerId"  readonly required>
+    	<button type="button" 
+            class="inside-icon-btn"
+            onclick="openCustomerLookup()" 
+            title="Search Customer">🔍</button>
+  		</div>
+	</div>
+
 
       <div>
         <label>Customer Name</label>
