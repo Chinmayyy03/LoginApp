@@ -77,7 +77,6 @@
       cursor: not-allowed;
     }
 
-    /* Customer Lookup Styles */
     .input-with-icon {
       display: flex;
       align-items: center;
@@ -108,7 +107,6 @@
       transform: scale(1.05);
     }
 
-    /* Customer Modal */
     .customer-modal {
       display: none;
       position: fixed;
@@ -147,6 +145,84 @@
 
     .customer-close:hover {
       color: #373279;
+    }
+
+    .lookup-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #373279;
+      text-align: center;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 2px solid #9c8ed8;
+      border-radius: 8px;
+      background-color: #f5f3ff;
+      box-sizing: border-box;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #373279;
+      background-color: #fff;
+    }
+
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .customer-modal-content table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .customer-modal-content th,
+    .customer-modal-content td {
+      border: 1px solid #ddd;
+      padding: 12px 15px;
+      text-align: left;
+    }
+
+    .customer-modal-content th {
+      background-color: #373279;
+      color: white;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .customer-modal-content tbody tr {
+      transition: all 0.2s;
+    }
+
+    .customer-modal-content tbody tr:hover {
+      background-color: #e8e4fc;
+      cursor: pointer;
+      transform: scale(1.01);
+    }
+
+    .customer-modal-content tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .customer-count {
+      text-align: right;
+      margin-bottom: 10px;
+      color: #666;
+      font-size: 14px;
     }
 
     .personal-grid {
@@ -562,33 +638,15 @@
 <div id="customerLookupModal" class="customer-modal">
   <div class="customer-modal-content">
     <span class="customer-close" onclick="closeCustomerLookup()">&times;</span>
-    <div id="customerLookupContent"></div>
+    <div id="customerLookupContent">
+      <!-- Content will be loaded here -->
+    </div>
   </div>
 </div>
 
 <script>
-// Customer Lookup Functions
-function openCustomerLookup() {
-  const modal = document.getElementById('customerLookupModal');
-  const content = document.getElementById('customerLookupContent');
-  
-  fetch('lookupForCustomerId.jsp')  
-    .then(response => response.text())
-    .then(html => {
-      content.innerHTML = html;
-      modal.style.display = 'flex';
-    })
-    .catch(error => {
-      console.error('Error loading customer lookup:', error);
-      alert('Failed to load customer list');
-    });
-}
-
-function closeCustomerLookup() {
-  document.getElementById('customerLookupModal').style.display = 'none';
-}
-
-function setCustomerData(customerId, customerName, categoryCode, riskCategory) {
+// Global function to set customer data (will be called from loaded content)
+window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
   document.getElementById('customerId').value = customerId;
   document.getElementById('customerName').value = customerName;
   document.getElementById('categoryCode').value = categoryCode || '';
@@ -599,7 +657,7 @@ function setCustomerData(customerId, customerName, categoryCode, riskCategory) {
   if (typeof Toastify !== 'undefined') {
     Toastify({
       text: "✅ Customer data loaded successfully!",
-      duration: 3000,
+      duration: 5000,
       close: true,
       gravity: "top",
       position: "center",
@@ -615,8 +673,43 @@ function setCustomerData(customerId, customerName, categoryCode, riskCategory) {
       }
     }).showToast();
   }
+};
+
+// Customer Lookup Functions
+function openCustomerLookup() {
+  const modal = document.getElementById('customerLookupModal');
+  const content = document.getElementById('customerLookupContent');
+  
+  // Show modal immediately
+  modal.style.display = 'flex';
+  content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+  
+  // Fetch customer data
+  fetch('lookupForCustomerId.jsp')
+    .then(response => response.text())
+    .then(html => {
+      content.innerHTML = html;
+      
+      // Execute any scripts in the loaded content
+      const scripts = content.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        document.body.removeChild(newScript);
+      });
+    })
+    .catch(error => {
+      console.error('Error loading customer lookup:', error);
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+    });
 }
 
+function closeCustomerLookup() {
+  document.getElementById('customerLookupModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
 window.onclick = function(event) {
   const modal = document.getElementById('customerLookupModal');
   if (event.target === modal) {
@@ -624,6 +717,7 @@ window.onclick = function(event) {
   }
 }
 
+// Close modal on Escape key
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape') {
     closeCustomerLookup();
