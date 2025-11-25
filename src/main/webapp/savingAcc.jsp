@@ -408,6 +408,14 @@
            style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
         Nominee <span class="nominee-serial">1</span>
       </div>
+            <div>
+        <label>Has Customer ID ?</label>
+        <div style="flex-direction: row;" class="radio-group">
+          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="yes"> Yes</label>
+          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="no"> No</label>
+        </div>
+      </div>
+      <br>
 
       <div class="personal-grid">
         <div>
@@ -532,6 +540,7 @@
         ➕
       </button>
     </legend>
+    
 
     <div class="nominee-card joint-block">
       <button type="button" class="nominee-remove" onclick="removeJointHolder(this)">✖</button>
@@ -540,6 +549,14 @@
            style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
         Joint Holder <span class="joint-serial">1</span>
       </div>
+                  <div>
+        <label>Has Customer ID ?</label>
+        <div style="flex-direction: row;" class="radio-group">
+          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="yes"> Yes</label>
+          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="no"> No</label>
+        </div>
+      </div>
+      <br>
 
       <div class="address-grid">
         <div>
