@@ -310,7 +310,7 @@
       <div>
   		<label>Customer ID</label>
   		<div class="input-icon-box">
-    	<input type="text" id="customerId" name="customerId"  readonly required>
+    	<input type="text" id="customerId" name="customerId"  onclick="openCustomerLookup()" readonly required>
     	<button type="button" 
             class="inside-icon-btn"
             onclick="openCustomerLookup()" 
