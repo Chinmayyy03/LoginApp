@@ -408,11 +408,20 @@
            style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
         Nominee <span class="nominee-serial">1</span>
       </div>
-            <div>
+      
+      <div>
         <label>Has Customer ID ?</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="yes"> Yes</label>
-          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="no"> No</label>
+          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
+          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
+        </div>
+      </div>
+      
+      <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
+        <label>Customer ID</label>
+        <div class="input-icon-box">
+          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" readonly>
+          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
         </div>
       </div>
       <br>
@@ -549,11 +558,20 @@
            style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
         Joint Holder <span class="joint-serial">1</span>
       </div>
-                  <div>
+      
+      <div>
         <label>Has Customer ID ?</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="yes"> Yes</label>
-          <label><input type="radio" name="HasCustomerID?" id="HasCustomerID?" value="no"> No</label>
+          <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="yes" onchange="toggleJointCustomerID(this)"> Yes</label>
+          <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="no" onchange="toggleJointCustomerID(this)" checked> No</label>
+        </div>
+      </div>
+      
+      <div class="jointCustomerIDContainer" style="display:none; margin-top:10px;">
+        <label>Customer ID</label>
+        <div class="input-icon-box">
+          <input type="text" class="jointCustomerIDInput" name="jointCustomerID[]" readonly>
+          <button type="button" class="inside-icon-btn" onclick="openJointCustomerLookup(this)" title="Search Customer">🔍</button>
         </div>
       </div>
       <br>
