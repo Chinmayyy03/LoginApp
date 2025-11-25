@@ -797,6 +797,5 @@ function updateJointSerials() {
   });
 }
 </script>
-
 </body>
 </html>
