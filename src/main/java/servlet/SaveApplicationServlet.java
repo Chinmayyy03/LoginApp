@@ -107,16 +107,18 @@ public class SaveApplicationServlet extends HttpServlet {
 
             // ========== INSERT INTO APPLICATION.APPLICATION ==========
             String insertAppSQL = "INSERT INTO APPLICATION.APPLICATION (" +
-                "APPLICATION_NUMBER, BRANCH_CODE, CUSTOMER_ID, ACCOUNTOPERATIONCAPACITY_ID, " +
-                "USER_ID, MINBALANCE_ID, INTRODUCERACCOUNT_CODE, CATEGORYCODE, " +
-                "NAME, INTRODUCERNAME, RISKCATEGORY, APPLICATIONDATE, STATUS, DATETIMESTAMP" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                "APPLICATION_NUMBER, BRANCH_CODE, PRODUCT_CODE, APPLICATIONDATE, CUSTOMER_ID, " +
+                "ACCOUNTOPERATIONCAPACITY_ID, USER_ID, MINBALANCE_ID, INTRODUCERACCOUNT_CODE, " +
+                "CATEGORYCODE, NAME, INTRODUCERNAME, RISKCATEGORY, STATUS, DATETIMESTAMP" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
             psApp = conn.prepareStatement(insertAppSQL);
             
             int idx = 1;
             psApp.setString(idx++, applicationNumber);
             psApp.setString(idx++, branchCode);
+            psApp.setString(idx++, request.getParameter("productCode"));
+            psApp.setDate(idx++, parseDate(request.getParameter("dateOfApplication")));
             psApp.setString(idx++, request.getParameter("customerId"));
             psApp.setString(idx++, request.getParameter("accountOperationCapacity"));
             psApp.setString(idx++, userId);
@@ -133,7 +135,6 @@ public class SaveApplicationServlet extends HttpServlet {
             psApp.setString(idx++, request.getParameter("customerName"));
             psApp.setString(idx++, request.getParameter("introducerAccName"));
             psApp.setString(idx++, request.getParameter("riskCategory"));
-            psApp.setDate(idx++, parseDate(request.getParameter("dateOfApplication")));
             psApp.setString(idx++, "P"); // Status = Pending
 
             int rowsApp = psApp.executeUpdate();
