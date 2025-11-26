@@ -510,31 +510,32 @@
         </div>
 
         <div>
-          <label>Relation with Guardian</label>
-          <select name="nomineeRelation[]">
-            <option value="">-- Select Relation --</option>
-            <% 
-              PreparedStatement psRelation = null;
-              ResultSet rsRelation = null;
-              try (Connection conn9 = DBConnection.getConnection()) {
-                String sql = "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
-                psRelation = conn9.prepareStatement(sql);
-                rsRelation = psRelation.executeQuery();
-                while (rsRelation.next()) {
-                  String rel = rsRelation.getString("DESCRIPTION");
-            %>
-                  <option value="<%= rel %>"><%= rel %></option>
-            <% 
-                }
-              } catch (Exception e) {
-                out.println("<option disabled>Error loading relation</option>");
-              } finally {
-                if (rsRelation != null) rsRelation.close();
-                if (psRelation != null) psRelation.close();
-              }
-            %>
-          </select>
-        </div>
+  <label>Relation with Guardian</label>
+  <select name="nomineeRelation[]">
+    <option value="">-- Select Relation --</option>
+    <% 
+      PreparedStatement psRelation = null;
+      ResultSet rsRelation = null;
+      try (Connection conn9 = DBConnection.getConnection()) {
+        String sql = "SELECT RELATION_ID, DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
+        psRelation = conn9.prepareStatement(sql);
+        rsRelation = psRelation.executeQuery();
+        while (rsRelation.next()) {
+          String relationId = rsRelation.getString("RELATION_ID");
+          String description = rsRelation.getString("DESCRIPTION");
+    %>
+          <option value="<%= relationId %>"><%= description %></option>
+    <% 
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading relation</option>");
+      } finally {
+        if (rsRelation != null) rsRelation.close();
+        if (psRelation != null) psRelation.close();
+      }
+    %>
+  </select>
+</div>
       </div>
     </div>
   </fieldset>
