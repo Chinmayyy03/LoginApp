@@ -460,13 +460,32 @@
         </div>
 
         <div>
-          <label>Country</label>
-          <select name="nomineeCountry[]">
-            <option>INDIA</option>
-            <option>USA</option>
-            <option>UK</option>
-          </select>
-        </div>
+  <label>Country</label>
+  <select name="nomineeCountry[]">
+    <option value="">-- Select Country --</option>
+    <% 
+      PreparedStatement psCountryNominee = null;
+      ResultSet rsCountryNominee = null;
+      try (Connection connCountryN = DBConnection.getConnection()) {
+        String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+        psCountryNominee = connCountryN.prepareStatement(sql);
+        rsCountryNominee = psCountryNominee.executeQuery();
+        while (rsCountryNominee.next()) {
+          String countryCode = rsCountryNominee.getString("COUNTRY_CODE");
+          String countryName = rsCountryNominee.getString("NAME");
+    %>
+          <option value="<%= countryCode %>"><%= countryName %></option>
+    <% 
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading countries</option>");
+      } finally {
+        if (rsCountryNominee != null) rsCountryNominee.close();
+        if (psCountryNominee != null) psCountryNominee.close();
+      }
+    %>
+  </select>
+</div>
 
         <div>
           <label>State</label>
@@ -611,13 +630,32 @@
         </div>
 
         <div>
-          <label>Country</label>
-          <select name="jointCountry[]">
-            <option>INDIA</option>
-            <option>USA</option>
-            <option>UK</option>
-          </select>
-        </div>
+  <label>Country</label>
+  <select name="jointCountry[]">
+    <option value="">-- Select Country --</option>
+    <% 
+      PreparedStatement psCountryJoint = null;
+      ResultSet rsCountryJoint = null;
+      try (Connection connCountryJ = DBConnection.getConnection()) {
+        String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+        psCountryJoint = connCountryJ.prepareStatement(sql);
+        rsCountryJoint = psCountryJoint.executeQuery();
+        while (rsCountryJoint.next()) {
+          String countryCode = rsCountryJoint.getString("COUNTRY_CODE");
+          String countryName = rsCountryJoint.getString("NAME");
+    %>
+          <option value="<%= countryCode %>"><%= countryName %></option>
+    <% 
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading countries</option>");
+      } finally {
+        if (rsCountryJoint != null) rsCountryJoint.close();
+        if (psCountryJoint != null) psCountryJoint.close();
+      }
+    %>
+  </select>
+</div>
 
         <div>
           <label>State</label>
