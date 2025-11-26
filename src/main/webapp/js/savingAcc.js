@@ -503,7 +503,7 @@ function showToast(message) {
 if (typeof Toastify !== 'undefined') {
  Toastify({
    text: message,
-   duration: 3000,
+   duration: 5000,
    close: true,
    gravity: "top",
    position: "center",
