@@ -111,7 +111,7 @@ public class SaveApplicationServlet extends HttpServlet {
                 "CUSTOMER_ID, ACCOUNTOPERATIONCAPACITY_ID, USER_ID, MINBALANCE_ID, " +
                 "INTRODUCERACCOUNT_CODE, CATEGORY_CODE, NAME, INTRODUCER_NAME, " +
                 "RISKCATEGORY, STATUS" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'P')";
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'E')";
 
             psApp = conn.prepareStatement(appSQL);
             psApp.setString(1, applicationNumber);
@@ -142,6 +142,22 @@ public class SaveApplicationServlet extends HttpServlet {
             psApp.setString(12, request.getParameter("introducerAccName"));
             psApp.setString(13, request.getParameter("riskCategory"));
 
+         // Debug: Print all parameter values
+            System.out.println("=== INSERT Parameters ===");
+            System.out.println("1. APPLICATION_NUMBER: " + applicationNumber + " (length: " + applicationNumber.length() + ")");
+            System.out.println("2. BRANCH_CODE: " + branchCode);
+            System.out.println("3. PRODUCT_CODE: " + request.getParameter("productCode"));
+            System.out.println("4. APPLICATIONDATE: " + request.getParameter("dateOfApplication"));
+            System.out.println("5. CUSTOMER_ID: " + request.getParameter("customerId"));
+            System.out.println("6. ACCOUNTOPERATIONCAPACITY_ID: " + request.getParameter("accountOperationCapacity"));
+            System.out.println("7. USER_ID: " + userId);
+            System.out.println("8. MINBALANCE_ID: " + request.getParameter("minBalanceID"));
+            System.out.println("9. INTRODUCERACCOUNT_CODE: " + request.getParameter("introducerAccCode"));
+            System.out.println("10. CATEGORY_CODE: " + request.getParameter("categoryCode"));
+            System.out.println("11. NAME: " + request.getParameter("customerName"));
+            System.out.println("12. INTRODUCER_NAME: " + request.getParameter("introducerAccName"));
+            System.out.println("13. RISKCATEGORY: " + request.getParameter("riskCategory"));
+            System.out.println("========================");
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
 
