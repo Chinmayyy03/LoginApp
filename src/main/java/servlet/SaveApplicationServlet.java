@@ -18,10 +18,8 @@ public class SaveApplicationServlet extends HttpServlet {
 
     // Generate 14-digit APPLICATION_NUMBER: BranchCode(4) + Sequential(10)
     private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
-        // Format branch code to 4 digits (pad with zeros if needed)
         String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
         
-        // Get the MAX APPLICATION_NUMBER for this branch
         String maxSQL = "SELECT MAX(APPLICATION_NUMBER) FROM APPLICATION.APPLICATION WHERE BRANCH_CODE = ?";
         PreparedStatement pstmt = conn.prepareStatement(maxSQL);
         pstmt.setString(1, branchCode);
@@ -31,7 +29,6 @@ public class SaveApplicationServlet extends HttpServlet {
         if (rs.next()) {
             String maxAppNum = rs.getString(1);
             if (maxAppNum != null && maxAppNum.length() == 14) {
-                // Extract last 10 digits and increment
                 String lastTenDigits = maxAppNum.substring(4);
                 nextNumber = Long.parseLong(lastTenDigits) + 1;
             }
@@ -39,12 +36,10 @@ public class SaveApplicationServlet extends HttpServlet {
         rs.close();
         pstmt.close();
         
-        // Generate new APPLICATION_NUMBER: BranchCode(4) + Sequential(10)
         String applicationNumber = branchPrefix + String.format("%010d", nextNumber);
         return applicationNumber;
     }
 
-    // Helper method to parse date safely
     private Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return null;
@@ -57,7 +52,6 @@ public class SaveApplicationServlet extends HttpServlet {
         }
     }
 
-    // Helper method to parse integer safely
     private Integer parseInt(String str) {
         if (str == null || str.trim().isEmpty()) {
             return null;
@@ -98,10 +92,9 @@ public class SaveApplicationServlet extends HttpServlet {
         try {
             System.out.println("Attempting database connection...");
             conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false);
             System.out.println("Database connected successfully");
 
-            // Generate APPLICATION_NUMBER
             applicationNumber = generateApplicationNumber(conn, branchCode);
             System.out.println("Generated Application Number: " + applicationNumber);
 
@@ -142,22 +135,11 @@ public class SaveApplicationServlet extends HttpServlet {
             psApp.setString(12, request.getParameter("introducerAccName"));
             psApp.setString(13, request.getParameter("riskCategory"));
 
-         // Debug: Print all parameter values
             System.out.println("=== INSERT Parameters ===");
-            System.out.println("1. APPLICATION_NUMBER: " + applicationNumber + " (length: " + applicationNumber.length() + ")");
-            System.out.println("2. BRANCH_CODE: " + branchCode);
-            System.out.println("3. PRODUCT_CODE: " + request.getParameter("productCode"));
-            System.out.println("4. APPLICATIONDATE: " + request.getParameter("dateOfApplication"));
-            System.out.println("5. CUSTOMER_ID: " + request.getParameter("customerId"));
-            System.out.println("6. ACCOUNTOPERATIONCAPACITY_ID: " + request.getParameter("accountOperationCapacity"));
-            System.out.println("7. USER_ID: " + userId);
-            System.out.println("8. MINBALANCE_ID: " + request.getParameter("minBalanceID"));
-            System.out.println("9. INTRODUCERACCOUNT_CODE: " + request.getParameter("introducerAccCode"));
-            System.out.println("10. CATEGORY_CODE: " + request.getParameter("categoryCode"));
-            System.out.println("11. NAME: " + request.getParameter("customerName"));
-            System.out.println("12. INTRODUCER_NAME: " + request.getParameter("introducerAccName"));
-            System.out.println("13. RISKCATEGORY: " + request.getParameter("riskCategory"));
-            System.out.println("========================");
+            System.out.println("1. APPLICATION_NUMBER: " + applicationNumber);
+            System.out.println("2. PRODUCT_CODE: " + request.getParameter("productCode"));
+            System.out.println("3. CUSTOMER_ID: " + request.getParameter("customerId"));
+            
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
 
@@ -184,9 +166,22 @@ public class SaveApplicationServlet extends HttpServlet {
                 psNominee = conn.prepareStatement(nomineeSQL);
 
                 for (int i = 0; i < nomineeNames.length; i++) {
+                    // Skip if name is empty
+                    if (nomineeNames[i] == null || nomineeNames[i].trim().isEmpty()) {
+                        continue;
+                    }
+                    
                     psNominee.setString(1, applicationNumber);
-                    psNominee.setInt(2, i + 1); // SERIAL_NUMBER starts from 1
-                    psNominee.setString(3, nomineeSalutations != null ? nomineeSalutations[i] : null);
+                    psNominee.setInt(2, i + 1);
+                    
+                    // Handle salutation - set to NULL if empty
+                    String salutation = nomineeSalutations != null ? nomineeSalutations[i] : null;
+                    if (salutation != null && !salutation.trim().isEmpty()) {
+                        psNominee.setString(3, salutation);
+                    } else {
+                        psNominee.setNull(3, java.sql.Types.VARCHAR);
+                    }
+                    
                     psNominee.setString(4, nomineeNames[i]);
                     
                     Integer relationId = nomineeRelations != null ? parseInt(nomineeRelations[i]) : null;
@@ -239,9 +234,22 @@ public class SaveApplicationServlet extends HttpServlet {
                 psJoint = conn.prepareStatement(jointSQL);
 
                 for (int i = 0; i < jointNames.length; i++) {
+                    // Skip if name is empty
+                    if (jointNames[i] == null || jointNames[i].trim().isEmpty()) {
+                        continue;
+                    }
+                    
                     psJoint.setString(1, applicationNumber);
-                    psJoint.setInt(2, i + 1); // SERIAL_NUMBER starts from 1
-                    psJoint.setString(3, jointSalutations != null ? jointSalutations[i] : null);
+                    psJoint.setInt(2, i + 1);
+                    
+                    // Handle salutation - set to NULL if empty
+                    String salutation = jointSalutations != null ? jointSalutations[i] : null;
+                    if (salutation != null && !salutation.trim().isEmpty()) {
+                        psJoint.setString(3, salutation);
+                    } else {
+                        psJoint.setNull(3, java.sql.Types.VARCHAR);
+                    }
+                    
                     psJoint.setString(4, jointNames[i]);
                     psJoint.setString(5, jointAddress1 != null ? jointAddress1[i] : null);
                     psJoint.setString(6, jointAddress2 != null ? jointAddress2[i] : null);
@@ -257,7 +265,13 @@ public class SaveApplicationServlet extends HttpServlet {
                         psJoint.setNull(11, java.sql.Types.INTEGER);
                     }
                     
-                    psJoint.setString(12, jointCustomerIDs != null ? jointCustomerIDs[i] : null);
+                    // Handle customer ID - set to NULL if empty
+                    String custId = jointCustomerIDs != null ? jointCustomerIDs[i] : null;
+                    if (custId != null && !custId.trim().isEmpty()) {
+                        psJoint.setString(12, custId);
+                    } else {
+                        psJoint.setNull(12, java.sql.Types.VARCHAR);
+                    }
 
                     psJoint.addBatch();
                 }
@@ -266,15 +280,12 @@ public class SaveApplicationServlet extends HttpServlet {
                 System.out.println("Joint Holders inserted: " + jointRows.length + " row(s)");
             }
 
-            // Commit transaction
             conn.commit();
             System.out.println("✅ Transaction committed successfully!");
 
-            // Redirect with success message
-            response.sendRedirect("newApplication.jsp?status=success&applicationNumber=" + applicationNumber);
+            response.sendRedirect("savingAcc.jsp?status=success&applicationNumber=" + applicationNumber);
 
         } catch (Exception e) {
-            // Rollback on error
             if (conn != null) {
                 try {
                     conn.rollback();
@@ -287,7 +298,7 @@ public class SaveApplicationServlet extends HttpServlet {
             System.out.println("ERROR: " + e.getMessage());
             e.printStackTrace();
             String errorMsg = e.getMessage().replace("'", "\\'");
-            response.sendRedirect("newApplication.jsp?status=error&message=" + 
+            response.sendRedirect("savingAcc.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode(errorMsg, "UTF-8"));
         } finally {
             try { if (psApp != null) psApp.close(); } catch (Exception ignored) {}
@@ -295,7 +306,7 @@ public class SaveApplicationServlet extends HttpServlet {
             try { if (psJoint != null) psJoint.close(); } catch (Exception ignored) {}
             try { 
                 if (conn != null) {
-                    conn.setAutoCommit(true); // Reset to default
+                    conn.setAutoCommit(true);
                     conn.close(); 
                 }
             } catch (Exception ignored) {}
