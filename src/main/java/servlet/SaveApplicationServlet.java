@@ -83,6 +83,30 @@ public class SaveApplicationServlet extends HttpServlet {
         System.out.println("Branch Code: " + branchCode);
         System.out.println("User ID: " + userId);
         
+        // Debug form parameters
+        String productCode = request.getParameter("productCode");
+        String customerId = request.getParameter("customerId");
+        System.out.println("📌 Form Parameters:");
+        System.out.println("   - productCode: '" + productCode + "'");
+        System.out.println("   - customerId: '" + customerId + "'");
+        
+        // Validate required fields
+        if (productCode == null || productCode.trim().isEmpty()) {
+            String errorMsg = "Product Code is required but was not provided";
+            System.out.println("❌ VALIDATION ERROR: " + errorMsg);
+            response.sendRedirect("savingAcc.jsp?status=error&message=" + 
+                java.net.URLEncoder.encode(errorMsg, "UTF-8"));
+            return;
+        }
+        
+        if (customerId == null || customerId.trim().isEmpty()) {
+            String errorMsg = "Customer ID is required";
+            System.out.println("❌ VALIDATION ERROR: " + errorMsg);
+            response.sendRedirect("savingAcc.jsp?status=error&message=" + 
+                java.net.URLEncoder.encode(errorMsg, "UTF-8"));
+            return;
+        }
+        
         Connection conn = null;
         PreparedStatement psApp = null;
         PreparedStatement psNominee = null;
@@ -109,9 +133,9 @@ public class SaveApplicationServlet extends HttpServlet {
             psApp = conn.prepareStatement(appSQL);
             psApp.setString(1, applicationNumber);
             psApp.setString(2, branchCode);
-            psApp.setString(3, request.getParameter("productCode"));
+            psApp.setString(3, productCode);
             psApp.setDate(4, parseDate(request.getParameter("dateOfApplication")));
-            psApp.setString(5, request.getParameter("customerId"));
+            psApp.setString(5, customerId);
             
             Integer accOpCapacity = parseInt(request.getParameter("accountOperationCapacity"));
             if (accOpCapacity != null) {
@@ -137,8 +161,8 @@ public class SaveApplicationServlet extends HttpServlet {
 
             System.out.println("=== INSERT Parameters ===");
             System.out.println("1. APPLICATION_NUMBER: " + applicationNumber);
-            System.out.println("2. PRODUCT_CODE: " + request.getParameter("productCode"));
-            System.out.println("3. CUSTOMER_ID: " + request.getParameter("customerId"));
+            System.out.println("2. PRODUCT_CODE: " + productCode);
+            System.out.println("3. CUSTOMER_ID: " + customerId);
             
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
@@ -168,37 +192,39 @@ public class SaveApplicationServlet extends HttpServlet {
                 for (int i = 0; i < nomineeNames.length; i++) {
                     // Skip if name is empty
                     if (nomineeNames[i] == null || nomineeNames[i].trim().isEmpty()) {
+                        System.out.println("⚠️ Skipping nominee " + (i+1) + " - empty name");
                         continue;
                     }
                     
-                    psNominee.setString(1, applicationNumber);
-                    psNominee.setInt(2, i + 1);
-                    
-                    // Handle salutation - set to NULL if empty
-                    String salutation = nomineeSalutations != null ? nomineeSalutations[i] : null;
-                    if (salutation != null && !salutation.trim().isEmpty()) {
-                        psNominee.setString(3, salutation);
-                    } else {
-                        psNominee.setNull(3, java.sql.Types.VARCHAR);
+                    // ✅ FIX: Validate salutation before inserting
+                    String salutation = nomineeSalutations != null && i < nomineeSalutations.length ? nomineeSalutations[i] : null;
+                    if (salutation == null || salutation.trim().isEmpty()) {
+                        System.out.println("⚠️ Skipping nominee " + (i+1) + " (" + nomineeNames[i] + ") - no salutation provided");
+                        continue;
                     }
                     
+                    System.out.println("✅ Processing nominee " + (i+1) + ": " + nomineeNames[i] + " with salutation: " + salutation);
+                    
+                    psNominee.setString(1, applicationNumber);
+                    psNominee.setInt(2, i + 1);
+                    psNominee.setString(3, salutation);
                     psNominee.setString(4, nomineeNames[i]);
                     
-                    Integer relationId = nomineeRelations != null ? parseInt(nomineeRelations[i]) : null;
+                    Integer relationId = nomineeRelations != null && i < nomineeRelations.length ? parseInt(nomineeRelations[i]) : null;
                     if (relationId != null) {
                         psNominee.setInt(5, relationId);
                     } else {
                         psNominee.setNull(5, java.sql.Types.INTEGER);
                     }
                     
-                    psNominee.setString(6, nomineeAddress1 != null ? nomineeAddress1[i] : null);
-                    psNominee.setString(7, nomineeAddress2 != null ? nomineeAddress2[i] : null);
-                    psNominee.setString(8, nomineeAddress3 != null ? nomineeAddress3[i] : null);
-                    psNominee.setString(9, nomineeCities != null ? nomineeCities[i] : null);
-                    psNominee.setString(10, nomineeStates != null ? nomineeStates[i] : null);
-                    psNominee.setString(11, nomineeCountries != null ? nomineeCountries[i] : null);
+                    psNominee.setString(6, nomineeAddress1 != null && i < nomineeAddress1.length ? nomineeAddress1[i] : null);
+                    psNominee.setString(7, nomineeAddress2 != null && i < nomineeAddress2.length ? nomineeAddress2[i] : null);
+                    psNominee.setString(8, nomineeAddress3 != null && i < nomineeAddress3.length ? nomineeAddress3[i] : null);
+                    psNominee.setString(9, nomineeCities != null && i < nomineeCities.length ? nomineeCities[i] : null);
+                    psNominee.setString(10, nomineeStates != null && i < nomineeStates.length ? nomineeStates[i] : null);
+                    psNominee.setString(11, nomineeCountries != null && i < nomineeCountries.length ? nomineeCountries[i] : null);
                     
-                    Integer zip = nomineeZips != null ? parseInt(nomineeZips[i]) : null;
+                    Integer zip = nomineeZips != null && i < nomineeZips.length ? parseInt(nomineeZips[i]) : null;
                     if (zip != null) {
                         psNominee.setInt(12, zip);
                     } else {
@@ -224,6 +250,10 @@ public class SaveApplicationServlet extends HttpServlet {
             String[] jointCountries = request.getParameterValues("jointCountry[]");
             String[] jointZips = request.getParameterValues("jointZip[]");
 
+            System.out.println("📌 Joint Holder Debug:");
+            System.out.println("   - jointNames length: " + (jointNames != null ? jointNames.length : "null"));
+            System.out.println("   - jointSalutations length: " + (jointSalutations != null ? jointSalutations.length : "null"));
+
             if (jointNames != null && jointNames.length > 0) {
                 String jointSQL = "INSERT INTO APPLICATION.APPLICATIONJOINTHOLDER (" +
                     "APPLICATION_NUMBER, SERIAL_NUMBER, SALUTATION_CODE, NAME, " +
@@ -232,41 +262,43 @@ public class SaveApplicationServlet extends HttpServlet {
                     ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 psJoint = conn.prepareStatement(jointSQL);
+                int validJointCount = 0;
 
                 for (int i = 0; i < jointNames.length; i++) {
                     // Skip if name is empty
                     if (jointNames[i] == null || jointNames[i].trim().isEmpty()) {
+                        System.out.println("⚠️ Skipping joint holder " + (i+1) + " - empty name");
                         continue;
                     }
                     
-                    psJoint.setString(1, applicationNumber);
-                    psJoint.setInt(2, i + 1);
-                    
-                    // Handle salutation - set to NULL if empty
-                    String salutation = jointSalutations != null ? jointSalutations[i] : null;
-                    if (salutation != null && !salutation.trim().isEmpty()) {
-                        psJoint.setString(3, salutation);
-                    } else {
-                        psJoint.setNull(3, java.sql.Types.VARCHAR);
+                    // ✅ FIX: Validate salutation before inserting
+                    String salutation = jointSalutations != null && i < jointSalutations.length ? jointSalutations[i] : null;
+                    if (salutation == null || salutation.trim().isEmpty()) {
+                        System.out.println("⚠️ Skipping joint holder " + (i+1) + " (" + jointNames[i] + ") - no salutation provided");
+                        continue;
                     }
                     
-                    psJoint.setString(4, jointNames[i]);
-                    psJoint.setString(5, jointAddress1 != null ? jointAddress1[i] : null);
-                    psJoint.setString(6, jointAddress2 != null ? jointAddress2[i] : null);
-                    psJoint.setString(7, jointAddress3 != null ? jointAddress3[i] : null);
-                    psJoint.setString(8, jointCities != null ? jointCities[i] : null);
-                    psJoint.setString(9, jointStates != null ? jointStates[i] : null);
-                    psJoint.setString(10, jointCountries != null ? jointCountries[i] : null);
+                    System.out.println("✅ Processing joint holder " + (i+1) + ": " + jointNames[i] + " with salutation: " + salutation);
                     
-                    Integer zip = jointZips != null ? parseInt(jointZips[i]) : null;
+                    psJoint.setString(1, applicationNumber);
+                    psJoint.setInt(2, i + 1);
+                    psJoint.setString(3, salutation);
+                    psJoint.setString(4, jointNames[i]);
+                    psJoint.setString(5, jointAddress1 != null && i < jointAddress1.length ? jointAddress1[i] : null);
+                    psJoint.setString(6, jointAddress2 != null && i < jointAddress2.length ? jointAddress2[i] : null);
+                    psJoint.setString(7, jointAddress3 != null && i < jointAddress3.length ? jointAddress3[i] : null);
+                    psJoint.setString(8, jointCities != null && i < jointCities.length ? jointCities[i] : null);
+                    psJoint.setString(9, jointStates != null && i < jointStates.length ? jointStates[i] : null);
+                    psJoint.setString(10, jointCountries != null && i < jointCountries.length ? jointCountries[i] : null);
+                    
+                    Integer zip = jointZips != null && i < jointZips.length ? parseInt(jointZips[i]) : null;
                     if (zip != null) {
                         psJoint.setInt(11, zip);
                     } else {
                         psJoint.setNull(11, java.sql.Types.INTEGER);
                     }
                     
-                    // Handle customer ID - set to NULL if empty
-                    String custId = jointCustomerIDs != null ? jointCustomerIDs[i] : null;
+                    String custId = jointCustomerIDs != null && i < jointCustomerIDs.length ? jointCustomerIDs[i] : null;
                     if (custId != null && !custId.trim().isEmpty()) {
                         psJoint.setString(12, custId);
                     } else {
@@ -274,10 +306,15 @@ public class SaveApplicationServlet extends HttpServlet {
                     }
 
                     psJoint.addBatch();
+                    validJointCount++;
                 }
 
-                int[] jointRows = psJoint.executeBatch();
-                System.out.println("Joint Holders inserted: " + jointRows.length + " row(s)");
+                if (validJointCount > 0) {
+                    int[] jointRows = psJoint.executeBatch();
+                    System.out.println("Joint Holders inserted: " + jointRows.length + " row(s)");
+                } else {
+                    System.out.println("No valid joint holders to insert");
+                }
             }
 
             conn.commit();
@@ -299,7 +336,8 @@ public class SaveApplicationServlet extends HttpServlet {
             e.printStackTrace();
             String errorMsg = e.getMessage().replace("'", "\\'");
             response.sendRedirect("savingAcc.jsp?status=error&message=" + 
-                java.net.URLEncoder.encode(errorMsg, "UTF-8"));
+                java.net.URLEncoder.encode(errorMsg, "UTF-8") + 
+                "&productCode=" + productCode);
         } finally {
             try { if (psApp != null) psApp.close(); } catch (Exception ignored) {}
             try { if (psNominee != null) psNominee.close(); } catch (Exception ignored) {}

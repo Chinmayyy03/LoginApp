@@ -7,6 +7,13 @@
         response.sendRedirect("login.jsp");
         return;
     }
+    
+    // ✅ FIX: Capture productCode from request parameter
+    String productCode = request.getParameter("productCode");
+    if (productCode == null) {
+        productCode = "";
+    }
+    System.out.println("📌 savingAcc.jsp - Product Code received: " + productCode);
 %>
 
 <!DOCTYPE html>
@@ -21,12 +28,19 @@
 <body>
 
 <form action="SaveApplicationServlet" method="post" onsubmit="return validateForm()">
-  <!-- Hidden fields to capture productCode from parent -->
-  <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= request.getParameter("productCode") != null ? request.getParameter("productCode") : "" %>">
+  <!-- ✅ FIX: Use JSP variable to set the value -->
+  <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
   <fieldset>
     <legend>Application</legend>
     <div class="form-grid">
+      
+      <!-- ✅ ADD: Display Product Code for verification -->
+      <div>
+        <label>Product Code</label>
+        <input type="text" value="<%= productCode %>" readonly style="background-color: #f0f0f0;">
+      </div>
+      
       <div>
         <label>Customer ID</label>
         <div class="input-icon-box">
@@ -89,14 +103,33 @@
       </div>
 
       <div>
-        <label>Min Balance ID</label>
-        <select name="minBalanceID">
-          <option>0</option>
-          <option>100</option>
-          <option>500</option>
-          <option>5000</option>
-        </select>
-      </div>
+  <label>Min Balance</label>
+  <select name="minBalanceID" required>
+    <option value="">-- Select Min Balance --</option>
+    <%
+      PreparedStatement psMinBal = null;
+      ResultSet rsMinBal = null;
+      try (Connection connMinBal = DBConnection.getConnection()) {
+        String sql = "SELECT MINBALANCE_ID, MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE ORDER BY MINBALANCE_ID";
+        psMinBal = connMinBal.prepareStatement(sql);
+        rsMinBal = psMinBal.executeQuery();
+
+        while (rsMinBal.next()) {
+          String id = rsMinBal.getString("MINBALANCE_ID");      // ID to store
+          String value = rsMinBal.getString("MINBALANCE");      // Value to show
+    %>
+          <option value="<%= id %>"><%= value %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Min Balance</option>");
+      } finally {
+        if (rsMinBal != null) rsMinBal.close();
+        if (psMinBal != null) psMinBal.close();
+      }
+    %>
+  </select>
+</div>
       
       <div>
         <label>Risk Category</label>
