@@ -16,89 +16,71 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/SaveApplicationServlet")
 public class SaveApplicationServlet extends HttpServlet {
 
-    /**
-     * Generate unique 14-digit APPLICATION_NUMBER
-     * Format: BranchCode(4 digits) + Sequential(10 digits)
-     * Example: 01010000000001 (Branch 0101, Number 1)
-     */
-    private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
-        String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
-        
-        System.out.println("🔍 Searching for existing APPLICATION_NUMBERs starting with: " + branchPrefix);
-        
-        // Get ALL APPLICATION_NUMBERs for this branch, ordered descending
-        String maxSQL = "SELECT APPLICATION_NUMBER FROM APPLICATION.APPLICATION " +
-                       "WHERE APPLICATION_NUMBER LIKE ? " +
-                       "ORDER BY APPLICATION_NUMBER DESC";
-        
-        PreparedStatement pstmt = conn.prepareStatement(maxSQL);
-        pstmt.setString(1, branchPrefix + "%");
-        ResultSet rs = pstmt.executeQuery();
-        
-        long nextNumber = 1;
-        boolean foundValid = false;
-        
-        while (rs.next()) {
-            String appNum = rs.getString(1);
-            System.out.println("📊 Checking: " + appNum);
-            
-            if (appNum != null && appNum.length() == 14 && appNum.startsWith(branchPrefix)) {
-                try {
-                    long lastNumber = Long.parseLong(appNum.substring(4));
-                    nextNumber = lastNumber + 1;
-                    System.out.println("✅ Last valid: " + lastNumber + ", next: " + nextNumber);
-                    foundValid = true;
-                    break;
-                } catch (NumberFormatException e) {
-                    System.out.println("⚠️ Parse error: " + appNum);
-                    continue;
-                }
-            } else if (appNum != null) {
-                System.out.println("⚠️ Skipping (length=" + appNum.length() + "): " + appNum);
-            }
-        }
-        
-        rs.close();
-        pstmt.close();
-        
-        if (!foundValid) {
-            System.out.println("✅ No valid APPLICATION_NUMBERs found, starting from 1");
-        }
-        
-        // Generate and verify uniqueness
-        String applicationNumber = branchPrefix + String.format("%010d", nextNumber);
-        System.out.println("🔒 Verifying uniqueness of: " + applicationNumber);
-        
-        String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE APPLICATION_NUMBER = ?";
-        PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
-        
-        int attempts = 0;
-        while (attempts < 100) {
-            checkStmt.setString(1, applicationNumber);
-            ResultSet checkRs = checkStmt.executeQuery();
-            
-            if (checkRs.next() && checkRs.getInt(1) > 0) {
-                System.out.println("⚠️ EXISTS: " + applicationNumber + " - trying next");
-                nextNumber++;
-                applicationNumber = branchPrefix + String.format("%010d", nextNumber);
-                checkRs.close();
-                attempts++;
-            } else {
-                System.out.println("✅ UNIQUE: " + applicationNumber);
-                checkRs.close();
-                break;
-            }
-        }
-        
-        checkStmt.close();
-        
-        if (attempts >= 100) {
-            throw new Exception("Cannot generate unique APPLICATION_NUMBER after 100 attempts");
-        }
-        
-        System.out.println("📌 Final: " + applicationNumber + " (Branch: " + branchPrefix + ", Seq: " + String.format("%010d", nextNumber) + ")");
-        return applicationNumber;
-    }
+	/**
+	 * Generate unique 14-digit APPLICATION_NUMBER
+	 * Format: BranchCode(4 digits) + GlobalSequence(10 digits)
+	 *
+	 * GlobalSequence = MAX(last 10 digits of all APPLICATION_NUMBERs in DB)
+	 */
+	private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
+	    String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
+
+	    System.out.println("🔍 Fetching GLOBAL max sequence from APPLICATION table...");
+
+	    // Get MAX sequence of ALL branches (last 10 digits only)
+	    String sql = 
+	        "SELECT MAX(TO_NUMBER(SUBSTR(APPLICATION_NUMBER, 5, 10))) " +
+	        "FROM APPLICATION.APPLICATION " +
+	        "WHERE LENGTH(APPLICATION_NUMBER) = 14";
+
+	    PreparedStatement pstmt = conn.prepareStatement(sql);
+	    ResultSet rs = pstmt.executeQuery();
+
+	    long nextSeq = 1;
+	    if (rs.next() && rs.getLong(1) > 0) {
+	        long lastSeq = rs.getLong(1);
+	        nextSeq = lastSeq + 1;
+	        System.out.println("✅ Global max seq = " + lastSeq + ", next = " + nextSeq);
+	    } else {
+	        System.out.println("✅ No applications found, starting from 1");
+	    }
+
+	    rs.close();
+	    pstmt.close();
+
+	    // Build new application number
+	    String applicationNumber = branchPrefix + String.format("%010d", nextSeq);
+
+	    // Uniqueness check
+	    String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE APPLICATION_NUMBER = ?";
+	    PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+
+	    int attempts = 0;
+	    while (attempts < 100) {
+	        checkStmt.setString(1, applicationNumber);
+	        ResultSet checkRs = checkStmt.executeQuery();
+
+	        if (checkRs.next() && checkRs.getInt(1) > 0) {
+	            System.out.println("⚠️ Exists: " + applicationNumber + " — trying next");
+	            nextSeq++;
+	            applicationNumber = branchPrefix + String.format("%010d", nextSeq);
+	            checkRs.close();
+	            attempts++;
+	        } else {
+	            checkRs.close();
+	            break;
+	        }
+	    }
+
+	    checkStmt.close();
+
+	    if (attempts >= 100) {
+	        throw new Exception("Failed to generate unique APPLICATION_NUMBER after 100 attempts");
+	    }
+
+	    System.out.println("📌 FINAL APPLICATION_NUMBER = " + applicationNumber);
+	    return applicationNumber;
+	}
 
     private Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) return null;
