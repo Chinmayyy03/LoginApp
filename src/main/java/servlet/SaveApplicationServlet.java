@@ -17,22 +17,47 @@ import javax.servlet.http.HttpSession;
 public class SaveApplicationServlet extends HttpServlet {
 
     /**
-     * Generate unique 14-digit APPLICATION_NUMBER
-     * Format: BranchCode(4 digits) + Sequential(10 digits)
-     * Example: 01010000000001 (Branch 0101, Number 1)
+     * Generate GLOBALLY UNIQUE 14-digit APPLICATION_NUMBER
+     * Format: AccountType(2) + ProductCode(2) + Sequential(10 digits)
+     * Example: 2101 0000000001 (Account Type: SB=21, Product: 01, Sequence: 1)
      */
-    private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
-        String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
+    private String generateApplicationNumber(Connection conn, String productCode) throws Exception {
+        // Extract account type from product code (first 2 digits map to account type)
+        // SB products (201-299) -> Account Type 21
+        // CA products (101-199) -> Account Type 11
+        // FD products (301-399) -> Account Type 31
+        // RD products (401-499) -> Account Type 41
         
-        System.out.println("🔍 Searching for existing APPLICATION_NUMBERs starting with: " + branchPrefix);
+        String accountTypePrefix = "";
+        int prodCodeInt = Integer.parseInt(productCode);
         
-        // Get ALL APPLICATION_NUMBERs for this branch, ordered descending
+        if (prodCodeInt >= 201 && prodCodeInt <= 299) {
+            accountTypePrefix = "21"; // Savings
+        } else if (prodCodeInt >= 101 && prodCodeInt <= 199) {
+            accountTypePrefix = "11"; // Current
+        } else if (prodCodeInt >= 301 && prodCodeInt <= 399) {
+            accountTypePrefix = "31"; // Fixed Deposit
+        } else if (prodCodeInt >= 401 && prodCodeInt <= 499) {
+            accountTypePrefix = "41"; // Recurring Deposit
+        } else {
+            throw new Exception("Invalid product code: " + productCode);
+        }
+        
+        // Get last 2 digits of product code
+        String productSuffix = String.format("%02d", prodCodeInt % 100);
+        
+        // Combine to form 4-digit prefix
+        String prefix = accountTypePrefix + productSuffix;
+        
+        System.out.println("🔍 Searching for existing APPLICATION_NUMBERs starting with: " + prefix);
+        
+        // Get ALL APPLICATION_NUMBERs with this prefix (GLOBALLY across all branches)
         String maxSQL = "SELECT APPLICATION_NUMBER FROM APPLICATION.APPLICATION " +
                        "WHERE APPLICATION_NUMBER LIKE ? " +
                        "ORDER BY APPLICATION_NUMBER DESC";
         
         PreparedStatement pstmt = conn.prepareStatement(maxSQL);
-        pstmt.setString(1, branchPrefix + "%");
+        pstmt.setString(1, prefix + "%");
         ResultSet rs = pstmt.executeQuery();
         
         long nextNumber = 1;
@@ -42,8 +67,9 @@ public class SaveApplicationServlet extends HttpServlet {
             String appNum = rs.getString(1);
             System.out.println("📊 Checking: " + appNum);
             
-            if (appNum != null && appNum.length() == 14 && appNum.startsWith(branchPrefix)) {
+            if (appNum != null && appNum.length() == 14 && appNum.startsWith(prefix)) {
                 try {
+                    // Extract last 10 digits
                     long lastNumber = Long.parseLong(appNum.substring(4));
                     nextNumber = lastNumber + 1;
                     System.out.println("✅ Last valid: " + lastNumber + ", next: " + nextNumber);
@@ -65,8 +91,13 @@ public class SaveApplicationServlet extends HttpServlet {
             System.out.println("✅ No valid APPLICATION_NUMBERs found, starting from 1");
         }
         
+        // Validate that sequence doesn't exceed 10 digits (max: 9999999999)
+        if (nextNumber > 9999999999L) {
+            throw new Exception("Application number sequence exceeded maximum limit for prefix: " + prefix);
+        }
+        
         // Generate and verify uniqueness
-        String applicationNumber = branchPrefix + String.format("%010d", nextNumber);
+        String applicationNumber = prefix + String.format("%010d", nextNumber);
         System.out.println("🔒 Verifying uniqueness of: " + applicationNumber);
         
         String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE APPLICATION_NUMBER = ?";
@@ -80,7 +111,7 @@ public class SaveApplicationServlet extends HttpServlet {
             if (checkRs.next() && checkRs.getInt(1) > 0) {
                 System.out.println("⚠️ EXISTS: " + applicationNumber + " - trying next");
                 nextNumber++;
-                applicationNumber = branchPrefix + String.format("%010d", nextNumber);
+                applicationNumber = prefix + String.format("%010d", nextNumber);
                 checkRs.close();
                 attempts++;
             } else {
@@ -96,7 +127,7 @@ public class SaveApplicationServlet extends HttpServlet {
             throw new Exception("Cannot generate unique APPLICATION_NUMBER after 100 attempts");
         }
         
-        System.out.println("📌 Final: " + applicationNumber + " (Branch: " + branchPrefix + ", Seq: " + String.format("%010d", nextNumber) + ")");
+        System.out.println("📌 Final: " + applicationNumber + " (Prefix: " + prefix + ", Seq: " + String.format("%010d", nextNumber) + ")");
         return applicationNumber;
     }
 
@@ -160,8 +191,37 @@ public class SaveApplicationServlet extends HttpServlet {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
             
-            applicationNumber = generateApplicationNumber(conn, branchCode);
+            // ✅ Generate APPLICATION_NUMBER based on product code (globally unique)
+            applicationNumber = generateApplicationNumber(conn, productCode);
             System.out.println("✅ Generated: " + applicationNumber);
+
+            // ✅ CRITICAL FIX: Verify all foreign key values exist before insert
+            
+            // Check if PRODUCT_CODE exists
+            PreparedStatement psCheckProduct = conn.prepareStatement(
+                "SELECT COUNT(*) FROM HEADOFFICE.PRODUCT WHERE PRODUCT_CODE = ?"
+            );
+            psCheckProduct.setString(1, productCode);
+            ResultSet rsProduct = psCheckProduct.executeQuery();
+            rsProduct.next();
+            if (rsProduct.getInt(1) == 0) {
+                throw new Exception("Invalid Product Code: " + productCode + " does not exist in PRODUCT table");
+            }
+            rsProduct.close();
+            psCheckProduct.close();
+            
+            // Check if CUSTOMER_ID exists
+            PreparedStatement psCheckCustomer = conn.prepareStatement(
+                "SELECT COUNT(*) FROM CUSTOMERS WHERE CUSTOMER_ID = ?"
+            );
+            psCheckCustomer.setString(1, customerId);
+            ResultSet rsCustomer = psCheckCustomer.executeQuery();
+            rsCustomer.next();
+            if (rsCustomer.getInt(1) == 0) {
+                throw new Exception("Invalid Customer ID: " + customerId + " does not exist in CUSTOMERS table");
+            }
+            rsCustomer.close();
+            psCheckCustomer.close();
 
             // Insert APPLICATION
             String appSQL = "INSERT INTO APPLICATION.APPLICATION (" +
@@ -196,7 +256,7 @@ public class SaveApplicationServlet extends HttpServlet {
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
 
-            // Insert NOMINEES
+            // Insert NOMINEES (same as before)
             String[] nomineeNames = request.getParameterValues("nomineeName[]");
             String[] nomineeSalutations = request.getParameterValues("nomineeSalutation[]");
             String[] nomineeRelations = request.getParameterValues("nomineeRelation[]");
@@ -263,7 +323,7 @@ public class SaveApplicationServlet extends HttpServlet {
                 }
             }
 
-            // Insert JOINT HOLDERS
+            // Insert JOINT HOLDERS (same as before)
             String[] jointNames = request.getParameterValues("jointName[]");
             String[] jointSalutations = request.getParameterValues("jointSalutation[]");
             String[] jointAddr1 = request.getParameterValues("jointAddress1[]");
