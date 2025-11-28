@@ -710,10 +710,31 @@ body {
 
     <div class="personal-grid">
       <div>
-        <label>Salutation Code 1</label>
-        <select name="salutationCode1" required>
-          <!-- options -->
-        </select>
+        <label>Salutation Code</label>
+<select name="salutationCode1[]" required>  <!-- ✅ Changed from salutationCode1 -->
+        <option value="">-- Select Salutation Code --</option>
+        <%
+            PreparedStatement psSalutation1 = null;
+            ResultSet rsSalutation1 = null;
+            try (Connection conn1 = DBConnection.getConnection()) {
+                String sql1 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+                psSalutation1 = conn1.prepareStatement(sql1);
+                rsSalutation1 = psSalutation1.executeQuery();
+                while (rsSalutation1.next()) {
+                    String salutationCode1 = rsSalutation1.getString("SALUTATION_CODE");
+        %>
+                    <option value="<%= salutationCode1 %>"><%= salutationCode1 %></option>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading Salutation Code</option>");
+                e.printStackTrace();
+            } finally {
+                if (rsSalutation1 != null) rsSalutation1.close();
+                if (psSalutation1 != null) psSalutation1.close();
+            }
+        %>
+    </select>
       </div>
       <div>
         <label>Co-Borrower Name</label>
@@ -864,10 +885,31 @@ body {
 
     <div class="address-grid">
       <div>
-        <label>Salutation Code 2</label>
-        <select name="salutationCode2" required>
-          <!-- options -->
-        </select>
+        <label>Salutation Code</label>
+        <select name="salutationCode2[]" required>  <!-- ✅ Changed from salutationCode2 -->
+        <option value="">-- Select Salutation Code --</option>
+        <%
+            PreparedStatement psSalutation2 = null;
+            ResultSet rsSalutation2 = null;
+            try (Connection conn2 = DBConnection.getConnection()) {
+                String sql2 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+                psSalutation2 = conn2.prepareStatement(sql2);
+                rsSalutation2 = psSalutation2.executeQuery();
+                while (rsSalutation2.next()) {
+                    String salutationCode2 = rsSalutation2.getString("SALUTATION_CODE");
+        %>
+                    <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading Salutation Code</option>");
+                e.printStackTrace();
+            } finally {
+                if (rsSalutation2 != null) rsSalutation2.close();
+                if (psSalutation2 != null) psSalutation2.close();
+            }
+        %>
+    </select>
       </div>
       <div>
         <label>Guarantor Name</label>
@@ -1187,55 +1229,55 @@ function fetchCustomerDetails(customerId, type, block) {
 //Populate Nominee fields with customer data
 function populateNomineeFields(block, customer) {
     // Salutation Code
-    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
+    const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         salutationSelect.value = customer.salutationCode;
     }
 
     // Nominee Name
-    const nameInput = block.querySelector('input[name="nomineeName[]"]');
+    const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
     if (nameInput && customer.customerName) {
         nameInput.value = customer.customerName;
     }
 
     // Address 1
-    const address1Input = block.querySelector('input[name="nomineeAddress1[]"]');
+    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
     if (address1Input && customer.address1) {
         address1Input.value = customer.address1;
     }
 
     // Address 2
-    const address2Input = block.querySelector('input[name="nomineeAddress2[]"]');
+    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
     if (address2Input && customer.address2) {
         address2Input.value = customer.address2;
     }
 
     // Address 3
-    const address3Input = block.querySelector('input[name="nomineeAddress3[]"]');
+    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
     if (address3Input && customer.address3) {
         address3Input.value = customer.address3;
     }
 
     // Country
-    const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
+    const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
     if (countrySelect && customer.country) {
         countrySelect.value = customer.country;
     }
 
     // State
-    const stateSelect = block.querySelector('select[name="nomineeState[]"]');
+    const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
     if (stateSelect && customer.state) {
         stateSelect.value = customer.state;
     }
 
     // City
-    const citySelect = block.querySelector('select[name="nomineeCity[]"]');
+    const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
     if (citySelect && customer.city) {
         citySelect.value = customer.city;
     }
 
     // Zip
-    const zipInput = block.querySelector('input[name="nomineeZip[]"]');
+    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
@@ -1347,210 +1389,408 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-//==================== Co-Borrower FUNCTIONS ====================
+//==================== CO-BORROWER FUNCTIONS ====================
 
-// Toggle Co-Borrower Customer ID visibility
+//Toggle Co-Borrower Customer ID visibility
 function toggleCoBorrowerCustomerID(radio) {
-    const coBorrowerBlock = radio.closest('.coBorrower-block');
-    const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
-    const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+ const coBorrowerBlock = radio.closest('.coBorrower-block');
+ const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
+ const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
 
-    if (radio.value === 'yes') {
-        container.style.display = 'block';
-        input.required = true;
-    } else {
-        container.style.display = 'none';
-        input.required = false;
-        input.value = '';
-        clearCoBorrowerFields(coBorrowerBlock);
-    }
+ if (radio.value === 'yes') {
+     container.style.display = 'block';
+     input.required = true;
+ } else {
+     container.style.display = 'none';
+     input.required = false;
+     input.value = '';
+     clearCoBorrowerFields(coBorrowerBlock);
+ }
 }
 
-// Clear co-borrower fields
+//Clear co-borrower fields
 function clearCoBorrowerFields(block) {
-    block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
-    block.querySelector('input[name="coBorrowerName[]"]').value = '';
-    block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
-    block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
-    block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
-    block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
-    block.querySelector('select[name="coBorrowerState[]"]').value = '';
-    block.querySelector('select[name="coBorrowerCity[]"]').value = '';
-    block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+ block.querySelector('select[name="salutationCode1"]').value = '';
+ block.querySelector('input[name="nomineeName[]"]').value = '';
+ block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
+ block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
+ block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
+ block.querySelector('select[name="countryCode"]').value = '';
+ block.querySelector('select[name="stateCode"]').value = '';
+ block.querySelector('select[name="cityCode"]').value = '';
+ block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
 }
 
-// Open Co-Borrower Customer Lookup Modal
+//Open Co-Borrower Customer Lookup Modal
 function openCoBorrowerCustomerLookup(button) {
-    const coBorrowerBlock = button.closest('.coBorrower-block');
-    const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
-    window.currentCoBorrowerInput = input;
-    window.currentCoBorrowerBlock = coBorrowerBlock;
-    openCustomerLookup();
+ const coBorrowerBlock = button.closest('.coBorrower-block');
+ const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+ window.currentCoBorrowerInput = input;
+ window.currentCoBorrowerBlock = coBorrowerBlock;
+ openCustomerLookup();
 }
 
-// Add Co-Borrower
+//Populate Co-Borrower fields with customer data
+function populateCoBorrowerFields(block, customer) {
+ // Salutation Code
+ const salutationSelect = block.querySelector('select[name="salutationCode1"]');
+ if (salutationSelect && customer.salutationCode) {
+     salutationSelect.value = customer.salutationCode;
+ }
+
+ // Co-Borrower Name
+ const nameInput = block.querySelector('input[name="nomineeName[]"]');
+ if (nameInput && customer.customerName) {
+     nameInput.value = customer.customerName;
+ }
+
+ // Address 1
+ const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+ if (address1Input && customer.address1) {
+     address1Input.value = customer.address1;
+ }
+
+ // Address 2
+ const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+ if (address2Input && customer.address2) {
+     address2Input.value = customer.address2;
+ }
+
+ // Address 3
+ const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+ if (address3Input && customer.address3) {
+     address3Input.value = customer.address3;
+ }
+
+ // Country
+ const countrySelect = block.querySelector('select[name="countryCode"]');
+ if (countrySelect && customer.country) {
+     countrySelect.value = customer.country;
+ }
+
+ // State
+ const stateSelect = block.querySelector('select[name="stateCode"]');
+ if (stateSelect && customer.state) {
+     stateSelect.value = customer.state;
+ }
+
+ // City
+ const citySelect = block.querySelector('select[name="cityCode"]');
+ if (citySelect && customer.city) {
+     citySelect.value = customer.city;
+ }
+
+ // Zip
+ const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+ if (zipInput && customer.zip) {
+     zipInput.value = customer.zip;
+ }
+}
+
+//Add Co-Borrower
 function addCoBorrower() {
-    let fieldset = document.getElementById("coBorrowerFieldset");
-    let original = fieldset.querySelector(".coBorrower-block");
-    let clone = original.cloneNode(true);
+ let fieldset = document.getElementById("coBorrowerFieldset");
+ let original = fieldset.querySelector(".coBorrower-block");
+ let clone = original.cloneNode(true);
 
-    clone.querySelectorAll("input, select").forEach(el => {
-        if (el.type === 'radio') {
-            if (el.value === 'no') el.checked = true;
-            else el.checked = false;
-        } else if (el.tagName === 'SELECT') {
-            el.selectedIndex = 0;
-        } else if (el.name === 'coBorrowerZip[]') {
-            el.value = '0';
-        } else {
-            el.value = "";
-        }
-    });
+ clone.querySelectorAll("input, select").forEach(el => {
+     if (el.type === 'radio') {
+         if (el.value === 'no') el.checked = true;
+         else el.checked = false;
+     } else if (el.tagName === 'SELECT') {
+         el.selectedIndex = 0;
+     } else if (el.name === 'coBorrowerZip[]') {
+         el.value = '0';
+     } else {
+         el.value = "";
+     }
+ });
 
-    const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
-    if (customerIDContainer) {
-        customerIDContainer.style.display = 'none';
-    }
+ const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
+ if (customerIDContainer) {
+     customerIDContainer.style.display = 'none';
+ }
 
-    const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
-    const newIndex = coBorrowerBlocks.length + 1;
-    const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
-    radios.forEach(radio => {
-        radio.name = `coBorrowerHasCustomerID_${newIndex}`;
-    });
+ const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
+ const newIndex = coBorrowerBlocks.length + 1;
+ const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
+ radios.forEach(radio => {
+     radio.name = `coBorrowerHasCustomerID_${newIndex}`;
+ });
 
-    clone.querySelector(".nominee-remove").onclick = function() {
-        removeCoBorrower(this);
-    };
+ clone.querySelector(".nominee-remove").onclick = function() {
+     removeCoBorrower(this);
+ };
 
-    fieldset.appendChild(clone);
-    updateCoBorrowerSerials();
+ fieldset.appendChild(clone);
+ updateCoBorrowerSerials();
 }
 
-// Remove Co-Borrower
+//Remove Co-Borrower
 function removeCoBorrower(btn) {
-    let blocks = document.querySelectorAll(".coBorrower-block");
-    if (blocks.length <= 1) {
-        alert("At least one co-borrower is required.");
-        return;
-    }
-    btn.parentNode.remove();
-    updateCoBorrowerSerials();
+ let blocks = document.querySelectorAll(".coBorrower-block");
+ if (blocks.length <= 1) {
+     alert("At least one co-borrower is required.");
+     return;
+ }
+ btn.parentNode.remove();
+ updateCoBorrowerSerials();
 }
 
-// Update Co-Borrower Serial Numbers
+//Update Co-Borrower Serial Numbers
 function updateCoBorrowerSerials() {
-    let blocks = document.querySelectorAll(".coBorrower-block");
-    blocks.forEach((block, index) => {
-        let serial = block.querySelector(".coBorrower-serial");
-        if (serial) {
-            serial.textContent = (index + 1);
-        }
-    });
+ let blocks = document.querySelectorAll(".coBorrower-block");
+ blocks.forEach((block, index) => {
+     let serial = block.querySelector(".coBorrower-serial");
+     if (serial) {
+         serial.textContent = (index + 1);
+     }
+ });
 }
 
-//==================== Guarantor FUNCTIONS ====================
+//==================== GUARANTOR FUNCTIONS ====================
 
-// Toggle Guarantor Customer ID visibility
+//Toggle Guarantor Customer ID visibility
 function toggleGuarantorCustomerID(radio) {
-    const guarantorBlock = radio.closest('.guarantor-block');
-    const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
-    const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+ const guarantorBlock = radio.closest('.guarantor-block');
+ const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
+ const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
 
-    if (radio.value === 'yes') {
-        container.style.display = 'block';
-        input.required = true;
-    } else {
-        container.style.display = 'none';
-        input.required = false;
-        input.value = '';
-        clearGuarantorFields(guarantorBlock);
-    }
+ if (radio.value === 'yes') {
+     container.style.display = 'block';
+     input.required = true;
+ } else {
+     container.style.display = 'none';
+     input.required = false;
+     input.value = '';
+     clearGuarantorFields(guarantorBlock);
+ }
 }
 
-// Clear guarantor fields
+//Clear guarantor fields
 function clearGuarantorFields(block) {
-    block.querySelector('select[name="guarantorSalutation[]"]').value = '';
-    block.querySelector('input[name="guarantorName[]"]').value = '';
-    block.querySelector('input[name="guarantorAddress1[]"]').value = '';
-    block.querySelector('input[name="guarantorAddress2[]"]').value = '';
-    block.querySelector('input[name="guarantorAddress3[]"]').value = '';
-    block.querySelector('select[name="guarantorCountry[]"]').value = '';
-    block.querySelector('select[name="guarantorState[]"]').value = '';
-    block.querySelector('select[name="guarantorCity[]"]').value = '';
-    block.querySelector('input[name="guarantorZip[]"]').value = '0';
+ block.querySelector('select[name="salutationCode2"]').value = '';
+ block.querySelector('input[name="guarantorName[]"]').value = '';
+ block.querySelector('input[name="guarantorAddress1[]"]').value = '';
+ block.querySelector('input[name="guarantorAddress2[]"]').value = '';
+ block.querySelector('input[name="guarantorAddress3[]"]').value = '';
+ block.querySelector('select[name="jointCountry[]"]').value = '';
+ block.querySelector('select[name="jointState[]"]').value = '';
+ block.querySelector('select[name="jointCity[]"]').value = '';
+ block.querySelector('input[name="guarantorZip[]"]').value = '0';
 }
 
-// Open Guarantor Customer Lookup Modal
+//Open Guarantor Customer Lookup Modal
 function openGuarantorCustomerLookup(button) {
-    const guarantorBlock = button.closest('.guarantor-block');
-    const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
-    window.currentGuarantorInput = input;
-    window.currentGuarantorBlock = guarantorBlock;
-    openCustomerLookup();
+ const guarantorBlock = button.closest('.guarantor-block');
+ const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+ window.currentGuarantorInput = input;
+ window.currentGuarantorBlock = guarantorBlock;
+ openCustomerLookup();
 }
 
-// Add Guarantor
+//Populate Guarantor fields with customer data
+function populateGuarantorFields(block, customer) {
+ // Salutation Code
+ const salutationSelect = block.querySelector('select[name="salutationCode2"]');
+ if (salutationSelect && customer.salutationCode) {
+     salutationSelect.value = customer.salutationCode;
+ }
+
+ // Guarantor Name
+ const nameInput = block.querySelector('input[name="guarantorName[]"]');
+ if (nameInput && customer.customerName) {
+     nameInput.value = customer.customerName;
+ }
+
+ // Address 1
+ const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+ if (address1Input && customer.address1) {
+     address1Input.value = customer.address1;
+ }
+
+ // Address 2
+ const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+ if (address2Input && customer.address2) {
+     address2Input.value = customer.address2;
+ }
+
+ // Address 3
+ const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+ if (address3Input && customer.address3) {
+     address3Input.value = customer.address3;
+ }
+
+ // Country
+ const countrySelect = block.querySelector('select[name="jointCountry[]"]');
+ if (countrySelect && customer.country) {
+     countrySelect.value = customer.country;
+ }
+
+ // State
+ const stateSelect = block.querySelector('select[name="jointState[]"]');
+ if (stateSelect && customer.state) {
+     stateSelect.value = customer.state;
+ }
+
+ // City
+ const citySelect = block.querySelector('select[name="jointCity[]"]');
+ if (citySelect && customer.city) {
+     citySelect.value = customer.city;
+ }
+
+ // Zip
+ const zipInput = block.querySelector('input[name="guarantorZip[]"]');
+ if (zipInput && customer.zip) {
+     zipInput.value = customer.zip;
+ }
+}
+
+//Add Guarantor
 function addGuarantor() {
-    let fieldset = document.getElementById("guarantorFieldset");
-    let original = fieldset.querySelector(".guarantor-block");
-    let clone = original.cloneNode(true);
+ let fieldset = document.getElementById("guarantorFieldset");
+ let original = fieldset.querySelector(".guarantor-block");
+ let clone = original.cloneNode(true);
 
-    clone.querySelectorAll("input, select").forEach(el => {
-        if (el.type === 'radio') {
-            if (el.value === 'no') el.checked = true;
-            else el.checked = false;
-        } else if (el.tagName === 'SELECT') {
-            el.selectedIndex = 0;
-        } else if (el.name === 'guarantorZip[]') {
-            el.value = '0';
-        } else {
-            el.value = "";
-        }
-    });
+ clone.querySelectorAll("input, select").forEach(el => {
+     if (el.type === 'radio') {
+         if (el.value === 'no') el.checked = true;
+         else el.checked = false;
+     } else if (el.tagName === 'SELECT') {
+         el.selectedIndex = 0;
+     } else if (el.name === 'guarantorZip[]') {
+         el.value = '0';
+     } else {
+         el.value = "";
+     }
+ });
 
-    const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
-    if (customerIDContainer) {
-        customerIDContainer.style.display = 'none';
-    }
+ const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
+ if (customerIDContainer) {
+     customerIDContainer.style.display = 'none';
+ }
 
-    const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
-    const newIndex = guarantorBlocks.length + 1;
-    const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
-    radios.forEach(radio => {
-        radio.name = `guarantorHasCustomerID_${newIndex}`;
-    });
+ const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
+ const newIndex = guarantorBlocks.length + 1;
+ const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
+ radios.forEach(radio => {
+     radio.name = `guarantorHasCustomerID_${newIndex}`;
+ });
 
-    clone.querySelector(".nominee-remove").onclick = function() {
-        removeGuarantor(this);
-    };
+ clone.querySelector(".nominee-remove").onclick = function() {
+     removeGuarantor(this);
+ };
 
-    fieldset.appendChild(clone);
-    updateGuarantorSerials();
+ fieldset.appendChild(clone);
+ updateGuarantorSerials();
 }
 
-// Remove Guarantor
+//Remove Guarantor
 function removeGuarantor(btn) {
-    let blocks = document.querySelectorAll(".guarantor-block");
-    if (blocks.length <= 1) {
-        alert("At least one guarantor is required.");
-        return;
-    }
-    btn.parentNode.remove();
-    updateGuarantorSerials();
+ let blocks = document.querySelectorAll(".guarantor-block");
+ if (blocks.length <= 1) {
+     alert("At least one guarantor is required.");
+     return;
+ }
+ btn.parentNode.remove();
+ updateGuarantorSerials();
 }
 
-// Update Guarantor Serial Numbers
+//Update Guarantor Serial Numbers
 function updateGuarantorSerials() {
-    let blocks = document.querySelectorAll(".guarantor-block");
-    blocks.forEach((block, index) => {
-        let serial = block.querySelector(".guarantor-serial");
-        if (serial) {
-            serial.textContent = (index + 1);
-        }
-    });
+ let blocks = document.querySelectorAll(".guarantor-block");
+ blocks.forEach((block, index) => {
+     let serial = block.querySelector(".guarantor-serial");
+     if (serial) {
+         serial.textContent = (index + 1);
+     }
+ });
 }
 
+//==================== MODIFIED setCustomerData FUNCTION ====================
+//This needs to be updated in your existing script to handle Co-Borrower and Guarantor
+
+window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
+ // Check if this is for Co-Borrower lookup
+ if (window.currentCoBorrowerInput) {
+     window.currentCoBorrowerInput.value = customerId;
+     fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
+     window.currentCoBorrowerInput = null;
+     window.currentCoBorrowerBlock = null;
+     closeCustomerLookup();
+     showToast('✅ Loading co-borrower customer data...');
+     return;
+ }
+
+ // Check if this is for Guarantor lookup
+ if (window.currentGuarantorInput) {
+     window.currentGuarantorInput.value = customerId;
+     fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
+     window.currentGuarantorInput = null;
+     window.currentGuarantorBlock = null;
+     closeCustomerLookup();
+     showToast('✅ Loading guarantor customer data...');
+     return;
+ }
+
+ // Check if this is for nominee lookup
+ if (window.currentNomineeInput) {
+     window.currentNomineeInput.value = customerId;
+     fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
+     window.currentNomineeInput = null;
+     window.currentNomineeBlock = null;
+     closeCustomerLookup();
+     showToast('✅ Loading nominee customer data...');
+     return;
+ }
+
+ // Check if this is for joint holder lookup
+ if (window.currentJointInput) {
+     window.currentJointInput.value = customerId;
+     fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
+     window.currentJointInput = null;
+     window.currentJointBlock = null;
+     closeCustomerLookup();
+     showToast('✅ Loading joint holder customer data...');
+     return;
+ }
+
+ // Otherwise, this is for the main customer ID field
+ document.getElementById('customerId').value = customerId;
+ document.getElementById('customerName').value = customerName;
+ document.getElementById('categoryCode').value = categoryCode || '';
+ document.getElementById('riskCategory').value = riskCategory || '';
+
+ closeCustomerLookup();
+ showToast('✅ Customer data loaded successfully!');
+};
+
+//==================== MODIFIED fetchCustomerDetails FUNCTION ====================
+
+function fetchCustomerDetails(customerId, type, block) {
+ fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
+     .then(response => response.json())
+     .then(data => {
+         if (data.success) {
+             if (type === 'nominee') {
+                 populateNomineeFields(block, data.customer);
+             } else if (type === 'joint') {
+                 populateJointFields(block, data.customer);
+             } else if (type === 'coborrower') {
+                 populateCoBorrowerFields(block, data.customer);
+             } else if (type === 'guarantor') {
+                 populateGuarantorFields(block, data.customer);
+             }
+             showToast('✅ Customer data loaded successfully!');
+         } else {
+             showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
+         }
+     })
+     .catch(error => {
+         console.error('Error fetching customer details:', error);
+         showToast('❌ Failed to load customer data');
+     });
+}
 //==================== UTILITY FUNCTIONS ====================
 
 //Toast helper function
