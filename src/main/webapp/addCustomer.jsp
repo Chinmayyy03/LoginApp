@@ -475,22 +475,66 @@
 
     <!-- Row 3 -->
     <div>
-      <label>Country</label>
-      <select name="country">
-        <option>INDIA</option>
-        <option>USA</option>
-        <option>UK</option>
-      </select>
-    </div>
+    <label>Country</label>
+    <select name="country" required>
+        <option value="">-- Select Country --</option>
+        <%
+            PreparedStatement psCountry = null;
+            ResultSet rsCountry = null;
+
+            try (Connection conn = DBConnection.getConnection()) {
+                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+                psCountry = conn.prepareStatement(sql);
+                rsCountry = psCountry.executeQuery();
+
+                while (rsCountry.next()) {
+                    String code = rsCountry.getString("COUNTRY_CODE");
+                    String name = rsCountry.getString("NAME");
+        %>
+                    <option value="<%= code %>"><%= name %></option>
+        <%
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (rsCountry != null) try { rsCountry.close(); } catch (Exception e) {}
+                if (psCountry != null) try { psCountry.close(); } catch (Exception e) {}
+            }
+        %>
+    </select>
+</div>
+
 
     <div>
-      <label>State</label>
-      <select name="state">
-        <option>Maharashtra</option>
-        <option>Karnataka</option>
-        <option>Goa</option>
-      </select>
-    </div>
+    <label>State</label>
+    <select name="state" required>
+        <option value="">-- Select State --</option>
+        <%
+            PreparedStatement psState = null;
+            ResultSet rsState = null;
+
+            try (Connection conn = DBConnection.getConnection()) {
+                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+                psState = conn.prepareStatement(sql);
+                rsState = psState.executeQuery();
+
+                while (rsState.next()) {
+                    String stateCode = rsState.getString("STATE_CODE");
+                    String stateName = rsState.getString("NAME");
+        %>
+                    <option value="<%= stateCode %>"><%= stateName %></option>
+        <%
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (rsState != null) try { rsState.close(); } catch (Exception e) {}
+                if (psState != null) try { psState.close(); } catch (Exception e) {}
+            }
+        %>
+    </select>
+</div>
+
     
     
     <div>

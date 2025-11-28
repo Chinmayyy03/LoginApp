@@ -87,7 +87,7 @@ function fetchCustomerDetails(customerId, type, block) {
 
 //Populate Nominee fields with customer data
 function populateNomineeFields(block, customer) {
-    // Salutation Code
+    // ✅ Salutation Code
     const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         salutationSelect.value = customer.salutationCode;
@@ -117,19 +117,19 @@ function populateNomineeFields(block, customer) {
         address3Input.value = customer.address3;
     }
 
-    // Country
+    // ✅ Country
     const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
     if (countrySelect && customer.country) {
         countrySelect.value = customer.country;
     }
 
-    // State
+    // ✅ State
     const stateSelect = block.querySelector('select[name="nomineeState[]"]');
     if (stateSelect && customer.state) {
         stateSelect.value = customer.state;
     }
 
-    // City
+    // ✅ City
     const citySelect = block.querySelector('select[name="nomineeCity[]"]');
     if (citySelect && customer.city) {
         citySelect.value = customer.city;
@@ -144,7 +144,7 @@ function populateNomineeFields(block, customer) {
 
 //Populate Joint Holder fields with customer data
 function populateJointFields(block, customer) {
-    // Salutation Code
+    // ✅ Salutation Code
     const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         salutationSelect.value = customer.salutationCode;
@@ -174,19 +174,19 @@ function populateJointFields(block, customer) {
         address3Input.value = customer.address3;
     }
 
-    // Country
+    // ✅ Country
     const countrySelect = block.querySelector('select[name="jointCountry[]"]');
     if (countrySelect && customer.country) {
         countrySelect.value = customer.country;
     }
 
-    // State
+    // ✅ State
     const stateSelect = block.querySelector('select[name="jointState[]"]');
     if (stateSelect && customer.state) {
         stateSelect.value = customer.state;
     }
 
-    // City
+    // ✅ City
     const citySelect = block.querySelector('select[name="jointCity[]"]');
     if (citySelect && customer.city) {
         citySelect.value = customer.city;

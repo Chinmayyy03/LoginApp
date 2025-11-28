@@ -181,8 +181,8 @@
 
       <div class="personal-grid">
 <div>
-    <label>Salutation Code 1</label>
-    <select name="salutationCode1" required>
+    <label>Salutation Code</label>
+    <select name="nomineeSalutation[]" required>  <!-- ✅ Changed from salutationCode1 -->
         <option value="">-- Select Salutation Code --</option>
         <%
             PreparedStatement psSalutation1 = null;
@@ -396,8 +396,8 @@
 
       <div class="address-grid">
 <div>
-    <label>Salutation Code 2</label>
-    <select name="salutationCode2" required>
+    <label>Salutation Code</label>
+    <select name="jointSalutation[]" required>  <!-- ✅ Changed from salutationCode2 -->
         <option value="">-- Select Salutation Code --</option>
         <%
             PreparedStatement psSalutation2 = null;

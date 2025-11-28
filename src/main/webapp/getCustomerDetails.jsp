@@ -21,7 +21,7 @@
     try {
         conn = DBConnection.getConnection();
         
-        // Query to fetch customer details
+        // ✅ UPDATED: Added SALUTATION_CODE, COUNTRY, STATE, CITY to query
         String sql = "SELECT SALUTATION_CODE, CUSTOMER_NAME, ADDRESS1, ADDRESS2, ADDRESS3, " +
                      "COUNTRY, STATE, CITY, ZIP " +
                      "FROM CUSTOMERS " +
@@ -40,8 +40,8 @@
             customer.put("address1", rs.getString("ADDRESS1") != null ? rs.getString("ADDRESS1") : "");
             customer.put("address2", rs.getString("ADDRESS2") != null ? rs.getString("ADDRESS2") : "");
             customer.put("address3", rs.getString("ADDRESS3") != null ? rs.getString("ADDRESS3") : "");
-            customer.put("country", rs.getString("COUNTRY") != null ? rs.getString("COUNTRY") : "INDIA");
-            customer.put("state", rs.getString("STATE") != null ? rs.getString("STATE") : "Karnataka");
+            customer.put("country", rs.getString("COUNTRY") != null ? rs.getString("COUNTRY") : "");
+            customer.put("state", rs.getString("STATE") != null ? rs.getString("STATE") : "");
             customer.put("city", rs.getString("CITY") != null ? rs.getString("CITY") : "");
             
             // Handle ZIP as integer
