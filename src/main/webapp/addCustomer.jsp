@@ -63,17 +63,34 @@
         </select>
       </div>
 
-      <div>
-        <label>Salutation Code</label>
-       <select name="salutationCode" id="salutationCode" required>
-  			<option value="">-- Select Salutation --</option>
-  			<option value="MR">Mr.</option>
- 	 		<option value="MS">Ms.</option>
-  			<option value="MRS">Mrs.</option>
-  			<option value="DR">Dr.</option>
-  			<option value="PROF">Prof.</option>
-		</select>
-      </div>
+<div>
+    <label>Salutation Code 2</label>
+    <select name="salutationCode2" required>
+        <option value="">-- Select Salutation Code --</option>
+        <%
+            PreparedStatement psSalutation2 = null;
+            ResultSet rsSalutation2 = null;
+            try (Connection conn2 = DBConnection.getConnection()) {
+                String sql2 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+                psSalutation2 = conn2.prepareStatement(sql2);
+                rsSalutation2 = psSalutation2.executeQuery();
+                while (rsSalutation2.next()) {
+                    String salutationCode2 = rsSalutation2.getString("SALUTATION_CODE");
+        %>
+                    <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading Salutation Code</option>");
+                e.printStackTrace();
+            } finally {
+                if (rsSalutation2 != null) rsSalutation2.close();
+                if (psSalutation2 != null) psSalutation2.close();
+            }
+        %>
+    </select>
+</div>
+
 
       <div>
         <label>First Name</label>
