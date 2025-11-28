@@ -303,6 +303,10 @@ function checkForm(event) {
         "CA_122": "savingAcc.jsp",
 		"CA_123": "savingAcc.jsp",
         "CA_151": "savingAcc.jsp",
+        "CC_301": "ALCbG.jsp",
+        "CC_302": "ALCbG.jsp",
+        "CC_303": "ALCbG.jsp",
+        "CC_304": "ALCbG.jsp",
         "FD_301": "fixeddeposit.jsp",
         "RD_401": "recurringdeposit.jsp"
         // ➕ Add more here...
