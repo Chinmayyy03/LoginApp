@@ -22,7 +22,6 @@
   <meta charset="UTF-8">
   <title>Saving Account Application</title>
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <link rel="stylesheet" href="css/savingAcc.css">
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <style>
 body {
