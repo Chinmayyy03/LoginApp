@@ -5,14 +5,9 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
     // Check if this is for nominee lookup
     if (window.currentNomineeInput) {
         window.currentNomineeInput.value = customerId;
-        
-        // Fetch full customer details from database
         fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
-        
-        // Clear the stored references
         window.currentNomineeInput = null;
         window.currentNomineeBlock = null;
-        
         closeCustomerLookup();
         showToast('✅ Loading nominee customer data...');
         return;
@@ -21,16 +16,33 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
     // Check if this is for joint holder lookup
     if (window.currentJointInput) {
         window.currentJointInput.value = customerId;
-        
-        // Fetch full customer details from database
         fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
-        
-        // Clear the stored references
         window.currentJointInput = null;
         window.currentJointBlock = null;
-        
         closeCustomerLookup();
         showToast('✅ Loading joint holder customer data...');
+        return;
+    }
+
+    // Check if this is for co-borrower lookup
+    if (window.currentCoBorrowerInput) {
+        window.currentCoBorrowerInput.value = customerId;
+        fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
+        window.currentCoBorrowerInput = null;
+        window.currentCoBorrowerBlock = null;
+        closeCustomerLookup();
+        showToast('✅ Loading co-borrower customer data...');
+        return;
+    }
+
+    // Check if this is for guarantor lookup
+    if (window.currentGuarantorInput) {
+        window.currentGuarantorInput.value = customerId;
+        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
+        window.currentGuarantorInput = null;
+        window.currentGuarantorBlock = null;
+        closeCustomerLookup();
+        showToast('✅ Loading guarantor customer data...');
         return;
     }
 
@@ -65,14 +77,22 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
 
 //Fetch customer details from database
 function fetchCustomerDetails(customerId, type, block) {
+    console.log('🔍 Fetching customer details for:', customerId, 'Type:', type);
+    
     fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
         .then(response => response.json())
         .then(data => {
+            console.log('📦 Received data:', data);
+            
             if (data.success) {
                 if (type === 'nominee') {
                     populateNomineeFields(block, data.customer);
                 } else if (type === 'joint') {
                     populateJointFields(block, data.customer);
+                } else if (type === 'coborrower') {
+                    populateCoBorrowerFields(block, data.customer);
+                } else if (type === 'guarantor') {
+                    populateGuarantorFields(block, data.customer);
                 }
                 showToast('✅ Customer data loaded successfully!');
             } else {
@@ -80,17 +100,80 @@ function fetchCustomerDetails(customerId, type, block) {
             }
         })
         .catch(error => {
-            console.error('Error fetching customer details:', error);
+            console.error('❌ Error fetching customer details:', error);
             showToast('❌ Failed to load customer data');
         });
 }
 
+// ✅ FIXED: Helper function to set select value with multiple matching strategies
+function setSelectValue(selectElement, value, fieldName) {
+    if (!selectElement) {
+        console.warn('⚠️ Select element not found for:', fieldName);
+        return false;
+    }
+    
+    if (!value || value.trim() === '') {
+        console.log('⚠️ Empty value for:', fieldName);
+        return false;
+    }
+    
+    const trimmedValue = value.trim().toUpperCase();
+    console.log(`🔧 Setting ${fieldName} to: "${trimmedValue}"`);
+    
+    let found = false;
+    
+    // Strategy 1: Try exact match on value (case-insensitive)
+    for (let i = 0; i < selectElement.options.length; i++) {
+        const optionValue = selectElement.options[i].value.trim().toUpperCase();
+        if (optionValue === trimmedValue) {
+            selectElement.selectedIndex = i;
+            found = true;
+            console.log(`✅ ${fieldName} set successfully (exact match) to: "${trimmedValue}"`);
+            return true;
+        }
+    }
+    
+    // Strategy 2: Try matching on text content (for cases where DB stores names)
+    for (let i = 0; i < selectElement.options.length; i++) {
+        const optionText = selectElement.options[i].text.trim().toUpperCase();
+        if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
+            selectElement.selectedIndex = i;
+            found = true;
+            console.log(`✅ ${fieldName} set successfully (text match) to: "${selectElement.options[i].value}"`);
+            return true;
+        }
+    }
+    
+    // Strategy 3: Try partial match on value
+    for (let i = 0; i < selectElement.options.length; i++) {
+        const optionValue = selectElement.options[i].value.trim().toUpperCase();
+        if (optionValue.includes(trimmedValue) || trimmedValue.includes(optionValue)) {
+            selectElement.selectedIndex = i;
+            found = true;
+            console.log(`✅ ${fieldName} set successfully (partial match) to: "${selectElement.options[i].value}"`);
+            return true;
+        }
+    }
+    
+    if (!found) {
+        console.warn(`⚠️ Value "${trimmedValue}" not found in ${fieldName} dropdown`);
+        console.log('First 10 available options:');
+        for (let i = 0; i < Math.min(10, selectElement.options.length); i++) {
+            console.log(`  [${i}] value="${selectElement.options[i].value}" text="${selectElement.options[i].text}"`);
+        }
+    }
+    
+    return found;
+}
+
 //Populate Nominee fields with customer data
 function populateNomineeFields(block, customer) {
-    // ✅ Salutation Code
+    console.log('📝 Populating Nominee fields:', customer);
+    
+    // Salutation Code
     const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
-        salutationSelect.value = customer.salutationCode;
+        setSelectValue(salutationSelect, customer.salutationCode, 'Nominee Salutation');
     }
 
     // Nominee Name
@@ -99,40 +182,38 @@ function populateNomineeFields(block, customer) {
         nameInput.value = customer.customerName;
     }
 
-    // Address 1
+    // Address fields
     const address1Input = block.querySelector('input[name="nomineeAddress1[]"]');
     if (address1Input && customer.address1) {
         address1Input.value = customer.address1;
     }
 
-    // Address 2
     const address2Input = block.querySelector('input[name="nomineeAddress2[]"]');
     if (address2Input && customer.address2) {
         address2Input.value = customer.address2;
     }
 
-    // Address 3
     const address3Input = block.querySelector('input[name="nomineeAddress3[]"]');
     if (address3Input && customer.address3) {
         address3Input.value = customer.address3;
     }
 
-    // ✅ Country
+    // Country
     const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
     if (countrySelect && customer.country) {
-        countrySelect.value = customer.country;
+        setSelectValue(countrySelect, customer.country, 'Nominee Country');
     }
 
-    // ✅ State
+    // State
     const stateSelect = block.querySelector('select[name="nomineeState[]"]');
     if (stateSelect && customer.state) {
-        stateSelect.value = customer.state;
+        setSelectValue(stateSelect, customer.state, 'Nominee State');
     }
 
-    // ✅ City
+    // City
     const citySelect = block.querySelector('select[name="nomineeCity[]"]');
     if (citySelect && customer.city) {
-        citySelect.value = customer.city;
+        setSelectValue(citySelect, customer.city, 'Nominee City');
     }
 
     // Zip
@@ -144,10 +225,12 @@ function populateNomineeFields(block, customer) {
 
 //Populate Joint Holder fields with customer data
 function populateJointFields(block, customer) {
-    // ✅ Salutation Code
+    console.log('📝 Populating Joint Holder fields:', customer);
+    
+    // Salutation Code
     const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
-        salutationSelect.value = customer.salutationCode;
+        setSelectValue(salutationSelect, customer.salutationCode, 'Joint Salutation');
     }
 
     // Joint Holder Name
@@ -156,44 +239,156 @@ function populateJointFields(block, customer) {
         nameInput.value = customer.customerName;
     }
 
-    // Address 1
+    // Address fields
     const address1Input = block.querySelector('input[name="jointAddress1[]"]');
     if (address1Input && customer.address1) {
         address1Input.value = customer.address1;
     }
 
-    // Address 2
     const address2Input = block.querySelector('input[name="jointAddress2[]"]');
     if (address2Input && customer.address2) {
         address2Input.value = customer.address2;
     }
 
-    // Address 3
     const address3Input = block.querySelector('input[name="jointAddress3[]"]');
     if (address3Input && customer.address3) {
         address3Input.value = customer.address3;
     }
 
-    // ✅ Country
+    // Country
     const countrySelect = block.querySelector('select[name="jointCountry[]"]');
     if (countrySelect && customer.country) {
-        countrySelect.value = customer.country;
+        setSelectValue(countrySelect, customer.country, 'Joint Country');
     }
 
-    // ✅ State
+    // State
     const stateSelect = block.querySelector('select[name="jointState[]"]');
     if (stateSelect && customer.state) {
-        stateSelect.value = customer.state;
+        setSelectValue(stateSelect, customer.state, 'Joint State');
     }
 
-    // ✅ City
+    // City
     const citySelect = block.querySelector('select[name="jointCity[]"]');
     if (citySelect && customer.city) {
-        citySelect.value = customer.city;
+        setSelectValue(citySelect, customer.city, 'Joint City');
     }
 
     // Zip
     const zipInput = block.querySelector('input[name="jointZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
+}
+
+//Populate Co-Borrower fields with customer data
+function populateCoBorrowerFields(block, customer) {
+    console.log('📝 Populating Co-Borrower fields:', customer);
+    
+    // Salutation Code
+    const salutationSelect = block.querySelector('select[name="salutationCode1[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
+    }
+
+    // Co-Borrower Name
+    const nameInput = block.querySelector('input[name="nomineeName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
+
+    // Address fields
+    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
+
+    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
+
+    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
+
+    // Country
+    const countrySelect = block.querySelector('select[name="countryCode"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
+    }
+
+    // State
+    const stateSelect = block.querySelector('select[name="stateCode"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
+    }
+
+    // City
+    const citySelect = block.querySelector('select[name="cityCode"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Co-Borrower City');
+    }
+
+    // Zip
+    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
+}
+
+//Populate Guarantor fields with customer data
+function populateGuarantorFields(block, customer) {
+    console.log('📝 Populating Guarantor fields:', customer);
+    
+    // Salutation Code
+    const salutationSelect = block.querySelector('select[name="salutationCode2[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
+    }
+
+    // Guarantor Name
+    const nameInput = block.querySelector('input[name="guarantorName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
+
+    // Address fields
+    const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
+
+    const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
+
+    const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
+
+    // Country
+    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Guarantor Country');
+    }
+
+    // State
+    const stateSelect = block.querySelector('select[name="jointState[]"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Guarantor State');
+    }
+
+    // City
+    const citySelect = block.querySelector('select[name="jointCity[]"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Guarantor City');
+    }
+
+    // Zip
+    const zipInput = block.querySelector('input[name="guarantorZip[]"]');
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
@@ -204,17 +399,13 @@ function openCustomerLookup() {
     const modal = document.getElementById('customerLookupModal');
     const content = document.getElementById('customerLookupContent');
 
-    // Show modal immediately
     modal.style.display = 'flex';
     content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-    // Fetch customer data
     fetch('lookupForCustomerId.jsp')
         .then(response => response.text())
         .then(html => {
             content.innerHTML = html;
-            
-            // Execute any scripts in the loaded content
             const scripts = content.querySelectorAll('script');
             scripts.forEach(script => {
                 const newScript = document.createElement('script');
@@ -233,7 +424,6 @@ function closeCustomerLookup() {
     document.getElementById('customerLookupModal').style.display = 'none';
 }
 
-//Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('customerLookupModal');
     if (event.target === modal) {
@@ -241,7 +431,6 @@ window.onclick = function(event) {
     }
 }
 
-//Close modal on Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeCustomerLookup();
@@ -250,7 +439,6 @@ document.addEventListener('keydown', function(event) {
 
 //==================== NOMINEE FUNCTIONS ====================
 
-//Toggle Nominee Customer ID visibility
 function toggleNomineeCustomerID(radio) {
     const nomineeBlock = radio.closest('.nominee-block');
     const container = nomineeBlock.querySelector('.nomineeCustomerIDContainer');
@@ -262,14 +450,11 @@ function toggleNomineeCustomerID(radio) {
     } else {
         container.style.display = 'none';
         input.required = false;
-        input.value = ''; // Clear the value when hidden
-        
-        // Clear all auto-populated fields when switching to "No"
+        input.value = '';
         clearNomineeFields(nomineeBlock);
     }
 }
 
-//Clear nominee fields
 function clearNomineeFields(block) {
     block.querySelector('select[name="nomineeSalutation[]"]').value = '';
     block.querySelector('input[name="nomineeName[]"]').value = '';
@@ -282,35 +467,24 @@ function clearNomineeFields(block) {
     block.querySelector('input[name="nomineeZip[]"]').value = '0';
 }
 
-//Open Nominee Customer Lookup Modal
 function openNomineeCustomerLookup(button) {
     const nomineeBlock = button.closest('.nominee-block');
     const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
-
-    // Store reference to the input field that will receive the customer ID
     window.currentNomineeInput = input;
     window.currentNomineeBlock = nomineeBlock;
-
     openCustomerLookup();
 }
 
-//Add Nominee
 function addNominee() {
     let fieldset = document.getElementById("nomineeFieldset");
     let original = fieldset.querySelector(".nominee-block");
     let clone = original.cloneNode(true);
 
-    // Clear all input values
     clone.querySelectorAll("input, select").forEach(el => {
         if (el.type === 'radio') {
-            // Reset radio buttons to "No" by default
-            if (el.value === 'no') {
-                el.checked = true;
-            } else {
-                el.checked = false;
-            }
+            if (el.value === 'no') el.checked = true;
+            else el.checked = false;
         } else if (el.tagName === 'SELECT') {
-            // Reset select to first option
             el.selectedIndex = 0;
         } else if (el.name === 'nomineeZip[]') {
             el.value = '0';
@@ -319,13 +493,11 @@ function addNominee() {
         }
     });
 
-    // Hide Customer ID container by default
     const customerIDContainer = clone.querySelector('.nomineeCustomerIDContainer');
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
 
-    // Update radio button names to be unique
     const nomineeBlocks = fieldset.querySelectorAll(".nominee-block");
     const newIndex = nomineeBlocks.length + 1;
     const radios = clone.querySelectorAll('.nomineeHasCustomerRadio');
@@ -333,7 +505,6 @@ function addNominee() {
         radio.name = `nomineeHasCustomerID_${newIndex}`;
     });
 
-    // Set up remove button
     clone.querySelector(".nominee-remove").onclick = function() {
         removeNominee(this);
     };
@@ -342,20 +513,16 @@ function addNominee() {
     updateNomineeSerials();
 }
 
-//Remove Nominee
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
-
     if (blocks.length <= 1) {
         alert("At least one nominee is required.");
         return;
     }
-
     btn.parentNode.remove();
     updateNomineeSerials();
 }
 
-//Update Nominee Serial Numbers
 function updateNomineeSerials() {
     let blocks = document.querySelectorAll(".nominee-block");
     blocks.forEach((block, index) => {
@@ -368,7 +535,6 @@ function updateNomineeSerials() {
 
 //==================== JOINT HOLDER FUNCTIONS ====================
 
-//Toggle Joint Holder Customer ID visibility
 function toggleJointCustomerID(radio) {
     const jointBlock = radio.closest('.joint-block');
     const container = jointBlock.querySelector('.jointCustomerIDContainer');
@@ -380,14 +546,11 @@ function toggleJointCustomerID(radio) {
     } else {
         container.style.display = 'none';
         input.required = false;
-        input.value = ''; // Clear the value when hidden
-        
-        // Clear all auto-populated fields when switching to "No"
+        input.value = '';
         clearJointFields(jointBlock);
     }
 }
 
-//Clear joint holder fields
 function clearJointFields(block) {
     block.querySelector('select[name="jointSalutation[]"]').value = '';
     block.querySelector('input[name="jointName[]"]').value = '';
@@ -400,35 +563,24 @@ function clearJointFields(block) {
     block.querySelector('input[name="jointZip[]"]').value = '0';
 }
 
-//Open Joint Holder Customer Lookup Modal
 function openJointCustomerLookup(button) {
     const jointBlock = button.closest('.joint-block');
     const input = jointBlock.querySelector('.jointCustomerIDInput');
-
-    // Store reference to the input field that will receive the customer ID
     window.currentJointInput = input;
     window.currentJointBlock = jointBlock;
-
     openCustomerLookup();
 }
 
-//Add Joint Holder
 function addJointHolder() {
     let fieldset = document.getElementById("jointFieldset");
     let original = fieldset.querySelector(".joint-block");
     let clone = original.cloneNode(true);
 
-    // Clear all input values
     clone.querySelectorAll("input, select").forEach(el => {
         if (el.type === 'radio') {
-            // Reset radio buttons to "No" by default
-            if (el.value === 'no') {
-                el.checked = true;
-            } else {
-                el.checked = false;
-            }
+            if (el.value === 'no') el.checked = true;
+            else el.checked = false;
         } else if (el.tagName === 'SELECT') {
-            // Reset select to first option
             el.selectedIndex = 0;
         } else if (el.name === 'jointZip[]') {
             el.value = '0';
@@ -437,13 +589,11 @@ function addJointHolder() {
         }
     });
 
-    // Hide Customer ID container by default
     const customerIDContainer = clone.querySelector('.jointCustomerIDContainer');
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
 
-    // Update radio button names to be unique
     const jointBlocks = fieldset.querySelectorAll(".joint-block");
     const newIndex = jointBlocks.length + 1;
     const radios = clone.querySelectorAll('.jointHasCustomerRadio');
@@ -451,7 +601,6 @@ function addJointHolder() {
         radio.name = `jointHasCustomerID_${newIndex}`;
     });
 
-    // Set up remove button
     clone.querySelector(".nominee-remove").onclick = function() {
         removeJointHolder(this);
     };
@@ -460,20 +609,16 @@ function addJointHolder() {
     updateJointSerials();
 }
 
-//Remove Joint Holder
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
-
     if (blocks.length <= 1) {
         alert("At least one joint holder is required.");
         return;
     }
-
     btn.parentNode.remove();
     updateJointSerials();
 }
 
-//Update Joint Holder Serial Numbers
 function updateJointSerials() {
     let blocks = document.querySelectorAll(".joint-block");
     blocks.forEach((block, index) => {
@@ -486,7 +631,6 @@ function updateJointSerials() {
 
 //==================== UTILITY FUNCTIONS ====================
 
-//Toast helper function
 function showToast(message) {
     if (typeof Toastify !== 'undefined') {
         Toastify({

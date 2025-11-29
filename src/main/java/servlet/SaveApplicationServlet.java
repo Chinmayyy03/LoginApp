@@ -16,71 +16,69 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/SaveApplicationServlet")
 public class SaveApplicationServlet extends HttpServlet {
 
-	/**
-	 * Generate unique 14-digit APPLICATION_NUMBER
-	 * Format: BranchCode(4 digits) + GlobalSequence(10 digits)
-	 *
-	 * GlobalSequence = MAX(last 10 digits of all APPLICATION_NUMBERs in DB)
-	 */
-	private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
-	    String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
+    /**
+     * Generate unique 14-digit APPLICATION_NUMBER
+     * Format: BranchCode(4 digits) + GlobalSequence(10 digits)
+     */
+    private String generateApplicationNumber(Connection conn, String branchCode) throws Exception {
+        String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
 
-	    System.out.println("🔍 Fetching GLOBAL max sequence from APPLICATION table...");
+        System.out.println("🔍 Fetching GLOBAL max sequence from APPLICATION table...");
 
-	    // Get MAX sequence of ALL branches (last 10 digits only)
-	    String sql = 
-	        "SELECT MAX(TO_NUMBER(SUBSTR(APPLICATION_NUMBER, 5, 10))) " +
-	        "FROM APPLICATION.APPLICATION " +
-	        "WHERE LENGTH(APPLICATION_NUMBER) = 14";
+        // Get MAX sequence of ALL branches (last 10 digits only)
+        String sql = 
+            "SELECT MAX(TO_NUMBER(SUBSTR(APPLICATION_NUMBER, 5, 10))) " +
+            "FROM APPLICATION.APPLICATION " +
+            "WHERE LENGTH(APPLICATION_NUMBER) = 14";
 
-	    PreparedStatement pstmt = conn.prepareStatement(sql);
-	    ResultSet rs = pstmt.executeQuery();
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery();
 
-	    long nextSeq = 1;
-	    if (rs.next() && rs.getLong(1) > 0) {
-	        long lastSeq = rs.getLong(1);
-	        nextSeq = lastSeq + 1;
-	        System.out.println("✅ Global max seq = " + lastSeq + ", next = " + nextSeq);
-	    } else {
-	        System.out.println("✅ No applications found, starting from 1");
-	    }
+        long nextSeq = 1;
+        if (rs.next() && rs.getLong(1) > 0) {
+            long lastSeq = rs.getLong(1);
+            nextSeq = lastSeq + 1;
+            System.out.println("✅ Global max seq = " + lastSeq + ", next = " + nextSeq);
+        } else {
+            System.out.println("✅ No applications found, starting from 1");
+        }
 
-	    rs.close();
-	    pstmt.close();
+        rs.close();
+        pstmt.close();
 
-	    // Build new application number
-	    String applicationNumber = branchPrefix + String.format("%010d", nextSeq);
+        // Build new application number
+        String applicationNumber = branchPrefix + String.format("%010d", nextSeq);
 
-	    // Uniqueness check
-	    String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE APPLICATION_NUMBER = ?";
-	    PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+        // Uniqueness check
+        String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE APPLICATION_NUMBER = ?";
+        PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
 
-	    int attempts = 0;
-	    while (attempts < 100) {
-	        checkStmt.setString(1, applicationNumber);
-	        ResultSet checkRs = checkStmt.executeQuery();
+        int attempts = 0;
+        while (attempts < 100) {
+            checkStmt.setString(1, applicationNumber);
+            ResultSet checkRs = checkStmt.executeQuery();
 
-	        if (checkRs.next() && checkRs.getInt(1) > 0) {
-	            System.out.println("⚠️ Exists: " + applicationNumber + " — trying next");
-	            nextSeq++;
-	            applicationNumber = branchPrefix + String.format("%010d", nextSeq);
-	            checkRs.close();
-	            attempts++;
-	        } else {
-	            checkRs.close();
-	            break;
-	        }
-	    }
+            if (checkRs.next() && checkRs.getInt(1) > 0) {
+                System.out.println("⚠️ Exists: " + applicationNumber + " — trying next");
+                nextSeq++;
+                applicationNumber = branchPrefix + String.format("%010d", nextSeq);
+                checkRs.close();
+                attempts++;
+            } else {
+                checkRs.close();
+                break;
+            }
+        }
 
-	    checkStmt.close();
+        checkStmt.close();
 
-	    if (attempts >= 100) {
-	        throw new Exception("Failed to generate unique APPLICATION_NUMBER after 100 attempts");
-	    }
+        if (attempts >= 100) {
+            throw new Exception("Failed to generate unique APPLICATION_NUMBER after 100 attempts");
+        }
 
-	    System.out.println("📌 FINAL APPLICATION_NUMBER = " + applicationNumber);
-	    return applicationNumber;
-	}
+        System.out.println("📌 FINAL APPLICATION_NUMBER = " + applicationNumber);
+        return applicationNumber;
+    }
 
     private Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) return null;
@@ -94,10 +92,14 @@ public class SaveApplicationServlet extends HttpServlet {
     private Integer parseInt(String str) {
         if (str == null || str.trim().isEmpty()) return null;
         try {
-            return Integer.parseInt(str);
+            return Integer.parseInt(str.trim());
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+    
+    private String trimSafe(String str) {
+        return (str == null) ? null : str.trim();
     }
 
     @Override
@@ -114,21 +116,21 @@ public class SaveApplicationServlet extends HttpServlet {
             return;
         }
 
-        String branchCode = (String) session.getAttribute("branchCode");
-        String userId = (String) session.getAttribute("userId");
-        String productCode = request.getParameter("productCode");
-        String customerId = request.getParameter("customerId");
+        String branchCode = trimSafe((String) session.getAttribute("branchCode"));
+        String userId = trimSafe((String) session.getAttribute("userId"));
+        String productCode = trimSafe(request.getParameter("productCode"));
+        String customerId = trimSafe(request.getParameter("customerId"));
         
         System.out.println("Branch: " + branchCode + ", User: " + userId);
         System.out.println("Product: " + productCode + ", Customer: " + customerId);
         
-        if (productCode == null || productCode.trim().isEmpty()) {
+        if (productCode == null || productCode.isEmpty()) {
             response.sendRedirect("savingAcc.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode("Product Code required", "UTF-8"));
             return;
         }
         
-        if (customerId == null || customerId.trim().isEmpty()) {
+        if (customerId == null || customerId.isEmpty()) {
             response.sendRedirect("savingAcc.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode("Customer ID required", "UTF-8"));
             return;
@@ -169,11 +171,11 @@ public class SaveApplicationServlet extends HttpServlet {
             if (minBal != null) psApp.setInt(8, minBal);
             else psApp.setNull(8, java.sql.Types.INTEGER);
             
-            psApp.setString(9, request.getParameter("introducerAccCode"));
-            psApp.setString(10, request.getParameter("categoryCode"));
-            psApp.setString(11, request.getParameter("customerName"));
-            psApp.setString(12, request.getParameter("introducerAccName"));
-            psApp.setString(13, request.getParameter("riskCategory"));
+            psApp.setString(9, trimSafe(request.getParameter("introducerAccCode")));
+            psApp.setString(10, trimSafe(request.getParameter("categoryCode")));
+            psApp.setString(11, trimSafe(request.getParameter("customerName")));
+            psApp.setString(12, trimSafe(request.getParameter("introducerAccName")));
+            psApp.setString(13, trimSafe(request.getParameter("riskCategory")));
 
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
@@ -201,37 +203,47 @@ public class SaveApplicationServlet extends HttpServlet {
                 int validCount = 0;
 
                 for (int i = 0; i < nomineeNames.length; i++) {
-                    if (nomineeNames[i] == null || nomineeNames[i].trim().isEmpty()) {
-                        System.out.println("⚠️ Skip nominee " + (i+1) + " - empty");
+                    String name = trimSafe(nomineeNames[i]);
+                    if (name == null || name.isEmpty()) {
+                        System.out.println("⚠️ Skip nominee " + (i+1) + " - empty name");
                         continue;
                     }
                     
-                    String sal = nomineeSalutations != null && i < nomineeSalutations.length ? nomineeSalutations[i] : null;
-                    if (sal == null || sal.trim().isEmpty()) {
+                    String sal = nomineeSalutations != null && i < nomineeSalutations.length ? 
+                                 trimSafe(nomineeSalutations[i]) : null;
+                    if (sal == null || sal.isEmpty()) {
                         System.out.println("⚠️ Skip nominee " + (i+1) + " - no salutation");
                         continue;
                     }
                     
-                    System.out.println("✅ Nominee " + serial + ": " + nomineeNames[i]);
+                    System.out.println("✅ Nominee " + serial + ": " + name);
                     
                     psNominee.setString(1, applicationNumber);
                     psNominee.setInt(2, serial);
                     psNominee.setString(3, sal);
-                    psNominee.setString(4, nomineeNames[i]);
+                    psNominee.setString(4, name);
                     
-                    Integer rel = nomineeRelations != null && i < nomineeRelations.length ? parseInt(nomineeRelations[i]) : null;
+                    Integer rel = nomineeRelations != null && i < nomineeRelations.length ? 
+                                  parseInt(nomineeRelations[i]) : null;
                     if (rel != null) psNominee.setInt(5, rel);
                     else psNominee.setNull(5, java.sql.Types.INTEGER);
                     
-                    psNominee.setString(6, nomineeAddr1 != null && i < nomineeAddr1.length ? nomineeAddr1[i] : null);
-                    psNominee.setString(7, nomineeAddr2 != null && i < nomineeAddr2.length ? nomineeAddr2[i] : null);
-                    psNominee.setString(8, nomineeAddr3 != null && i < nomineeAddr3.length ? nomineeAddr3[i] : null);
-                    psNominee.setString(9, nomineeCities != null && i < nomineeCities.length ? nomineeCities[i] : null);
-                    psNominee.setString(10, nomineeStates != null && i < nomineeStates.length ? nomineeStates[i] : null);
-                    psNominee.setString(11, nomineeCountries != null && i < nomineeCountries.length ? nomineeCountries[i] : null);
+                    psNominee.setString(6, nomineeAddr1 != null && i < nomineeAddr1.length ? 
+                                          trimSafe(nomineeAddr1[i]) : null);
+                    psNominee.setString(7, nomineeAddr2 != null && i < nomineeAddr2.length ? 
+                                          trimSafe(nomineeAddr2[i]) : null);
+                    psNominee.setString(8, nomineeAddr3 != null && i < nomineeAddr3.length ? 
+                                          trimSafe(nomineeAddr3[i]) : null);
+                    psNominee.setString(9, nomineeCities != null && i < nomineeCities.length ? 
+                                          trimSafe(nomineeCities[i]) : null);
+                    psNominee.setString(10, nomineeStates != null && i < nomineeStates.length ? 
+                                           trimSafe(nomineeStates[i]) : null);
+                    psNominee.setString(11, nomineeCountries != null && i < nomineeCountries.length ? 
+                                           trimSafe(nomineeCountries[i]) : null);
                     
-                    Integer zip = nomineeZips != null && i < nomineeZips.length ? parseInt(nomineeZips[i]) : null;
-                    if (zip != null) psNominee.setInt(12, zip);
+                    Integer zip = nomineeZips != null && i < nomineeZips.length ? 
+                                  parseInt(nomineeZips[i]) : null;
+                    if (zip != null && zip != 0) psNominee.setInt(12, zip);
                     else psNominee.setNull(12, java.sql.Types.INTEGER);
 
                     psNominee.addBatch();
@@ -268,36 +280,46 @@ public class SaveApplicationServlet extends HttpServlet {
                 int validCount = 0;
 
                 for (int i = 0; i < jointNames.length; i++) {
-                    if (jointNames[i] == null || jointNames[i].trim().isEmpty()) {
-                        System.out.println("⚠️ Skip joint " + (i+1) + " - empty");
+                    String name = trimSafe(jointNames[i]);
+                    if (name == null || name.isEmpty()) {
+                        System.out.println("⚠️ Skip joint " + (i+1) + " - empty name");
                         continue;
                     }
                     
-                    String sal = jointSalutations != null && i < jointSalutations.length ? jointSalutations[i] : null;
-                    if (sal == null || sal.trim().isEmpty()) {
+                    String sal = jointSalutations != null && i < jointSalutations.length ? 
+                                 trimSafe(jointSalutations[i]) : null;
+                    if (sal == null || sal.isEmpty()) {
                         System.out.println("⚠️ Skip joint " + (i+1) + " - no salutation");
                         continue;
                     }
                     
-                    System.out.println("✅ Joint " + serial + ": " + jointNames[i]);
+                    System.out.println("✅ Joint " + serial + ": " + name);
                     
                     psJoint.setString(1, applicationNumber);
                     psJoint.setInt(2, serial);
                     psJoint.setString(3, sal);
-                    psJoint.setString(4, jointNames[i]);
-                    psJoint.setString(5, jointAddr1 != null && i < jointAddr1.length ? jointAddr1[i] : null);
-                    psJoint.setString(6, jointAddr2 != null && i < jointAddr2.length ? jointAddr2[i] : null);
-                    psJoint.setString(7, jointAddr3 != null && i < jointAddr3.length ? jointAddr3[i] : null);
-                    psJoint.setString(8, jointCities != null && i < jointCities.length ? jointCities[i] : null);
-                    psJoint.setString(9, jointStates != null && i < jointStates.length ? jointStates[i] : null);
-                    psJoint.setString(10, jointCountries != null && i < jointCountries.length ? jointCountries[i] : null);
+                    psJoint.setString(4, name);
+                    psJoint.setString(5, jointAddr1 != null && i < jointAddr1.length ? 
+                                         trimSafe(jointAddr1[i]) : null);
+                    psJoint.setString(6, jointAddr2 != null && i < jointAddr2.length ? 
+                                         trimSafe(jointAddr2[i]) : null);
+                    psJoint.setString(7, jointAddr3 != null && i < jointAddr3.length ? 
+                                         trimSafe(jointAddr3[i]) : null);
+                    psJoint.setString(8, jointCities != null && i < jointCities.length ? 
+                                         trimSafe(jointCities[i]) : null);
+                    psJoint.setString(9, jointStates != null && i < jointStates.length ? 
+                                         trimSafe(jointStates[i]) : null);
+                    psJoint.setString(10, jointCountries != null && i < jointCountries.length ? 
+                                          trimSafe(jointCountries[i]) : null);
                     
-                    Integer zip = jointZips != null && i < jointZips.length ? parseInt(jointZips[i]) : null;
-                    if (zip != null) psJoint.setInt(11, zip);
+                    Integer zip = jointZips != null && i < jointZips.length ? 
+                                  parseInt(jointZips[i]) : null;
+                    if (zip != null && zip != 0) psJoint.setInt(11, zip);
                     else psJoint.setNull(11, java.sql.Types.INTEGER);
                     
-                    String custId = jointCustIDs != null && i < jointCustIDs.length ? jointCustIDs[i] : null;
-                    if (custId != null && !custId.trim().isEmpty()) psJoint.setString(12, custId);
+                    String custId = jointCustIDs != null && i < jointCustIDs.length ? 
+                                    trimSafe(jointCustIDs[i]) : null;
+                    if (custId != null && !custId.isEmpty()) psJoint.setString(12, custId);
                     else psJoint.setNull(12, java.sql.Types.VARCHAR);
 
                     psJoint.addBatch();
@@ -314,7 +336,8 @@ public class SaveApplicationServlet extends HttpServlet {
             conn.commit();
             System.out.println("✅ SUCCESS!");
 
-            response.sendRedirect("savingAcc.jsp?status=success&applicationNumber=" + applicationNumber);
+            response.sendRedirect("savingAcc.jsp?status=success&applicationNumber=" + 
+                                 applicationNumber + "&productCode=" + productCode);
 
         } catch (Exception e) {
             if (conn != null) {
@@ -327,7 +350,8 @@ public class SaveApplicationServlet extends HttpServlet {
             System.out.println("ERROR: " + e.getMessage());
             e.printStackTrace();
             response.sendRedirect("savingAcc.jsp?status=error&message=" + 
-                java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+                java.net.URLEncoder.encode(e.getMessage(), "UTF-8") + 
+                "&productCode=" + (productCode != null ? productCode : ""));
         } finally {
             try { if (psApp != null) psApp.close(); } catch (Exception e) {}
             try { if (psNominee != null) psNominee.close(); } catch (Exception e) {}
@@ -341,5 +365,3 @@ public class SaveApplicationServlet extends HttpServlet {
         }
     }
 }
-
-
