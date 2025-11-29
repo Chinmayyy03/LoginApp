@@ -303,6 +303,7 @@ function checkForm(event) {
         "CA_122": "savingAcc.jsp",
 		"CA_123": "savingAcc.jsp",
         "CA_151": "savingAcc.jsp",
+        "SH_901": "savingAcc.jsp",
         "CC_301": "ALCbG.jsp",
         "CC_302": "ALCbG.jsp",
         "CC_303": "ALCbG.jsp",
