@@ -285,7 +285,7 @@ function populateCoBorrowerFields(block, customer) {
     console.log('📝 Populating Co-Borrower fields:', customer);
     
     // Salutation Code
-    const salutationSelect = block.querySelector('select[name="salutationCode1[]"]');
+    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
     }
@@ -342,7 +342,7 @@ function populateGuarantorFields(block, customer) {
     console.log('📝 Populating Guarantor fields:', customer);
     
     // Salutation Code
-    const salutationSelect = block.querySelector('select[name="salutationCode2[]"]');
+    const salutationSelect = block.querySelector('select[name="guarantorsalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
     }

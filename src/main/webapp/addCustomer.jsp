@@ -65,7 +65,7 @@
 
 <div>
     <label>Salutation Code 2</label>
-    <select name="salutationCode2" required>
+    <select name="salutationCode" id="salutationCode" required>
         <option value="">-- Select Salutation Code --</option>
         <%
             PreparedStatement psSalutation2 = null;

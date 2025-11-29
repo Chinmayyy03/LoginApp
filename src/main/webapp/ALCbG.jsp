@@ -711,17 +711,17 @@ body {
     <div class="personal-grid">
       <div>
         <label>Salutation Code</label>
-<select name="salutationCode1[]" required>  <!-- ✅ Changed from salutationCode1 -->
+<select name="nomineeSalutation[]" required>  <!-- ✅ Changed from salutationCode1 -->
         <option value="">-- Select Salutation Code --</option>
         <%
-            PreparedStatement psSalutation1 = null;
-            ResultSet rsSalutation1 = null;
+            PreparedStatement psnomineeSalutation = null;
+            ResultSet rsnomineeSalutation = null;
             try (Connection conn1 = DBConnection.getConnection()) {
                 String sql1 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                psSalutation1 = conn1.prepareStatement(sql1);
-                rsSalutation1 = psSalutation1.executeQuery();
-                while (rsSalutation1.next()) {
-                    String salutationCode1 = rsSalutation1.getString("SALUTATION_CODE");
+                psnomineeSalutation = conn1.prepareStatement(sql1);
+                rsnomineeSalutation = psnomineeSalutation.executeQuery();
+                while (rsnomineeSalutation.next()) {
+                    String salutationCode1 = rsnomineeSalutation.getString("SALUTATION_CODE");
         %>
                     <option value="<%= salutationCode1 %>"><%= salutationCode1 %></option>
         <%
@@ -730,8 +730,8 @@ body {
                 out.println("<option disabled>Error loading Salutation Code</option>");
                 e.printStackTrace();
             } finally {
-                if (rsSalutation1 != null) rsSalutation1.close();
-                if (psSalutation1 != null) psSalutation1.close();
+                if (rsnomineeSalutation != null) rsnomineeSalutation.close();
+                if (psnomineeSalutation != null) psnomineeSalutation.close();
             }
         %>
     </select>
@@ -886,17 +886,17 @@ body {
     <div class="address-grid">
       <div>
         <label>Salutation Code</label>
-        <select name="salutationCode2[]" required>  <!-- ✅ Changed from salutationCode2 -->
+        <select name="guarantorsalutation[]" required>  <!-- ✅ Changed from salutationCode2 -->
         <option value="">-- Select Salutation Code --</option>
         <%
-            PreparedStatement psSalutation2 = null;
-            ResultSet rsSalutation2 = null;
+            PreparedStatement psguarantorsalutation = null;
+            ResultSet rsguarantorsalutation = null;
             try (Connection conn2 = DBConnection.getConnection()) {
                 String sql2 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                psSalutation2 = conn2.prepareStatement(sql2);
-                rsSalutation2 = psSalutation2.executeQuery();
-                while (rsSalutation2.next()) {
-                    String salutationCode2 = rsSalutation2.getString("SALUTATION_CODE");
+                psguarantorsalutation = conn2.prepareStatement(sql2);
+                rsguarantorsalutation = psguarantorsalutation.executeQuery();
+                while (rsguarantorsalutation.next()) {
+                    String salutationCode2 = rsguarantorsalutation.getString("SALUTATION_CODE");
         %>
                     <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
         <%
@@ -905,8 +905,8 @@ body {
                 out.println("<option disabled>Error loading Salutation Code</option>");
                 e.printStackTrace();
             } finally {
-                if (rsSalutation2 != null) rsSalutation2.close();
-                if (psSalutation2 != null) psSalutation2.close();
+                if (rsguarantorsalutation != null) rsguarantorsalutation.close();
+                if (psguarantorsalutation != null) psguarantorsalutation.close();
             }
         %>
     </select>
