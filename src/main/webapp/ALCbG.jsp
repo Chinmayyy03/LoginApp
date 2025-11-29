@@ -670,6 +670,7 @@ body {
 
 
 <!-- Co-Borrower Section -->
+<!-- Co-Borrower Section - FIXED VERSION -->
 <fieldset id="coBorrowerFieldset">
   <legend>
     Co-Borrower
@@ -709,133 +710,143 @@ body {
     <br>
 
     <div class="personal-grid">
+      <!-- ✅ FIXED: Changed from nomineeSalutation[] to coBorrowerSalutation[] -->
       <div>
         <label>Salutation Code</label>
-<select name="nomineeSalutation[]" required>  <!-- ✅ Changed from salutationCode1 -->
-        <option value="">-- Select Salutation Code --</option>
-        <%
-            PreparedStatement psnomineeSalutation = null;
-            ResultSet rsnomineeSalutation = null;
-            try (Connection conn1 = DBConnection.getConnection()) {
-                String sql1 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                psnomineeSalutation = conn1.prepareStatement(sql1);
-                rsnomineeSalutation = psnomineeSalutation.executeQuery();
-                while (rsnomineeSalutation.next()) {
-                    String salutationCode1 = rsnomineeSalutation.getString("SALUTATION_CODE");
-        %>
-                    <option value="<%= salutationCode1 %>"><%= salutationCode1 %></option>
-        <%
-                }
-            } catch (Exception e) {
-                out.println("<option disabled>Error loading Salutation Code</option>");
-                e.printStackTrace();
-            } finally {
-                if (rsnomineeSalutation != null) rsnomineeSalutation.close();
-                if (psnomineeSalutation != null) psnomineeSalutation.close();
-            }
-        %>
-    </select>
+        <select name="coBorrowerSalutation[]" required>
+          <option value="">-- Select Salutation Code --</option>
+          <%
+              PreparedStatement psCoBorrowerSal = null;
+              ResultSet rsCoBorrowerSal = null;
+              try (Connection connCoBorrowerSal = DBConnection.getConnection()) {
+                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+                  psCoBorrowerSal = connCoBorrowerSal.prepareStatement(sql);
+                  rsCoBorrowerSal = psCoBorrowerSal.executeQuery();
+                  while (rsCoBorrowerSal.next()) {
+                      String salCode = rsCoBorrowerSal.getString("SALUTATION_CODE");
+          %>
+                      <option value="<%= salCode %>"><%= salCode %></option>
+          <%
+                  }
+              } catch (Exception e) {
+                  out.println("<option disabled>Error loading Salutation Code</option>");
+                  e.printStackTrace();
+              } finally {
+                  if (rsCoBorrowerSal != null) rsCoBorrowerSal.close();
+                  if (psCoBorrowerSal != null) psCoBorrowerSal.close();
+              }
+          %>
+        </select>
       </div>
+
+      <!-- ✅ FIXED: Changed from nomineeName[] to coBorrowerName[] -->
       <div>
         <label>Co-Borrower Name</label>
-        <input type="text" name="nomineeName[]" required>
+        <input type="text" name="coBorrowerName[]" required>
       </div>
+
       <div>
         <label>Address 1</label>
         <input type="text" name="coBorrowerAddress1[]">
       </div>
+
       <div>
         <label>Address 2</label>
         <input type="text" name="coBorrowerAddress2[]">
       </div>
+
       <div>
         <label>Address 3</label>
         <input type="text" name="coBorrowerAddress3[]">
       </div>
+
+      <!-- ✅ FIXED: Changed from countryCode to coBorrowerCountry[] -->
       <div>
         <label>Country</label>
-	<select name="countryCode" required>
-  	<option value="">-- Select Country --</option>
-  	<%
-    	PreparedStatement psCountry = null;
-    	ResultSet rsCountry = null;
-    	try (Connection conn = DBConnection.getConnection()) {
-        String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-        psCountry = conn.prepareStatement(sql);
-        rsCountry = psCountry.executeQuery();
-        while (rsCountry.next()) {
-            String code = rsCountry.getString("COUNTRY_CODE");   // code to store
-            String name = rsCountry.getString("NAME");           // name to show
-  	%>
-        <option value="<%= code %>"><%= name %></option>
-  	<%
-        }
-    	} catch (Exception e) {
-        out.println("<option disabled>Error loading countries</option>");
-    	} finally {
-        if (rsCountry != null) rsCountry.close();
-        if (psCountry != null) psCountry.close();
-    	}
-  	%>
-	</select>
-
+        <select name="coBorrowerCountry[]" required>
+          <option value="">-- Select Country --</option>
+          <%
+            PreparedStatement psCountryCoBorrower = null;
+            ResultSet rsCountryCoBorrower = null;
+            try (Connection connCountryCB = DBConnection.getConnection()) {
+                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+                psCountryCoBorrower = connCountryCB.prepareStatement(sql);
+                rsCountryCoBorrower = psCountryCoBorrower.executeQuery();
+                while (rsCountryCoBorrower.next()) {
+                    String code = rsCountryCoBorrower.getString("COUNTRY_CODE");
+                    String name = rsCountryCoBorrower.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading countries</option>");
+            } finally {
+                if (rsCountryCoBorrower != null) rsCountryCoBorrower.close();
+                if (psCountryCoBorrower != null) psCountryCoBorrower.close();
+            }
+          %>
+        </select>
       </div>
+
+      <!-- ✅ FIXED: Changed from stateCode to coBorrowerState[] -->
       <div>
         <label>State</label>
-        <select name="stateCode" required>
-  	<option value="">-- Select State --</option>
-  	<%
-    	PreparedStatement psState = null;
-    	ResultSet rsState = null;
-    	try (Connection conn = DBConnection.getConnection()) {
-        String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-        psState = conn.prepareStatement(sql);
-        rsState = psState.executeQuery();
-        while (rsState.next()) {
-            String code = rsState.getString("STATE_CODE");
-            String name = rsState.getString("NAME");
- 	 %>
-        <option value="<%= code %>"><%= name %></option>
-  	<%
-        }
-    	} catch (Exception e) {
-        out.println("<option disabled>Error loading states</option>");
-    	} finally {
-        if (rsState != null) rsState.close();
-        if (psState != null) psState.close();
-    	}
-  	%>
-	</select>
-
+        <select name="coBorrowerState[]" required>
+          <option value="">-- Select State --</option>
+          <%
+            PreparedStatement psStateCoBorrower = null;
+            ResultSet rsStateCoBorrower = null;
+            try (Connection connStateCB = DBConnection.getConnection()) {
+                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+                psStateCoBorrower = connStateCB.prepareStatement(sql);
+                rsStateCoBorrower = psStateCoBorrower.executeQuery();
+                while (rsStateCoBorrower.next()) {
+                    String code = rsStateCoBorrower.getString("STATE_CODE");
+                    String name = rsStateCoBorrower.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading states</option>");
+            } finally {
+                if (rsStateCoBorrower != null) rsStateCoBorrower.close();
+                if (psStateCoBorrower != null) psStateCoBorrower.close();
+            }
+          %>
+        </select>
       </div>
+
+      <!-- ✅ FIXED: Changed from cityCode to coBorrowerCity[] -->
       <div>
         <label>City</label>
-	<select name="cityCode" required>
-  	<option value="">-- Select City --</option>
-  	<%
-    	PreparedStatement psCity = null;
-    	ResultSet rsCity = null;
-    	try (Connection conn = DBConnection.getConnection()) {
-        String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-        psCity = conn.prepareStatement(sql);
-        rsCity = psCity.executeQuery();
-        while (rsCity.next()) {
-            String code = rsCity.getString("CITY_CODE");
-            String name = rsCity.getString("NAME");
-  	%>
-        <option value="<%= code %>"><%= name %></option>
-  	<%
-        }
-    	} catch (Exception e) {
-        out.println("<option disabled>Error loading cities</option>");
-    	} finally {
-        if (rsCity != null) rsCity.close();
-        if (psCity != null) psCity.close();
-    	}
-  	%>
-	</select>
-
+        <select name="coBorrowerCity[]" required>
+          <option value="">-- Select City --</option>
+          <%
+            PreparedStatement psCityCoBorrower = null;
+            ResultSet rsCityCoBorrower = null;
+            try (Connection connCityCB = DBConnection.getConnection()) {
+                String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+                psCityCoBorrower = connCityCB.prepareStatement(sql);
+                rsCityCoBorrower = psCityCoBorrower.executeQuery();
+                while (rsCityCoBorrower.next()) {
+                    String code = rsCityCoBorrower.getString("CITY_CODE");
+                    String name = rsCityCoBorrower.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <%
+                }
+            } catch (Exception e) {
+                out.println("<option disabled>Error loading cities</option>");
+            } finally {
+                if (rsCityCoBorrower != null) rsCityCoBorrower.close();
+                if (psCityCoBorrower != null) psCityCoBorrower.close();
+            }
+          %>
+        </select>
       </div>
+
       <div>
         <label>Zip</label>
         <input type="number" name="coBorrowerZip[]" value="0">
@@ -844,7 +855,7 @@ body {
   </div>
 </fieldset>
 
-  <!-- Guarantor Section -->
+<!-- Guarantor Section - FIXED VERSION -->
 <fieldset id="guarantorFieldset">
   <legend>
     Guarantor
@@ -884,133 +895,144 @@ body {
     <br>
 
     <div class="address-grid">
+      <!-- ✅ FIXED: Changed from guarantorsalutation[] to guarantorSalutation[] -->
       <div>
         <label>Salutation Code</label>
-        <select name="guarantorsalutation[]" required>  <!-- ✅ Changed from salutationCode2 -->
-        <option value="">-- Select Salutation Code --</option>
-        <%
-            PreparedStatement psguarantorsalutation = null;
-            ResultSet rsguarantorsalutation = null;
-            try (Connection conn2 = DBConnection.getConnection()) {
-                String sql2 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                psguarantorsalutation = conn2.prepareStatement(sql2);
-                rsguarantorsalutation = psguarantorsalutation.executeQuery();
-                while (rsguarantorsalutation.next()) {
-                    String salutationCode2 = rsguarantorsalutation.getString("SALUTATION_CODE");
-        %>
-                    <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
-        <%
-                }
-            } catch (Exception e) {
-                out.println("<option disabled>Error loading Salutation Code</option>");
-                e.printStackTrace();
-            } finally {
-                if (rsguarantorsalutation != null) rsguarantorsalutation.close();
-                if (psguarantorsalutation != null) psguarantorsalutation.close();
-            }
-        %>
-    </select>
+        <select name="guarantorSalutation[]" required>
+          <option value="">-- Select Salutation Code --</option>
+          <%
+              PreparedStatement psGuarantorSal = null;
+              ResultSet rsGuarantorSal = null;
+              try (Connection connGuarantorSal = DBConnection.getConnection()) {
+                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+                  psGuarantorSal = connGuarantorSal.prepareStatement(sql);
+                  rsGuarantorSal = psGuarantorSal.executeQuery();
+                  while (rsGuarantorSal.next()) {
+                      String salCode = rsGuarantorSal.getString("SALUTATION_CODE");
+          %>
+                      <option value="<%= salCode %>"><%= salCode %></option>
+          <%
+                  }
+              } catch (Exception e) {
+                  out.println("<option disabled>Error loading Salutation Code</option>");
+                  e.printStackTrace();
+              } finally {
+                  if (rsGuarantorSal != null) rsGuarantorSal.close();
+                  if (psGuarantorSal != null) psGuarantorSal.close();
+              }
+          %>
+        </select>
       </div>
+
       <div>
         <label>Guarantor Name</label>
         <input type="text" name="guarantorName[]" required>
       </div>
+
       <div>
         <label>Address 1</label>
         <input type="text" name="guarantorAddress1[]">
       </div>
+
       <div>
         <label>Address 2</label>
         <input type="text" name="guarantorAddress2[]">
       </div>
+
       <div>
         <label>Address 3</label>
         <input type="text" name="guarantorAddress3[]">
       </div>
+
+      <!-- ✅ FIXED: Changed from jointCountry[] to guarantorCountry[] -->
       <div>
         <label>Country</label>
-	<select name="jointCountry[]">
-            <option value="">-- Select Country --</option>
-            <% 
-              PreparedStatement psCountryJoint = null;
-              ResultSet rsCountryJoint = null;
-              try (Connection connCountryJ = DBConnection.getConnection()) {
-                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-                psCountryJoint = connCountryJ.prepareStatement(sql);
-                rsCountryJoint = psCountryJoint.executeQuery();
-                while (rsCountryJoint.next()) {
-                  String countryCode = rsCountryJoint.getString("COUNTRY_CODE");
-                  String countryName = rsCountryJoint.getString("NAME");
-            %>
-                  <option value="<%= countryCode %>"><%= countryName %></option>
-            <% 
-                }
-              } catch (Exception e) {
-                out.println("<option disabled>Error loading countries</option>");
-              } finally {
-                if (rsCountryJoint != null) rsCountryJoint.close();
-                if (psCountryJoint != null) psCountryJoint.close();
+        <select name="guarantorCountry[]">
+          <option value="">-- Select Country --</option>
+          <% 
+            PreparedStatement psCountryGuarantor = null;
+            ResultSet rsCountryGuarantor = null;
+            try (Connection connCountryG = DBConnection.getConnection()) {
+              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+              psCountryGuarantor = connCountryG.prepareStatement(sql);
+              rsCountryGuarantor = psCountryGuarantor.executeQuery();
+              while (rsCountryGuarantor.next()) {
+                String countryCode = rsCountryGuarantor.getString("COUNTRY_CODE");
+                String countryName = rsCountryGuarantor.getString("NAME");
+          %>
+                <option value="<%= countryCode %>"><%= countryName %></option>
+          <% 
               }
-            %>
-          </select>
-
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading countries</option>");
+            } finally {
+              if (rsCountryGuarantor != null) rsCountryGuarantor.close();
+              if (psCountryGuarantor != null) psCountryGuarantor.close();
+            }
+          %>
+        </select>
       </div>
+
+      <!-- ✅ FIXED: Changed from jointState[] to guarantorState[] -->
       <div>
         <label>State</label>
-<select name="jointState[]">
-            <option value="">-- Select State --</option>
-            <% 
-              PreparedStatement psStateJoint = null;
-              ResultSet rsStateJoint = null;
-              try (Connection connStateJ = DBConnection.getConnection()) {
-                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-                psStateJoint = connStateJ.prepareStatement(sql);
-                rsStateJoint = psStateJoint.executeQuery();
-                while (rsStateJoint.next()) {
-                  String stateCode = rsStateJoint.getString("STATE_CODE");
-                  String stateName = rsStateJoint.getString("NAME");
-            %>
-                  <option value="<%= stateCode %>"><%= stateName %></option>
-            <% 
-                }
-              } catch (Exception e) {
-                out.println("<option disabled>Error loading states</option>");
-                e.printStackTrace();
-              } finally {
-                if (rsStateJoint != null) rsStateJoint.close();
-                if (psStateJoint != null) psStateJoint.close();
+        <select name="guarantorState[]">
+          <option value="">-- Select State --</option>
+          <% 
+            PreparedStatement psStateGuarantor = null;
+            ResultSet rsStateGuarantor = null;
+            try (Connection connStateG = DBConnection.getConnection()) {
+              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+              psStateGuarantor = connStateG.prepareStatement(sql);
+              rsStateGuarantor = psStateGuarantor.executeQuery();
+              while (rsStateGuarantor.next()) {
+                String stateCode = rsStateGuarantor.getString("STATE_CODE");
+                String stateName = rsStateGuarantor.getString("NAME");
+          %>
+                <option value="<%= stateCode %>"><%= stateName %></option>
+          <% 
               }
-            %>
-          </select>
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading states</option>");
+              e.printStackTrace();
+            } finally {
+              if (rsStateGuarantor != null) rsStateGuarantor.close();
+              if (psStateGuarantor != null) psStateGuarantor.close();
+            }
+          %>
+        </select>
       </div>
+
+      <!-- ✅ FIXED: Changed from jointCity[] to guarantorCity[] -->
       <div>
         <label>City</label>
-	<select name="jointCity[]">
-            <option value="">-- Select City --</option>
-            <% 
-              PreparedStatement psCityJoint = null;
-              ResultSet rsCityJoint = null;
-              try (Connection connCityJ = DBConnection.getConnection()) {
-                String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-                psCityJoint = connCityJ.prepareStatement(sql);
-                rsCityJoint = psCityJoint.executeQuery();
-                while (rsCityJoint.next()) {
-                  String cityCode = rsCityJoint.getString("CITY_CODE");
-                  String cityName = rsCityJoint.getString("NAME");
-            %>
-                  <option value="<%= cityCode %>"><%= cityName %></option>
-            <% 
-                }
-              } catch (Exception e) {
-                out.println("<option disabled>Error loading cities</option>");
-                e.printStackTrace();
-              } finally {
-                if (rsCityJoint != null) rsCityJoint.close();
-                if (psCityJoint != null) psCityJoint.close();
+        <select name="guarantorCity[]">
+          <option value="">-- Select City --</option>
+          <% 
+            PreparedStatement psCityGuarantor = null;
+            ResultSet rsCityGuarantor = null;
+            try (Connection connCityG = DBConnection.getConnection()) {
+              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+              psCityGuarantor = connCityG.prepareStatement(sql);
+              rsCityGuarantor = psCityGuarantor.executeQuery();
+              while (rsCityGuarantor.next()) {
+                String cityCode = rsCityGuarantor.getString("CITY_CODE");
+                String cityName = rsCityGuarantor.getString("NAME");
+          %>
+                <option value="<%= cityCode %>"><%= cityName %></option>
+          <% 
               }
-            %>
-          </select>
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading cities</option>");
+              e.printStackTrace();
+            } finally {
+              if (rsCityGuarantor != null) rsCityGuarantor.close();
+              if (psCityGuarantor != null) psCityGuarantor.close();
+            }
+          %>
+        </select>
       </div>
+
       <div>
         <label>Zip</label>
         <input type="number" name="guarantorZip[]" value="0">
@@ -1040,8 +1062,8 @@ body {
         <label>Mobile No</label>
         <input type="text" name="guarantorMobileNo[]" value="0">
       </div>
-    </div> <!-- end .address-grid -->
-  </div>   <!-- end .guarantor-block -->
+    </div>
+  </div>
 </fieldset>
 
 
@@ -1389,322 +1411,312 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-//==================== CO-BORROWER FUNCTIONS ====================
+//==================== CO-BORROWER FUNCTIONS (FIXED) ====================
 
-//Toggle Co-Borrower Customer ID visibility
 function toggleCoBorrowerCustomerID(radio) {
- const coBorrowerBlock = radio.closest('.coBorrower-block');
- const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
- const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+  const coBorrowerBlock = radio.closest('.coBorrower-block');
+  const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
+  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
 
- if (radio.value === 'yes') {
-     container.style.display = 'block';
-     input.required = true;
- } else {
-     container.style.display = 'none';
-     input.required = false;
-     input.value = '';
-     clearCoBorrowerFields(coBorrowerBlock);
- }
+  if (radio.value === 'yes') {
+      container.style.display = 'block';
+      input.required = true;
+  } else {
+      container.style.display = 'none';
+      input.required = false;
+      input.value = '';
+      clearCoBorrowerFields(coBorrowerBlock);
+  }
 }
 
-//Clear co-borrower fields
 function clearCoBorrowerFields(block) {
- block.querySelector('select[name="salutationCode1"]').value = '';
- block.querySelector('input[name="nomineeName[]"]').value = '';
- block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
- block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
- block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
- block.querySelector('select[name="countryCode"]').value = '';
- block.querySelector('select[name="stateCode"]').value = '';
- block.querySelector('select[name="cityCode"]').value = '';
- block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+  // ✅ FIXED: Updated field names
+  block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
+  block.querySelector('input[name="coBorrowerName[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
+  block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
+  block.querySelector('select[name="coBorrowerState[]"]').value = '';
+  block.querySelector('select[name="coBorrowerCity[]"]').value = '';
+  block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
 }
 
-//Open Co-Borrower Customer Lookup Modal
 function openCoBorrowerCustomerLookup(button) {
- const coBorrowerBlock = button.closest('.coBorrower-block');
- const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
- window.currentCoBorrowerInput = input;
- window.currentCoBorrowerBlock = coBorrowerBlock;
- openCustomerLookup();
+  const coBorrowerBlock = button.closest('.coBorrower-block');
+  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+  window.currentCoBorrowerInput = input;
+  window.currentCoBorrowerBlock = coBorrowerBlock;
+  openCustomerLookup();
 }
 
-//Populate Co-Borrower fields with customer data
+// ✅ FIXED: Updated field names in populate function
 function populateCoBorrowerFields(block, customer) {
- // Salutation Code
- const salutationSelect = block.querySelector('select[name="salutationCode1"]');
- if (salutationSelect && customer.salutationCode) {
-     salutationSelect.value = customer.salutationCode;
- }
+  console.log('📝 Populating Co-Borrower fields:', customer);
+  
+  // Salutation Code
+  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
+  }
 
- // Co-Borrower Name
- const nameInput = block.querySelector('input[name="nomineeName[]"]');
- if (nameInput && customer.customerName) {
-     nameInput.value = customer.customerName;
- }
+  // Co-Borrower Name
+  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
 
- // Address 1
- const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
- if (address1Input && customer.address1) {
-     address1Input.value = customer.address1;
- }
+  // Address fields
+  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
 
- // Address 2
- const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
- if (address2Input && customer.address2) {
-     address2Input.value = customer.address2;
- }
+  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
 
- // Address 3
- const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
- if (address3Input && customer.address3) {
-     address3Input.value = customer.address3;
- }
+  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
 
- // Country
- const countrySelect = block.querySelector('select[name="countryCode"]');
- if (countrySelect && customer.country) {
-     countrySelect.value = customer.country;
- }
+  // Country
+  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
+  }
 
- // State
- const stateSelect = block.querySelector('select[name="stateCode"]');
- if (stateSelect && customer.state) {
-     stateSelect.value = customer.state;
- }
+  // State
+  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
+  }
 
- // City
- const citySelect = block.querySelector('select[name="cityCode"]');
- if (citySelect && customer.city) {
-     citySelect.value = customer.city;
- }
+  // City
+  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
+  }
 
- // Zip
- const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
- if (zipInput && customer.zip) {
-     zipInput.value = customer.zip;
- }
+  // Zip
+  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
 }
 
-//Add Co-Borrower
 function addCoBorrower() {
- let fieldset = document.getElementById("coBorrowerFieldset");
- let original = fieldset.querySelector(".coBorrower-block");
- let clone = original.cloneNode(true);
+  let fieldset = document.getElementById("coBorrowerFieldset");
+  let original = fieldset.querySelector(".coBorrower-block");
+  let clone = original.cloneNode(true);
 
- clone.querySelectorAll("input, select").forEach(el => {
-     if (el.type === 'radio') {
-         if (el.value === 'no') el.checked = true;
-         else el.checked = false;
-     } else if (el.tagName === 'SELECT') {
-         el.selectedIndex = 0;
-     } else if (el.name === 'coBorrowerZip[]') {
-         el.value = '0';
-     } else {
-         el.value = "";
-     }
- });
+  clone.querySelectorAll("input, select").forEach(el => {
+      if (el.type === 'radio') {
+          if (el.value === 'no') el.checked = true;
+          else el.checked = false;
+      } else if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+      } else if (el.name === 'coBorrowerZip[]') {
+          el.value = '0';
+      } else {
+          el.value = "";
+      }
+  });
 
- const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
- if (customerIDContainer) {
-     customerIDContainer.style.display = 'none';
- }
+  const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
+  if (customerIDContainer) {
+      customerIDContainer.style.display = 'none';
+  }
 
- const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
- const newIndex = coBorrowerBlocks.length + 1;
- const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
- radios.forEach(radio => {
-     radio.name = `coBorrowerHasCustomerID_${newIndex}`;
- });
+  const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
+  const newIndex = coBorrowerBlocks.length + 1;
+  const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
+  radios.forEach(radio => {
+      radio.name = `coBorrowerHasCustomerID_${newIndex}`;
+  });
 
- clone.querySelector(".nominee-remove").onclick = function() {
-     removeCoBorrower(this);
- };
+  clone.querySelector(".nominee-remove").onclick = function() {
+      removeCoBorrower(this);
+  };
 
- fieldset.appendChild(clone);
- updateCoBorrowerSerials();
+  fieldset.appendChild(clone);
+  updateCoBorrowerSerials();
 }
 
-//Remove Co-Borrower
 function removeCoBorrower(btn) {
- let blocks = document.querySelectorAll(".coBorrower-block");
- if (blocks.length <= 1) {
-     alert("At least one co-borrower is required.");
-     return;
- }
- btn.parentNode.remove();
- updateCoBorrowerSerials();
+  let blocks = document.querySelectorAll(".coBorrower-block");
+  if (blocks.length <= 1) {
+      alert("At least one co-borrower is required.");
+      return;
+  }
+  btn.parentNode.remove();
+  updateCoBorrowerSerials();
 }
 
-//Update Co-Borrower Serial Numbers
 function updateCoBorrowerSerials() {
- let blocks = document.querySelectorAll(".coBorrower-block");
- blocks.forEach((block, index) => {
-     let serial = block.querySelector(".coBorrower-serial");
-     if (serial) {
-         serial.textContent = (index + 1);
-     }
- });
+  let blocks = document.querySelectorAll(".coBorrower-block");
+  blocks.forEach((block, index) => {
+      let serial = block.querySelector(".coBorrower-serial");
+      if (serial) {
+          serial.textContent = (index + 1);
+      }
+  });
 }
 
-//==================== GUARANTOR FUNCTIONS ====================
+// ==================== GUARANTOR FUNCTIONS (FIXED) ====================
 
-//Toggle Guarantor Customer ID visibility
 function toggleGuarantorCustomerID(radio) {
- const guarantorBlock = radio.closest('.guarantor-block');
- const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
- const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+  const guarantorBlock = radio.closest('.guarantor-block');
+  const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
+  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
 
- if (radio.value === 'yes') {
-     container.style.display = 'block';
-     input.required = true;
- } else {
-     container.style.display = 'none';
-     input.required = false;
-     input.value = '';
-     clearGuarantorFields(guarantorBlock);
- }
+  if (radio.value === 'yes') {
+      container.style.display = 'block';
+      input.required = true;
+  } else {
+      container.style.display = 'none';
+      input.required = false;
+      input.value = '';
+      clearGuarantorFields(guarantorBlock);
+  }
 }
 
-//Clear guarantor fields
 function clearGuarantorFields(block) {
- block.querySelector('select[name="salutationCode2"]').value = '';
- block.querySelector('input[name="guarantorName[]"]').value = '';
- block.querySelector('input[name="guarantorAddress1[]"]').value = '';
- block.querySelector('input[name="guarantorAddress2[]"]').value = '';
- block.querySelector('input[name="guarantorAddress3[]"]').value = '';
- block.querySelector('select[name="jointCountry[]"]').value = '';
- block.querySelector('select[name="jointState[]"]').value = '';
- block.querySelector('select[name="jointCity[]"]').value = '';
- block.querySelector('input[name="guarantorZip[]"]').value = '0';
+  // ✅ FIXED: Updated field names
+  block.querySelector('select[name="guarantorSalutation[]"]').value = '';
+  block.querySelector('input[name="guarantorName[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress1[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress2[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress3[]"]').value = '';
+  block.querySelector('select[name="guarantorCountry[]"]').value = '';
+  block.querySelector('select[name="guarantorState[]"]').value = '';
+  block.querySelector('select[name="guarantorCity[]"]').value = '';
+  block.querySelector('input[name="guarantorZip[]"]').value = '0';
 }
 
-//Open Guarantor Customer Lookup Modal
 function openGuarantorCustomerLookup(button) {
- const guarantorBlock = button.closest('.guarantor-block');
- const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
- window.currentGuarantorInput = input;
- window.currentGuarantorBlock = guarantorBlock;
- openCustomerLookup();
+  const guarantorBlock = button.closest('.guarantor-block');
+  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+  window.currentGuarantorInput = input;
+  window.currentGuarantorBlock = guarantorBlock;
+  openCustomerLookup();
 }
 
-//Populate Guarantor fields with customer data
+// ✅ FIXED: Updated field names in populate function
 function populateGuarantorFields(block, customer) {
- // Salutation Code
- const salutationSelect = block.querySelector('select[name="salutationCode2"]');
- if (salutationSelect && customer.salutationCode) {
-     salutationSelect.value = customer.salutationCode;
- }
+  console.log('📝 Populating Guarantor fields:', customer);
+  
+  // Salutation Code
+  const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
+  }
 
- // Guarantor Name
- const nameInput = block.querySelector('input[name="guarantorName[]"]');
- if (nameInput && customer.customerName) {
-     nameInput.value = customer.customerName;
- }
+  // Guarantor Name
+  const nameInput = block.querySelector('input[name="guarantorName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
 
- // Address 1
- const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
- if (address1Input && customer.address1) {
-     address1Input.value = customer.address1;
- }
+  // Address fields
+  const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
 
- // Address 2
- const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
- if (address2Input && customer.address2) {
-     address2Input.value = customer.address2;
- }
+  const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
 
- // Address 3
- const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
- if (address3Input && customer.address3) {
-     address3Input.value = customer.address3;
- }
+  const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
 
- // Country
- const countrySelect = block.querySelector('select[name="jointCountry[]"]');
- if (countrySelect && customer.country) {
-     countrySelect.value = customer.country;
- }
+  // Country
+  const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Guarantor Country');
+  }
 
- // State
- const stateSelect = block.querySelector('select[name="jointState[]"]');
- if (stateSelect && customer.state) {
-     stateSelect.value = customer.state;
- }
+  // State
+  const stateSelect = block.querySelector('select[name="guarantorState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Guarantor State');
+  }
 
- // City
- const citySelect = block.querySelector('select[name="jointCity[]"]');
- if (citySelect && customer.city) {
-     citySelect.value = customer.city;
- }
+  // City
+  const citySelect = block.querySelector('select[name="guarantorCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Guarantor City');
+  }
 
- // Zip
- const zipInput = block.querySelector('input[name="guarantorZip[]"]');
- if (zipInput && customer.zip) {
-     zipInput.value = customer.zip;
- }
+  // Zip
+  const zipInput = block.querySelector('input[name="guarantorZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
 }
 
-//Add Guarantor
 function addGuarantor() {
- let fieldset = document.getElementById("guarantorFieldset");
- let original = fieldset.querySelector(".guarantor-block");
- let clone = original.cloneNode(true);
+  let fieldset = document.getElementById("guarantorFieldset");
+  let original = fieldset.querySelector(".guarantor-block");
+  let clone = original.cloneNode(true);
 
- clone.querySelectorAll("input, select").forEach(el => {
-     if (el.type === 'radio') {
-         if (el.value === 'no') el.checked = true;
-         else el.checked = false;
-     } else if (el.tagName === 'SELECT') {
-         el.selectedIndex = 0;
-     } else if (el.name === 'guarantorZip[]') {
-         el.value = '0';
-     } else {
-         el.value = "";
-     }
- });
+  clone.querySelectorAll("input, select").forEach(el => {
+      if (el.type === 'radio') {
+          if (el.value === 'no') el.checked = true;
+          else el.checked = false;
+      } else if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+      } else if (el.name === 'guarantorZip[]') {
+          el.value = '0';
+      } else {
+          el.value = "";
+      }
+  });
 
- const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
- if (customerIDContainer) {
-     customerIDContainer.style.display = 'none';
- }
+  const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
+  if (customerIDContainer) {
+      customerIDContainer.style.display = 'none';
+  }
 
- const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
- const newIndex = guarantorBlocks.length + 1;
- const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
- radios.forEach(radio => {
-     radio.name = `guarantorHasCustomerID_${newIndex}`;
- });
+  const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
+  const newIndex = guarantorBlocks.length + 1;
+  const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
+  radios.forEach(radio => {
+      radio.name = `guarantorHasCustomerID_${newIndex}`;
+  });
 
- clone.querySelector(".nominee-remove").onclick = function() {
-     removeGuarantor(this);
- };
+  clone.querySelector(".nominee-remove").onclick = function() {
+      removeGuarantor(this);
+  };
 
- fieldset.appendChild(clone);
- updateGuarantorSerials();
+  fieldset.appendChild(clone);
+  updateGuarantorSerials();
 }
 
-//Remove Guarantor
 function removeGuarantor(btn) {
- let blocks = document.querySelectorAll(".guarantor-block");
- if (blocks.length <= 1) {
-     alert("At least one guarantor is required.");
-     return;
- }
- btn.parentNode.remove();
- updateGuarantorSerials();
+  let blocks = document.querySelectorAll(".guarantor-block");
+  if (blocks.length <= 1) {
+      alert("At least one guarantor is required.");
+      return;
+  }
+  btn.parentNode.remove();
+  updateGuarantorSerials();
 }
 
-//Update Guarantor Serial Numbers
 function updateGuarantorSerials() {
- let blocks = document.querySelectorAll(".guarantor-block");
- blocks.forEach((block, index) => {
-     let serial = block.querySelector(".guarantor-serial");
-     if (serial) {
-         serial.textContent = (index + 1);
-     }
- });
+  let blocks = document.querySelectorAll(".guarantor-block");
+  blocks.forEach((block, index) => {
+      let serial = block.querySelector(".guarantor-serial");
+      if (serial) {
+          serial.textContent = (index + 1);
+      }
+  });
 }
 
 //==================== MODIFIED setCustomerData FUNCTION ====================
