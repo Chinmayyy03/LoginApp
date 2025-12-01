@@ -579,12 +579,35 @@ body {
     </div>
     
     <div>
-      <label>LBR Code</label>
-      <select name="lbrCode">
-        <option value="">MIS</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>LBR Code</label>
+  <select name="lbrCode">
+    <option value="">MIS</option>
+    <%
+      PreparedStatement psMIS = null;
+      ResultSet rsMIS = null;
+
+      try (Connection conMIS = DBConnection.getConnection()) {
+        String sql = "SELECT MIS_ID, DESCRIPTION FROM HEADOFFICE.MIS ORDER BY DESCRIPTION";
+        psMIS = conMIS.prepareStatement(sql);
+        rsMIS = psMIS.executeQuery();
+
+        while (rsMIS.next()) {
+          String id = rsMIS.getString("MIS_ID");
+          String desc = rsMIS.getString("DESCRIPTION");
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading LBR Code</option>");
+      } finally {
+        if (rsMIS != null) rsMIS.close();
+        if (psMIS != null) psMIS.close();
+      }
+    %>
+  </select>
+</div>
+
     
     <div>
       <label>Social Sector Id</label>
@@ -597,12 +620,35 @@ body {
     </div>
 
     <div>
-      <label>Purpose Id</label>
-      <select name="purposeId">
-        <option value="">BB</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Purpose Id</label>
+  <select name="purposeId" required>
+    <option value="">-- Select Purpose --</option>
+    <%
+      PreparedStatement psPurpose = null;
+      ResultSet rsPurpose = null;
+      try (Connection connPurpose = DBConnection.getConnection()) {
+
+        String sql = "SELECT PURPOSE_ID, DESCRIPTION FROM HEADOFFICE.PURPOSE ORDER BY DESCRIPTION";
+        psPurpose = connPurpose.prepareStatement(sql);
+        rsPurpose = psPurpose.executeQuery();
+
+        while (rsPurpose.next()) {
+          String id = rsPurpose.getString("PURPOSE_ID");        // value to store
+          String desc = rsPurpose.getString("DESCRIPTION");     // text to display
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Purpose</option>");
+      } finally {
+        if (rsPurpose != null) rsPurpose.close();
+        if (psPurpose != null) psPurpose.close();
+      }
+    %>
+  </select>
+</div>
+
     
     <div>
       <label>Social SubSector Id</label>
@@ -615,54 +661,147 @@ body {
     </div>
 
     <div>
-      <label>Classification Id</label>
-      <select name="classificationId">
-        <option value="">NOT SPECIFIED</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Classification Id</label>
+  <select name="classificationId">
+    <option value="">NOT SPECIFIED</option>
+    <%
+      PreparedStatement psClass = null;
+      ResultSet rsClass = null;
+
+      try (Connection connClass = DBConnection.getConnection()) {
+
+        String sql = "SELECT CLASSIFICATION_ID, DESCRIPTION FROM HEADOFFICE.CLASSIFICATION ORDER BY DESCRIPTION";
+        psClass = connClass.prepareStatement(sql);
+        rsClass = psClass.executeQuery();
+
+        while (rsClass.next()) {
+          String id = rsClass.getString("CLASSIFICATION_ID");     // value to store
+          String desc = rsClass.getString("DESCRIPTION");         // visible text
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Classification</option>");
+      } finally {
+        if (rsClass != null) rsClass.close();
+        if (psClass != null) psClass.close();
+      }
+    %>
+  </select>
+</div>
 
     <div>
-      <label>Mode Of San. Id</label>
-      <select name="modeOfSanId">
-        <option value="">NOT SPECIFIED</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Mode Of San. Id</label>
+  <select name="modeOfSanId">
+    <option value="">NOT SPECIFIED</option>
+    <%
+      PreparedStatement psMOS = null;
+      ResultSet rsMOS = null;
+
+      try (Connection conMOS = DBConnection.getConnection()) {
+        String sql = "SELECT MODEOFSANCTION_ID, DESCRIPTION FROM HEADOFFICE.MODEOFSANCTION ORDER BY DESCRIPTION";
+        psMOS = conMOS.prepareStatement(sql);
+        rsMOS = psMOS.executeQuery();
+
+        while (rsMOS.next()) {
+          String id = rsMOS.getString("MODEOFSANCTION_ID");
+          String desc = rsMOS.getString("DESCRIPTION");
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Mode of Sanction</option>");
+      } finally {
+        if (rsMOS != null) rsMOS.close();
+        if (psMOS != null) psMOS.close();
+      }
+    %>
+  </select>
+</div>
+
 
     <div>
-      <label>Sanction Authority Id</label>
-      <select name="sanctionAuthorityId">
-        <option value="">BRANCH CHAIRMAN</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Sanction Authority Id</label>
+  <select name="sanctionAuthorityId">
+    <option value="">BRANCH CHAIRMAN</option>
+    <%
+      PreparedStatement psSA = null;
+      ResultSet rsSA = null;
+
+      try (Connection conSA = DBConnection.getConnection()) {
+        String sql = "SELECT SANCTIONAUTHORITY_ID, DESCRIPTION FROM HEADOFFICE.SANCTIONAUTHORITY ORDER BY DESCRIPTION";
+        psSA = conSA.prepareStatement(sql);
+        rsSA = psSA.executeQuery();
+
+        while (rsSA.next()) {
+          String id = rsSA.getString("SANCTIONAUTHORITY_ID");
+          String desc = rsSA.getString("DESCRIPTION");
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Sanction Authority</option>");
+      } finally {
+        if (rsSA != null) rsSA.close();
+        if (psSA != null) psSA.close();
+      }
+    %>
+  </select>
+</div>
+
 
     <div>
-      <label>Industry Id</label>
-      <select name="industryId">
-        <option value="">NOT SPECIFIED</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Industry Id</label>
+  <select name="industryId">
+    <option value="">NOT SPECIFIED</option>
+    <%
+      PreparedStatement psInd = null;
+      ResultSet rsInd = null;
+
+      try (Connection conInd = DBConnection.getConnection()) {
+        String sql = "SELECT INDUSTRY_ID, DESCRIPTION FROM HEADOFFICE.INDUSTRY ORDER BY DESCRIPTION";
+        psInd = conInd.prepareStatement(sql);
+        rsInd = psInd.executeQuery();
+
+        while (rsInd.next()) {
+          String id = rsInd.getString("INDUSTRY_ID");
+          String desc = rsInd.getString("DESCRIPTION");
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Industry</option>");
+      } finally {
+        if (rsInd != null) rsInd.close();
+        if (psInd != null) psInd.close();
+      }
+    %>
+  </select>
+</div>
+
 
     <div>
-      <label>Is Director Related</label>
-      <div>
-        <label><input type="radio" name="isDirectorRelated" value="Y"> Yes</label>
-        <label><input type="radio" name="isDirectorRelated" value="N" checked> No</label>
-      </div>
-    </div>
+  <label>Is Director Related</label>
+  <div>
+    <label><input type="radio" name="isDirectorRelated" value="Y" onclick="toggleDirectorFields()"> Yes</label>
+    <label><input type="radio" name="isDirectorRelated" value="N" checked onclick="toggleDirectorFields()"> No</label>
+  </div>
+</div>
 
-    <div>
-      <label>Director Id</label>
-      <input type="text" name="directorId" value="0">
-    </div>
+<div>
+  <label>Director Id</label>
+  <input type="text" name="directorId" id="directorId" value="0">
+</div>
 
-    <div>
-      <label>Director Name</label>
-      <input type="text" name="directorName">
-    </div>
+<div>
+  <label>Director Name</label>
+  <input type="text" name="directorName" id="directorName">
+</div>
 
   </div> <!-- end .form-grid -->
 </fieldset>
@@ -1826,6 +1965,28 @@ function showToast(message) {
         }).showToast();
     }
 }
+
+
+ // for able and disable is Director Related
+function toggleDirectorFields() {
+	  const isRelated = document.querySelector('input[name="isDirectorRelated"]:checked').value;
+	  
+	  const idField = document.getElementById('directorId');
+	  const nameField = document.getElementById('directorName');
+
+	  if (isRelated === 'Y') {
+	    idField.disabled = false;
+	    nameField.disabled = false;
+	  } else {
+	    idField.disabled = true;
+	    nameField.disabled = true;
+	    idField.value = "0";       // optional: reset value
+	    nameField.value = "";      // optional: clear name
+	  }
+	}
+
+	// call once on page load to apply initial state
+	toggleDirectorFields();
 </script>
 </body>
 </html>
