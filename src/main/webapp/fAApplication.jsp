@@ -299,7 +299,7 @@ input[type=number] {
   <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
   <fieldset>
-    <legend>Fixed Asset Depreciation Details</legend>
+    <legend>Application</legend>
     <div class="form-grid">
       
       <div>

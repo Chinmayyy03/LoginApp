@@ -12,7 +12,7 @@
     if (productCode == null) {
         productCode = "";
     }
-    System.out.println("📌 termDeposit.jsp - Product Code received: " + productCode);
+    System.out.println("📌 ADNJh.jsp - Product Code received: " + productCode);
 %>
 
 <!DOCTYPE html>

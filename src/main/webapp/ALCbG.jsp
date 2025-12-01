@@ -13,7 +13,7 @@
     if (productCode == null) {
         productCode = "";
     }
-    System.out.println("📌 savingAcc.jsp - Product Code received: " + productCode);
+    System.out.println("📌 ALCbG.jsp - Product Code received: " + productCode);
 %>
 
 <!DOCTYPE html>
