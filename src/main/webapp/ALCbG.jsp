@@ -559,6 +559,14 @@ body {
       <label>Area Name</label>
       <input type="text" name="areaName">
     </div>
+    
+       <div>
+      <label>Social Section Id</label>
+      <select name="socialSectionId">
+        <option value="">NOT SPECIFIED</option>
+        <!-- add other options if needed -->
+      </select>
+    </div>
 
     <div>
       <label>Sub Area Code</label>
@@ -569,41 +577,23 @@ body {
       <label>Sub Area Name</label>
       <input type="text" name="subAreaName">
     </div>
-
-    <div>
-      <label>Description 1</label>
-      <input type="text" name="description1">
-    </div>
-
-    <div>
-      <label>Description 2</label>
-      <input type="text" name="description2">
-    </div>
-
-    <div>
-      <label>Social Sector Id</label>
-      <input type="text" name="socialSectorId">
-    </div>
-
-    <div>
-      <label>Social SubSector Id</label>
-      <input type="text" name="socialSubSectorId">
-    </div>
-
-    <div>
-      <label>Social Section Id</label>
-      <select name="socialSectionId">
-        <option value="">NOT SPECIFIED</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
-
+    
     <div>
       <label>LBR Code</label>
       <select name="lbrCode">
         <option value="">MIS</option>
         <!-- add other options if needed -->
       </select>
+    </div>
+    
+    <div>
+      <label>Social Sector Id</label>
+      <input type="text" name="socialSectorId">
+    </div>
+    
+      <div>
+      <label>Description 1</label>
+      <input type="text" name="description1">
     </div>
 
     <div>
@@ -612,6 +602,16 @@ body {
         <option value="">BB</option>
         <!-- add other options if needed -->
       </select>
+    </div>
+    
+    <div>
+      <label>Social SubSector Id</label>
+      <input type="text" name="socialSubSectorId">
+    </div>
+    
+    <div>
+      <label>Description 2</label>
+      <input type="text" name="description2">
     </div>
 
     <div>
