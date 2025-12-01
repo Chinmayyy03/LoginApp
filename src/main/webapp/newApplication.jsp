@@ -378,7 +378,15 @@ function checkForm(event) {
         "TD_473": "ADNJh.jsp",
         "TD_474": "ADNJh.jsp",
         "TD_475": "ADNJh.jsp",
-        "TD_499": "ADNJh.jsp"
+        "TD_499": "ADNJh.jsp",
+        "TL_549": "ALCb.jsp",
+        "TL_701": "ALCb.jsp",
+        "TL_702": "ALCb.jsp",
+        "TL_703": "ALCb.jsp",
+        "TL_704": "ALCb.jsp",
+        "TL_705": "ALCb.jsp",
+        "TL_706": "ALCb.jsp"
+
 
         // ➕ Add more here...
     };
