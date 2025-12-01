@@ -25,9 +25,6 @@
     } catch (Exception e) {
         branchName = "Unknown Branch";
     }
-    
-    
-   
 %>
 
 <!DOCTYPE html>
@@ -47,43 +44,33 @@
     </div>
 
     <ul class="menu">
-       <li class="active">
+       <li class="active" data-page="dashboard.jsp">
             <a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
                 <img src="images/dashboard.png" width="20" height="20">
                 Dashboard
             </a>
        </li>
 
-        <li>
+        <li data-page="addCustomer.jsp">
             <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
                 <img src="images/addCustomer.png" width="20" height="20">
                 Add Customer
             </a>
         </li>
         
-        <li>
+        <li data-page="authorizationPending.jsp">
             <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
                 <img src="images/authorizationPending.png" width="22" height="22">
                 Authorization Pending
             </a>
         </li>
         
-        <li>
+        <li data-page="newApplication.jsp">
             <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', 'Open Account', this); return false;">
                 <img src="images/newApplication.png" width="22" height="22">
                 Open Account
             </a>
         </li>
-        
-        <!-- Add new menu items here following the same pattern -->
-        <!-- Example: 
-        <li>
-            <a href="#" onclick="loadPage('loans.jsp', 'Loans', 'Loans', this); return false;">
-                <img src="images/loan.png" width="20" height="20">
-                Loans
-            </a>
-        </li>
-        -->
     </ul>
 
     <div class="logout">
@@ -97,7 +84,7 @@
         <div id="liveDate"></div>
     </header>
 
-    <iframe id="contentFrame" src="dashboard.jsp" frameborder="0"></iframe>
+    <iframe id="contentFrame" frameborder="0"></iframe>
 </div>
 
 <!-- Logout Confirmation Modal -->
@@ -113,16 +100,45 @@
 </div>
 
 <script>
-// Complete page mapping - ADD ALL YOUR PAGES HERE
+// ========== PAGE MAPPING ==========
 const pageMap = {
     'Dashboard': 'dashboard.jsp',
     'Add Customer': 'addCustomer.jsp',
     'Total Customers': 'totalCustomers.jsp',
     'Authorization Pending': 'authorizationPending.jsp',
-    'Loan Details': 'loanDetails.jsp'
+    'Loan Details': 'loanDetails.jsp',
+    'Open Account': 'newApplication.jsp'
 };
 
-// Update breadcrumb display
+// ========== PAGE STATE PERSISTENCE ==========
+
+// Save current page state whenever iframe changes
+function loadPage(page, title, breadcrumbPath, anchorEl) {
+    // Save to sessionStorage before loading
+    sessionStorage.setItem('currentPage', page);
+    sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
+    
+    document.getElementById("contentFrame").src = page;
+    updateBreadcrumb(breadcrumbPath);
+    
+    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
+    if (anchorEl && anchorEl.closest) {
+        anchorEl.closest('li').classList.add("active");
+    }
+}
+
+function navigateToBreadcrumb(page, title, path) {
+    // Save state
+    sessionStorage.setItem('currentPage', page);
+    sessionStorage.setItem('currentBreadcrumb', path);
+    
+    document.getElementById("contentFrame").src = page;
+    updateBreadcrumb(path);
+    updateActiveMenu(title);
+}
+
+// ========== BREADCRUMB FUNCTIONS ==========
+
 function updateBreadcrumb(path) {
     const breadcrumbNav = document.getElementById("breadcrumbNav");
     if (!breadcrumbNav) return;
@@ -147,22 +163,6 @@ function updateBreadcrumb(path) {
     breadcrumbNav.innerHTML = breadcrumbHTML;
 }
 
-function navigateToBreadcrumb(page, title, path) {
-    document.getElementById("contentFrame").src = page;
-    updateBreadcrumb(path);
-    updateActiveMenu(title);
-}
-
-function loadPage(page, title, breadcrumbPath, anchorEl) {
-    document.getElementById("contentFrame").src = page;
-    updateBreadcrumb(breadcrumbPath);
-    
-    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
-    if (anchorEl && anchorEl.closest) {
-        anchorEl.closest('li').classList.add("active");
-    }
-}
-
 function updateActiveMenu(title) {
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
     const menuLink = Array.from(document.querySelectorAll(".menu li a")).find(
@@ -173,13 +173,48 @@ function updateActiveMenu(title) {
     }
 }
 
+// Helper function to update active menu based on page
+function updateActiveMenuFromPage(page) {
+    document.querySelectorAll(".menu li").forEach(li => {
+        const savedPage = li.getAttribute('data-page');
+        if (savedPage === page) {
+            li.classList.add('active');
+        } else {
+            li.classList.remove('active');
+        }
+    });
+}
+
+// Allow child pages to update breadcrumb
 window.updateParentBreadcrumb = function(path) {
+    sessionStorage.setItem('currentBreadcrumb', path);
     updateBreadcrumb(path);
 };
 
-window.onload = function() {
-    updateBreadcrumb('Dashboard');
+// ========== RESTORE STATE ON LOAD ==========
+
+window.onload = function () {
+    const savedPage = sessionStorage.getItem('currentPage');
+    const savedBreadcrumb = sessionStorage.getItem('currentBreadcrumb');
+
+    if (savedPage && savedBreadcrumb) {
+        // Reloading → load last opened page
+        document.getElementById("contentFrame").src = savedPage;
+        updateBreadcrumb(savedBreadcrumb);
+        updateActiveMenuFromPage(savedPage);
+    } else {
+        // First-time opening website → load Dashboard
+        document.getElementById("contentFrame").src = "dashboard.jsp";
+        updateBreadcrumb("Dashboard");
+        sessionStorage.setItem("currentPage", "dashboard.jsp");
+        sessionStorage.setItem("currentBreadcrumb", "Dashboard");
+    }
+
+    updateDate();
 };
+
+
+// ========== DATE UPDATE ==========
 
 function updateDate() {
     const now = new Date();
@@ -190,7 +225,8 @@ function updateDate() {
     }
 }
 setInterval(updateDate, 1000);
-updateDate();
+
+// ========== LOGOUT FUNCTIONS ==========
 
 function showLogoutConfirmation(event) {
     event.preventDefault();
@@ -202,6 +238,8 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
+    // Clear session storage on logout
+    sessionStorage.clear();
     window.location.href = "logout.jsp";
 }
 
@@ -217,10 +255,6 @@ document.addEventListener('keydown', function(event) {
         closeLogoutModal();
     }
 });
-
-function updatePendingCount(count) {
-    document.getElementById("pendingCount").innerText = "(" + count + ")";
-}
 
 </script>
 
