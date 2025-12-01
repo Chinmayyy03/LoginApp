@@ -808,7 +808,6 @@ body {
 
 
 <!-- Co-Borrower Section -->
-<!-- Co-Borrower Section - FIXED VERSION -->
 <fieldset id="coBorrowerFieldset">
   <legend>
     Co-Borrower
