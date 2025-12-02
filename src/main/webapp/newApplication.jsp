@@ -386,7 +386,25 @@ function checkForm(event) {
         "TL_704": "OpenAccount/ALCb.jsp",
         "TL_705": "OpenAccount/ALCb.jsp",
         "TL_706": "OpenAccount/ALCb.jsp",
-        "TL_505": "OpenAccount/ALCbGs.jsp"
+        "TL_505": "OpenAccount/ALCbGs.jsp",
+        "TL_550": "OpenAccount/ALCbGs.jsp",
+        "TL_561": "OpenAccount/ALCbGs.jsp",
+        "TL_507": "OpenAccount/ALCbDd.jsp",
+        "TL_509": "OpenAccount/ALCbDd.jsp",
+        "TL_514": "OpenAccount/ALCbDd.jsp",
+        "TL_515": "OpenAccount/ALCbGDd.jsp",
+        "TL_516": "OpenAccount/ALCbGDd.jsp",
+        "TL_517": "OpenAccount/ALCbGDd.jsp",
+        "TL_526": "OpenAccount/ALCbGDd.jsp",
+        "TL_552": "OpenAccount/ALCbGDd.jsp",
+        "TL_503": "OpenAccount/ALCbGLb.jsp",
+        "TL_518": "OpenAccount/ALCbGLb.jsp",
+        "TL_523": "OpenAccount/ALCbGLb.jsp",
+        "TL_531": "OpenAccount/ALCbGLb.jsp",
+        "TL_541": "OpenAccount/ALCbGLb.jsp"
+
+
+
 
 
         // ➕ Add more here...
