@@ -1221,7 +1221,6 @@ body {
   </div>
 </div>
 
-<script src="js/savingAcc.js"></script>
 <script>
 // Validation function
 function validateForm() {
@@ -1296,259 +1295,269 @@ window.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
 });
-
-
 //==================== CUSTOMER LOOKUP FUNCTIONS ====================
 
 //Global function to set customer data (will be called from loaded content)
 window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
-    // Check if this is for nominee lookup
-    if (window.currentNomineeInput) {
-        window.currentNomineeInput.value = customerId;
-        
-        // Fetch full customer details from database
-        fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
-        
-        // Clear the stored references
-        window.currentNomineeInput = null;
-        window.currentNomineeBlock = null;
-        
-        closeCustomerLookup();
-        showToast('✅ Loading nominee customer data...');
-        return;
-    }
+  // Check if this is for Co-Borrower lookup
+  if (window.currentCoBorrowerInput) {
+      window.currentCoBorrowerInput.value = customerId;
+      fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
+      window.currentCoBorrowerInput = null;
+      window.currentCoBorrowerBlock = null;
+      closeCustomerLookup();
+      showToast('✅ Loading co-borrower customer data...');
+      return;
+  }
 
-    // Check if this is for joint holder lookup
-    if (window.currentJointInput) {
-        window.currentJointInput.value = customerId;
-        
-        // Fetch full customer details from database
-        fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
-        
-        // Clear the stored references
-        window.currentJointInput = null;
-        window.currentJointBlock = null;
-        
-        closeCustomerLookup();
-        showToast('✅ Loading joint holder customer data...');
-        return;
-    }
+  // Check if this is for Guarantor lookup
+  if (window.currentGuarantorInput) {
+      window.currentGuarantorInput.value = customerId;
+      fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
+      window.currentGuarantorInput = null;
+      window.currentGuarantorBlock = null;
+      closeCustomerLookup();
+      showToast('✅ Loading guarantor customer data...');
+      return;
+  }
 
-    // Otherwise, this is for the main customer ID field
-    document.getElementById('customerId').value = customerId;
-    document.getElementById('customerName').value = customerName;
-    document.getElementById('categoryCode').value = categoryCode || '';
-    document.getElementById('riskCategory').value = riskCategory || '';
+  // Otherwise, this is for the main customer ID field
+  document.getElementById('customerId').value = customerId;
+  document.getElementById('customerName').value = customerName;
+  document.getElementById('categoryCode').value = categoryCode || '';
+  document.getElementById('riskCategory').value = riskCategory || '';
 
-    closeCustomerLookup();
-
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: "✅ Customer data loaded successfully!",
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
+  closeCustomerLookup();
+  showToast('✅ Customer data loaded successfully!');
 };
 
 //Fetch customer details from database
 function fetchCustomerDetails(customerId, type, block) {
-    fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (type === 'nominee') {
-                    populateNomineeFields(block, data.customer);
-                } else if (type === 'joint') {
-                    populateJointFields(block, data.customer);
-                }
-                showToast('✅ Customer data loaded successfully!');
-            } else {
-                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching customer details:', error);
-            showToast('❌ Failed to load customer data');
-        });
+  console.log('🔍 Fetching customer details for:', customerId, 'Type:', type);
+  
+  fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
+      .then(response => response.json())
+      .then(data => {
+          console.log('📦 Received data:', data);
+          
+          if (data.success) {
+              if (type === 'coborrower') {
+                  populateCoBorrowerFields(block, data.customer);
+              } else if (type === 'guarantor') {
+                  populateGuarantorFields(block, data.customer);
+              }
+              showToast('✅ Customer data loaded successfully!');
+          } else {
+              showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
+          }
+      })
+      .catch(error => {
+          console.error('❌ Error fetching customer details:', error);
+          showToast('❌ Failed to load customer data');
+      });
 }
 
-//Populate Nominee fields with customer data
-function populateNomineeFields(block, customer) {
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        salutationSelect.value = customer.salutationCode;
-    }
-
-    // Nominee Name
-    const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    // Address 1
-    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    // Address 2
-    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    // Address 3
-    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    // Country
-    const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
-    if (countrySelect && customer.country) {
-        countrySelect.value = customer.country;
-    }
-
-    // State
-    const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
-    if (stateSelect && customer.state) {
-        stateSelect.value = customer.state;
-    }
-
-    // City
-    const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
-    if (citySelect && customer.city) {
-        citySelect.value = customer.city;
-    }
-
-    // Zip
-    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
+//Helper function to set select value with multiple matching strategies
+function setSelectValue(selectElement, value, fieldName) {
+  if (!selectElement) {
+      console.warn('⚠️ Select element not found for:', fieldName);
+      return false;
+  }
+  
+  if (!value || value.trim() === '') {
+      console.log('⚠️ Empty value for:', fieldName);
+      return false;
+  }
+  
+  const trimmedValue = value.trim().toUpperCase();
+  console.log(`🔧 Setting ${fieldName} to: "${trimmedValue}"`);
+  
+  let found = false;
+  
+  // Strategy 1: Try exact match on value (case-insensitive)
+  for (let i = 0; i < selectElement.options.length; i++) {
+      const optionValue = selectElement.options[i].value.trim().toUpperCase();
+      if (optionValue === trimmedValue) {
+          selectElement.selectedIndex = i;
+          found = true;
+          console.log(`✅ ${fieldName} set successfully (exact match) to: "${trimmedValue}"`);
+          return true;
+      }
+  }
+  
+  // Strategy 2: Try matching on text content
+  for (let i = 0; i < selectElement.options.length; i++) {
+      const optionText = selectElement.options[i].text.trim().toUpperCase();
+      if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
+          selectElement.selectedIndex = i;
+          found = true;
+          console.log(`✅ ${fieldName} set successfully (text match) to: "${selectElement.options[i].value}"`);
+          return true;
+      }
+  }
+  
+  // Strategy 3: Try partial match on value
+  for (let i = 0; i < selectElement.options.length; i++) {
+      const optionValue = selectElement.options[i].value.trim().toUpperCase();
+      if (optionValue.includes(trimmedValue) || trimmedValue.includes(optionValue)) {
+          selectElement.selectedIndex = i;
+          found = true;
+          console.log(`✅ ${fieldName} set successfully (partial match) to: "${selectElement.options[i].value}"`);
+          return true;
+      }
+  }
+  
+  if (!found) {
+      console.warn(`⚠️ Value "${trimmedValue}" not found in ${fieldName} dropdown`);
+  }
+  
+  return found;
 }
 
-//Populate Joint Holder fields with customer data
-function populateJointFields(block, customer) {
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        salutationSelect.value = customer.salutationCode;
-    }
+//Populate Co-Borrower fields with customer data
+function populateCoBorrowerFields(block, customer) {
+  console.log('📝 Populating Co-Borrower fields:', customer);
+  
+  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
+  }
 
-    // Joint Holder Name
-    const nameInput = block.querySelector('input[name="jointName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
+  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
 
-    // Address 1
-    const address1Input = block.querySelector('input[name="jointAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
+  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
 
-    // Address 2
-    const address2Input = block.querySelector('input[name="jointAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
+  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
 
-    // Address 3
-    const address3Input = block.querySelector('input[name="jointAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
+  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
 
-    // Country
-    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
-    if (countrySelect && customer.country) {
-        countrySelect.value = customer.country;
-    }
+  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
+  }
 
-    // State
-    const stateSelect = block.querySelector('select[name="jointState[]"]');
-    if (stateSelect && customer.state) {
-        stateSelect.value = customer.state;
-    }
+  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
+  }
 
-    // City
-    const citySelect = block.querySelector('select[name="jointCity[]"]');
-    if (citySelect && customer.city) {
-        citySelect.value = customer.city;
-    }
+  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
+  }
 
-    // Zip
-    const zipInput = block.querySelector('input[name="jointZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
+  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
+}
+
+//Populate Guarantor fields with customer data
+function populateGuarantorFields(block, customer) {
+  console.log('📝 Populating Guarantor fields:', customer);
+  
+  const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
+  }
+
+  const nameInput = block.querySelector('input[name="guarantorName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
+
+  const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
+
+  const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
+
+  const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
+
+  const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Guarantor Country');
+  }
+
+  const stateSelect = block.querySelector('select[name="guarantorState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Guarantor State');
+  }
+
+  const citySelect = block.querySelector('select[name="guarantorCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Guarantor City');
+  }
+
+  const zipInput = block.querySelector('input[name="guarantorZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
 }
 
 //Customer Lookup Functions
 function openCustomerLookup() {
-    const modal = document.getElementById('customerLookupModal');
-    const content = document.getElementById('customerLookupContent');
+  const modal = document.getElementById('customerLookupModal');
+  const content = document.getElementById('customerLookupContent');
 
-    // Show modal immediately
-    modal.style.display = 'flex';
-    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+  modal.style.display = 'flex';
+  content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-    // Fetch customer data
-    fetch('lookupForCustomerId.jsp')
-        .then(response => response.text())
-        .then(html => {
-            content.innerHTML = html;
-            
-            // Execute any scripts in the loaded content
-            const scripts = content.querySelectorAll('script');
-            scripts.forEach(script => {
-                const newScript = document.createElement('script');
-                newScript.textContent = script.textContent;
-                document.body.appendChild(newScript);
-                document.body.removeChild(newScript);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading customer lookup:', error);
-            content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
-        });
+  fetch('lookupForCustomerId.jsp')
+      .then(response => response.text())
+      .then(html => {
+          content.innerHTML = html;
+          const scripts = content.querySelectorAll('script');
+          scripts.forEach(script => {
+              const newScript = document.createElement('script');
+              newScript.textContent = script.textContent;
+              document.body.appendChild(newScript);
+              document.body.removeChild(newScript);
+          });
+      })
+      .catch(error => {
+          console.error('Error loading customer lookup:', error);
+          content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+      });
 }
 
 function closeCustomerLookup() {
-    document.getElementById('customerLookupModal').style.display = 'none';
+  document.getElementById('customerLookupModal').style.display = 'none';
 }
 
-//Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = document.getElementById('customerLookupModal');
-    if (event.target === modal) {
-        closeCustomerLookup();
-    }
+  const modal = document.getElementById('customerLookupModal');
+  if (event.target === modal) {
+      closeCustomerLookup();
+  }
 }
 
-//Close modal on Escape key
 document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeCustomerLookup();
-    }
+  if (event.key === 'Escape') {
+      closeCustomerLookup();
+  }
 });
 
-//==================== CO-BORROWER FUNCTIONS (FIXED) ====================
+//==================== CO-BORROWER FUNCTIONS ====================
 
 function toggleCoBorrowerCustomerID(radio) {
   const coBorrowerBlock = radio.closest('.coBorrower-block');
@@ -1567,7 +1576,6 @@ function toggleCoBorrowerCustomerID(radio) {
 }
 
 function clearCoBorrowerFields(block) {
-  // ✅ FIXED: Updated field names
   block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
   block.querySelector('input[name="coBorrowerName[]"]').value = '';
   block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
@@ -1585,63 +1593,6 @@ function openCoBorrowerCustomerLookup(button) {
   window.currentCoBorrowerInput = input;
   window.currentCoBorrowerBlock = coBorrowerBlock;
   openCustomerLookup();
-}
-
-// ✅ FIXED: Updated field names in populate function
-function populateCoBorrowerFields(block, customer) {
-  console.log('📝 Populating Co-Borrower fields:', customer);
-  
-  // Salutation Code
-  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
-  if (salutationSelect && customer.salutationCode) {
-      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
-  }
-
-  // Co-Borrower Name
-  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
-  if (nameInput && customer.customerName) {
-      nameInput.value = customer.customerName;
-  }
-
-  // Address fields
-  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-  if (address1Input && customer.address1) {
-      address1Input.value = customer.address1;
-  }
-
-  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-  if (address2Input && customer.address2) {
-      address2Input.value = customer.address2;
-  }
-
-  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-  if (address3Input && customer.address3) {
-      address3Input.value = customer.address3;
-  }
-
-  // Country
-  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
-  if (countrySelect && customer.country) {
-      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
-  }
-
-  // State
-  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
-  if (stateSelect && customer.state) {
-      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
-  }
-
-  // City
-  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
-  if (citySelect && customer.city) {
-      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
-  }
-
-  // Zip
-  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-  if (zipInput && customer.zip) {
-      zipInput.value = customer.zip;
-  }
 }
 
 function addCoBorrower() {
@@ -1702,7 +1653,7 @@ function updateCoBorrowerSerials() {
   });
 }
 
-// ==================== GUARANTOR FUNCTIONS (FIXED) ====================
+//==================== GUARANTOR FUNCTIONS ====================
 
 function toggleGuarantorCustomerID(radio) {
   const guarantorBlock = radio.closest('.guarantor-block');
@@ -1721,7 +1672,6 @@ function toggleGuarantorCustomerID(radio) {
 }
 
 function clearGuarantorFields(block) {
-  // ✅ FIXED: Updated field names
   block.querySelector('select[name="guarantorSalutation[]"]').value = '';
   block.querySelector('input[name="guarantorName[]"]').value = '';
   block.querySelector('input[name="guarantorAddress1[]"]').value = '';
@@ -1739,63 +1689,6 @@ function openGuarantorCustomerLookup(button) {
   window.currentGuarantorInput = input;
   window.currentGuarantorBlock = guarantorBlock;
   openCustomerLookup();
-}
-
-// ✅ FIXED: Updated field names in populate function
-function populateGuarantorFields(block, customer) {
-  console.log('📝 Populating Guarantor fields:', customer);
-  
-  // Salutation Code
-  const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
-  if (salutationSelect && customer.salutationCode) {
-      setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
-  }
-
-  // Guarantor Name
-  const nameInput = block.querySelector('input[name="guarantorName[]"]');
-  if (nameInput && customer.customerName) {
-      nameInput.value = customer.customerName;
-  }
-
-  // Address fields
-  const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
-  if (address1Input && customer.address1) {
-      address1Input.value = customer.address1;
-  }
-
-  const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
-  if (address2Input && customer.address2) {
-      address2Input.value = customer.address2;
-  }
-
-  const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
-  if (address3Input && customer.address3) {
-      address3Input.value = customer.address3;
-  }
-
-  // Country
-  const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
-  if (countrySelect && customer.country) {
-      setSelectValue(countrySelect, customer.country, 'Guarantor Country');
-  }
-
-  // State
-  const stateSelect = block.querySelector('select[name="guarantorState[]"]');
-  if (stateSelect && customer.state) {
-      setSelectValue(stateSelect, customer.state, 'Guarantor State');
-  }
-
-  // City
-  const citySelect = block.querySelector('select[name="guarantorCity[]"]');
-  if (citySelect && customer.city) {
-      setSelectValue(citySelect, customer.city, 'Guarantor City');
-  }
-
-  // Zip
-  const zipInput = block.querySelector('input[name="guarantorZip[]"]');
-  if (zipInput && customer.zip) {
-      zipInput.value = customer.zip;
-  }
 }
 
 function addGuarantor() {
@@ -1856,136 +1749,54 @@ function updateGuarantorSerials() {
   });
 }
 
-//==================== MODIFIED setCustomerData FUNCTION ====================
-//This needs to be updated in your existing script to handle Co-Borrower and Guarantor
-
-window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
- // Check if this is for Co-Borrower lookup
- if (window.currentCoBorrowerInput) {
-     window.currentCoBorrowerInput.value = customerId;
-     fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
-     window.currentCoBorrowerInput = null;
-     window.currentCoBorrowerBlock = null;
-     closeCustomerLookup();
-     showToast('✅ Loading co-borrower customer data...');
-     return;
- }
-
- // Check if this is for Guarantor lookup
- if (window.currentGuarantorInput) {
-     window.currentGuarantorInput.value = customerId;
-     fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
-     window.currentGuarantorInput = null;
-     window.currentGuarantorBlock = null;
-     closeCustomerLookup();
-     showToast('✅ Loading guarantor customer data...');
-     return;
- }
-
- // Check if this is for nominee lookup
- if (window.currentNomineeInput) {
-     window.currentNomineeInput.value = customerId;
-     fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
-     window.currentNomineeInput = null;
-     window.currentNomineeBlock = null;
-     closeCustomerLookup();
-     showToast('✅ Loading nominee customer data...');
-     return;
- }
-
- // Check if this is for joint holder lookup
- if (window.currentJointInput) {
-     window.currentJointInput.value = customerId;
-     fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
-     window.currentJointInput = null;
-     window.currentJointBlock = null;
-     closeCustomerLookup();
-     showToast('✅ Loading joint holder customer data...');
-     return;
- }
-
- // Otherwise, this is for the main customer ID field
- document.getElementById('customerId').value = customerId;
- document.getElementById('customerName').value = customerName;
- document.getElementById('categoryCode').value = categoryCode || '';
- document.getElementById('riskCategory').value = riskCategory || '';
-
- closeCustomerLookup();
- showToast('✅ Customer data loaded successfully!');
-};
-
-//==================== MODIFIED fetchCustomerDetails FUNCTION ====================
-
-function fetchCustomerDetails(customerId, type, block) {
- fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
-     .then(response => response.json())
-     .then(data => {
-         if (data.success) {
-             if (type === 'nominee') {
-                 populateNomineeFields(block, data.customer);
-             } else if (type === 'joint') {
-                 populateJointFields(block, data.customer);
-             } else if (type === 'coborrower') {
-                 populateCoBorrowerFields(block, data.customer);
-             } else if (type === 'guarantor') {
-                 populateGuarantorFields(block, data.customer);
-             }
-             showToast('✅ Customer data loaded successfully!');
-         } else {
-             showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
-         }
-     })
-     .catch(error => {
-         console.error('Error fetching customer details:', error);
-         showToast('❌ Failed to load customer data');
-     });
-}
 //==================== UTILITY FUNCTIONS ====================
 
-//Toast helper function
 function showToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
+  if (typeof Toastify !== 'undefined') {
+      Toastify({
+          text: message,
+          duration: 5000,
+          close: true,
+          gravity: "top",
+          position: "center",
+          style: {
+              background: "#fff",
+              color: "#333",
+              borderRadius: "8px",
+              fontSize: "14px",
+              padding: "16px 24px",
+              boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+              borderLeft: "5px solid #4caf50",
+              marginTop: "20px"
+          }
+      }).showToast();
+  }
 }
 
-
- // for able and disable is Director Related
+//For able and disable Director Related fields
 function toggleDirectorFields() {
-	  const isRelated = document.querySelector('input[name="isDirectorRelated"]:checked').value;
-	  
-	  const idField = document.getElementById('directorId');
-	  const nameField = document.getElementById('directorName');
+  const isRelated = document.querySelector('input[name="isDirectorRelated"]:checked').value;
+  
+  const idField = document.getElementById('directorId');
+  const nameField = document.getElementById('directorName');
 
-	  if (isRelated === 'Y') {
-	    idField.disabled = false;
-	    nameField.disabled = false;
-	  } else {
-	    idField.disabled = true;
-	    nameField.disabled = true;
-	    idField.value = "0";       // optional: reset value
-	    nameField.value = "";      // optional: clear name
-	  }
-	}
+  if (isRelated === 'Y') {
+      idField.disabled = false;
+      nameField.disabled = false;
+  } else {
+      idField.disabled = true;
+      nameField.disabled = true;
+      idField.value = "0";
+      nameField.value = "";
+  }
+}
 
-	// call once on page load to apply initial state
-	toggleDirectorFields();
+//Call once on page load to apply initial state
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.querySelector('input[name="isDirectorRelated"]')) {
+      toggleDirectorFields();
+  }
+});
 </script>
 </body>
 </html>

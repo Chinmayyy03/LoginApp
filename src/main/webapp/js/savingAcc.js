@@ -24,28 +24,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         return;
     }
 
-    // Check if this is for co-borrower lookup
-    if (window.currentCoBorrowerInput) {
-        window.currentCoBorrowerInput.value = customerId;
-        fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
-        window.currentCoBorrowerInput = null;
-        window.currentCoBorrowerBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading co-borrower customer data...');
-        return;
-    }
-
-    // Check if this is for guarantor lookup
-    if (window.currentGuarantorInput) {
-        window.currentGuarantorInput.value = customerId;
-        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
-        window.currentGuarantorInput = null;
-        window.currentGuarantorBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading guarantor customer data...');
-        return;
-    }
-
     // Otherwise, this is for the main customer ID field
     document.getElementById('customerId').value = customerId;
     document.getElementById('customerName').value = customerName;
@@ -89,10 +67,6 @@ function fetchCustomerDetails(customerId, type, block) {
                     populateNomineeFields(block, data.customer);
                 } else if (type === 'joint') {
                     populateJointFields(block, data.customer);
-                } else if (type === 'coborrower') {
-                    populateCoBorrowerFields(block, data.customer);
-                } else if (type === 'guarantor') {
-                    populateGuarantorFields(block, data.customer);
                 }
                 showToast('✅ Customer data loaded successfully!');
             } else {
@@ -105,7 +79,7 @@ function fetchCustomerDetails(customerId, type, block) {
         });
 }
 
-// ✅ FIXED: Helper function to set select value with multiple matching strategies
+// Helper function to set select value with multiple matching strategies
 function setSelectValue(selectElement, value, fieldName) {
     if (!selectElement) {
         console.warn('⚠️ Select element not found for:', fieldName);
@@ -133,7 +107,7 @@ function setSelectValue(selectElement, value, fieldName) {
         }
     }
     
-    // Strategy 2: Try matching on text content (for cases where DB stores names)
+    // Strategy 2: Try matching on text content
     for (let i = 0; i < selectElement.options.length; i++) {
         const optionText = selectElement.options[i].text.trim().toUpperCase();
         if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
@@ -170,19 +144,16 @@ function setSelectValue(selectElement, value, fieldName) {
 function populateNomineeFields(block, customer) {
     console.log('📝 Populating Nominee fields:', customer);
     
-    // Salutation Code
     const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Nominee Salutation');
     }
 
-    // Nominee Name
     const nameInput = block.querySelector('input[name="nomineeName[]"]');
     if (nameInput && customer.customerName) {
         nameInput.value = customer.customerName;
     }
 
-    // Address fields
     const address1Input = block.querySelector('input[name="nomineeAddress1[]"]');
     if (address1Input && customer.address1) {
         address1Input.value = customer.address1;
@@ -198,25 +169,21 @@ function populateNomineeFields(block, customer) {
         address3Input.value = customer.address3;
     }
 
-    // Country
     const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
     if (countrySelect && customer.country) {
         setSelectValue(countrySelect, customer.country, 'Nominee Country');
     }
 
-    // State
     const stateSelect = block.querySelector('select[name="nomineeState[]"]');
     if (stateSelect && customer.state) {
         setSelectValue(stateSelect, customer.state, 'Nominee State');
     }
 
-    // City
     const citySelect = block.querySelector('select[name="nomineeCity[]"]');
     if (citySelect && customer.city) {
         setSelectValue(citySelect, customer.city, 'Nominee City');
     }
 
-    // Zip
     const zipInput = block.querySelector('input[name="nomineeZip[]"]');
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
@@ -227,19 +194,16 @@ function populateNomineeFields(block, customer) {
 function populateJointFields(block, customer) {
     console.log('📝 Populating Joint Holder fields:', customer);
     
-    // Salutation Code
     const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Joint Salutation');
     }
 
-    // Joint Holder Name
     const nameInput = block.querySelector('input[name="jointName[]"]');
     if (nameInput && customer.customerName) {
         nameInput.value = customer.customerName;
     }
 
-    // Address fields
     const address1Input = block.querySelector('input[name="jointAddress1[]"]');
     if (address1Input && customer.address1) {
         address1Input.value = customer.address1;
@@ -255,140 +219,22 @@ function populateJointFields(block, customer) {
         address3Input.value = customer.address3;
     }
 
-    // Country
     const countrySelect = block.querySelector('select[name="jointCountry[]"]');
     if (countrySelect && customer.country) {
         setSelectValue(countrySelect, customer.country, 'Joint Country');
     }
 
-    // State
     const stateSelect = block.querySelector('select[name="jointState[]"]');
     if (stateSelect && customer.state) {
         setSelectValue(stateSelect, customer.state, 'Joint State');
     }
 
-    // City
     const citySelect = block.querySelector('select[name="jointCity[]"]');
     if (citySelect && customer.city) {
         setSelectValue(citySelect, customer.city, 'Joint City');
     }
 
-    // Zip
     const zipInput = block.querySelector('input[name="jointZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
-
-//Populate Co-Borrower fields with customer data
-function populateCoBorrowerFields(block, customer) {
-    console.log('📝 Populating Co-Borrower fields:', customer);
-    
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
-    }
-
-    // Co-Borrower Name
-    const nameInput = block.querySelector('input[name="nomineeName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    // Address fields
-    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    // Country
-    const countrySelect = block.querySelector('select[name="countryCode"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
-    }
-
-    // State
-    const stateSelect = block.querySelector('select[name="stateCode"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
-    }
-
-    // City
-    const citySelect = block.querySelector('select[name="cityCode"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Co-Borrower City');
-    }
-
-    // Zip
-    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
-
-//Populate Guarantor fields with customer data
-function populateGuarantorFields(block, customer) {
-    console.log('📝 Populating Guarantor fields:', customer);
-    
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="guarantorsalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
-    }
-
-    // Guarantor Name
-    const nameInput = block.querySelector('input[name="guarantorName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    // Address fields
-    const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    // Country
-    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Guarantor Country');
-    }
-
-    // State
-    const stateSelect = block.querySelector('select[name="jointState[]"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Guarantor State');
-    }
-
-    // City
-    const citySelect = block.querySelector('select[name="jointCity[]"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Guarantor City');
-    }
-
-    // Zip
-    const zipInput = block.querySelector('input[name="guarantorZip[]"]');
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
