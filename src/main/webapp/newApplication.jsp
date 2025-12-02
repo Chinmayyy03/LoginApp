@@ -401,7 +401,11 @@ function checkForm(event) {
         "TL_518": "OpenAccount/ALCbGLb.jsp",
         "TL_523": "OpenAccount/ALCbGLb.jsp",
         "TL_531": "OpenAccount/ALCbGLb.jsp",
-        "TL_541": "OpenAccount/ALCbGLb.jsp"
+        "TL_541": "OpenAccount/ALCbGLb.jsp",
+        "TL_504": "OpenAccount/ALNCbG.jsp",
+        "TL_525": "OpenAccount/ALNCbG.jsp",
+        "TL_528": "OpenAccount/ALNCbG.jsp"
+
 
 
 
