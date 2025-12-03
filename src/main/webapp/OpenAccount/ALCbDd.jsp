@@ -1021,12 +1021,12 @@ body {
       PreparedStatement psSecType = null;
       ResultSet rsSecType = null;
       try (Connection connSecType = DBConnection.getConnection()) {
-        String sql = "SELECT SECURITYCODE_TYPE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYCODE_TYPE";
+        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
         psSecType = connSecType.prepareStatement(sql);
         rsSecType = psSecType.executeQuery();
         
         while (rsSecType.next()) {
-          String securityType = rsSecType.getString("SECURITYCODE_TYPE");
+          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
     %>
           <option value="<%= securityType %>"><%= securityType %></option>
     <%
