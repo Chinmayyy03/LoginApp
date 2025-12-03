@@ -96,12 +96,12 @@ function fetchCustomerDetails(customerId, type, block) {
                 }
                 showToast('✅ Customer data loaded successfully!');
             } else {
-                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
+                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'), 'error');
             }
         })
         .catch(error => {
             console.error('❌ Error fetching customer details:', error);
-            showToast('❌ Failed to load customer data');
+            showToast('❌ Failed to load customer data', 'error');
         });
 }
 
@@ -516,7 +516,7 @@ function addNominee() {
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
     if (blocks.length <= 1) {
-        alert("At least one nominee is required.");
+        showToast("At least one nominee is required.", "warning");
         return;
     }
     btn.parentNode.remove();
@@ -612,7 +612,7 @@ function addJointHolder() {
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
     if (blocks.length <= 1) {
-        alert("At least one joint holder is required.");
+        showToast(" At least one joint holder is required.", "warning");
         return;
     }
     btn.parentNode.remove();
@@ -631,27 +631,6 @@ function updateJointSerials() {
 
 //==================== UTILITY FUNCTIONS ====================
 
-function showToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
-}
 // Enhanced toast utility function with different types
 function showToast(message, type = 'success') {
     if (typeof Toastify === 'undefined') {

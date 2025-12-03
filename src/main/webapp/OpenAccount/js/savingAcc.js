@@ -9,7 +9,7 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentNomineeInput = null;
         window.currentNomineeBlock = null;
         closeCustomerLookup();
-        showToast('✅ Loading nominee customer data...');
+        showToast('Loading nominee customer data...');
         return;
     }
 
@@ -20,7 +20,7 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentJointInput = null;
         window.currentJointBlock = null;
         closeCustomerLookup();
-        showToast('✅ Loading joint holder customer data...');
+        showToast('Loading joint holder customer data...');
         return;
     }
 
@@ -70,12 +70,12 @@ function fetchCustomerDetails(customerId, type, block) {
                 }
                 showToast('✅ Customer data loaded successfully!');
             } else {
-                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
+                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'), 'error');
             }
         })
         .catch(error => {
             console.error('❌ Error fetching customer details:', error);
-            showToast('❌ Failed to load customer data');
+            showToast('Failed to load customer data', 'error');
         });
 }
 
@@ -361,10 +361,10 @@ function addNominee() {
 
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
-	if (blocks.length <= 1) {
-	    showToast("At least one nominee is required.", "warning");
-	    return;
-	}
+    if (blocks.length <= 1) {
+        showToast("At least one nominee is required.", "warning");
+        return;
+    }
     btn.parentNode.remove();
     updateNomineeSerials();
 }
@@ -457,10 +457,10 @@ function addJointHolder() {
 
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
-	if (blocks.length <= 1) {
-	    showToast("At least one joint holder is required.", "warning");
-	    return;
-	}
+    if (blocks.length <= 1) {
+        showToast("At least one joint holder is required.", "warning");
+        return;
+    }
     btn.parentNode.remove();
     updateJointSerials();
 }
@@ -476,28 +476,6 @@ function updateJointSerials() {
 }
 
 //==================== UTILITY FUNCTIONS ====================
-
-function showToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
-}
 
 // Enhanced toast utility function with different types
 function showToast(message, type = 'success') {
