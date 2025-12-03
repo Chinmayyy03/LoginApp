@@ -361,10 +361,10 @@ function addNominee() {
 
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
-    if (blocks.length <= 1) {
-        alert("At least one nominee is required.");
-        return;
-    }
+	if (blocks.length <= 1) {
+	    showToast("At least one nominee is required.", "warning");
+	    return;
+	}
     btn.parentNode.remove();
     updateNomineeSerials();
 }
@@ -457,10 +457,10 @@ function addJointHolder() {
 
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
-    if (blocks.length <= 1) {
-        alert("At least one joint holder is required.");
-        return;
-    }
+	if (blocks.length <= 1) {
+	    showToast("At least one joint holder is required.", "warning");
+	    return;
+	}
     btn.parentNode.remove();
     updateJointSerials();
 }
@@ -497,4 +497,53 @@ function showToast(message) {
             }
         }).showToast();
     }
+}
+
+// Enhanced toast utility function with different types
+function showToast(message, type = 'success') {
+    if (typeof Toastify === 'undefined') {
+        console.warn('Toastify library not loaded');
+        return;
+    }
+    
+    const styles = {
+        success: {
+            borderColor: '#4caf50',
+            icon: '✅'
+        },
+        error: {
+            borderColor: '#f44336',
+            icon: '❌'
+        },
+        warning: {
+            borderColor: '#ff9800',
+            icon: '⚠️'
+        },
+        info: {
+            borderColor: '#2196F3',
+            icon: 'ℹ️'
+        }
+    };
+    
+    const style = styles[type] || styles.info;
+    
+    Toastify({
+        text: style.icon + ' ' + message,
+        duration: 5000,
+        close: true,
+        gravity: "top",
+        position: "center",
+        style: {
+            background: "#fff",
+            color: "#333",
+            borderRadius: "8px",
+            fontSize: "14px",
+            padding: "16px 24px",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+            borderLeft: `5px solid ${style.borderColor}`,
+            marginTop: "20px",
+            whiteSpace: "pre-line"
+        },
+        stopOnFocus: true
+    }).showToast();
 }

@@ -1487,9 +1487,9 @@ function addCoBorrower() {
 function removeCoBorrower(btn) {
   let blocks = document.querySelectorAll(".coBorrower-block");
   if (blocks.length <= 1) {
-      alert("At least one co-borrower is required.");
-      return;
-  }
+	    showToast("At least one co-borrower is required.", "warning");
+	    return;
+	}
   btn.parentNode.remove();
   updateCoBorrowerSerials();
 }

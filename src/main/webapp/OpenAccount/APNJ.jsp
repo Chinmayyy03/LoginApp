@@ -1489,7 +1489,7 @@ function addNominee() {
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
     if (blocks.length <= 1) {
-        alert("At least one nominee is required.");
+        showToast("At least one nominee is required.", "warning");
         return;
     }
     btn.parentNode.remove();
@@ -1585,7 +1585,7 @@ function addJointHolder() {
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
     if (blocks.length <= 1) {
-        alert("At least one joint holder is required.");
+        showToast("At least one joint holder is required.", "warning");
         return;
     }
     btn.parentNode.remove();

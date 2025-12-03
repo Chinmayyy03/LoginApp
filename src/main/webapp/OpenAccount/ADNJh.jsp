@@ -1538,10 +1538,28 @@ function addNominee() {
     updateNomineeSerials();
 }
 
+//Replace the existing removeNominee function
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
     if (blocks.length <= 1) {
-        alert("At least one nominee is required.");
+        Toastify({
+            text: "⚠️ At least one nominee is required.",
+            duration: 4000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "#fff",
+                color: "#333",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #ff9800",
+                marginTop: "20px"
+            },
+            stopOnFocus: true
+        }).showToast();
         return;
     }
     btn.parentNode.remove();
@@ -1637,7 +1655,24 @@ function addJointHolder() {
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
     if (blocks.length <= 1) {
-        alert("At least one joint holder is required.");
+        Toastify({
+            text: "⚠️ At least one joint holder is required.",
+            duration: 4000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "#fff",
+                color: "#333",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #ff9800",
+                marginTop: "20px"
+            },
+            stopOnFocus: true
+        }).showToast();
         return;
     }
     btn.parentNode.remove();

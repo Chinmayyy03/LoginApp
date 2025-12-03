@@ -2013,9 +2013,9 @@ function addNominee() {
 function removeNominee(btn) {
   let blocks = document.querySelectorAll(".nominee-block");
   if (blocks.length <= 1) {
-      alert("At least one nominee is required.");
-      return;
-  }
+	    showToast("At least one nominee is required.", "warning");
+	    return;
+	}
   btn.parentNode.remove();
   updateNomineeSerials();
 }
@@ -2109,9 +2109,9 @@ function addCoBorrower() {
 function removeCoBorrower(btn) {
   let blocks = document.querySelectorAll(".coBorrower-block");
   if (blocks.length <= 1) {
-      alert("At least one co-borrower is required.");
-      return;
-  }
+	    showToast("At least one co-borrower is required.", "warning");
+	    return;
+	}
   btn.parentNode.remove();
   updateCoBorrowerSerials();
 }
@@ -2205,9 +2205,9 @@ function addGuarantor() {
 function removeGuarantor(btn) {
   let blocks = document.querySelectorAll(".guarantor-block");
   if (blocks.length <= 1) {
-      alert("At least one guarantor is required.");
-      return;
-  }
+	    showToast("At least one guarantor is required.", "warning");
+	    return;
+	}
   btn.parentNode.remove();
   updateGuarantorSerials();
 }
@@ -2251,9 +2251,9 @@ function addLandBuilding() {
 function removeLandBuilding(btn) {
   let blocks = document.querySelectorAll(".lb-block");
   if (blocks.length <= 1) {
-      alert("At least one Land & Building entry is required.");
-      return;
-  }
+	    showToast("At least one Land & Building entry is required.", "warning");
+	    return;
+	}
   btn.parentNode.remove();
   updateLBSerials();
 }
