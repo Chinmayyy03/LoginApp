@@ -1471,7 +1471,7 @@ function addGoldSilver() {
 function removeGoldSilver(btn) {
   let blocks = document.querySelectorAll(".goldsilver-block");
   if (blocks.length <= 1) {
-	    showToast("At least one gold/silver entry is required.", "warning");
+	    showToast("⚠️ At least one gold/silver entry is required.", "warning");
 	    return;
 	}
   btn.parentNode.remove();
@@ -1658,7 +1658,7 @@ function addCoBorrower() {
 function removeCoBorrower(btn) {
   let blocks = document.querySelectorAll(".coBorrower-block");
   if (blocks.length <= 1) {
-	    showToast("At least one co-borrower is required.", "warning");
+	    showToast("⚠️ At least one co-borrower is required.", "warning");
 	    return;
 	}
   btn.parentNode.remove();

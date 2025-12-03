@@ -1762,7 +1762,7 @@ function addCoBorrower() {
 function removeCoBorrower(btn) {
   let blocks = document.querySelectorAll(".coBorrower-block");
   if (blocks.length <= 1) {
-	    showToast("At least one co-borrower is required.", "warning");
+	    showToast("⚠️ At least one co-borrower is required.", "warning");
 	    return;
 	}
   btn.parentNode.remove();
@@ -1916,7 +1916,7 @@ function addGuarantor() {
 function removeGuarantor(btn) {
   let blocks = document.querySelectorAll(".guarantor-block");
   if (blocks.length <= 1) {
-	    showToast("At least one guarantor is required.", "warning");
+	    showToast("⚠️ At least one guarantor is required.", "warning");
 	    return;
 	}
   btn.parentNode.remove();
@@ -1968,7 +1968,7 @@ function addDepositDetails() {
 function removeDepositDetails(btn) {
   let blocks = document.querySelectorAll(".deposit-block");
   if (blocks.length <= 1) {
-	    showToast("At least one deposit detail is required.", "warning");
+	    showToast("⚠️ At least one deposit detail is required.", "warning");
 	    return;
 	}
   btn.parentNode.remove();
