@@ -303,7 +303,7 @@ function checkForm(event) {
         "CA_122": "OpenAccount/savingAcc.jsp",
 		"CA_123": "OpenAccount/savingAcc.jsp",
         "CA_151": "OpenAccount/savingAcc.jsp",
-        "SH_901": "OpenAccount/savingAcc.jsp",
+        "SH_901": "OpenAccount/ANJh.jsp",
         "CC_301": "OpenAccount/ALCbG.jsp",
         "CC_302": "OpenAccount/ALCbG.jsp",
         "CC_303": "OpenAccount/ALCbG.jsp",
