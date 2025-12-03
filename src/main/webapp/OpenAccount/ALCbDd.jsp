@@ -996,7 +996,7 @@ body {
 <fieldset id="depositDetailsFieldset">
   <legend>
     Deposit Details
-    <button type="button" onclick="addDepositDetail()" 
+    <button type="button" onclick="addDepositDetails()"
       style="border:none;background:#373279;color:white;padding:2px 10px;
         border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
       ➕
@@ -1004,77 +1004,77 @@ body {
   </legend>
 
   <div class="nominee-card deposit-block">
-    <button type="button" class="nominee-remove" onclick="removeDepositDetail(this)">✖</button>
+    <button type="button" class="nominee-remove" onclick="removeDepositDetails(this)">✖</button>
 
-    <div class="nominee-title" 
+    <div class="nominee-title"
          style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Deposit Detail <span class="deposit-serial">1</span>
+      Deposit Details <span class="deposit-serial">1</span>
     </div>
 
     <div class="form-grid">
 
-
       <div>
-        <label>Security Type Code</label>
-        <select name="securityTypeCode[]" required>
-          <option value="">-- Select --</option>
-          <option value="BOOK DEBTS">BOOK DEBTS</option>
-          <option value="GOLD">GOLD</option>
-          <option value="SILVER">SILVER</option>
-          <option value="FD">FIXED DEPOSIT</option>
-          <option value="NSC">NSC</option>
-          <option value="KVP">KVP</option>
-          <option value="LIC">LIC POLICY</option>
-          <option value="PROPERTY">PROPERTY</option>
-          <option value="VEHICLE">VEHICLE</option>
-          <option value="SHARES">SHARES</option>
-          <option value="OTHERS">OTHERS</option>
-        </select>
-      </div>
+  <label>Security Type Code</label>
+  <select name="securityTypeCode[]" required>
+    <option value="">-- Select Security Type --</option>
+    <%
+      PreparedStatement psSecType = null;
+      ResultSet rsSecType = null;
+      try (Connection connSecType = DBConnection.getConnection()) {
+        String sql = "SELECT SECURITYCODE_TYPE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYCODE_TYPE";
+        psSecType = connSecType.prepareStatement(sql);
+        rsSecType = psSecType.executeQuery();
+        
+        while (rsSecType.next()) {
+          String securityType = rsSecType.getString("SECURITYCODE_TYPE");
+    %>
+          <option value="<%= securityType %>"><%= securityType %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Security Types</option>");
+        e.printStackTrace();
+      } finally {
+        if (rsSecType != null) rsSecType.close();
+        if (psSecType != null) psSecType.close();
+      }
+    %>
+  </select>
+</div>
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="depositSubmissionDate[]">
+        <input type="date" name="submissionDate[]">
       </div>
 
       <div>
         <label>Margin %</label>
-        <input type="number" step="0.01" name="depositMargin[]" value="0">
+        <input type="number" step="0.01" name="marginPercent[]" value="0" min="0" max="100">
       </div>
 
       <div>
-        <label>Amount Valued</label>
-        <input type="number" step="0.01" name="depositAmountValued[]" value="0">
+        <label>Deposit A/c Code</label>
+        <input type="text" name="depositAccCode[]">
       </div>
 
       <div>
-        <label>Particular</label>
-        <input type="text" step="0.01" name="depositParticular[]" >
-      </div>
-
-      <div>
-        <label>Area</label><br>
-        <input type="number" name="depositArea[]">
-      </div>
-
-      <div>
-        <label>Unit Of Area</label>
-        <input type="text" name="depositUnitOfArea[]">
-      </div>
-
-      <div>
-        <label>Location</label>
-        <input type="text" name="depositLocation[]">
+        <label>Maturity Date</label>
+        <input type="date" name="maturityDate[]">
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="depositSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="securityValue[]" value="0">
       </div>
 
       <div>
-        <label>Remark</label>
-        <textarea name="depositRemark[]" rows="2" style="width:90%;padding:6px;font-size:13px;"></textarea>
+        <label>TD Value</label>
+        <input type="number" step="0.01" name="tdValue[]" value="0" readonly style="background-color: #f0f0f0;">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <input type="text" name="particular[]">
       </div>
     </div>
   </div>
@@ -1440,42 +1440,43 @@ document.addEventListener('keydown', function(event) {
 
 //==================== DEPOSIT DETAILS FUNCTIONS ====================
 
-function addDepositDetail() {
+function addDepositDetails() {
   let fieldset = document.getElementById("depositDetailsFieldset");
   let original = fieldset.querySelector(".deposit-block");
   let clone = original.cloneNode(true);
 
   // Clear all inputs in the cloned block
-  clone.querySelectorAll("input, select, textarea").forEach(el => {
+  clone.querySelectorAll("input, select").forEach(el => {
     if (el.tagName === 'SELECT') {
       el.selectedIndex = 0;
     } else if (el.name === 'depositSrNo[]') {
       // Sr No will be updated by updateDepositSerials()
-      el.value = "";
-    } else if (el.type === 'number') {
-      el.value = "0";
-    } else if (el.type === 'date') {
-      el.value = "";
+      el.value = '';
+    } else if (el.name === 'marginPercent[]' || el.name === 'securityValue[]' || el.name === 'tdValue[]') {
+      el.value = '0';
     } else {
-      el.value = "";
+      el.value = '';
     }
   });
 
-  // Set up the remove button
+  // Update remove button onclick
   clone.querySelector(".nominee-remove").onclick = function() {
-    removeDepositDetail(this);
+    removeDepositDetails(this);
   };
 
   fieldset.appendChild(clone);
   updateDepositSerials();
+  
+  // Auto-calculate TD Value for new block
+  setupTDValueCalculation(clone);
 }
 
-function removeDepositDetail(btn) {
+function removeDepositDetails(btn) {
   let blocks = document.querySelectorAll(".deposit-block");
   if (blocks.length <= 1) {
-	    showToast("⚠️ At least one deposit detail is required.", "warning");
-	    return;
-	}
+    showToast("⚠️ At least one deposit detail is required.", "warning");
+    return;
+  }
   btn.parentNode.remove();
   updateDepositSerials();
 }
@@ -1483,13 +1484,12 @@ function removeDepositDetail(btn) {
 function updateDepositSerials() {
   let blocks = document.querySelectorAll(".deposit-block");
   blocks.forEach((block, index) => {
-    // Update the serial number display
     let serial = block.querySelector(".deposit-serial");
     if (serial) {
       serial.textContent = (index + 1);
     }
     
-    // Update the Sr No input field
+    // Update Sr No input if it exists
     let srNoInput = block.querySelector('input[name="depositSrNo[]"]');
     if (srNoInput) {
       srNoInput.value = (index + 1);
@@ -1497,9 +1497,31 @@ function updateDepositSerials() {
   });
 }
 
-// Initialize serial numbers on page load
+// Auto-calculate TD Value based on Security Value and Margin %
+function calculateTDValue(block) {
+  const securityValue = parseFloat(block.querySelector('input[name="securityValue[]"]').value) || 0;
+  const marginPercent = parseFloat(block.querySelector('input[name="marginPercent[]"]').value) || 0;
+  const tdValueInput = block.querySelector('input[name="tdValue[]"]');
+  
+  // TD Value = Security Value × (Margin % / 100)
+  const tdValue = securityValue * (marginPercent / 100);
+  tdValueInput.value = tdValue.toFixed(2);
+}
+
+function setupTDValueCalculation(block) {
+  const securityValueInput = block.querySelector('input[name="securityValue[]"]');
+  const marginPercentInput = block.querySelector('input[name="marginPercent[]"]');
+  
+  securityValueInput.addEventListener('input', () => calculateTDValue(block));
+  marginPercentInput.addEventListener('input', () => calculateTDValue(block));
+}
+
+// Initialize TD Value calculation for the first deposit block on page load
 document.addEventListener('DOMContentLoaded', function() {
-  updateDepositSerials();
+  const firstDepositBlock = document.querySelector('.deposit-block');
+  if (firstDepositBlock) {
+    setupTDValueCalculation(firstDepositBlock);
+  }
 });
 //==================== CO-BORROWER FUNCTIONS (FIXED) ====================
 
