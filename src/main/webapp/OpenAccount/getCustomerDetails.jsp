@@ -31,9 +31,13 @@
                      "TRIM(c.COUNTRY) as COUNTRY, " +
                      "TRIM(c.STATE) as STATE, " +
                      "TRIM(c.CITY) as CITY, " +
-                     "c.ZIP " +
-                     "FROM CUSTOMERS c " +
-                     "WHERE c.CUSTOMER_ID = ? AND c.STATUS = 'A'";
+                     "c.ZIP, " +
+                             "TRIM(c.MEMBER_NUMBER) as MEMBER_NUMBER, " +
+                             "c.BIRTH_DATE, " +
+                             "c.RESIDENCE_PHONE, " +
+                             "c.MOBILE_NO " +
+                             "FROM CUSTOMERS c " +
+                             "WHERE c.CUSTOMER_ID = ? AND c.STATUS = 'A'";
         
         ps = conn.prepareStatement(sql);
         ps.setString(1, customerId);
@@ -53,11 +57,21 @@
             String cityName = rs.getString("CITY");
             int zip = rs.getInt("ZIP");
             
+            String memberNumber = rs.getString("MEMBER_NUMBER");
+            java.sql.Date birthDate = rs.getDate("BIRTH_DATE");
+            long residencePhone = rs.getLong("RESIDENCE_PHONE");
+            long mobileNo = rs.getLong("MOBILE_NO");
+            
             customer.put("customerName", customerName != null ? customerName : "");
             customer.put("address1", address1 != null ? address1 : "");
             customer.put("address2", address2 != null ? address2 : "");
             customer.put("address3", address3 != null ? address3 : "");
             customer.put("zip", rs.wasNull() ? 0 : zip);
+            
+            customer.put("memberNumber", memberNumber != null ? memberNumber : "");
+            customer.put("birthDate", birthDate != null ? birthDate.toString() : "");
+            customer.put("residencePhone", rs.wasNull() ? 0 : residencePhone);
+            customer.put("mobileNo", rs.wasNull() ? 0 : mobileNo);
             
             // ✅ SALUTATION: Use the code directly (even if NULL, we'll handle it in JS)
             customer.put("salutationCode", salutationCode != null ? salutationCode : "");
