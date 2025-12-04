@@ -473,17 +473,17 @@ body {
 
     <div>
       <label>Register Amount</label>
-      <input type="number" step="0.01" name="registerAmount" value="0">
+      <input type="number" step="0.01" name="registerAmount">
     </div>
 
     <div>
       <label>Limit Amount</label>
-      <input type="number" step="0.01" name="limitAmount" value="0">
+      <input type="number" step="0.01" name="limitAmount">
     </div>
 
     <div>
       <label>Drawing Power</label>
-      <input type="number" step="0.01" name="drawingPower" value="0">
+      <input type="number" step="0.01" name="drawingPower">
     </div>
 
     <div>
@@ -493,7 +493,7 @@ body {
 
     <div>
       <label>Sanction Amount</label>
-      <input type="number" step="0.01" name="sanctionAmount" value="0">
+      <input type="number" step="0.01" name="sanctionAmount">
     </div>
 
     <div>
@@ -539,32 +539,32 @@ body {
 
     <div>
       <label>Interest Rate</label>
-      <input type="number" step="0.01" name="interestRate" value="0">
+      <input type="number" step="0.01" name="interestRate">
     </div>
 
     <div>
       <label>Penal Int. Rate</label>
-      <input type="number" step="0.01" name="penalIntRate" value="0">
+      <input type="number" step="0.01" name="penalIntRate">
     </div>
 
     <div>
       <label>Mor. Int. Rate</label>
-      <input type="number" step="0.01" name="morIntRate" value="0">
+      <input type="number" step="0.01" name="morIntRate">
     </div>
 
     <div>
       <label>Overdue Int. Rate</label>
-      <input type="number" step="0.01" name="overdueIntRate" value="0">
+      <input type="number" step="0.01" name="overdueIntRate">
     </div>
 
     <div>
       <label>Mor. Period Month</label>
-      <input type="number" name="morPeriodMonth" value="0">
+      <input type="number" name="morPeriodMonth">
     </div>
 
     <div>
       <label>Inst. Amount</label>
-      <input type="number" step="0.01" name="instAmount" value="0">
+      <input type="number" step="0.01" name="instAmount">
     </div>
 
     <div>
@@ -844,7 +844,7 @@ body {
 
 <div>
   <label>Director Id</label>
-  <input type="text" name="directorId" id="directorId" value="0">
+  <input type="text" name="directorId" id="directorId">
 </div>
 
 <div>
@@ -1244,7 +1244,7 @@ body {
 
       <div>
         <label>Zip</label>
-        <input type="number" name="coBorrowerZip[]" value="0">
+        <input type="number" name="coBorrowerZip[]">
       </div>
     </div>
   </div>
@@ -1430,17 +1430,17 @@ body {
 
       <div>
         <label>Zip</label>
-        <input type="number" name="guarantorZip[]" value="0">
+        <input type="number" name="guarantorZip[]">
       </div>
 
       <div>
         <label>Member No</label>
-        <input type="text" name="guarantorMemberNo[]" value="0">
+        <input type="text" name="guarantorMemberNo[]">
       </div>
 
       <div>
         <label>Employee Id</label>
-        <input type="text" name="guarantorEmployeeId[]" value="0">
+        <input type="text" name="guarantorEmployeeId[]">
       </div>
 
       <div>
@@ -1450,12 +1450,12 @@ body {
 
       <div>
         <label>Phone No</label>
-        <input type="text" name="guarantorPhoneNo[]" value="0">
+        <input type="text" name="guarantorPhoneNo[]">
       </div>
 
       <div>
         <label>Mobile No</label>
-        <input type="text" name="guarantorMobileNo[]" value="0">
+        <input type="text" name="guarantorMobileNo[]">
       </div>
     </div>
   </div>
@@ -1697,8 +1697,10 @@ function fetchCustomerDetails(customerId, type, block) {
         	  if (type === 'nominee') {
         		    populateNomineeFields(block, data.customer);
         		} else if (type === 'coborrower') {
-                  populateGuarantorFields(block, data.customer);
-              }
+                  populateCoBorrowerFields(block, data.customer);
+        		} else if (type === 'guarantor') {
+                    populateGuarantorFields(block, data.customer);
+        		}
               showToast('✅ Customer data loaded successfully!');
           } else {
               showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
@@ -1865,6 +1867,26 @@ function populateGuarantorFields(block, customer) {
   if (zipInput && customer.zip) {
       zipInput.value = customer.zip;
   }
+
+  const memberNoInput = block.querySelector('input[name="guarantorMemberNo[]"]');
+  if (memberNoInput && customer.memberNumber) {
+      memberNoInput.value = customer.memberNumber;
+  }
+
+  const birthDateInput = block.querySelector('input[name="guarantorBirthDate[]"]');
+  if (birthDateInput && customer.birthDate) {
+      birthDateInput.value = customer.birthDate;
+  }
+
+  const phoneNoInput = block.querySelector('input[name="guarantorPhoneNo[]"]');
+  if (phoneNoInput && customer.residencePhone) {
+      phoneNoInput.value = customer.residencePhone;
+  }
+
+  const mobileNoInput = block.querySelector('input[name="guarantorMobileNo[]"]');
+  if (mobileNoInput && customer.mobileNo) {
+      mobileNoInput.value = customer.mobileNo;
+  }
 }
 
 //Customer Lookup Functions
@@ -1937,7 +1959,7 @@ function clearNomineeFields(block) {
   block.querySelector('select[name="nomineeCountry[]"]').value = '';
   block.querySelector('select[name="nomineeState[]"]').value = '';
   block.querySelector('select[name="nomineeCity[]"]').value = '';
-  block.querySelector('input[name="nomineeZip[]"]').value = '0';
+  block.querySelector('input[name="nomineeZip[]"]').value = '';
 }
 
 function openNomineeCustomerLookup(button) {
@@ -2082,7 +2104,7 @@ function clearCoBorrowerFields(block) {
   block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
   block.querySelector('select[name="coBorrowerState[]"]').value = '';
   block.querySelector('select[name="coBorrowerCity[]"]').value = '';
-  block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+  block.querySelector('input[name="coBorrowerZip[]"]').value = '';
 }
 
 function openCoBorrowerCustomerLookup(button) {
@@ -2178,7 +2200,12 @@ function clearGuarantorFields(block) {
   block.querySelector('select[name="guarantorCountry[]"]').value = '';
   block.querySelector('select[name="guarantorState[]"]').value = '';
   block.querySelector('select[name="guarantorCity[]"]').value = '';
-  block.querySelector('input[name="guarantorZip[]"]').value = '0';
+  block.querySelector('input[name="guarantorZip[]"]').value = '';
+  
+  block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
+  block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
+  block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
+  block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
 }
 
 function openGuarantorCustomerLookup(button) {

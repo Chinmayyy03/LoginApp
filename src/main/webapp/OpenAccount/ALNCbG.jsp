@@ -1590,8 +1590,10 @@ function fetchCustomerDetails(customerId, type, block) {
         	  if (type === 'nominee') {
         		    populateNomineeFields(block, data.customer);
         		} else if (type === 'coborrower') {
-                  populateGuarantorFields(block, data.customer);
-              }
+        			populateCoBorrowerFields(block, data.customer);
+        		} else if (type === 'guarantor') {
+                    populateGuarantorFields(block, data.customer);
+        		}
               showToast('✅ Customer data loaded successfully!');
           } else {
               showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
@@ -1758,6 +1760,25 @@ function populateGuarantorFields(block, customer) {
   if (zipInput && customer.zip) {
       zipInput.value = customer.zip;
   }
+  const memberNoInput = block.querySelector('input[name="guarantorMemberNo[]"]');
+  if (memberNoInput && customer.memberNumber) {
+      memberNoInput.value = customer.memberNumber;
+  }
+
+  const birthDateInput = block.querySelector('input[name="guarantorBirthDate[]"]');
+  if (birthDateInput && customer.birthDate) {
+      birthDateInput.value = customer.birthDate;
+  }
+
+  const phoneNoInput = block.querySelector('input[name="guarantorPhoneNo[]"]');
+  if (phoneNoInput && customer.residencePhone) {
+      phoneNoInput.value = customer.residencePhone;
+  }
+
+  const mobileNoInput = block.querySelector('input[name="guarantorMobileNo[]"]');
+  if (mobileNoInput && customer.mobileNo) {
+      mobileNoInput.value = customer.mobileNo;
+  }
 }
 
 //Customer Lookup Functions
@@ -1830,7 +1851,7 @@ function clearNomineeFields(block) {
   block.querySelector('select[name="nomineeCountry[]"]').value = '';
   block.querySelector('select[name="nomineeState[]"]').value = '';
   block.querySelector('select[name="nomineeCity[]"]').value = '';
-  block.querySelector('input[name="nomineeZip[]"]').value = '0';
+  block.querySelector('input[name="nomineeZip[]"]').value = '';
 }
 
 function openNomineeCustomerLookup(button) {
@@ -1975,7 +1996,7 @@ function clearCoBorrowerFields(block) {
   block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
   block.querySelector('select[name="coBorrowerState[]"]').value = '';
   block.querySelector('select[name="coBorrowerCity[]"]').value = '';
-  block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+  block.querySelector('input[name="coBorrowerZip[]"]').value = '';
 }
 
 function openCoBorrowerCustomerLookup(button) {
@@ -2071,7 +2092,12 @@ function clearGuarantorFields(block) {
   block.querySelector('select[name="guarantorCountry[]"]').value = '';
   block.querySelector('select[name="guarantorState[]"]').value = '';
   block.querySelector('select[name="guarantorCity[]"]').value = '';
-  block.querySelector('input[name="guarantorZip[]"]').value = '0';
+  block.querySelector('input[name="guarantorZip[]"]').value = '';
+  
+  block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
+  block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
+  block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
+  block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
 }
 
 function openGuarantorCustomerLookup(button) {
