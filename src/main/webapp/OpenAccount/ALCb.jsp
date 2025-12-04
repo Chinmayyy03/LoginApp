@@ -483,13 +483,42 @@ body {
     </div>
 
     <div>
-      <label>Installment Type Id</label>
-      <input type="text" name="installmentTypeId">
+		<label for="installmentTypeId">Installment Type Id</label>
+		<select name="installmentTypeId" id="installmentTypeId" required onchange="setInstallmentType()">
+  		<option value="">-- Select Installment Type --</option>
+  		<%
+    	PreparedStatement psInstType = null;
+    	ResultSet rsInstType = null;
+    	try (Connection connInstType = DBConnection.getConnection()) {
+      	String sql = "SELECT INSTALLMENTTYPE_ID, DISCRIPTION " +
+                   "FROM HEADOFFICE.INSTALLMENTTYPE " +
+                   "ORDER BY INSTALLMENTTYPE_ID";
+      	psInstType = connInstType.prepareStatement(sql);
+      	rsInstType = psInstType.executeQuery();
+
+      	while (rsInstType.next()) {
+        String id   = rsInstType.getString("INSTALLMENTTYPE_ID"); // value to submit
+        String desc = rsInstType.getString("DISCRIPTION");        // description
+  		%>
+        <!-- Display both, submit only id -->
+        <option value="<%= id %>" data-desc="<%= desc %>">
+          <%= id %> - <%= desc %>
+        </option>
+  		<%
+      	}
+    	} catch (Exception e) {
+      	out.println("<option disabled>Error loading Installment Types</option>");
+    	} finally {
+      	if (rsInstType != null) rsInstType.close();
+      	if (psInstType != null) psInstType.close();
+    	}
+  		%>
+		</select>
     </div>
 
     <div>
-      <label>Installment Type</label>
-      <input type="text" name="installmentType">
+      <label for="installmentType">Installment Type</label>
+	  <input type="text" name="installmentType" id="installmentType" readonly>
     </div>
 
     <div>
@@ -1602,6 +1631,14 @@ function toggleDirectorFields() {
 	    document.getElementById('sanctionDate').addEventListener('change', calcReviewDate);
 	    document.getElementById('loanPeriod').addEventListener('input', calcReviewDate);
 	  };
+	  
+	  
+	  function setInstallmentType() {
+		  var sel  = document.getElementById('installmentTypeId');
+		  var opt  = sel.options[sel.selectedIndex];
+		  var desc = opt ? opt.getAttribute('data-desc') : '';
+		  document.getElementById('installmentType').value = desc || '';
+		}
 </script>
 </body>
 </html>
