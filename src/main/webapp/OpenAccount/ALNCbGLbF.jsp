@@ -585,12 +585,36 @@ body {
     </div>
     
        <div>
-      <label>Social Section Id</label>
-      <select name="socialSectionId">
-        <option value="">NOT SPECIFIED</option>
-        <!-- add other options if needed -->
-      </select>
-    </div>
+  <label>Social Section Id</label>
+  <select name="socialSectionId" required>
+    <option value="">-- Select Social Section --</option>
+
+    <%
+      PreparedStatement psSocial = null;
+      ResultSet rsSocial = null;
+      try (Connection connSocial = DBConnection.getConnection()) {
+        String sql = "SELECT SOCIALSECTION_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTION ORDER BY SOCIALSECTION_ID";
+        psSocial = connSocial.prepareStatement(sql);
+        rsSocial = psSocial.executeQuery();
+
+        while (rsSocial.next()) {
+          String id = rsSocial.getString("SOCIALSECTION_ID");   // ID to store
+          String desc = rsSocial.getString("DESCRIPTION");      // Text to show
+    %>
+          <option value="<%= id %>"><%= desc %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Social Section</option>");
+      } finally {
+        if (rsSocial != null) rsSocial.close();
+        if (psSocial != null) psSocial.close();
+      }
+    %>
+
+  </select>
+</div>
+
 
     <div>
       <label>Sub Area Code</label>
