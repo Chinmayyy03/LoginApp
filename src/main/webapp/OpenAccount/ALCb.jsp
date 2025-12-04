@@ -463,9 +463,9 @@ body {
     </div>
 
     <div>
-      <label>Sanction Date</label>
-      <input type="date" name="sanctionDate">
-    </div>
+		<label for="sanctionDate">Sanction Date</label>
+		<input type="date" id="sanctionDate" name="sanctionDate">  
+	</div>
 
     <div>
       <label>Sanction Amount</label>
@@ -473,13 +473,13 @@ body {
     </div>
 
     <div>
-      <label>Period of Loan</label>
-      <input type="number" name="periodOfLoan" value="0">
+		<label for="loanPeriod">Period of Loan (months)</label>
+  		<input type="number" id="loanPeriod" name="loanPeriod" min="1">
     </div>
 
     <div>
-      <label>A/c Review Date</label>
-      <input type="date" name="acReviewDate">
+      <label for="reviewDate">A/c Review Date</label>
+ 	  <input type="date" id="reviewDate" name="reviewDate" readonly>
     </div>
 
     <div>
@@ -1574,6 +1574,34 @@ function toggleDirectorFields() {
 
 	// call once on page load to apply initial state
 	toggleDirectorFields();
+	
+	function calcReviewDate() {
+	    const sanctionVal = document.getElementById('sanctionDate').value;
+	    const months = parseInt(document.getElementById('loanPeriod').value, 10);
+
+	    // Need both fields
+	    if (!sanctionVal || isNaN(months) || months <= 0) {
+	      document.getElementById('reviewDate').value = '';
+	      return;
+	    }
+
+	    // Start from selected sanction date
+	    const d = new Date(sanctionVal);   // sanctionVal is "YYYY-MM-DD"
+	    d.setMonth(d.getMonth() + months); // add months
+
+	    const yyyy = d.getFullYear();
+	    const mm = String(d.getMonth() + 1).padStart(2, '0');
+	    const dd = String(d.getDate()).padStart(2, '0');
+	    const reviewStr = yyyy + '-' + mm + '-' + dd;
+
+	    document.getElementById('reviewDate').value = reviewStr;
+	  }
+
+	  // Recalculate whenever sanction date or loan period changes
+	  window.onload = function () {
+	    document.getElementById('sanctionDate').addEventListener('change', calcReviewDate);
+	    document.getElementById('loanPeriod').addEventListener('input', calcReviewDate);
+	  };
 </script>
 </body>
 </html>
