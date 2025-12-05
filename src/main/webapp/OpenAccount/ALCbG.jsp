@@ -640,15 +640,20 @@ body {
 </div>
 
     
-    <div>
-      <label>Social Sector Id</label>
-      <input type="text" name="socialSectorId">
-    </div>
-    
-      <div>
-      <label>Description 1</label>
-      <input type="text" name="description1">
-    </div>
+   <div>
+  <label>Social Sector Id</label>
+  <div class="input-icon-box">
+    <input type="text" id="socialSectorId" name="socialSectorId" 
+           onclick="openSocialSectorLookup()" readonly required>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openSocialSectorLookup()" title="Search Social Sector">🔍</button>
+  </div>
+</div>
+
+<div>
+  <label>Social Sector Description</label>
+  <input type="text" id="socialSectorDesc" name="socialSectorDesc" readonly>
+</div>
 
     <div>
   <label>Purpose Id</label>
@@ -682,14 +687,19 @@ body {
 
     
     <div>
-      <label>Social SubSector Id</label>
-      <input type="text" name="socialSubSectorId">
-    </div>
-    
-    <div>
-      <label>Description 2</label>
-      <input type="text" name="description2">
-    </div>
+  <label>Social SubSector Id</label>
+  <div class="input-icon-box">
+    <input type="text" id="socialSubSectorId" name="socialSubSectorId" 
+           onclick="openSocialSubSectorLookup()" readonly required>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openSocialSubSectorLookup()" title="Search Social SubSector">🔍</button>
+  </div>
+</div>
+
+<div>
+  <label>Social SubSector Description</label>
+  <input type="text" id="socialSubSectorDesc" name="socialSubSectorDesc" readonly>
+</div>
 
     <div>
   <label>Classification Id</label>
@@ -1259,8 +1269,23 @@ body {
         <div id="installmentLookupContent"></div>
     </div>
 </div>
-<script>
+<!-- SOCIAL SECTOR LOOKUP MODAL -->
+<div id="socialSectorLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeSocialSectorLookup()">&times;</span>
+        <div id="socialSectorLookupContent"></div>
+    </div>
+</div>
 
+<!-- SOCIAL SUBSECTOR LOOKUP MODAL -->
+<div id="socialSubSectorLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeSocialSubSectorLookup()">&times;</span>
+        <div id="socialSubSectorLookupContent"></div>
+    </div>
+</div>
+<script>
+/==================== INSTALLMENT TYPE LOOKUP ====================
 function openInstallmentLookup() {
     let url = "lookupForLoan.jsp";
 
@@ -1296,6 +1321,89 @@ window.setInstallmentData = function(id, desc) {
     
     closeInstallmentLookup();
     showToast('✅ Installment Type selected successfully!');
+};
+
+//==================== SOCIAL SECTOR LOOKUP ====================
+
+function openSocialSectorLookup() {
+    let url = "lookupForLoan.jsp?type=socialSector";
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("socialSectorLookupContent").innerHTML = html;
+            document.getElementById("socialSectorLookupModal").style.display = "flex";
+            
+            const scripts = document.getElementById("socialSectorLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load social sector lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeSocialSectorLookup() {
+    document.getElementById("socialSectorLookupModal").style.display = "none";
+}
+
+window.setSocialSectorData = function(id, desc) {
+    document.getElementById("socialSectorId").value = id;
+    document.getElementById("socialSectorDesc").value = desc;
+    
+    // Clear subsector when sector changes
+    document.getElementById("socialSubSectorId").value = '';
+    document.getElementById("socialSubSectorDesc").value = '';
+    
+    closeSocialSectorLookup();
+    showToast('✅ Social Sector selected successfully!');
+};
+
+//==================== SOCIAL SUBSECTOR LOOKUP ====================
+
+function openSocialSubSectorLookup() {
+    const sectorId = document.getElementById("socialSectorId").value;
+    
+    if (!sectorId) {
+        showToast('⚠️ Please select Social Sector first!');
+        return;
+    }
+    
+    let url = "lookupForLoan.jsp?type=socialSubSector&sectorId=" + encodeURIComponent(sectorId);
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("socialSubSectorLookupContent").innerHTML = html;
+            document.getElementById("socialSubSectorLookupModal").style.display = "flex";
+            
+            const scripts = document.getElementById("socialSubSectorLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load social subsector lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeSocialSubSectorLookup() {
+    document.getElementById("socialSubSectorLookupModal").style.display = "none";
+}
+
+window.setSocialSubSectorData = function(id, desc) {
+    document.getElementById("socialSubSectorId").value = id;
+    document.getElementById("socialSubSectorDesc").value = desc;
+    
+    closeSocialSubSectorLookup();
+    showToast('✅ Social SubSector selected successfully!');
 };
 
 // Validation function
@@ -1641,18 +1749,33 @@ function closeCustomerLookup() {
 }
 
 window.onclick = function(event) {
-  const modal = document.getElementById('customerLookupModal');
-  if (event.target === modal) {
-      closeCustomerLookup();
-  }
+    const customerModal = document.getElementById('customerLookupModal');
+    const installmentModal = document.getElementById('installmentLookupModal');
+    const socialSectorModal = document.getElementById('socialSectorLookupModal');
+    const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
+    
+    if (event.target === customerModal) {
+        closeCustomerLookup();
+    }
+    if (event.target === installmentModal) {
+        closeInstallmentLookup();
+    }
+    if (event.target === socialSectorModal) {
+        closeSocialSectorLookup();
+    }
+    if (event.target === socialSubSectorModal) {
+        closeSocialSubSectorLookup();
+    }
 }
 
 document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') {
-      closeCustomerLookup();
-  }
+    if (event.key === 'Escape') {
+        closeCustomerLookup();
+        closeInstallmentLookup();
+        closeSocialSectorLookup();
+        closeSocialSubSectorLookup();
+    }
 });
-
 //==================== CO-BORROWER FUNCTIONS ====================
 
 function toggleCoBorrowerCustomerID(radio) {
