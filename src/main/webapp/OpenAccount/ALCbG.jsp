@@ -483,14 +483,20 @@ body {
     </div>
 
 
-    <div>
-      <label>Installment Type Id</label>
-      <input type="text" name="installmentTypeId">
-    </div>
+	<div>
+    		<label for="installmentTypeId">Installment Type Id</label>
+    	<div class="input-icon-box">
+        	<input type="text" id="installmentTypeId" name="installmentTypeId" 
+               onclick="openInstallmentLookup()" readonly required>
+        	<button type="button" class="inside-icon-btn" 
+                onclick="openInstallmentLookup()" title="Search Installment Type">🔍</button>
+    	</div>
+	</div>
+
 
     <div>
-      <label>Installment Type</label>
-      <input type="text" name="installmentType">
+      <label for="installmentType">Installment Type</label>
+	  <input type="text" name="installmentType" id="installmentType" readonly>
     </div>
 
     <div>
@@ -1246,7 +1252,52 @@ body {
   </div>
 </div>
 
+<!-- INSTALLMENT TYPE LOOKUP MODAL -->
+<div id="installmentLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeInstallmentLookup()">&times;</span>
+        <div id="installmentLookupContent"></div>
+    </div>
+</div>
 <script>
+
+function openInstallmentLookup() {
+    let url = "lookupForLoan.jsp";
+
+    // Load JSP content into modal using fetch()
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("installmentLookupContent").innerHTML = html;
+            document.getElementById("installmentLookupModal").style.display = "flex";
+            
+            // ✅ Execute any scripts in the loaded content
+            const scripts = document.getElementById("installmentLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeInstallmentLookup() {
+    document.getElementById("installmentLookupModal").style.display = "none";
+}
+
+// ✅ Global function to set installment data (called from lookupForLoan.jsp)
+window.setInstallmentData = function(id, desc) {
+    document.getElementById("installmentTypeId").value = id;
+    document.getElementById("installmentType").value = desc;
+    
+    closeInstallmentLookup();
+    showToast('✅ Installment Type selected successfully!');
+};
+
 // Validation function
 function validateForm() {
     const customerId = document.getElementById('customerId').value.trim();

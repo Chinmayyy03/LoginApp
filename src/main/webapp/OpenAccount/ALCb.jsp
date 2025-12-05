@@ -482,39 +482,16 @@ body {
  	  <input type="date" id="reviewDate" name="reviewDate" readonly>
     </div>
 
-    <div>
-		<label for="installmentTypeId">Installment Type Id</label>
-		<select name="installmentTypeId" id="installmentTypeId" required onchange="setInstallmentType()">
-  		<option value="">-- Select Installment Type --</option>
-  		<%
-    	PreparedStatement psInstType = null;
-    	ResultSet rsInstType = null;
-    	try (Connection connInstType = DBConnection.getConnection()) {
-      	String sql = "SELECT INSTALLMENTTYPE_ID, DISCRIPTION " +
-                   "FROM HEADOFFICE.INSTALLMENTTYPE " +
-                   "ORDER BY INSTALLMENTTYPE_ID";
-      	psInstType = connInstType.prepareStatement(sql);
-      	rsInstType = psInstType.executeQuery();
+	<div>
+    		<label for="installmentTypeId">Installment Type Id</label>
+    	<div class="input-icon-box">
+        	<input type="text" id="installmentTypeId" name="installmentTypeId" 
+               onclick="openInstallmentLookup()" readonly required>
+        	<button type="button" class="inside-icon-btn" 
+                onclick="openInstallmentLookup()" title="Search Installment Type">🔍</button>
+    	</div>
+	</div>
 
-      	while (rsInstType.next()) {
-        String id   = rsInstType.getString("INSTALLMENTTYPE_ID"); // value to submit
-        String desc = rsInstType.getString("DISCRIPTION");        // description
-  		%>
-        <!-- Display both, submit only id -->
-        <option value="<%= id %>" data-desc="<%= desc %>">
-          <%= id %> - <%= desc %>
-        </option>
-  		<%
-      	}
-    	} catch (Exception e) {
-      	out.println("<option disabled>Error loading Installment Types</option>");
-    	} finally {
-      	if (rsInstType != null) rsInstType.close();
-      	if (psInstType != null) psInstType.close();
-    	}
-  		%>
-		</select>
-    </div>
 
     <div>
       <label for="installmentType">Installment Type</label>
@@ -1063,8 +1040,57 @@ body {
   </div>
 </div>
 
+
+<!-- INSTALLMENT TYPE LOOKUP MODAL -->
+<div id="installmentLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeInstallmentLookup()">&times;</span>
+        <div id="installmentLookupContent"></div>
+    </div>
+</div>
+
 <script src="js/savingAcc.js"></script>
 <script>
+
+//==================== INSTALLMENT TYPE LOOKUP ====================
+
+function openInstallmentLookup() {
+    let url = "lookupForLoan.jsp";
+
+    // Load JSP content into modal using fetch()
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("installmentLookupContent").innerHTML = html;
+            document.getElementById("installmentLookupModal").style.display = "flex";
+            
+            // ✅ Execute any scripts in the loaded content
+            const scripts = document.getElementById("installmentLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeInstallmentLookup() {
+    document.getElementById("installmentLookupModal").style.display = "none";
+}
+
+// ✅ Global function to set installment data (called from lookupForLoan.jsp)
+window.setInstallmentData = function(id, desc) {
+    document.getElementById("installmentTypeId").value = id;
+    document.getElementById("installmentType").value = desc;
+    
+    closeInstallmentLookup();
+    showToast('✅ Installment Type selected successfully!');
+};
+
 // Validation function
 function validateForm() {
     const customerId = document.getElementById('customerId').value.trim();
@@ -1390,9 +1416,14 @@ function closeCustomerLookup() {
 
 //Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = document.getElementById('customerLookupModal');
-    if (event.target === modal) {
+    const customerModal = document.getElementById('customerLookupModal');
+    const installmentModal = document.getElementById('installmentLookupModal');
+    
+    if (event.target === customerModal) {
         closeCustomerLookup();
+    }
+    if (event.target === installmentModal) {
+        closeInstallmentLookup();
     }
 }
 
@@ -1400,9 +1431,9 @@ window.onclick = function(event) {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeCustomerLookup();
+        closeInstallmentLookup();
     }
 });
-
 //==================== CO-BORROWER FUNCTIONS (FIXED) ====================
 
 function toggleCoBorrowerCustomerID(radio) {
@@ -1633,12 +1664,7 @@ function toggleDirectorFields() {
 	  };
 	  
 	  
-	  function setInstallmentType() {
-		  var sel  = document.getElementById('installmentTypeId');
-		  var opt  = sel.options[sel.selectedIndex];
-		  var desc = opt ? opt.getAttribute('data-desc') : '';
-		  document.getElementById('installmentType').value = desc || '';
-		}
+
 </script>
 </body>
 </html>
