@@ -1285,7 +1285,7 @@ body {
     </div>
 </div>
 <script>
-/==================== INSTALLMENT TYPE LOOKUP ====================
+//==================== INSTALLMENT TYPE LOOKUP ====================
 function openInstallmentLookup() {
     let url = "lookupForLoan.jsp";
 

@@ -394,15 +394,21 @@ function populateGuarantorFields(block, customer) {
     }
 }
 
-//Customer Lookup Functions
-function openCustomerLookup() {
+//Customer Lookup Functions with exclusion support
+function openCustomerLookup(excludeCustomerId = null) {
     const modal = document.getElementById('customerLookupModal');
     const content = document.getElementById('customerLookupContent');
 
     modal.style.display = 'flex';
     content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-    fetch('lookupForCustomerId.jsp')
+    // ✅ Build URL with exclusion parameter if provided
+    let url = 'lookupForCustomerId.jsp';
+    if (excludeCustomerId) {
+        url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+    }
+
+    fetch(url)
         .then(response => response.text())
         .then(html => {
             content.innerHTML = html;

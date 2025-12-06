@@ -9,10 +9,21 @@
 
     String branchCode = (String) sess.getAttribute("branchCode");
     
-    String query = "SELECT CUSTOMER_ID, CUSTOMER_NAME, CATEGORY_CODE, RISK_CATEGORY " +
-                   "FROM CUSTOMERS " +
-                   "WHERE BRANCH_CODE = ? AND STATUS = 'A' " +
-                   "ORDER BY CUSTOMER_ID";
+    // ✅ Get excludeCustomerId parameter to filter out the main customer
+    String excludeCustomerId = request.getParameter("excludeCustomerId");
+    
+    String query;
+    if (excludeCustomerId != null && !excludeCustomerId.trim().isEmpty()) {
+        query = "SELECT CUSTOMER_ID, CUSTOMER_NAME, CATEGORY_CODE, RISK_CATEGORY " +
+                "FROM CUSTOMERS " +
+                "WHERE BRANCH_CODE = ? AND STATUS = 'A' AND CUSTOMER_ID != ? " +
+                "ORDER BY CUSTOMER_ID";
+    } else {
+        query = "SELECT CUSTOMER_ID, CUSTOMER_NAME, CATEGORY_CODE, RISK_CATEGORY " +
+                "FROM CUSTOMERS " +
+                "WHERE BRANCH_CODE = ? AND STATUS = 'A' " +
+                "ORDER BY CUSTOMER_ID";
+    }
 
     Connection con = null;
     PreparedStatement ps = null;
@@ -22,6 +33,9 @@
         con = DBConnection.getConnection();
         ps = con.prepareStatement(query);
         ps.setString(1, branchCode);
+        if (excludeCustomerId != null && !excludeCustomerId.trim().isEmpty()) {
+            ps.setString(2, excludeCustomerId.trim());
+        }
         rs = ps.executeQuery();
 %>
 
