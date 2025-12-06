@@ -311,7 +311,45 @@ body {
     align-items: center;
     gap: 20px;   /* space between the two blocks */
 }
-    
+
+/* Replace the existing Gold/Silver section CSS with this updated version */
+
+/* Gold/Silver responsive grid - same as application fieldset */
+.goldsilver-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 20px;
+}
+
+.goldsilver-grid div {
+  flex-direction: column;
+}
+
+/* Full-width note field */
+.goldsilver-note-field {
+  grid-column: span 3;
+}
+
+/* Media queries for responsive behavior */
+@media (max-width: 1024px) {
+  .goldsilver-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .goldsilver-note-field {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .goldsilver-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .goldsilver-note-field {
+    grid-column: span 1;
+  }
+}    
 </style>
 </head>
 <body>
@@ -1034,6 +1072,7 @@ body {
 </fieldset>
 
 <!-- Gold/Silver Security Section -->
+<!-- Gold/Silver Security Section -->
 <fieldset id="goldSilverFieldset">
   <legend>
     Gold/Silver
@@ -1052,35 +1091,36 @@ body {
       Gold/Silver <span class="goldsilver-serial">1</span>
     </div>
 
-    <div class="form-grid">
+    <!-- ✅ Changed from form-grid to goldsilver-grid -->
+    <div class="goldsilver-grid">
       <div>
-  <label>Security Type Code</label>
-  <select name="gsSecurityType[]" required>
-    <option value="">-- Select Security Type --</option>
-    <%
-      PreparedStatement psSecType = null;
-      ResultSet rsSecType = null;
-      try (Connection connSecType = DBConnection.getConnection()) {
-        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-        psSecType = connSecType.prepareStatement(sql);
-        rsSecType = psSecType.executeQuery();
-        
-        while (rsSecType.next()) {
-          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-    %>
-          <option value="<%= securityType %>"><%= securityType %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Security Types</option>");
-        e.printStackTrace();
-      } finally {
-        if (rsSecType != null) rsSecType.close();
-        if (psSecType != null) psSecType.close();
-      }
-    %>
-  </select>
-</div>
+        <label>Security Type Code</label>
+        <select name="gsSecurityType[]" required>
+          <option value="">-- Select Security Type --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              
+              while (rsSecType.next()) {
+                String securityType = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= securityType %>"><%= securityType %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+              e.printStackTrace();
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
 
       <div>
         <label>Submission Date</label>
@@ -1121,10 +1161,11 @@ body {
 
       <div>
         <label>Particular</label>
-        <input type="text" name="gsParticular[]" >
+        <input type="text" name="gsParticular[]">
       </div>
 
-      <div style="grid-column: span 3;">
+      <!-- ✅ Changed from grid-column: span 3 to using goldsilver-note-field class -->
+      <div class="goldsilver-note-field">
         <label>Note</label>
         <textarea name="gsNote[]" rows="2" style="width: 97%; padding: 8px; 
                   border: 1px solid #ccc; border-radius: 4px; font-size: 13px;
