@@ -2603,6 +2603,7 @@ function calcReviewDate() {
     document.getElementById('sanctionDate').addEventListener('change', calcReviewDate);
     document.getElementById('loanPeriod').addEventListener('input', calcReviewDate);
   };
+  
 </script>
 </body>
 </html>
