@@ -219,6 +219,145 @@ function sendBackSocialSubSector(id, desc) {
 
 <%
         }
+    } else if ("area".equals(lookupType)) {
+        // AREA LOOKUP (filtered by branch)
+        String query = "SELECT AREA_CODE, AREA_DESCRIPTION FROM BRANCH.BRANCHAREA " +
+                      "WHERE BRANCH_CODE = ? ORDER BY AREA_CODE";
+        
+        Connection con = DBConnection.getConnection();
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, branchCode);
+        ResultSet rs = ps.executeQuery();
+%>
+
+<div class="lookup-title">
+    Select Area (Branch: <%=branchCode%>)
+</div>
+
+<table>
+    <tr>
+        <th>Area Code</th>
+        <th>Area Description</th>
+    </tr>
+
+<%
+        boolean hasRecords = false;
+        while (rs.next()) {
+            hasRecords = true;
+            String code = rs.getString(1);
+            String desc = rs.getString(2);
+%>
+    <tr onclick="sendBackArea('<%=code%>', '<%=desc%>')">
+        <td><%=code%></td>
+        <td><%=desc%></td>
+    </tr>
+<% 
+        }
+        
+        if (!hasRecords) {
+%>
+    <tr>
+        <td colspan="2" style="text-align:center; color:#999;">
+            No areas found for this branch
+        </td>
+    </tr>
+<%
+        }
+        
+        rs.close();
+        ps.close();
+        con.close(); 
+%>
+</table>
+
+<script>
+function sendBackArea(code, desc) {
+    if (window.parent && window.parent.setAreaData) {
+        window.parent.setAreaData(code, desc);
+    } else if (window.setAreaData) {
+        window.setAreaData(code, desc);
+    } else {
+        parent.document.getElementById('areaCode').value = code;
+        parent.document.getElementById('areaName').value = desc;
+        parent.closeAreaLookup();
+    }
+}
+</script>
+
+<%
+    } else if ("subArea".equals(lookupType)) {
+        // SUB AREA LOOKUP (filtered by area and branch)
+        String areaCode = request.getParameter("areaCode");
+        
+        if (areaCode == null || areaCode.isEmpty()) {
+            out.println("<div style='color:red; padding:20px;'>Error: Area Code is required</div>");
+        } else {
+            String query = "SELECT SUBAREA_CODE, SUBAREA_DESCRIPTION FROM BRANCH.BRANCHSUBAREA " +
+                          "WHERE BRANCH_CODE = ? AND AREA_CODE = ? ORDER BY SUBAREA_CODE";
+            
+            Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setString(1, branchCode);
+            ps.setString(2, areaCode);
+            ResultSet rs = ps.executeQuery();
+%>
+
+<div class="lookup-title">
+    Select Sub Area (Area: <%=areaCode%>)
+</div>
+
+<table>
+    <tr>
+        <th>Sub Area Code</th>
+        <th>Sub Area Description</th>
+    </tr>
+
+<%
+            boolean hasRecords = false;
+            while (rs.next()) {
+                hasRecords = true;
+                String code = rs.getString(1);
+                String desc = rs.getString(2);
+%>
+    <tr onclick="sendBackSubArea('<%=code%>', '<%=desc%>')">
+        <td><%=code%></td>
+        <td><%=desc%></td>
+    </tr>
+<% 
+            }
+            
+            if (!hasRecords) {
+%>
+    <tr>
+        <td colspan="2" style="text-align:center; color:#999;">
+            No sub areas found for this area
+        </td>
+    </tr>
+<%
+            }
+            
+            rs.close();
+            ps.close();
+            con.close(); 
+%>
+</table>
+
+<script>
+function sendBackSubArea(code, desc) {
+    if (window.parent && window.parent.setSubAreaData) {
+        window.parent.setSubAreaData(code, desc);
+    } else if (window.setSubAreaData) {
+        window.setSubAreaData(code, desc);
+    } else {
+        parent.document.getElementById('subAreaCode').value = code;
+        parent.document.getElementById('subAreaName').value = desc;
+        parent.closeSubAreaLookup();
+    }
+}
+</script>
+
+<%
+        }
     } else {
         out.println("<div style='color:red; padding:20px;'>Invalid lookup type</div>");
     }

@@ -556,15 +556,20 @@ body {
       </div>
     </div>
 
-    <div>
-      <label>Area Code</label>
-      <input type="text" name="areaCode">
-    </div>
+<div>
+  <label>Area Code</label>
+  <div class="input-icon-box">
+    <input type="text" id="areaCode" name="areaCode" 
+           onclick="openAreaLookup()" readonly>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openAreaLookup()" title="Search Area">🔍</button>
+  </div>
+</div>
 
-    <div>
-      <label>Area Name</label>
-      <input type="text" name="areaName">
-    </div>
+<div>
+  <label>Area Name</label>
+  <input type="text" id="areaName" name="areaName" readonly>
+</div>
     
        <div>
   <label>Social Section Id</label>
@@ -598,15 +603,20 @@ body {
 </div>
 
 
-    <div>
-      <label>Sub Area Code</label>
-      <input type="text" name="subAreaCode">
-    </div>
+<div>
+  <label>Sub Area Code</label>
+  <div class="input-icon-box">
+    <input type="text" id="subAreaCode" name="subAreaCode" 
+           onclick="openSubAreaLookup()" readonly>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openSubAreaLookup()" title="Search Sub Area">🔍</button>
+  </div>
+</div>
 
-    <div>
-      <label>Sub Area Name</label>
-      <input type="text" name="subAreaName">
-    </div>
+<div>
+  <label>Sub Area Name</label>
+  <input type="text" id="subAreaName" name="subAreaName" readonly>
+</div>
     
     <div>
   <label>LBR Code</label>
@@ -1074,8 +1084,106 @@ body {
     </div>
 </div>
 
+<!-- AREA LOOKUP MODAL -->
+<div id="areaLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeAreaLookup()">&times;</span>
+        <div id="areaLookupContent"></div>
+    </div>
+</div>
+
+<!-- SUB AREA LOOKUP MODAL -->
+<div id="subAreaLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeSubAreaLookup()">&times;</span>
+        <div id="subAreaLookupContent"></div>
+    </div>
+</div>
+
 <script src="js/savingAcc.js"></script>
 <script>
+//==================== AREA LOOKUP ====================
+
+function openAreaLookup() {
+    let url = "lookupForLoan.jsp?type=area";
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("areaLookupContent").innerHTML = html;
+            document.getElementById("areaLookupModal").style.display = "flex";
+            
+            const scripts = document.getElementById("areaLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load area lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeAreaLookup() {
+    document.getElementById("areaLookupModal").style.display = "none";
+}
+
+window.setAreaData = function(code, name) {
+    document.getElementById("areaCode").value = code;
+    document.getElementById("areaName").value = name;
+    
+    // Clear sub area when area changes
+    document.getElementById("subAreaCode").value = '';
+    document.getElementById("subAreaName").value = '';
+    
+    closeAreaLookup();
+    showToast('✅ Area selected successfully!');
+};
+
+//==================== SUB AREA LOOKUP ====================
+
+function openSubAreaLookup() {
+    const areaCode = document.getElementById("areaCode").value;
+    
+    if (!areaCode) {
+        showToast('⚠️ Please select Area first!');
+        return;
+    }
+    
+    let url = "lookupForLoan.jsp?type=subArea&areaCode=" + encodeURIComponent(areaCode);
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("subAreaLookupContent").innerHTML = html;
+            document.getElementById("subAreaLookupModal").style.display = "flex";
+            
+            const scripts = document.getElementById("subAreaLookupContent").querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => {
+            showToast('❌ Failed to load sub area lookup data. Please try again.');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeSubAreaLookup() {
+    document.getElementById("subAreaLookupModal").style.display = "none";
+}
+
+window.setSubAreaData = function(code, name) {
+    document.getElementById("subAreaCode").value = code;
+    document.getElementById("subAreaName").value = name;
+    
+    closeSubAreaLookup();
+    showToast('✅ Sub Area selected successfully!');
+};
 
 //==================== INSTALLMENT TYPE LOOKUP ====================
 
@@ -1530,19 +1638,15 @@ window.onclick = function(event) {
     const installmentModal = document.getElementById('installmentLookupModal');
     const socialSectorModal = document.getElementById('socialSectorLookupModal');
     const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
+    const areaModal = document.getElementById('areaLookupModal');
+    const subAreaModal = document.getElementById('subAreaLookupModal');
     
-    if (event.target === customerModal) {
-        closeCustomerLookup();
-    }
-    if (event.target === installmentModal) {
-        closeInstallmentLookup();
-    }
-    if (event.target === socialSectorModal) {
-        closeSocialSectorLookup();
-    }
-    if (event.target === socialSubSectorModal) {
-        closeSocialSubSectorLookup();
-    }
+    if (event.target === customerModal) closeCustomerLookup();
+    if (event.target === installmentModal) closeInstallmentLookup();
+    if (event.target === socialSectorModal) closeSocialSectorLookup();
+    if (event.target === socialSubSectorModal) closeSocialSubSectorLookup();
+    if (event.target === areaModal) closeAreaLookup();
+    if (event.target === subAreaModal) closeSubAreaLookup();
 }
 
 //Close modal on Escape key
@@ -1552,6 +1656,8 @@ document.addEventListener('keydown', function(event) {
         closeInstallmentLookup();
         closeSocialSectorLookup();
         closeSocialSubSectorLookup();
+        closeAreaLookup();
+        closeSubAreaLookup();
     }
 });
 //==================== CO-BORROWER FUNCTIONS (FIXED) ====================
