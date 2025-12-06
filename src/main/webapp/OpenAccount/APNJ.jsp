@@ -997,28 +997,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         return;
     }
 
-    // Check if this is for co-borrower lookup
-    if (window.currentCoBorrowerInput) {
-        window.currentCoBorrowerInput.value = customerId;
-        fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
-        window.currentCoBorrowerInput = null;
-        window.currentCoBorrowerBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading co-borrower customer data...');
-        return;
-    }
-
-    // Check if this is for guarantor lookup
-    if (window.currentGuarantorInput) {
-        window.currentGuarantorInput.value = customerId;
-        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
-        window.currentGuarantorInput = null;
-        window.currentGuarantorBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading guarantor customer data...');
-        return;
-    }
-
     // Otherwise, this is for the main customer ID field
     document.getElementById('customerId').value = customerId;
     document.getElementById('customerName').value = customerName;
@@ -1253,119 +1231,7 @@ function populateJointFields(block, customer) {
     }
 }
 
-//Populate Co-Borrower fields with customer data
-function populateCoBorrowerFields(block, customer) {
-    console.log('📝 Populating Co-Borrower fields:', customer);
-    
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
-    }
 
-    // Co-Borrower Name
-    const nameInput = block.querySelector('input[name="nomineeName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    // Address fields
-    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    // Country
-    const countrySelect = block.querySelector('select[name="countryCode"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
-    }
-
-    // State
-    const stateSelect = block.querySelector('select[name="stateCode"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
-    }
-
-    // City
-    const citySelect = block.querySelector('select[name="cityCode"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Co-Borrower City');
-    }
-
-    // Zip
-    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
-
-//Populate Guarantor fields with customer data
-function populateGuarantorFields(block, customer) {
-    console.log('📝 Populating Guarantor fields:', customer);
-    
-    // Salutation Code
-    const salutationSelect = block.querySelector('select[name="guarantorsalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
-    }
-
-    // Guarantor Name
-    const nameInput = block.querySelector('input[name="guarantorName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    // Address fields
-    const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    // Country
-    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Guarantor Country');
-    }
-
-    // State
-    const stateSelect = block.querySelector('select[name="jointState[]"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Guarantor State');
-    }
-
-    // City
-    const citySelect = block.querySelector('select[name="jointCity[]"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Guarantor City');
-    }
-
-    // Zip
-    const zipInput = block.querySelector('input[name="guarantorZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
 
 //Customer Lookup Functions with exclusion support
 function openCustomerLookup(excludeCustomerId = null) {
