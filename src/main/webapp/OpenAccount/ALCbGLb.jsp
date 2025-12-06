@@ -1288,20 +1288,34 @@ body {
     </div>
 
     <div class="lb-grid">
-      <div>
-        <label>Security Type Code</label>
-        <select name="lbSecurityType[]" required>
-          <option value="">-- Select Security Type --</option>
-          <option value="BOOK DEBTS">BOOK DEBTS</option>
-          <option value="LAND">LAND</option>
-          <option value="BUILDING">BUILDING</option>
-          <option value="MACHINERY">MACHINERY</option>
-          <option value="VEHICLE">VEHICLE</option>
-          <option value="GOLD">GOLD</option>
-          <option value="FD">FD</option>
-          <option value="SHARES">SHARES</option>
-        </select>
-      </div>
+<div>
+  <label>Security Type Code</label>
+  <select name="securityTypeCode[]" required>
+    <option value="">-- Select Security Type --</option>
+    <%
+      PreparedStatement psSecType = null;
+      ResultSet rsSecType = null;
+      try (Connection connSecType = DBConnection.getConnection()) {
+        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+        psSecType = connSecType.prepareStatement(sql);
+        rsSecType = psSecType.executeQuery();
+        
+        while (rsSecType.next()) {
+          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
+    %>
+          <option value="<%= securityType %>"><%= securityType %></option>
+    <%
+        }
+      } catch (Exception e) {
+        out.println("<option disabled>Error loading Security Types</option>");
+        e.printStackTrace();
+      } finally {
+        if (rsSecType != null) rsSecType.close();
+        if (psSecType != null) psSecType.close();
+      }
+    %>
+  </select>
+</div>
 
       <div>
         <label>Submi. Date</label>
