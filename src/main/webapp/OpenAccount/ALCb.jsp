@@ -1585,7 +1585,7 @@ function clearCoBorrowerFields(block) {
   block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
 }
 
-f// Update Co-Borrower Customer Lookup
+// Update Co-Borrower Customer Lookup
 function openCoBorrowerCustomerLookup(button) {
 	  const coBorrowerBlock = button.closest('.coBorrower-block');
 	  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
