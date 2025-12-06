@@ -1825,15 +1825,21 @@ function populateGuarantorFields(block, customer) {
   }
 }
 
-//Customer Lookup Functions
-function openCustomerLookup() {
+//Customer Lookup Functions with exclusion support
+function openCustomerLookup(excludeCustomerId = null) {
   const modal = document.getElementById('customerLookupModal');
   const content = document.getElementById('customerLookupContent');
 
   modal.style.display = 'flex';
   content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-  fetch('lookupForCustomerId.jsp')
+  // ✅ Build URL with exclusion parameter if provided
+  let url = 'lookupForCustomerId.jsp';
+  if (excludeCustomerId) {
+    url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+  }
+
+  fetch(url)
       .then(response => response.text())
       .then(html => {
           content.innerHTML = html;
@@ -1914,12 +1920,16 @@ function clearCoBorrowerFields(block) {
   block.querySelector('input[name="coBorrowerZip[]"]').value = '';
 }
 
+//Update Co-Borrower Customer Lookup
 function openCoBorrowerCustomerLookup(button) {
   const coBorrowerBlock = button.closest('.coBorrower-block');
   const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
   window.currentCoBorrowerInput = input;
   window.currentCoBorrowerBlock = coBorrowerBlock;
-  openCustomerLookup();
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
 }
 
 function addCoBorrower() {
@@ -2015,12 +2025,16 @@ function clearGuarantorFields(block) {
   block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
 }
 
+//Update Guarantor Customer Lookup
 function openGuarantorCustomerLookup(button) {
   const guarantorBlock = button.closest('.guarantor-block');
   const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
   window.currentGuarantorInput = input;
   window.currentGuarantorBlock = guarantorBlock;
-  openCustomerLookup();
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
 }
 
 function addGuarantor() {

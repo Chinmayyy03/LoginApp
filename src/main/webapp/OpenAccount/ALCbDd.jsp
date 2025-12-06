@@ -1574,34 +1574,37 @@ function populateJointFields(block, customer) {
     }
 }
 
-//Customer Lookup Functions
-function openCustomerLookup() {
-    const modal = document.getElementById('customerLookupModal');
-    const content = document.getElementById('customerLookupContent');
 
-    // Show modal immediately
-    modal.style.display = 'flex';
-    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+//Customer Lookup Functions with exclusion support
+function openCustomerLookup(excludeCustomerId = null) {
+const modal = document.getElementById('customerLookupModal');
+const content = document.getElementById('customerLookupContent');
 
-    // Fetch customer data
-    fetch('lookupForCustomerId.jsp')
-        .then(response => response.text())
-        .then(html => {
-            content.innerHTML = html;
-            
-            // Execute any scripts in the loaded content
-            const scripts = content.querySelectorAll('script');
-            scripts.forEach(script => {
-                const newScript = document.createElement('script');
-                newScript.textContent = script.textContent;
-                document.body.appendChild(newScript);
-                document.body.removeChild(newScript);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading customer lookup:', error);
-            content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+modal.style.display = 'flex';
+content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+
+// ✅ Build URL with exclusion parameter if provided
+let url = 'lookupForCustomerId.jsp';
+if (excludeCustomerId) {
+  url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+}
+
+fetch(url)
+    .then(response => response.text())
+    .then(html => {
+        content.innerHTML = html;
+        const scripts = content.querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            newScript.textContent = script.textContent;
+            document.body.appendChild(newScript);
+            document.body.removeChild(newScript);
         });
+    })
+    .catch(error => {
+        console.error('Error loading customer lookup:', error);
+        content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+    });
 }
 
 function closeCustomerLookup() {
@@ -1753,12 +1756,16 @@ function clearCoBorrowerFields(block) {
   block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
 }
 
+//Update Co-Borrower Customer Lookup
 function openCoBorrowerCustomerLookup(button) {
   const coBorrowerBlock = button.closest('.coBorrower-block');
   const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
   window.currentCoBorrowerInput = input;
   window.currentCoBorrowerBlock = coBorrowerBlock;
-  openCustomerLookup();
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
 }
 
 // ✅ FIXED: Updated field names in populate function

@@ -240,30 +240,36 @@ function populateJointFields(block, customer) {
     }
 }
 
-//Customer Lookup Functions
-function openCustomerLookup() {
-    const modal = document.getElementById('customerLookupModal');
-    const content = document.getElementById('customerLookupContent');
+//Customer Lookup Functions with exclusion support
+function openCustomerLookup(excludeCustomerId = null) {
+  const modal = document.getElementById('customerLookupModal');
+  const content = document.getElementById('customerLookupContent');
 
-    modal.style.display = 'flex';
-    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+  modal.style.display = 'flex';
+  content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-    fetch('lookupForCustomerId.jsp')
-        .then(response => response.text())
-        .then(html => {
-            content.innerHTML = html;
-            const scripts = content.querySelectorAll('script');
-            scripts.forEach(script => {
-                const newScript = document.createElement('script');
-                newScript.textContent = script.textContent;
-                document.body.appendChild(newScript);
-                document.body.removeChild(newScript);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading customer lookup:', error);
-            content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
-        });
+  // ✅ Build URL with exclusion parameter if provided
+  let url = 'lookupForCustomerId.jsp';
+  if (excludeCustomerId) {
+    url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+  }
+
+  fetch(url)
+      .then(response => response.text())
+      .then(html => {
+          content.innerHTML = html;
+          const scripts = content.querySelectorAll('script');
+          scripts.forEach(script => {
+              const newScript = document.createElement('script');
+              newScript.textContent = script.textContent;
+              document.body.appendChild(newScript);
+              document.body.removeChild(newScript);
+          });
+      })
+      .catch(error => {
+          console.error('Error loading customer lookup:', error);
+          content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+      });
 }
 
 function closeCustomerLookup() {
@@ -313,12 +319,16 @@ function clearNomineeFields(block) {
     block.querySelector('input[name="nomineeZip[]"]').value = '0';
 }
 
+// Update Nominee Customer Lookup
 function openNomineeCustomerLookup(button) {
-    const nomineeBlock = button.closest('.nominee-block');
-    const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
-    window.currentNomineeInput = input;
-    window.currentNomineeBlock = nomineeBlock;
-    openCustomerLookup();
+  const nomineeBlock = button.closest('.nominee-block');
+  const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
+  window.currentNomineeInput = input;
+  window.currentNomineeBlock = nomineeBlock;
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
 }
 
 function addNominee() {
@@ -409,12 +419,16 @@ function clearJointFields(block) {
     block.querySelector('input[name="jointZip[]"]').value = '0';
 }
 
+// Update Joint Holder Customer Lookup
 function openJointCustomerLookup(button) {
-    const jointBlock = button.closest('.joint-block');
-    const input = jointBlock.querySelector('.jointCustomerIDInput');
-    window.currentJointInput = input;
-    window.currentJointBlock = jointBlock;
-    openCustomerLookup();
+  const jointBlock = button.closest('.joint-block');
+  const input = jointBlock.querySelector('.jointCustomerIDInput');
+  window.currentJointInput = input;
+  window.currentJointBlock = jointBlock;
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
 }
 
 function addJointHolder() {
