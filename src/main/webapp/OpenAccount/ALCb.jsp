@@ -1099,7 +1099,7 @@ body {
         <div id="subAreaLookupContent"></div>
     </div>
 </div>
-
+<script src="js/application.js"></script>
 <script src="js/savingAcc.js"></script>
 <script>
 //==================== AREA LOOKUP ====================

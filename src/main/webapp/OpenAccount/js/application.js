@@ -80,32 +80,3 @@ window.setSubAreaData = function(code, name) {
     closeSubAreaLookup();
     showToast('✅ Sub Area selected successfully!');
 };
-
-//Close modal when clicking outside
-window.onclick = function(event) {
-    const customerModal = document.getElementById('customerLookupModal');
-    const installmentModal = document.getElementById('installmentLookupModal');
-    const socialSectorModal = document.getElementById('socialSectorLookupModal');
-    const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
-    const areaModal = document.getElementById('areaLookupModal');
-    const subAreaModal = document.getElementById('subAreaLookupModal');
-    
-    if (event.target === customerModal) closeCustomerLookup();
-    if (event.target === installmentModal) closeInstallmentLookup();
-    if (event.target === socialSectorModal) closeSocialSectorLookup();
-    if (event.target === socialSubSectorModal) closeSocialSubSectorLookup();
-    if (event.target === areaModal) closeAreaLookup();
-    if (event.target === subAreaModal) closeSubAreaLookup();
-}
-
-//Close modal on Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeCustomerLookup();
-        closeInstallmentLookup();
-        closeSocialSectorLookup();
-        closeSocialSubSectorLookup();
-        closeAreaLookup();
-        closeSubAreaLookup();
-    }
-});

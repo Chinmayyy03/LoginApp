@@ -595,15 +595,20 @@ body {
       </div>
     </div>
 
-    <div>
-      <label>Area Code</label>
-      <input type="text" name="areaCode">
-    </div>
+<div>
+  <label>Area Code</label>
+  <div class="input-icon-box">
+    <input type="text" id="areaCode" name="areaCode" 
+           onclick="openAreaLookup()" readonly>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openAreaLookup()" title="Search Area">🔍</button>
+  </div>
+</div>
 
-    <div>
-      <label>Area Name</label>
-      <input type="text" name="areaName">
-    </div>
+<div>
+  <label>Area Name</label>
+  <input type="text" id="areaName" name="areaName" readonly>
+</div>
     
        <div>
   <label>Social Section Id</label>
@@ -637,15 +642,20 @@ body {
 </div>
 
 
-    <div>
-      <label>Sub Area Code</label>
-      <input type="text" name="subAreaCode">
-    </div>
+<div>
+  <label>Sub Area Code</label>
+  <div class="input-icon-box">
+    <input type="text" id="subAreaCode" name="subAreaCode" 
+           onclick="openSubAreaLookup()" readonly>
+    <button type="button" class="inside-icon-btn" 
+            onclick="openSubAreaLookup()" title="Search Sub Area">🔍</button>
+  </div>
+</div>
 
-    <div>
-      <label>Sub Area Name</label>
-      <input type="text" name="subAreaName">
-    </div>
+<div>
+  <label>Sub Area Name</label>
+  <input type="text" id="subAreaName" name="subAreaName" readonly>
+</div>
     
     <div>
   <label>LBR Code</label>
@@ -1215,8 +1225,22 @@ body {
         <div id="socialSubSectorLookupContent"></div>
     </div>
 </div>
+<!-- AREA LOOKUP MODAL -->
+<div id="areaLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeAreaLookup()">&times;</span>
+        <div id="areaLookupContent"></div>
+    </div>
+</div>
 
-
+<!-- SUB AREA LOOKUP MODAL -->
+<div id="subAreaLookupModal" class="customer-modal">
+    <div class="customer-modal-content">
+        <span class="customer-close" onclick="closeSubAreaLookup()">&times;</span>
+        <div id="subAreaLookupContent"></div>
+    </div>
+</div>
+<script src="js/application.js"></script>
 <script src="js/savingAcc.js"></script>
 <script>
 //==================== INSTALLMENT TYPE LOOKUP ====================
@@ -1558,19 +1582,15 @@ window.onclick = function(event) {
     const installmentModal = document.getElementById('installmentLookupModal');
     const socialSectorModal = document.getElementById('socialSectorLookupModal');
     const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
+    const areaModal = document.getElementById('areaLookupModal');
+    const subAreaModal = document.getElementById('subAreaLookupModal');
     
-    if (event.target === customerModal) {
-        closeCustomerLookup();
-    }
-    if (event.target === installmentModal) {
-        closeInstallmentLookup();
-    }
-    if (event.target === socialSectorModal) {
-        closeSocialSectorLookup();
-    }
-    if (event.target === socialSubSectorModal) {
-        closeSocialSubSectorLookup();
-    }
+    if (event.target === customerModal) closeCustomerLookup();
+    if (event.target === installmentModal) closeInstallmentLookup();
+    if (event.target === socialSectorModal) closeSocialSectorLookup();
+    if (event.target === socialSubSectorModal) closeSocialSubSectorLookup();
+    if (event.target === areaModal) closeAreaLookup();
+    if (event.target === subAreaModal) closeSubAreaLookup();
 }
 
 //Close modal on Escape key
@@ -1580,9 +1600,10 @@ document.addEventListener('keydown', function(event) {
         closeInstallmentLookup();
         closeSocialSectorLookup();
         closeSocialSubSectorLookup();
+        closeAreaLookup();
+        closeSubAreaLookup();
     }
 });
-
 //==================== GOLD/SILVER SECURITY FUNCTIONS ====================
 
 function addGoldSilver() {
