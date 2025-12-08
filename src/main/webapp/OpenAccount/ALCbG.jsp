@@ -507,6 +507,7 @@ body {
         <option value="Quarterly">Quarterly</option>
         <option value="Half-Yearly">Half-Yearly</option>
         <option value="Yearly">Yearly</option>
+        <option value="OnMaturity">On Maturity</option>
       </select>
     </div>
 
@@ -514,6 +515,7 @@ body {
       <label>Int. Calculation Method</label>
       <select name="intCalcMethod">
         <option value="">-- Select --</option>
+        <option value="Simple">Simple</option>
         <option value="Reducing">Reducing</option>
         <option value="Flat">Flat</option>
       </select>
