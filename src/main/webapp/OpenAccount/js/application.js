@@ -80,3 +80,80 @@ window.setSubAreaData = function(code, name) {
     closeSubAreaLookup();
     showToast('✅ Sub Area selected successfully!');
 };
+
+// ==================== LOAN FIELD AUTO-FILL FUNCTIONALITY ====================
+
+/**
+ * Get today's date in YYYY-MM-DD format
+ * @returns {string} Today's date formatted for HTML date input
+ */
+function getTodayDate() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Handle limit amount changes and update related fields
+ * When user enters limit amount:
+ * - Sets sanction amount (readonly) to same value
+ * - Sets drawing power (editable) to same value
+ */
+function handleLimitAmountChange() {
+    const limitAmount = document.getElementById('limitAmount');
+    const sanctionAmount = document.getElementById('sanctionAmount');
+    const drawingPower = document.getElementById('drawingPower');
+    
+    if (limitAmount && sanctionAmount && drawingPower) {
+        limitAmount.addEventListener('input', function() {
+            const value = this.value || '0';
+            // Set sanction amount (readonly)
+            sanctionAmount.value = value;
+            // Set drawing power (editable)
+            drawingPower.value = value;
+        });
+    }
+}
+
+/**
+ * Initialize loan fields on page load
+ * - Sets submission date to today
+ * - Sets registration date to today
+ * - Makes sanction amount readonly with gray background
+ * - Sets up limit amount change handler
+ */
+function initializeLoanFields() {
+    // Set today's date for submission and registration dates
+    const submissionDate = document.getElementById('submissionDate');
+    const registrationDate = document.getElementById('registrationDate');
+    
+    const today = getTodayDate();
+    
+    if (submissionDate) {
+        submissionDate.value = today;
+    }
+    
+    if (registrationDate) {
+        registrationDate.value = today;
+    }
+    
+    // Make sanction amount readonly with visual indication
+    const sanctionAmount = document.getElementById('sanctionAmount');
+    if (sanctionAmount) {
+        sanctionAmount.readOnly = true;
+        sanctionAmount.style.backgroundColor = '#f0f0f0';
+        sanctionAmount.style.cursor = 'not-allowed';
+    }
+    
+    // Set up limit amount change handler
+    handleLimitAmountChange();
+}
+
+// Auto-initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    initializeLoanFields();
+});
+
+// ==================== END LOAN FIELD AUTO-FILL FUNCTIONALITY ====================
