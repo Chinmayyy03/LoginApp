@@ -449,17 +449,17 @@ body {
 
     <div>
       <label>Register Amount</label>
-      <input type="number" step="0.01" name="registerAmount" value="0">
+      <input type="number" step="0.01" name="registerAmount" >
     </div>
 
 	<div>
   		<label>Limit Amount</label>
-  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" value="0">
+  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" >
 	</div>
 
 	<div>
 	  <label>Drawing Power</label>
-	  <input type="number" step="0.01" name="drawingPower" id="drawingPower" value="0">
+	  <input type="number" step="0.01" name="drawingPower" id="drawingPower" >
 	</div>
 
     <div>
@@ -469,7 +469,7 @@ body {
 
 	<div>
 	  <label>Sanction Amount</label>
-	  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" value="0">
+	  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" >
 	</div>
 
     <div>

@@ -432,45 +432,45 @@ body {
 <fieldset id="loanFieldset">
   <legend>Loan Details</legend>
   <div class="form-grid">
-    <div>
-      <label>Submission Date</label>
-      <input type="date" name="submissionDate">
-    </div>
+    	<div>
+  		<label>Submission Date</label>
+  		<input type="date" name="submissionDate" id="submissionDate">
+	</div>
 
     <div>
       <label>Resolution No</label>
       <input type="text" name="resolutionNo">
     </div>
 
-    <div>
-      <label>Registration Date</label>
-      <input type="date" name="registrationDate">
-    </div>
+	<div>
+  		<label>Registration Date</label>
+  		<input type="date" name="registrationDate" id="registrationDate">
+	</div>
 
     <div>
       <label>Register Amount</label>
-      <input type="number" step="0.01" name="registerAmount">
+      <input type="number" step="0.01" name="registerAmount" >
     </div>
 
-    <div>
-      <label>Limit Amount</label>
-      <input type="number" step="0.01" name="limitAmount">
-    </div>
+	<div>
+  		<label>Limit Amount</label>
+  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" >
+	</div>
 
-    <div>
-      <label>Drawing Power</label>
-      <input type="number" step="0.01" name="drawingPower">
-    </div>
+	<div>
+	  <label>Drawing Power</label>
+	  <input type="number" step="0.01" name="drawingPower" id="drawingPower" >
+	</div>
 
     <div>
 		<label for="sanctionDate">Sanction Date</label>
 		<input type="date" id="sanctionDate" name="sanctionDate">  
 	</div>
 
-    <div>
-      <label>Sanction Amount</label>
-      <input type="number" step="0.01" name="sanctionAmount">
-    </div>
+	<div>
+	  <label>Sanction Amount</label>
+	  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" >
+	</div>
 
     <div>
 		<label for="loanPeriod">Period of Loan (months)</label>
