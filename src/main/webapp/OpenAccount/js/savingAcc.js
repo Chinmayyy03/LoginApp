@@ -140,6 +140,8 @@ function setSelectValue(selectElement, value, fieldName) {
     return found;
 }
 
+// ........................COMMON FUNCTIONS............................
+	
 //Customer Lookup Functions with exclusion support
 function openCustomerLookup(excludeCustomerId = null) {
   const modal = document.getElementById('customerLookupModal');

@@ -1745,42 +1745,6 @@ function setSelectValue(selectElement, value, fieldName) {
   return found;
 }
 
-//Customer Lookup Functions with exclusion support
-function openCustomerLookup(excludeCustomerId = null) {
-  const modal = document.getElementById('customerLookupModal');
-  const content = document.getElementById('customerLookupContent');
-
-  modal.style.display = 'flex';
-  content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
-
-  // ✅ Build URL with exclusion parameter if provided
-  let url = 'lookupForCustomerId.jsp';
-  if (excludeCustomerId) {
-    url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
-  }
-
-  fetch(url)
-      .then(response => response.text())
-      .then(html => {
-          content.innerHTML = html;
-          const scripts = content.querySelectorAll('script');
-          scripts.forEach(script => {
-              const newScript = document.createElement('script');
-              newScript.textContent = script.textContent;
-              document.body.appendChild(newScript);
-              document.body.removeChild(newScript);
-          });
-      })
-      .catch(error => {
-          console.error('Error loading customer lookup:', error);
-          content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
-      });
-}
-
-function closeCustomerLookup() {
-  document.getElementById('customerLookupModal').style.display = 'none';
-}
-
 //Close modal when clicking outside
 window.onclick = function(event) {
     const customerModal = document.getElementById('customerLookupModal');
