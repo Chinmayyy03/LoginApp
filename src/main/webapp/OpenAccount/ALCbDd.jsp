@@ -1683,63 +1683,6 @@ function openCoBorrowerCustomerLookup(button) {
   openCustomerLookup(mainCustomerId);
 }
 
-// ✅ FIXED: Updated field names in populate function
-function populateCoBorrowerFields(block, customer) {
-  console.log('📝 Populating Co-Borrower fields:', customer);
-  
-  // Salutation Code
-  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
-  if (salutationSelect && customer.salutationCode) {
-      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
-  }
-
-  // Co-Borrower Name
-  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
-  if (nameInput && customer.customerName) {
-      nameInput.value = customer.customerName;
-  }
-
-  // Address fields
-  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-  if (address1Input && customer.address1) {
-      address1Input.value = customer.address1;
-  }
-
-  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-  if (address2Input && customer.address2) {
-      address2Input.value = customer.address2;
-  }
-
-  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-  if (address3Input && customer.address3) {
-      address3Input.value = customer.address3;
-  }
-
-  // Country
-  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
-  if (countrySelect && customer.country) {
-      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
-  }
-
-  // State
-  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
-  if (stateSelect && customer.state) {
-      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
-  }
-
-  // City
-  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
-  if (citySelect && customer.city) {
-      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
-  }
-
-  // Zip
-  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-  if (zipInput && customer.zip) {
-      zipInput.value = customer.zip;
-  }
-}
-
 function addCoBorrower() {
   let fieldset = document.getElementById("coBorrowerFieldset");
   let original = fieldset.querySelector(".coBorrower-block");

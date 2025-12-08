@@ -140,106 +140,6 @@ function setSelectValue(selectElement, value, fieldName) {
     return found;
 }
 
-//Populate Nominee fields with customer data
-function populateNomineeFields(block, customer) {
-    console.log('📝 Populating Nominee fields:', customer);
-    
-    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Nominee Salutation');
-    }
-
-    const nameInput = block.querySelector('input[name="nomineeName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    const address1Input = block.querySelector('input[name="nomineeAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="nomineeAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="nomineeAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Nominee Country');
-    }
-
-    const stateSelect = block.querySelector('select[name="nomineeState[]"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Nominee State');
-    }
-
-    const citySelect = block.querySelector('select[name="nomineeCity[]"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Nominee City');
-    }
-
-    const zipInput = block.querySelector('input[name="nomineeZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
-
-//Populate Joint Holder fields with customer data
-function populateJointFields(block, customer) {
-    console.log('📝 Populating Joint Holder fields:', customer);
-    
-    const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
-    if (salutationSelect && customer.salutationCode) {
-        setSelectValue(salutationSelect, customer.salutationCode, 'Joint Salutation');
-    }
-
-    const nameInput = block.querySelector('input[name="jointName[]"]');
-    if (nameInput && customer.customerName) {
-        nameInput.value = customer.customerName;
-    }
-
-    const address1Input = block.querySelector('input[name="jointAddress1[]"]');
-    if (address1Input && customer.address1) {
-        address1Input.value = customer.address1;
-    }
-
-    const address2Input = block.querySelector('input[name="jointAddress2[]"]');
-    if (address2Input && customer.address2) {
-        address2Input.value = customer.address2;
-    }
-
-    const address3Input = block.querySelector('input[name="jointAddress3[]"]');
-    if (address3Input && customer.address3) {
-        address3Input.value = customer.address3;
-    }
-
-    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
-    if (countrySelect && customer.country) {
-        setSelectValue(countrySelect, customer.country, 'Joint Country');
-    }
-
-    const stateSelect = block.querySelector('select[name="jointState[]"]');
-    if (stateSelect && customer.state) {
-        setSelectValue(stateSelect, customer.state, 'Joint State');
-    }
-
-    const citySelect = block.querySelector('select[name="jointCity[]"]');
-    if (citySelect && customer.city) {
-        setSelectValue(citySelect, customer.city, 'Joint City');
-    }
-
-    const zipInput = block.querySelector('input[name="jointZip[]"]');
-    if (zipInput && customer.zip) {
-        zipInput.value = customer.zip;
-    }
-}
-
 //Customer Lookup Functions with exclusion support
 function openCustomerLookup(excludeCustomerId = null) {
   const modal = document.getElementById('customerLookupModal');
@@ -389,6 +289,56 @@ function updateNomineeSerials() {
     });
 }
 
+//Populate Nominee fields with customer data
+function populateNomineeFields(block, customer) {
+    console.log('📝 Populating Nominee fields:', customer);
+    
+    const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Nominee Salutation');
+    }
+
+    const nameInput = block.querySelector('input[name="nomineeName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
+
+    const address1Input = block.querySelector('input[name="nomineeAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
+
+    const address2Input = block.querySelector('input[name="nomineeAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
+
+    const address3Input = block.querySelector('input[name="nomineeAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
+
+    const countrySelect = block.querySelector('select[name="nomineeCountry[]"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Nominee Country');
+    }
+
+    const stateSelect = block.querySelector('select[name="nomineeState[]"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Nominee State');
+    }
+
+    const citySelect = block.querySelector('select[name="nomineeCity[]"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Nominee City');
+    }
+
+    const zipInput = block.querySelector('input[name="nomineeZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
+}
+
 //==================== JOINT HOLDER FUNCTIONS ====================
 
 function toggleJointCustomerID(radio) {
@@ -489,6 +439,186 @@ function updateJointSerials() {
     });
 }
 
+//Populate Joint Holder fields with customer data
+function populateJointFields(block, customer) {
+    console.log('📝 Populating Joint Holder fields:', customer);
+    
+    const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Joint Salutation');
+    }
+
+    const nameInput = block.querySelector('input[name="jointName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
+
+    const address1Input = block.querySelector('input[name="jointAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
+
+    const address2Input = block.querySelector('input[name="jointAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
+
+    const address3Input = block.querySelector('input[name="jointAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
+
+    const countrySelect = block.querySelector('select[name="jointCountry[]"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Joint Country');
+    }
+
+    const stateSelect = block.querySelector('select[name="jointState[]"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Joint State');
+    }
+
+    const citySelect = block.querySelector('select[name="jointCity[]"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Joint City');
+    }
+
+    const zipInput = block.querySelector('input[name="jointZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
+}
+//==================== CO-BORROWER FUNCTIONS (FIXED) ====================
+
+// ✅ FIXED: Updated field names in populate function
+function populateCoBorrowerFields(block, customer) {
+  console.log('📝 Populating Co-Borrower fields:', customer);
+  
+  // Salutation Code
+  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
+  }
+
+  // Co-Borrower Name
+  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
+
+  // Address fields
+  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
+
+  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
+
+  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
+
+  // Country
+  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
+  }
+
+  // State
+  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
+  }
+
+  // City
+  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
+  }
+
+  // Zip
+  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
+}
+
+
+//==================== GUARANTOR FUNCTIONS ====================
+
+//Populate Guarantor fields with customer data
+function populateGuarantorFields(block, customer) {
+  console.log('📝 Populating Guarantor fields:', customer);
+  
+  const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
+  if (salutationSelect && customer.salutationCode) {
+      setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
+  }
+
+  const nameInput = block.querySelector('input[name="guarantorName[]"]');
+  if (nameInput && customer.customerName) {
+      nameInput.value = customer.customerName;
+  }
+
+  const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+  if (address1Input && customer.address1) {
+      address1Input.value = customer.address1;
+  }
+
+  const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+  if (address2Input && customer.address2) {
+      address2Input.value = customer.address2;
+  }
+
+  const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+  if (address3Input && customer.address3) {
+      address3Input.value = customer.address3;
+  }
+
+  const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
+  if (countrySelect && customer.country) {
+      setSelectValue(countrySelect, customer.country, 'Guarantor Country');
+  }
+
+  const stateSelect = block.querySelector('select[name="guarantorState[]"]');
+  if (stateSelect && customer.state) {
+      setSelectValue(stateSelect, customer.state, 'Guarantor State');
+  }
+
+  const citySelect = block.querySelector('select[name="guarantorCity[]"]');
+  if (citySelect && customer.city) {
+      setSelectValue(citySelect, customer.city, 'Guarantor City');
+  }
+
+  const zipInput = block.querySelector('input[name="guarantorZip[]"]');
+  if (zipInput && customer.zip) {
+      zipInput.value = customer.zip;
+  }
+
+  const memberNoInput = block.querySelector('input[name="guarantorMemberNo[]"]');
+  if (memberNoInput && customer.memberNumber) {
+      memberNoInput.value = customer.memberNumber;
+  }
+
+  const birthDateInput = block.querySelector('input[name="guarantorBirthDate[]"]');
+  if (birthDateInput && customer.birthDate) {
+      birthDateInput.value = customer.birthDate;
+  }
+
+  const phoneNoInput = block.querySelector('input[name="guarantorPhoneNo[]"]');
+  if (phoneNoInput && customer.residencePhone) {
+      phoneNoInput.value = customer.residencePhone;
+  }
+
+  const mobileNoInput = block.querySelector('input[name="guarantorMobileNo[]"]');
+  if (mobileNoInput && customer.mobileNo) {
+      mobileNoInput.value = customer.mobileNo;
+  }
+}
 //==================== UTILITY FUNCTIONS ====================
 
 // Enhanced toast utility function with different types
