@@ -2,6 +2,28 @@
 
 //Global function to set customer data (will be called from loaded content)
 window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
+    // Check if this is for co-borrower lookup
+    if (window.currentCoBorrowerInput) {
+        window.currentCoBorrowerInput.value = customerId;
+        fetchCustomerDetails(customerId, 'coBorrower', window.currentCoBorrowerBlock);
+        window.currentCoBorrowerInput = null;
+        window.currentCoBorrowerBlock = null;
+        closeCustomerLookup();
+        showToast('Loading co-borrower customer data...');
+        return;
+    }
+
+    // Check if this is for guarantor lookup
+    if (window.currentGuarantorInput) {
+        window.currentGuarantorInput.value = customerId;
+        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
+        window.currentGuarantorInput = null;
+        window.currentGuarantorBlock = null;
+        closeCustomerLookup();
+        showToast('Loading guarantor customer data...');
+        return;
+    }
+
     // Check if this is for nominee lookup
     if (window.currentNomineeInput) {
         window.currentNomineeInput.value = customerId;
@@ -67,6 +89,10 @@ function fetchCustomerDetails(customerId, type, block) {
                     populateNomineeFields(block, data.customer);
                 } else if (type === 'joint') {
                     populateJointFields(block, data.customer);
+                } else if (type === 'coBorrower') {
+                    populateCoBorrowerFields(block, data.customer);
+                } else if (type === 'guarantor') {
+                    populateGuarantorFields(block, data.customer);
                 }
                 showToast('✅ Customer data loaded successfully!');
             } else {
@@ -92,7 +118,7 @@ function setSelectValue(selectElement, value, fieldName) {
     }
     
     const trimmedValue = value.trim().toUpperCase();
-    console.log(`🔧 Setting ${fieldName} to: "${trimmedValue}"`);
+    console.log('🔧 Setting ' + fieldName + ' to: "' + trimmedValue + '"');
     
     let found = false;
     
@@ -102,7 +128,7 @@ function setSelectValue(selectElement, value, fieldName) {
         if (optionValue === trimmedValue) {
             selectElement.selectedIndex = i;
             found = true;
-            console.log(`✅ ${fieldName} set successfully (exact match) to: "${trimmedValue}"`);
+            console.log('✅ ' + fieldName + ' set successfully (exact match) to: "' + trimmedValue + '"');
             return true;
         }
     }
@@ -113,7 +139,7 @@ function setSelectValue(selectElement, value, fieldName) {
         if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
             selectElement.selectedIndex = i;
             found = true;
-            console.log(`✅ ${fieldName} set successfully (text match) to: "${selectElement.options[i].value}"`);
+            console.log('✅ ' + fieldName + ' set successfully (text match) to: "' + selectElement.options[i].value + '"');
             return true;
         }
     }
@@ -124,16 +150,16 @@ function setSelectValue(selectElement, value, fieldName) {
         if (optionValue.includes(trimmedValue) || trimmedValue.includes(optionValue)) {
             selectElement.selectedIndex = i;
             found = true;
-            console.log(`✅ ${fieldName} set successfully (partial match) to: "${selectElement.options[i].value}"`);
+            console.log('✅ ' + fieldName + ' set successfully (partial match) to: "' + selectElement.options[i].value + '"');
             return true;
         }
     }
     
     if (!found) {
-        console.warn(`⚠️ Value "${trimmedValue}" not found in ${fieldName} dropdown`);
+        console.warn('⚠️ Value "' + trimmedValue + '" not found in ' + fieldName + ' dropdown');
         console.log('First 10 available options:');
         for (let i = 0; i < Math.min(10, selectElement.options.length); i++) {
-            console.log(`  [${i}] value="${selectElement.options[i].value}" text="${selectElement.options[i].text}"`);
+            console.log('  [' + i + '] value="' + selectElement.options[i].value + '" text="' + selectElement.options[i].text + '"');
         }
     }
     
@@ -143,35 +169,39 @@ function setSelectValue(selectElement, value, fieldName) {
 // ........................COMMON FUNCTIONS............................
 	
 //Customer Lookup Functions with exclusion support
-function openCustomerLookup(excludeCustomerId = null) {
-  const modal = document.getElementById('customerLookupModal');
-  const content = document.getElementById('customerLookupContent');
+function openCustomerLookup(excludeCustomerId) {
+    if (typeof excludeCustomerId === 'undefined') {
+        excludeCustomerId = null;
+    }
+    
+    const modal = document.getElementById('customerLookupModal');
+    const content = document.getElementById('customerLookupContent');
 
-  modal.style.display = 'flex';
-  content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
+    modal.style.display = 'flex';
+    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-  // ✅ Build URL with exclusion parameter if provided
-  let url = 'lookupForCustomerId.jsp';
-  if (excludeCustomerId) {
-    url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
-  }
+    // Build URL with exclusion parameter if provided
+    let url = 'lookupForCustomerId.jsp';
+    if (excludeCustomerId) {
+        url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+    }
 
-  fetch(url)
-      .then(response => response.text())
-      .then(html => {
-          content.innerHTML = html;
-          const scripts = content.querySelectorAll('script');
-          scripts.forEach(script => {
-              const newScript = document.createElement('script');
-              newScript.textContent = script.textContent;
-              document.body.appendChild(newScript);
-              document.body.removeChild(newScript);
-          });
-      })
-      .catch(error => {
-          console.error('Error loading customer lookup:', error);
-          content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
-      });
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+            const scripts = content.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading customer lookup:', error);
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:red;">Failed to load customer list. Please try again.</div>';
+        });
 }
 
 function closeCustomerLookup() {
@@ -183,7 +213,7 @@ window.onclick = function(event) {
     if (event.target === modal) {
         closeCustomerLookup();
     }
-}
+};
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
@@ -223,14 +253,14 @@ function clearNomineeFields(block) {
 
 // Update Nominee Customer Lookup
 function openNomineeCustomerLookup(button) {
-  const nomineeBlock = button.closest('.nominee-block');
-  const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
-  window.currentNomineeInput = input;
-  window.currentNomineeBlock = nomineeBlock;
-  
-  // ✅ Get main customer ID to exclude from lookup
-  const mainCustomerId = document.getElementById('customerId')?.value || null;
-  openCustomerLookup(mainCustomerId);
+    const nomineeBlock = button.closest('.nominee-block');
+    const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
+    window.currentNomineeInput = input;
+    window.currentNomineeBlock = nomineeBlock;
+    
+    // Get main customer ID to exclude from lookup
+    const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
+    openCustomerLookup(mainCustomerId);
 }
 
 function addNominee() {
@@ -260,7 +290,7 @@ function addNominee() {
     const newIndex = nomineeBlocks.length + 1;
     const radios = clone.querySelectorAll('.nomineeHasCustomerRadio');
     radios.forEach(radio => {
-        radio.name = `nomineeHasCustomerID_${newIndex}`;
+        radio.name = 'nomineeHasCustomerID_' + newIndex;
     });
 
     clone.querySelector(".nominee-remove").onclick = function() {
@@ -373,14 +403,14 @@ function clearJointFields(block) {
 
 // Update Joint Holder Customer Lookup
 function openJointCustomerLookup(button) {
-  const jointBlock = button.closest('.joint-block');
-  const input = jointBlock.querySelector('.jointCustomerIDInput');
-  window.currentJointInput = input;
-  window.currentJointBlock = jointBlock;
-  
-  // ✅ Get main customer ID to exclude from lookup
-  const mainCustomerId = document.getElementById('customerId')?.value || null;
-  openCustomerLookup(mainCustomerId);
+    const jointBlock = button.closest('.joint-block');
+    const input = jointBlock.querySelector('.jointCustomerIDInput');
+    window.currentJointInput = input;
+    window.currentJointBlock = jointBlock;
+    
+    // Get main customer ID to exclude from lookup
+    const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
+    openCustomerLookup(mainCustomerId);
 }
 
 function addJointHolder() {
@@ -410,7 +440,7 @@ function addJointHolder() {
     const newIndex = jointBlocks.length + 1;
     const radios = clone.querySelectorAll('.jointHasCustomerRadio');
     radios.forEach(radio => {
-        radio.name = `jointHasCustomerID_${newIndex}`;
+        radio.name = 'jointHasCustomerID_' + newIndex;
     });
 
     clone.querySelector(".nominee-remove").onclick = function() {
@@ -490,343 +520,347 @@ function populateJointFields(block, customer) {
         zipInput.value = customer.zip;
     }
 }
-//==================== CO-BORROWER FUNCTIONS (FIXED) ====================
+
+//==================== CO-BORROWER FUNCTIONS ====================
 
 function toggleCoBorrowerCustomerID(radio) {
-  const coBorrowerBlock = radio.closest('.coBorrower-block');
-  const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
-  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+    const coBorrowerBlock = radio.closest('.coBorrower-block');
+    const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
+    const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
 
-  if (radio.value === 'yes') {
-      container.style.display = 'block';
-      input.required = true;
-  } else {
-      container.style.display = 'none';
-      input.required = false;
-      input.value = '';
-      clearCoBorrowerFields(coBorrowerBlock);
-  }
+    if (radio.value === 'yes') {
+        container.style.display = 'block';
+        input.required = true;
+    } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+        clearCoBorrowerFields(coBorrowerBlock);
+    }
 }
 
 function clearCoBorrowerFields(block) {
-  // ✅ FIXED: Updated field names
-  block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
-  block.querySelector('input[name="coBorrowerName[]"]').value = '';
-  block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
-  block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
-  block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
-  block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
-  block.querySelector('select[name="coBorrowerState[]"]').value = '';
-  block.querySelector('select[name="coBorrowerCity[]"]').value = '';
-  block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+    block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
+    block.querySelector('input[name="coBorrowerName[]"]').value = '';
+    block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
+    block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
+    block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
+    block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
+    block.querySelector('select[name="coBorrowerState[]"]').value = '';
+    block.querySelector('select[name="coBorrowerCity[]"]').value = '';
+    block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
 }
 
 // Update Co-Borrower Customer Lookup
 function openCoBorrowerCustomerLookup(button) {
-	  const coBorrowerBlock = button.closest('.coBorrower-block');
-	  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
-	  window.currentCoBorrowerInput = input;
-	  window.currentCoBorrowerBlock = coBorrowerBlock;
-	  
-	  // ✅ Get main customer ID to exclude from lookup
-	  const mainCustomerId = document.getElementById('customerId')?.value || null;
-	  openCustomerLookup(mainCustomerId);
-	}
+    const coBorrowerBlock = button.closest('.coBorrower-block');
+    const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+    window.currentCoBorrowerInput = input;
+    window.currentCoBorrowerBlock = coBorrowerBlock;
+    
+    // Get main customer ID to exclude from lookup
+    const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
+    openCustomerLookup(mainCustomerId);
+}
 
 function addCoBorrower() {
-  let fieldset = document.getElementById("coBorrowerFieldset");
-  let original = fieldset.querySelector(".coBorrower-block");
-  let clone = original.cloneNode(true);
+    let fieldset = document.getElementById("coBorrowerFieldset");
+    let original = fieldset.querySelector(".coBorrower-block");
+    let clone = original.cloneNode(true);
 
-  clone.querySelectorAll("input, select").forEach(el => {
-      if (el.type === 'radio') {
-          if (el.value === 'no') el.checked = true;
-          else el.checked = false;
-      } else if (el.tagName === 'SELECT') {
-          el.selectedIndex = 0;
-      } else if (el.name === 'coBorrowerZip[]') {
-          el.value = '0';
-      } else {
-          el.value = "";
-      }
-  });
+    clone.querySelectorAll("input, select").forEach(el => {
+        if (el.type === 'radio') {
+            if (el.value === 'no') el.checked = true;
+            else el.checked = false;
+        } else if (el.tagName === 'SELECT') {
+            el.selectedIndex = 0;
+        } else if (el.name === 'coBorrowerZip[]') {
+            el.value = '0';
+        } else {
+            el.value = "";
+        }
+    });
 
-  const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
-  if (customerIDContainer) {
-      customerIDContainer.style.display = 'none';
-  }
+    const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
+    if (customerIDContainer) {
+        customerIDContainer.style.display = 'none';
+    }
 
-  const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
-  const newIndex = coBorrowerBlocks.length + 1;
-  const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
-  radios.forEach(radio => {
-      radio.name = `coBorrowerHasCustomerID_${newIndex}`;
-  });
+    const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
+    const newIndex = coBorrowerBlocks.length + 1;
+    const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
+    radios.forEach(radio => {
+        radio.name = 'coBorrowerHasCustomerID_' + newIndex;
+    });
 
-  clone.querySelector(".nominee-remove").onclick = function() {
-      removeCoBorrower(this);
-  };
+    clone.querySelector(".nominee-remove").onclick = function() {
+        removeCoBorrower(this);
+    };
 
-  fieldset.appendChild(clone);
-  updateCoBorrowerSerials();
+    fieldset.appendChild(clone);
+    updateCoBorrowerSerials();
 }
 
 function removeCoBorrower(btn) {
-  let blocks = document.querySelectorAll(".coBorrower-block");
-  if (blocks.length <= 1) {
-	    showToast("⚠️ At least one co-borrower is required.", "warning");
-	    return;
-	}
-  btn.parentNode.remove();
-  updateCoBorrowerSerials();
+    let blocks = document.querySelectorAll(".coBorrower-block");
+    if (blocks.length <= 1) {
+        showToast("⚠️ At least one co-borrower is required.", "warning");
+        return;
+    }
+    btn.parentNode.remove();
+    updateCoBorrowerSerials();
 }
 
 function updateCoBorrowerSerials() {
-  let blocks = document.querySelectorAll(".coBorrower-block");
-  blocks.forEach((block, index) => {
-      let serial = block.querySelector(".coBorrower-serial");
-      if (serial) {
-          serial.textContent = (index + 1);
-      }
-  });
+    let blocks = document.querySelectorAll(".coBorrower-block");
+    blocks.forEach((block, index) => {
+        let serial = block.querySelector(".coBorrower-serial");
+        if (serial) {
+            serial.textContent = (index + 1);
+        }
+    });
 }
 
-// ✅ FIXED: Updated field names in populate function
+// Populate Co-Borrower fields with customer data
 function populateCoBorrowerFields(block, customer) {
-  console.log('📝 Populating Co-Borrower fields:', customer);
-  
-  // Salutation Code
-  const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
-  if (salutationSelect && customer.salutationCode) {
-      setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
-  }
+    console.log('📝 Populating Co-Borrower fields:', customer);
+    
+    // Salutation Code
+    const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Co-Borrower Salutation');
+    }
 
-  // Co-Borrower Name
-  const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
-  if (nameInput && customer.customerName) {
-      nameInput.value = customer.customerName;
-  }
+    // Co-Borrower Name
+    const nameInput = block.querySelector('input[name="coBorrowerName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
 
-  // Address fields
-  const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
-  if (address1Input && customer.address1) {
-      address1Input.value = customer.address1;
-  }
+    // Address fields
+    const address1Input = block.querySelector('input[name="coBorrowerAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
 
-  const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
-  if (address2Input && customer.address2) {
-      address2Input.value = customer.address2;
-  }
+    const address2Input = block.querySelector('input[name="coBorrowerAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
 
-  const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
-  if (address3Input && customer.address3) {
-      address3Input.value = customer.address3;
-  }
+    const address3Input = block.querySelector('input[name="coBorrowerAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
 
-  // Country
-  const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
-  if (countrySelect && customer.country) {
-      setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
-  }
+    // Country
+    const countrySelect = block.querySelector('select[name="coBorrowerCountry[]"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Co-Borrower Country');
+    }
 
-  // State
-  const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
-  if (stateSelect && customer.state) {
-      setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
-  }
+    // State
+    const stateSelect = block.querySelector('select[name="coBorrowerState[]"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Co-Borrower State');
+    }
 
-  // City
-  const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
-  if (citySelect && customer.city) {
-      setSelectValue(citySelect, customer.city, 'Co-Borrower City');
-  }
+    // City
+    const citySelect = block.querySelector('select[name="coBorrowerCity[]"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Co-Borrower City');
+    }
 
-  // Zip
-  const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
-  if (zipInput && customer.zip) {
-      zipInput.value = customer.zip;
-  }
+    // Zip
+    const zipInput = block.querySelector('input[name="coBorrowerZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
 }
-
 
 //==================== GUARANTOR FUNCTIONS ====================
 
 function toggleGuarantorCustomerID(radio) {
-  const guarantorBlock = radio.closest('.guarantor-block');
-  const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
-  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+    const guarantorBlock = radio.closest('.guarantor-block');
+    const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
+    const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
 
-  if (radio.value === 'yes') {
-      container.style.display = 'block';
-      input.required = true;
-  } else {
-      container.style.display = 'none';
-      input.required = false;
-      input.value = '';
-      clearGuarantorFields(guarantorBlock);
-  }
+    if (radio.value === 'yes') {
+        container.style.display = 'block';
+        input.required = true;
+    } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+        clearGuarantorFields(guarantorBlock);
+    }
 }
 
 function clearGuarantorFields(block) {
-  block.querySelector('select[name="guarantorSalutation[]"]').value = '';
-  block.querySelector('input[name="guarantorName[]"]').value = '';
-  block.querySelector('input[name="guarantorAddress1[]"]').value = '';
-  block.querySelector('input[name="guarantorAddress2[]"]').value = '';
-  block.querySelector('input[name="guarantorAddress3[]"]').value = '';
-  block.querySelector('select[name="guarantorCountry[]"]').value = '';
-  block.querySelector('select[name="guarantorState[]"]').value = '';
-  block.querySelector('select[name="guarantorCity[]"]').value = '';
-  block.querySelector('input[name="guarantorZip[]"]').value = '';
-  
-  block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
-  block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
-  block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
-  block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
+    block.querySelector('select[name="guarantorSalutation[]"]').value = '';
+    block.querySelector('input[name="guarantorName[]"]').value = '';
+    block.querySelector('input[name="guarantorAddress1[]"]').value = '';
+    block.querySelector('input[name="guarantorAddress2[]"]').value = '';
+    block.querySelector('input[name="guarantorAddress3[]"]').value = '';
+    block.querySelector('select[name="guarantorCountry[]"]').value = '';
+    block.querySelector('select[name="guarantorState[]"]').value = '';
+    block.querySelector('select[name="guarantorCity[]"]').value = '';
+    block.querySelector('input[name="guarantorZip[]"]').value = '';
+    
+    block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
+    block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
+    block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
+    block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
 }
 
 // Update Guarantor Customer Lookup
 function openGuarantorCustomerLookup(button) {
-  const guarantorBlock = button.closest('.guarantor-block');
-  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
-  window.currentGuarantorInput = input;
-  window.currentGuarantorBlock = guarantorBlock;
-  
-  // ✅ Get main customer ID to exclude from lookup
-  const mainCustomerId = document.getElementById('customerId')?.value || null;
-  openCustomerLookup(mainCustomerId);
+    const guarantorBlock = button.closest('.guarantor-block');
+    const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+    window.currentGuarantorInput = input;
+    window.currentGuarantorBlock = guarantorBlock;
+    
+    // Get main customer ID to exclude from lookup
+    const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
+    openCustomerLookup(mainCustomerId);
 }
 
 function addGuarantor() {
-  let fieldset = document.getElementById("guarantorFieldset");
-  let original = fieldset.querySelector(".guarantor-block");
-  let clone = original.cloneNode(true);
+    let fieldset = document.getElementById("guarantorFieldset");
+    let original = fieldset.querySelector(".guarantor-block");
+    let clone = original.cloneNode(true);
 
-  clone.querySelectorAll("input, select").forEach(el => {
-      if (el.type === 'radio') {
-          if (el.value === 'no') el.checked = true;
-          else el.checked = false;
-      } else if (el.tagName === 'SELECT') {
-          el.selectedIndex = 0;
-      } else if (el.name === 'guarantorZip[]') {
-          el.value = '0';
-      } else {
-          el.value = "";
-      }
-  });
+    clone.querySelectorAll("input, select").forEach(el => {
+        if (el.type === 'radio') {
+            if (el.value === 'no') el.checked = true;
+            else el.checked = false;
+        } else if (el.tagName === 'SELECT') {
+            el.selectedIndex = 0;
+        } else if (el.name === 'guarantorZip[]') {
+            el.value = '0';
+        } else {
+            el.value = "";
+        }
+    });
 
-  const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
-  if (customerIDContainer) {
-      customerIDContainer.style.display = 'none';
-  }
+    const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
+    if (customerIDContainer) {
+        customerIDContainer.style.display = 'none';
+    }
 
-  const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
-  const newIndex = guarantorBlocks.length + 1;
-  const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
-  radios.forEach(radio => {
-      radio.name = `guarantorHasCustomerID_${newIndex}`;
-  });
+    const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
+    const newIndex = guarantorBlocks.length + 1;
+    const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
+    radios.forEach(radio => {
+        radio.name = 'guarantorHasCustomerID_' + newIndex;
+    });
 
-  clone.querySelector(".nominee-remove").onclick = function() {
-      removeGuarantor(this);
-  };
+    clone.querySelector(".nominee-remove").onclick = function() {
+        removeGuarantor(this);
+    };
 
-  fieldset.appendChild(clone);
-  updateGuarantorSerials();
+    fieldset.appendChild(clone);
+    updateGuarantorSerials();
 }
 
 function removeGuarantor(btn) {
-  let blocks = document.querySelectorAll(".guarantor-block");
-  if (blocks.length <= 1) {
-	    showToast("⚠️ At least one guarantor is required.", "warning");
-	    return;
-	}
-  btn.parentNode.remove();
-  updateGuarantorSerials();
+    let blocks = document.querySelectorAll(".guarantor-block");
+    if (blocks.length <= 1) {
+        showToast("⚠️ At least one guarantor is required.", "warning");
+        return;
+    }
+    btn.parentNode.remove();
+    updateGuarantorSerials();
 }
 
 function updateGuarantorSerials() {
-  let blocks = document.querySelectorAll(".guarantor-block");
-  blocks.forEach((block, index) => {
-      let serial = block.querySelector(".guarantor-serial");
-      if (serial) {
-          serial.textContent = (index + 1);
-      }
-  });
+    let blocks = document.querySelectorAll(".guarantor-block");
+    blocks.forEach((block, index) => {
+        let serial = block.querySelector(".guarantor-serial");
+        if (serial) {
+            serial.textContent = (index + 1);
+        }
+    });
 }
 
 //Populate Guarantor fields with customer data
 function populateGuarantorFields(block, customer) {
-  console.log('📝 Populating Guarantor fields:', customer);
-  
-  const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
-  if (salutationSelect && customer.salutationCode) {
-      setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
-  }
+    console.log('📝 Populating Guarantor fields:', customer);
+    
+    const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
+    if (salutationSelect && customer.salutationCode) {
+        setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
+    }
 
-  const nameInput = block.querySelector('input[name="guarantorName[]"]');
-  if (nameInput && customer.customerName) {
-      nameInput.value = customer.customerName;
-  }
+    const nameInput = block.querySelector('input[name="guarantorName[]"]');
+    if (nameInput && customer.customerName) {
+        nameInput.value = customer.customerName;
+    }
 
-  const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
-  if (address1Input && customer.address1) {
-      address1Input.value = customer.address1;
-  }
+    const address1Input = block.querySelector('input[name="guarantorAddress1[]"]');
+    if (address1Input && customer.address1) {
+        address1Input.value = customer.address1;
+    }
 
-  const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
-  if (address2Input && customer.address2) {
-      address2Input.value = customer.address2;
-  }
+    const address2Input = block.querySelector('input[name="guarantorAddress2[]"]');
+    if (address2Input && customer.address2) {
+        address2Input.value = customer.address2;
+    }
 
-  const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
-  if (address3Input && customer.address3) {
-      address3Input.value = customer.address3;
-  }
+    const address3Input = block.querySelector('input[name="guarantorAddress3[]"]');
+    if (address3Input && customer.address3) {
+        address3Input.value = customer.address3;
+    }
 
-  const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
-  if (countrySelect && customer.country) {
-      setSelectValue(countrySelect, customer.country, 'Guarantor Country');
-  }
+    const countrySelect = block.querySelector('select[name="guarantorCountry[]"]');
+    if (countrySelect && customer.country) {
+        setSelectValue(countrySelect, customer.country, 'Guarantor Country');
+    }
 
-  const stateSelect = block.querySelector('select[name="guarantorState[]"]');
-  if (stateSelect && customer.state) {
-      setSelectValue(stateSelect, customer.state, 'Guarantor State');
-  }
+    const stateSelect = block.querySelector('select[name="guarantorState[]"]');
+    if (stateSelect && customer.state) {
+        setSelectValue(stateSelect, customer.state, 'Guarantor State');
+    }
 
-  const citySelect = block.querySelector('select[name="guarantorCity[]"]');
-  if (citySelect && customer.city) {
-      setSelectValue(citySelect, customer.city, 'Guarantor City');
-  }
+    const citySelect = block.querySelector('select[name="guarantorCity[]"]');
+    if (citySelect && customer.city) {
+        setSelectValue(citySelect, customer.city, 'Guarantor City');
+    }
 
-  const zipInput = block.querySelector('input[name="guarantorZip[]"]');
-  if (zipInput && customer.zip) {
-      zipInput.value = customer.zip;
-  }
+    const zipInput = block.querySelector('input[name="guarantorZip[]"]');
+    if (zipInput && customer.zip) {
+        zipInput.value = customer.zip;
+    }
 
-  const memberNoInput = block.querySelector('input[name="guarantorMemberNo[]"]');
-  if (memberNoInput && customer.memberNumber) {
-      memberNoInput.value = customer.memberNumber;
-  }
+    const memberNoInput = block.querySelector('input[name="guarantorMemberNo[]"]');
+    if (memberNoInput && customer.memberNumber) {
+        memberNoInput.value = customer.memberNumber;
+    }
 
-  const birthDateInput = block.querySelector('input[name="guarantorBirthDate[]"]');
-  if (birthDateInput && customer.birthDate) {
-      birthDateInput.value = customer.birthDate;
-  }
+    const birthDateInput = block.querySelector('input[name="guarantorBirthDate[]"]');
+    if (birthDateInput && customer.birthDate) {
+        birthDateInput.value = customer.birthDate;
+    }
 
-  const phoneNoInput = block.querySelector('input[name="guarantorPhoneNo[]"]');
-  if (phoneNoInput && customer.residencePhone) {
-      phoneNoInput.value = customer.residencePhone;
-  }
+    const phoneNoInput = block.querySelector('input[name="guarantorPhoneNo[]"]');
+    if (phoneNoInput && customer.residencePhone) {
+        phoneNoInput.value = customer.residencePhone;
+    }
 
-  const mobileNoInput = block.querySelector('input[name="guarantorMobileNo[]"]');
-  if (mobileNoInput && customer.mobileNo) {
-      mobileNoInput.value = customer.mobileNo;
-  }
+    const mobileNoInput = block.querySelector('input[name="guarantorMobileNo[]"]');
+    if (mobileNoInput && customer.mobileNo) {
+        mobileNoInput.value = customer.mobileNo;
+    }
 }
+
 //==================== UTILITY FUNCTIONS ====================
 
 // Enhanced toast utility function with different types
-function showToast(message, type = 'success') {
+function showToast(message, type) {
+    if (typeof type === 'undefined') {
+        type = 'success';
+    }
+    
     if (typeof Toastify === 'undefined') {
         console.warn('Toastify library not loaded');
         return;
@@ -866,7 +900,7 @@ function showToast(message, type = 'success') {
             fontSize: "14px",
             padding: "16px 24px",
             boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-            borderLeft: `5px solid ${style.borderColor}`,
+            borderLeft: '5px solid ' + style.borderColor,
             marginTop: "20px",
             whiteSpace: "pre-line"
         },
