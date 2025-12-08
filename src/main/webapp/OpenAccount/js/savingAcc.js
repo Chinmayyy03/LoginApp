@@ -492,6 +492,105 @@ function populateJointFields(block, customer) {
 }
 //==================== CO-BORROWER FUNCTIONS (FIXED) ====================
 
+function toggleCoBorrowerCustomerID(radio) {
+  const coBorrowerBlock = radio.closest('.coBorrower-block');
+  const container = coBorrowerBlock.querySelector('.coBorrowerCustomerIDContainer');
+  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+
+  if (radio.value === 'yes') {
+      container.style.display = 'block';
+      input.required = true;
+  } else {
+      container.style.display = 'none';
+      input.required = false;
+      input.value = '';
+      clearCoBorrowerFields(coBorrowerBlock);
+  }
+}
+
+function clearCoBorrowerFields(block) {
+  // ✅ FIXED: Updated field names
+  block.querySelector('select[name="coBorrowerSalutation[]"]').value = '';
+  block.querySelector('input[name="coBorrowerName[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress1[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress2[]"]').value = '';
+  block.querySelector('input[name="coBorrowerAddress3[]"]').value = '';
+  block.querySelector('select[name="coBorrowerCountry[]"]').value = '';
+  block.querySelector('select[name="coBorrowerState[]"]').value = '';
+  block.querySelector('select[name="coBorrowerCity[]"]').value = '';
+  block.querySelector('input[name="coBorrowerZip[]"]').value = '0';
+}
+
+// Update Co-Borrower Customer Lookup
+function openCoBorrowerCustomerLookup(button) {
+	  const coBorrowerBlock = button.closest('.coBorrower-block');
+	  const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
+	  window.currentCoBorrowerInput = input;
+	  window.currentCoBorrowerBlock = coBorrowerBlock;
+	  
+	  // ✅ Get main customer ID to exclude from lookup
+	  const mainCustomerId = document.getElementById('customerId')?.value || null;
+	  openCustomerLookup(mainCustomerId);
+	}
+
+function addCoBorrower() {
+  let fieldset = document.getElementById("coBorrowerFieldset");
+  let original = fieldset.querySelector(".coBorrower-block");
+  let clone = original.cloneNode(true);
+
+  clone.querySelectorAll("input, select").forEach(el => {
+      if (el.type === 'radio') {
+          if (el.value === 'no') el.checked = true;
+          else el.checked = false;
+      } else if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+      } else if (el.name === 'coBorrowerZip[]') {
+          el.value = '0';
+      } else {
+          el.value = "";
+      }
+  });
+
+  const customerIDContainer = clone.querySelector('.coBorrowerCustomerIDContainer');
+  if (customerIDContainer) {
+      customerIDContainer.style.display = 'none';
+  }
+
+  const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
+  const newIndex = coBorrowerBlocks.length + 1;
+  const radios = clone.querySelectorAll('.coBorrowerHasCustomerRadio');
+  radios.forEach(radio => {
+      radio.name = `coBorrowerHasCustomerID_${newIndex}`;
+  });
+
+  clone.querySelector(".nominee-remove").onclick = function() {
+      removeCoBorrower(this);
+  };
+
+  fieldset.appendChild(clone);
+  updateCoBorrowerSerials();
+}
+
+function removeCoBorrower(btn) {
+  let blocks = document.querySelectorAll(".coBorrower-block");
+  if (blocks.length <= 1) {
+	    showToast("⚠️ At least one co-borrower is required.", "warning");
+	    return;
+	}
+  btn.parentNode.remove();
+  updateCoBorrowerSerials();
+}
+
+function updateCoBorrowerSerials() {
+  let blocks = document.querySelectorAll(".coBorrower-block");
+  blocks.forEach((block, index) => {
+      let serial = block.querySelector(".coBorrower-serial");
+      if (serial) {
+          serial.textContent = (index + 1);
+      }
+  });
+}
+
 // ✅ FIXED: Updated field names in populate function
 function populateCoBorrowerFields(block, customer) {
   console.log('📝 Populating Co-Borrower fields:', customer);

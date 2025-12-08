@@ -1206,84 +1206,6 @@ document.addEventListener('keydown', function(event) {
 
 //==================== NOMINEE FUNCTIONS ====================
 
-function toggleNomineeCustomerID(radio) {
-    const nomineeBlock = radio.closest('.nominee-block');
-    const container = nomineeBlock.querySelector('.nomineeCustomerIDContainer');
-    const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
-
-    if (radio.value === 'yes') {
-        container.style.display = 'block';
-        input.required = true;
-    } else {
-        container.style.display = 'none';
-        input.required = false;
-        input.value = '';
-        clearNomineeFields(nomineeBlock);
-    }
-}
-
-function clearNomineeFields(block) {
-    block.querySelector('select[name="nomineeSalutation[]"]').value = '';
-    block.querySelector('input[name="nomineeName[]"]').value = '';
-    block.querySelector('input[name="nomineeAddress1[]"]').value = '';
-    block.querySelector('input[name="nomineeAddress2[]"]').value = '';
-    block.querySelector('input[name="nomineeAddress3[]"]').value = '';
-    block.querySelector('select[name="nomineeCountry[]"]').value = '';
-    block.querySelector('select[name="nomineeState[]"]').value = '';
-    block.querySelector('select[name="nomineeCity[]"]').value = '';
-    block.querySelector('input[name="nomineeZip[]"]').value = '0';
-}
-
-//Update Nominee Customer Lookup
-function openNomineeCustomerLookup(button) {
-  const nomineeBlock = button.closest('.nominee-block');
-  const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
-  window.currentNomineeInput = input;
-  window.currentNomineeBlock = nomineeBlock;
-  
-  // ✅ Get main customer ID to exclude from lookup
-  const mainCustomerId = document.getElementById('customerId')?.value || null;
-  openCustomerLookup(mainCustomerId);
-}
-
-function addNominee() {
-    let fieldset = document.getElementById("nomineeFieldset");
-    let original = fieldset.querySelector(".nominee-block");
-    let clone = original.cloneNode(true);
-
-    clone.querySelectorAll("input, select").forEach(el => {
-        if (el.type === 'radio') {
-            if (el.value === 'no') el.checked = true;
-            else el.checked = false;
-        } else if (el.tagName === 'SELECT') {
-            el.selectedIndex = 0;
-        } else if (el.name === 'nomineeZip[]') {
-            el.value = '0';
-        } else {
-            el.value = "";
-        }
-    });
-
-    const customerIDContainer = clone.querySelector('.nomineeCustomerIDContainer');
-    if (customerIDContainer) {
-        customerIDContainer.style.display = 'none';
-    }
-
-    const nomineeBlocks = fieldset.querySelectorAll(".nominee-block");
-    const newIndex = nomineeBlocks.length + 1;
-    const radios = clone.querySelectorAll('.nomineeHasCustomerRadio');
-    radios.forEach(radio => {
-        radio.name = `nomineeHasCustomerID_${newIndex}`;
-    });
-
-    clone.querySelector(".nominee-remove").onclick = function() {
-        removeNominee(this);
-    };
-
-    fieldset.appendChild(clone);
-    updateNomineeSerials();
-}
-
 //Replace the existing removeNominee function
 function removeNominee(btn) {
     let blocks = document.querySelectorAll(".nominee-block");
@@ -1312,96 +1234,7 @@ function removeNominee(btn) {
     updateNomineeSerials();
 }
 
-function updateNomineeSerials() {
-    let blocks = document.querySelectorAll(".nominee-block");
-    blocks.forEach((block, index) => {
-        let serial = block.querySelector(".nominee-serial");
-        if (serial) {
-            serial.textContent = (index + 1);
-        }
-    });
-}
-
 //==================== JOINT HOLDER FUNCTIONS ====================
-
-function toggleJointCustomerID(radio) {
-    const jointBlock = radio.closest('.joint-block');
-    const container = jointBlock.querySelector('.jointCustomerIDContainer');
-    const input = jointBlock.querySelector('.jointCustomerIDInput');
-
-    if (radio.value === 'yes') {
-        container.style.display = 'block';
-        input.required = true;
-    } else {
-        container.style.display = 'none';
-        input.required = false;
-        input.value = '';
-        clearJointFields(jointBlock);
-    }
-}
-
-function clearJointFields(block) {
-    block.querySelector('select[name="jointSalutation[]"]').value = '';
-    block.querySelector('input[name="jointName[]"]').value = '';
-    block.querySelector('input[name="jointAddress1[]"]').value = '';
-    block.querySelector('input[name="jointAddress2[]"]').value = '';
-    block.querySelector('input[name="jointAddress3[]"]').value = '';
-    block.querySelector('select[name="jointCountry[]"]').value = '';
-    block.querySelector('select[name="jointState[]"]').value = '';
-    block.querySelector('select[name="jointCity[]"]').value = '';
-    block.querySelector('input[name="jointZip[]"]').value = '0';
-}
-
-//Update Joint Holder Customer Lookup
-function openJointCustomerLookup(button) {
-  const jointBlock = button.closest('.joint-block');
-  const input = jointBlock.querySelector('.jointCustomerIDInput');
-  window.currentJointInput = input;
-  window.currentJointBlock = jointBlock;
-  
-  // ✅ Get main customer ID to exclude from lookup
-  const mainCustomerId = document.getElementById('customerId')?.value || null;
-  openCustomerLookup(mainCustomerId);
-}
-
-function addJointHolder() {
-    let fieldset = document.getElementById("jointFieldset");
-    let original = fieldset.querySelector(".joint-block");
-    let clone = original.cloneNode(true);
-
-    clone.querySelectorAll("input, select").forEach(el => {
-        if (el.type === 'radio') {
-            if (el.value === 'no') el.checked = true;
-            else el.checked = false;
-        } else if (el.tagName === 'SELECT') {
-            el.selectedIndex = 0;
-        } else if (el.name === 'jointZip[]') {
-            el.value = '0';
-        } else {
-            el.value = "";
-        }
-    });
-
-    const customerIDContainer = clone.querySelector('.jointCustomerIDContainer');
-    if (customerIDContainer) {
-        customerIDContainer.style.display = 'none';
-    }
-
-    const jointBlocks = fieldset.querySelectorAll(".joint-block");
-    const newIndex = jointBlocks.length + 1;
-    const radios = clone.querySelectorAll('.jointHasCustomerRadio');
-    radios.forEach(radio => {
-        radio.name = `jointHasCustomerID_${newIndex}`;
-    });
-
-    clone.querySelector(".nominee-remove").onclick = function() {
-        removeJointHolder(this);
-    };
-
-    fieldset.appendChild(clone);
-    updateJointSerials();
-}
-
 function removeJointHolder(btn) {
     let blocks = document.querySelectorAll(".joint-block");
     if (blocks.length <= 1) {
@@ -1427,16 +1260,6 @@ function removeJointHolder(btn) {
     }
     btn.parentNode.remove();
     updateJointSerials();
-}
-
-function updateJointSerials() {
-    let blocks = document.querySelectorAll(".joint-block");
-    blocks.forEach((block, index) => {
-        let serial = block.querySelector(".joint-serial");
-        if (serial) {
-            serial.textContent = (index + 1);
-        }
-    });
 }
 
 //==================== UTILITY FUNCTIONS ====================
