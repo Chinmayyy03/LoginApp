@@ -651,6 +651,109 @@ function populateCoBorrowerFields(block, customer) {
 
 //==================== GUARANTOR FUNCTIONS ====================
 
+function toggleGuarantorCustomerID(radio) {
+  const guarantorBlock = radio.closest('.guarantor-block');
+  const container = guarantorBlock.querySelector('.guarantorCustomerIDContainer');
+  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+
+  if (radio.value === 'yes') {
+      container.style.display = 'block';
+      input.required = true;
+  } else {
+      container.style.display = 'none';
+      input.required = false;
+      input.value = '';
+      clearGuarantorFields(guarantorBlock);
+  }
+}
+
+function clearGuarantorFields(block) {
+  block.querySelector('select[name="guarantorSalutation[]"]').value = '';
+  block.querySelector('input[name="guarantorName[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress1[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress2[]"]').value = '';
+  block.querySelector('input[name="guarantorAddress3[]"]').value = '';
+  block.querySelector('select[name="guarantorCountry[]"]').value = '';
+  block.querySelector('select[name="guarantorState[]"]').value = '';
+  block.querySelector('select[name="guarantorCity[]"]').value = '';
+  block.querySelector('input[name="guarantorZip[]"]').value = '';
+  
+  block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
+  block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
+  block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
+  block.querySelector('input[name="guarantorBirthDate[]"]').value = '';
+}
+
+// Update Guarantor Customer Lookup
+function openGuarantorCustomerLookup(button) {
+  const guarantorBlock = button.closest('.guarantor-block');
+  const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
+  window.currentGuarantorInput = input;
+  window.currentGuarantorBlock = guarantorBlock;
+  
+  // ✅ Get main customer ID to exclude from lookup
+  const mainCustomerId = document.getElementById('customerId')?.value || null;
+  openCustomerLookup(mainCustomerId);
+}
+
+function addGuarantor() {
+  let fieldset = document.getElementById("guarantorFieldset");
+  let original = fieldset.querySelector(".guarantor-block");
+  let clone = original.cloneNode(true);
+
+  clone.querySelectorAll("input, select").forEach(el => {
+      if (el.type === 'radio') {
+          if (el.value === 'no') el.checked = true;
+          else el.checked = false;
+      } else if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+      } else if (el.name === 'guarantorZip[]') {
+          el.value = '0';
+      } else {
+          el.value = "";
+      }
+  });
+
+  const customerIDContainer = clone.querySelector('.guarantorCustomerIDContainer');
+  if (customerIDContainer) {
+      customerIDContainer.style.display = 'none';
+  }
+
+  const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
+  const newIndex = guarantorBlocks.length + 1;
+  const radios = clone.querySelectorAll('.guarantorHasCustomerRadio');
+  radios.forEach(radio => {
+      radio.name = `guarantorHasCustomerID_${newIndex}`;
+  });
+
+  clone.querySelector(".nominee-remove").onclick = function() {
+      removeGuarantor(this);
+  };
+
+  fieldset.appendChild(clone);
+  updateGuarantorSerials();
+}
+
+function removeGuarantor(btn) {
+  let blocks = document.querySelectorAll(".guarantor-block");
+  if (blocks.length <= 1) {
+	    showToast("⚠️ At least one guarantor is required.", "warning");
+	    return;
+	}
+  btn.parentNode.remove();
+  updateGuarantorSerials();
+}
+
+function updateGuarantorSerials() {
+  let blocks = document.querySelectorAll(".guarantor-block");
+  blocks.forEach((block, index) => {
+      let serial = block.querySelector(".guarantor-serial");
+      if (serial) {
+          serial.textContent = (index + 1);
+      }
+  });
+}
+
 //Populate Guarantor fields with customer data
 function populateGuarantorFields(block, customer) {
   console.log('📝 Populating Guarantor fields:', customer);
