@@ -491,9 +491,6 @@ window.onload = function() {
     }
 };
 
-
-
-
 //Add custom CSS for toast overlay positioning
 const toastStyle = document.createElement('style');
 toastStyle.textContent = `
@@ -617,63 +614,223 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // ========== PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
 
+// ========== IMAGE UPLOAD CONFIGURATION ==========
+const IMAGE_CONFIG = {
+    photo: {
+        maxSize: 5 * 1024 * 1024, // 5MB max upload
+        targetSize: 500 * 1024,   // 500KB target after compression
+        width: 413,               // Passport size width (3.5cm at 300 DPI)
+        height: 531,              // Passport size height (4.5cm at 300 DPI)
+        aspectRatio: 3.5 / 4.5,
+        quality: 0.85,
+        name: 'Photo'
+    },
+    signature: {
+        maxSize: 5 * 1024 * 1024, // 5MB max upload
+        targetSize: 500 * 1024,   // 500KB target after compression
+        width: 600,               // Signature width
+        height: 200,              // Signature height
+        aspectRatio: 3,
+        quality: 0.85,
+        name: 'Signature'
+    }
+};
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg'];
+
+// ========== UTILITY FUNCTIONS ==========
+
+/**
+ * Validate file type
+ */
+function validateFileType(file, configType) {
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+    
+    const hasValidType = ALLOWED_TYPES.includes(fileType);
+    const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(ext));
+    
+    if (!hasValidType && !hasValidExtension) {
+        showErrorToast(`❌ Invalid file type for ${configType}!\nOnly JPG/JPEG files are allowed.`);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Validate file size
+ */
+function validateFileSize(file, config) {
+    if (file.size > config.maxSize) {
+        const maxSizeMB = (config.maxSize / (1024 * 1024)).toFixed(1);
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        showErrorToast(`❌ ${config.name} file size (${fileSizeMB}MB) exceeds maximum allowed size of ${maxSizeMB}MB!`);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Compress and resize image to target dimensions
+ */
+function compressImage(imageData, config) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas to target dimensions
+            canvas.width = config.width;
+            canvas.height = config.height;
+            
+            // Fill white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate dimensions to maintain aspect ratio and fit
+            let sourceWidth = img.width;
+            let sourceHeight = img.height;
+            let sourceX = 0;
+            let sourceY = 0;
+            
+            const sourceAspect = sourceWidth / sourceHeight;
+            const targetAspect = config.width / config.height;
+            
+            if (sourceAspect > targetAspect) {
+                // Image is wider - crop width
+                sourceWidth = sourceHeight * targetAspect;
+                sourceX = (img.width - sourceWidth) / 2;
+            } else {
+                // Image is taller - crop height
+                sourceHeight = sourceWidth / targetAspect;
+                sourceY = (img.height - sourceHeight) / 2;
+            }
+            
+            // Draw image centered and cropped
+            ctx.drawImage(
+                img,
+                sourceX, sourceY, sourceWidth, sourceHeight,
+                0, 0, canvas.width, canvas.height
+            );
+            
+            // Try different quality levels to achieve target size
+            compressToTargetSize(canvas, config.quality, config.targetSize)
+                .then(resolve)
+                .catch(reject);
+        };
+        
+        img.onerror = function() {
+            reject(new Error('Failed to load image'));
+        };
+        
+        img.src = imageData;
+    });
+}
+
+/**
+ * Compress image to target file size
+ */
+function compressToTargetSize(canvas, initialQuality, targetSize) {
+    return new Promise((resolve) => {
+        let quality = initialQuality;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        function tryCompress() {
+            const compressed = canvas.toDataURL('image/jpeg', quality);
+            const sizeInBytes = Math.round((compressed.length * 3) / 4);
+            
+            if (sizeInBytes <= targetSize || attempts >= maxAttempts || quality <= 0.1) {
+                console.log(`✅ Compressed to ${(sizeInBytes / 1024).toFixed(1)}KB at quality ${(quality * 100).toFixed(0)}%`);
+                resolve(compressed);
+                return;
+            }
+            
+            // Reduce quality and try again
+            quality -= 0.1;
+            attempts++;
+            tryCompress();
+        }
+        
+        tryCompress();
+    });
+}
+
+/**
+ * Process image file
+ */
+function processImageFile(file, config, previewElementId, dataFieldId) {
+    return new Promise((resolve, reject) => {
+        if (!validateFileType(file, config.name)) {
+            reject(new Error('Invalid file type'));
+            return;
+        }
+        
+        if (!validateFileSize(file, config)) {
+            reject(new Error('File too large'));
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            showInfoToast(`⏳ Processing ${config.name.toLowerCase()}...`);
+            
+            compressImage(e.target.result, config)
+                .then(compressedImage => {
+                    // Update preview
+                    const preview = document.getElementById(previewElementId);
+                    preview.src = compressedImage;
+                    preview.classList.add('preview-image');
+                    
+                    // Store compressed data
+                    document.getElementById(dataFieldId).value = compressedImage;
+                    
+                    // Show success
+                    markFieldAsComplete(previewElementId);
+                    
+                    const finalSize = Math.round((compressedImage.length * 3) / 4);
+                    showSuccessToast(`✅ ${config.name} uploaded successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${config.width}x${config.height}px)`);
+                    
+                    resolve(compressedImage);
+                })
+                .catch(error => {
+                    showErrorToast(`❌ Failed to process ${config.name.toLowerCase()}: ${error.message}`);
+                    reject(error);
+                });
+        };
+        
+        reader.onerror = function() {
+            showErrorToast(`❌ Failed to read ${config.name.toLowerCase()} file`);
+            reject(new Error('File read error'));
+        };
+        
+        reader.readAsDataURL(file);
+    });
+}
+
+// ========== PHOTO UPLOAD HANDLERS ==========
+
 let photoStream = null;
-let signatureStream = null;
 
 // Photo Upload - Browse
 document.getElementById('photoInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
-        handlePhotoFile(file);
-    }
-});
-
-// Signature Upload - Browse
-document.getElementById('signatureInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        handleSignatureFile(file);
+        processImageFile(file, IMAGE_CONFIG.photo, 'photoPreviewIcon', 'photoData')
+            .catch(() => {
+                this.value = ''; // Reset input
+            });
     }
 });
 
 // Handle Photo File
 function handlePhotoFile(file) {
-    if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('photoPreviewIcon');
-        preview.src = e.target.result;
-        preview.classList.add('preview-image');
-        document.getElementById('photoData').value = e.target.result;
-        
-		markFieldAsComplete('photoPreviewIcon');
-        showToast('✅ Photo uploaded successfully!');
-    };
-    reader.readAsDataURL(file);
-}
-
-// Handle Signature File
-function handleSignatureFile(file) {
-    if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('signaturePreviewIcon');
-        preview.src = e.target.result;
-        preview.classList.add('preview-image');
-        document.getElementById('signatureData').value = e.target.result;
-        
-		markFieldAsComplete('signaturePreviewIcon');
-        showToast('✅ Signature uploaded successfully!');
-    };
-    reader.readAsDataURL(file);
+    processImageFile(file, IMAGE_CONFIG.photo, 'photoPreviewIcon', 'photoData')
+        .catch(() => {});
 }
 
 // Open Photo Camera
@@ -683,15 +840,21 @@ function openPhotoCamera() {
     
     modal.style.display = 'block';
     
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
-            photoStream = stream;
-            video.srcObject = stream;
-        })
-        .catch(function(err) {
-            alert('Error accessing camera: ' + err.message);
-            closePhotoCamera();
-        });
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+        } 
+    })
+    .then(function(stream) {
+        photoStream = stream;
+        video.srcObject = stream;
+    })
+    .catch(function(err) {
+        showErrorToast('❌ Error accessing camera: ' + err.message);
+        closePhotoCamera();
+    });
 }
 
 // Close Photo Camera
@@ -712,22 +875,53 @@ function closePhotoCamera() {
 function capturePhoto() {
     const video = document.getElementById('photoVideo');
     const canvas = document.getElementById('photoCanvas');
-    const context = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    const imageData = canvas.toDataURL('image/jpeg');
+    const imageData = canvas.toDataURL('image/jpeg', 0.95);
     
-    const preview = document.getElementById('photoPreviewIcon');
-    preview.src = imageData;
-    preview.classList.add('preview-image');
-    document.getElementById('photoData').value = imageData;
+    showInfoToast('⏳ Processing photo...');
     
-    closePhotoCamera();
-	markFieldAsComplete('photoPreviewIcon');
-    showToast('✅ Photo captured successfully!');
+    compressImage(imageData, IMAGE_CONFIG.photo)
+        .then(compressedImage => {
+            const preview = document.getElementById('photoPreviewIcon');
+            preview.src = compressedImage;
+            preview.classList.add('preview-image');
+            document.getElementById('photoData').value = compressedImage;
+            
+            closePhotoCamera();
+            markFieldAsComplete('photoPreviewIcon');
+            
+            const finalSize = Math.round((compressedImage.length * 3) / 4);
+            showSuccessToast(`✅ Photo captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.photo.width}x${IMAGE_CONFIG.photo.height}px)`);
+        })
+        .catch(error => {
+            showErrorToast('❌ Failed to process photo: ' + error.message);
+        });
+}
+
+// ========== SIGNATURE UPLOAD HANDLERS ==========
+
+let signatureStream = null;
+
+// Signature Upload - Browse
+document.getElementById('signatureInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        processImageFile(file, IMAGE_CONFIG.signature, 'signaturePreviewIcon', 'signatureData')
+            .catch(() => {
+                this.value = ''; // Reset input
+            });
+    }
+});
+
+// Handle Signature File
+function handleSignatureFile(file) {
+    processImageFile(file, IMAGE_CONFIG.signature, 'signaturePreviewIcon', 'signatureData')
+        .catch(() => {});
 }
 
 // Open Signature Camera
@@ -737,15 +931,21 @@ function openSignatureCamera() {
     
     modal.style.display = 'block';
     
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
-            signatureStream = stream;
-            video.srcObject = stream;
-        })
-        .catch(function(err) {
-            alert('Error accessing camera: ' + err.message);
-            closeSignatureCamera();
-        });
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'environment'
+        } 
+    })
+    .then(function(stream) {
+        signatureStream = stream;
+        video.srcObject = stream;
+    })
+    .catch(function(err) {
+        showErrorToast('❌ Error accessing camera: ' + err.message);
+        closeSignatureCamera();
+    });
 }
 
 // Close Signature Camera
@@ -766,65 +966,83 @@ function closeSignatureCamera() {
 function captureSignature() {
     const video = document.getElementById('signatureVideo');
     const canvas = document.getElementById('signatureCanvas');
-    const context = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    const imageData = canvas.toDataURL('image/jpeg');
+    const imageData = canvas.toDataURL('image/jpeg', 0.95);
     
-    const preview = document.getElementById('signaturePreviewIcon');
-    preview.src = imageData;
-    preview.classList.add('preview-image');
-    document.getElementById('signatureData').value = imageData;
+    showInfoToast('⏳ Processing signature...');
     
-    closeSignatureCamera();
-	markFieldAsComplete('signaturePreviewIcon');
-    showToast('✅ Signature captured successfully!');
+    compressImage(imageData, IMAGE_CONFIG.signature)
+        .then(compressedImage => {
+            const preview = document.getElementById('signaturePreviewIcon');
+            preview.src = compressedImage;
+            preview.classList.add('preview-image');
+            document.getElementById('signatureData').value = compressedImage;
+            
+            closeSignatureCamera();
+            markFieldAsComplete('signaturePreviewIcon');
+            
+            const finalSize = Math.round((compressedImage.length * 3) / 4);
+            showSuccessToast(`✅ Signature captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.signature.width}x${IMAGE_CONFIG.signature.height}px)`);
+        })
+        .catch(error => {
+            showErrorToast('❌ Failed to process signature: ' + error.message);
+        });
 }
+
+// ========== DRAG AND DROP ==========
 
 // Drag and Drop for Photo
 const photoCard = document.querySelector('.upload-card:first-child');
-photoCard.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('dragover');
-});
+if (photoCard) {
+    photoCard.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
 
-photoCard.addEventListener('dragleave', function() {
-    this.classList.remove('dragover');
-});
+    photoCard.addEventListener('dragleave', function() {
+        this.classList.remove('dragover');
+    });
 
-photoCard.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('dragover');
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        handlePhotoFile(file);
-    }
-});
+    photoCard.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handlePhotoFile(file);
+        }
+    });
+}
 
 // Drag and Drop for Signature
 const signatureCard = document.querySelector('.upload-card:last-child');
-signatureCard.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('dragover');
-});
+if (signatureCard) {
+    signatureCard.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
 
-signatureCard.addEventListener('dragleave', function() {
-    this.classList.remove('dragover');
-});
+    signatureCard.addEventListener('dragleave', function() {
+        this.classList.remove('dragover');
+    });
 
-signatureCard.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('dragover');
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        handleSignatureFile(file);
-    }
-});
+    signatureCard.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handleSignatureFile(file);
+        }
+    });
+}
+
+// ========== MODAL CLOSE HANDLERS ==========
 
 // Close camera modals when clicking outside
 window.addEventListener('click', function(event) {
@@ -836,12 +1054,13 @@ window.addEventListener('click', function(event) {
     }
 });
 
-// Toast notification helper
-function showToast(message) {
+// ========== TOAST NOTIFICATIONS ==========
+
+function showSuccessToast(message) {
     if (typeof Toastify !== 'undefined') {
         Toastify({
             text: message,
-            duration: 3000,
+            duration: 4000,
             close: true,
             gravity: "top",
             position: "center",
@@ -853,7 +1072,54 @@ function showToast(message) {
                 padding: "16px 24px",
                 boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                 borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
+                marginTop: "20px",
+                whiteSpace: "pre-line"
+            }
+        }).showToast();
+    }
+}
+
+function showErrorToast(message) {
+    if (typeof Toastify !== 'undefined') {
+        Toastify({
+            text: message,
+            duration: 5000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "#fff",
+                color: "#333",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #f44336",
+                marginTop: "20px",
+                whiteSpace: "pre-line"
+            }
+        }).showToast();
+    }
+}
+
+function showInfoToast(message) {
+    if (typeof Toastify !== 'undefined') {
+        Toastify({
+            text: message,
+            duration: 2000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "#fff",
+                color: "#333",
+                borderRadius: "8px",
+                fontSize: "14px",
+                padding: "16px 24px",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                borderLeft: "5px solid #2196F3",
+                marginTop: "20px",
+                whiteSpace: "pre-line"
             }
         }).showToast();
     }
@@ -862,28 +1128,39 @@ function showToast(message) {
 // Add visual indicator for successful upload
 function markFieldAsComplete(fieldId) {
     const container = document.getElementById(fieldId).closest('.upload-card');
-    if (container && !container.querySelector('.upload-success-badge')) {
-        const badge = document.createElement('span');
-        badge.className = 'upload-success-badge';
-        badge.innerHTML = '✓';
-        badge.style.cssText = `
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #4caf50;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-        `;
-        container.style.position = 'relative';
-        container.appendChild(badge);
+    if (container) {
+        let badge = container.querySelector('.upload-success-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'upload-success-badge';
+            badge.innerHTML = '✓';
+            badge.style.cssText = `
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: #4caf50;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                font-weight: bold;
+                z-index: 10;
+            `;
+            container.style.position = 'relative';
+            container.appendChild(badge);
+        }
     }
 }
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Image upload handlers initialized');
+    console.log('📸 Photo config:', IMAGE_CONFIG.photo);
+    console.log('✍️ Signature config:', IMAGE_CONFIG.signature);
+});
 
 // ========== END PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
