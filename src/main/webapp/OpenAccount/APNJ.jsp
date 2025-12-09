@@ -425,6 +425,7 @@ body {
     </div>
   </fieldset>
 
+
   <!-- Pigmy Details Section -->
   <fieldset>
     <legend>Pigmy Details</legend>
@@ -441,11 +442,6 @@ body {
       </div>
 
       <div>
-        <label>Open Date</label>
-        <input type="date" name="openDate" required>
-      </div>
-
-      <div>
         <label>Installment Amount</label>
         <input type="number" step="0.01" name="installmentAmount" value="0" required>
       </div>
@@ -456,21 +452,26 @@ body {
       </div>
 
       <div>
+        <label>Open Date</label>
+        <input type="date" id="pigmyOpenDate" name="openDate" required onchange="calculatePigmyMaturityDate()">
+      </div>
+      
+      <div>
         <label>Unit Of Period</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="unitOfPeriod" value="Day"> Day</label>
-          <label><input type="radio" name="unitOfPeriod" value="Month" checked> Month</label>
+          <label><input type="radio" name="unitOfPeriod" value="Day" onchange="calculatePigmyMaturityDate()"> Day</label>
+          <label><input type="radio" name="unitOfPeriod" value="Month" checked onchange="calculatePigmyMaturityDate()"> Month</label>
         </div>
       </div>
 
       <div>
         <label>Period Of Deposit</label>
-        <input type="number" name="periodOfDeposit" min="0" value="0">
+        <input type="number" id="pigmyPeriodOfDeposit" name="periodOfDeposit" min="0" value="0" onchange="calculatePigmyMaturityDate()">
       </div>
 
       <div>
         <label>Maturity Date</label>
-        <input type="date" name="maturityDate">
+        <input type="date" id="pigmyMaturityDate" name="maturityDate" readonly style="background-color: #f0f0f0;">
       </div>
 
       <div>
@@ -1157,6 +1158,85 @@ function showToast(message) {
         }).showToast();
     }
 }
+//==================== PIGMY MATURITY DATE CALCULATION ====================
+function calculatePigmyMaturityDate() {
+    const openDateInput = document.getElementById('pigmyOpenDate');
+    const periodInput = document.getElementById('pigmyPeriodOfDeposit');
+    const maturityDateInput = document.getElementById('pigmyMaturityDate');
+    const unitRadios = document.getElementsByName('unitOfPeriod');
+    
+    // Check if elements exist
+    if (!openDateInput || !periodInput || !maturityDateInput) {
+        return;
+    }
+    
+    // Get selected unit (Day or Month)
+    let selectedUnit = 'Month'; // default
+    for (let radio of unitRadios) {
+        if (radio.checked) {
+            selectedUnit = radio.value;
+            break;
+        }
+    }
+    
+    const openDate = openDateInput.value;
+    const period = parseInt(periodInput.value) || 0;
+    
+    // Check if we have all required values
+    if (!openDate || period <= 0) {
+        maturityDateInput.value = ''; // Set to empty string
+        return;
+    }
+    
+    // Parse the open date - use the value directly as it's already in yyyy-MM-dd format
+    const dateObj = new Date(openDate + 'T00:00:00'); // Add time to avoid timezone issues
+    
+    // Validate date object
+    if (isNaN(dateObj.getTime())) {
+        maturityDateInput.value = ''; // Set to empty string
+        return;
+    }
+    
+    // Calculate maturity date based on unit
+    if (selectedUnit === 'Day') {
+        // Add days
+        dateObj.setDate(dateObj.getDate() + period);
+    } else if (selectedUnit === 'Month') {
+        // Add months
+        dateObj.setMonth(dateObj.getMonth() + period);
+    }
+    
+    // Format the date as YYYY-MM-DD for the input field
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    // IMPORTANT: Construct the formatted date correctly using concatenation
+    const formattedDate = year + '-' + month + '-' + day;
+    
+    // Verify the format before setting
+    if (/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+        maturityDateInput.value = formattedDate;
+    } else {
+        maturityDateInput.value = ''; // Set to empty string if format is wrong
+    }
+}
+
+// Initialize maturity date field on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const maturityDateInput = document.getElementById('pigmyMaturityDate');
+    if (maturityDateInput) {
+        // CRITICAL: Ensure it's empty on load
+        maturityDateInput.value = '';
+    }
+    
+    // Also run calculation if fields already have values (for page refresh/back button)
+    const openDateInput = document.getElementById('pigmyOpenDate');
+    const periodInput = document.getElementById('pigmyPeriodOfDeposit');
+    if (openDateInput && openDateInput.value && periodInput && periodInput.value) {
+        calculatePigmyMaturityDate();
+    }
+});
 </script>
 </body>
 </html>

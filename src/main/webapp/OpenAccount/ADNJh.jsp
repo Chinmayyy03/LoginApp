@@ -425,7 +425,7 @@ body {
     </div>
   </fieldset>
 
-  <!-- Term Deposit Details Section -->
+ <!-- Term Deposit Details Section -->
   <fieldset>
     <legend>Deposit</legend>
     <div class="form-grid">
@@ -433,6 +433,11 @@ body {
       <div>
         <label>Account Type</label>
         <input type="text" name="accountType" readonly value="TD">
+      </div>
+      
+      <div>
+        <label>Open Date</label>
+        <input type="date" name="openDate">
       </div>
 
       <div>
@@ -445,17 +450,12 @@ body {
 
       <div>
         <label>Period Of Deposit</label>
-        <input type="number" name="periodOfDeposit" min="0">
-      </div>
-
-      <div>
-        <label>Open Date</label>
-        <input type="date" name="openDate">
+        <input type="number" name="periodOfDeposit" min="0" value="0">
       </div>
 
       <div>
         <label>Maturity Date</label>
-        <input type="date" name="maturityDate">
+        <input type="date" name="maturityDate" readonly style="background-color: #f0f0f0;">
       </div>
 
       <div>
@@ -1285,6 +1285,107 @@ function showToast(message) {
         }).showToast();
     }
 }
+//==================== TERM DEPOSIT MATURITY DATE CALCULATION ====================
+
+function calculateTermDepositMaturityDate() {
+    const openDateInput = document.querySelector('input[name="openDate"]');
+    const periodInput = document.querySelector('input[name="periodOfDeposit"]');
+    const maturityDateInput = document.querySelector('input[name="maturityDate"]');
+    const unitRadios = document.querySelectorAll('input[name="unitOfPeriod"]');
+    
+    // Check if elements exist
+    if (!openDateInput || !periodInput || !maturityDateInput) {
+        return;
+    }
+    
+    // Get selected unit (Day or Month)
+    let selectedUnit = 'Month'; // default
+    for (let radio of unitRadios) {
+        if (radio.checked) {
+            selectedUnit = radio.value;
+            break;
+        }
+    }
+    
+    const openDate = openDateInput.value;
+    const period = parseInt(periodInput.value) || 0;
+    
+    // Check if we have all required values
+    if (!openDate || period <= 0) {
+        maturityDateInput.value = ''; // Set to empty string
+        return;
+    }
+    
+    // Parse the open date - use the value directly as it's already in yyyy-MM-dd format
+    const dateObj = new Date(openDate + 'T00:00:00'); // Add time to avoid timezone issues
+    
+    // Validate date object
+    if (isNaN(dateObj.getTime())) {
+        maturityDateInput.value = ''; // Set to empty string
+        return;
+    }
+    
+    // Calculate maturity date based on unit
+    if (selectedUnit === 'Day') {
+        // Add days
+        dateObj.setDate(dateObj.getDate() + period);
+    } else if (selectedUnit === 'Month') {
+        // Add months
+        dateObj.setMonth(dateObj.getMonth() + period);
+    }
+    
+    // Format the date as YYYY-MM-DD for the input field
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    // IMPORTANT: Construct the formatted date correctly using concatenation
+    const formattedDate = year + '-' + month + '-' + day;
+    
+    // Verify the format before setting
+    if (/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+        maturityDateInput.value = formattedDate;
+    } else {
+        maturityDateInput.value = ''; // Set to empty string if format is wrong
+    }
+}
+
+// Initialize maturity date field on page load and add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const openDateInput = document.querySelector('input[name="openDate"]');
+    const periodInput = document.querySelector('input[name="periodOfDeposit"]');
+    const maturityDateInput = document.querySelector('input[name="maturityDate"]');
+    const unitRadios = document.querySelectorAll('input[name="unitOfPeriod"]');
+    
+    if (maturityDateInput) {
+        // CRITICAL: Ensure it's empty on load
+        maturityDateInput.value = '';
+        // Make it readonly
+        maturityDateInput.readOnly = true;
+        maturityDateInput.style.backgroundColor = '#f0f0f0';
+    }
+    
+    // Add event listeners
+    if (openDateInput) {
+        openDateInput.addEventListener('change', calculateTermDepositMaturityDate);
+    }
+    
+    if (periodInput) {
+        periodInput.addEventListener('input', calculateTermDepositMaturityDate);
+        periodInput.addEventListener('change', calculateTermDepositMaturityDate);
+    }
+    
+    if (unitRadios) {
+        unitRadios.forEach(function(radio) {
+            radio.addEventListener('change', calculateTermDepositMaturityDate);
+        });
+    }
+    
+    // Also run calculation if fields already have values (for page refresh/back button)
+    if (openDateInput && openDateInput.value && periodInput && periodInput.value) {
+        calculateTermDepositMaturityDate();
+    }
+});
 </script>
 </body>
 </html>
