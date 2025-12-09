@@ -534,6 +534,7 @@ function setValueFromLookup(code, desc, type) {
     if (type === "product") {
         document.getElementById("productCode").value = code;
         document.getElementById("prodDescription").value = desc;
+        document.getElementById("resultFrame").src = "";
         
         showToast('Product Code selected successfully', 'success');
     }

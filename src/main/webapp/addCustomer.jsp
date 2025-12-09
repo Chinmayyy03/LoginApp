@@ -38,6 +38,7 @@
 <body>
 
 <form action="AddCustomerServlet" method="post" onsubmit="return validateForm()">
+
   <!----------------------------------------------------------------------- Main customer details -------------------------------------------------------------------->
 
   
@@ -767,16 +768,16 @@
 
 <!-- Photo & Signature Upload Section -->
 <fieldset>
-  <legend>Photo & Signature Upload</legend>
+  <legend>Photo & Signature Upload <span style="color: red;">*</span></legend>
   
   <div class="upload-container">
     <!-- Upload Photo Card -->
     <div class="upload-card">
-      <h3>Upload Photo</h3>
+      <h3>Upload Photo <span style="color: red;">*</span></h3>
       <div class="upload-icon-container">
         <img src="images/photo-icon.png" alt="Photo" class="upload-icon" id="photoPreviewIcon">
       </div>
-      <p class="upload-text">Upload a photo</p>
+      <p class="upload-text">Upload a photo (Required)</p>
       <p class="upload-subtext">Drag and drop files here</p>
       
       <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
@@ -794,11 +795,11 @@
 
     <!-- Upload Signature Card -->
     <div class="upload-card">
-      <h3>Upload Signature</h3>
+      <h3>Upload Signature <span style="color: red;">*</span></h3>
       <div class="upload-icon-container">
         <img src="images/signature-icon.png" alt="Signature" class="upload-icon" id="signaturePreviewIcon">
       </div>
-      <p class="upload-text">Upload a signature</p>
+      <p class="upload-text">Upload a signature (Required)</p>
       <p class="upload-subtext">Drag and drop files here</p>
       
       <input type="file" id="signatureInput" name="signature" accept="image/*" style="display: none;">

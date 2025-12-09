@@ -414,6 +414,20 @@ function validateForm() {
         errors.push('• At least one Address Proof document must be selected and filled');
         isValid = false;
     }
+	
+	// ✅ Validate Photo Upload (required)
+	    const photoData = document.getElementById('photoData').value;
+	    if (!photoData || photoData.trim() === '') {
+	        errors.push('• Customer photo is required');
+	        isValid = false;
+	    }
+
+	    // ✅ Validate Signature Upload (required)
+	    const signatureData = document.getElementById('signatureData').value;
+	    if (!signatureData || signatureData.trim() === '') {
+	        errors.push('• Customer signature is required');
+	        isValid = false;
+	    }
 
     if (!isValid) {
         // Show toast notification with all errors
@@ -636,6 +650,7 @@ function handlePhotoFile(file) {
         preview.classList.add('preview-image');
         document.getElementById('photoData').value = e.target.result;
         
+		markFieldAsComplete('photoPreviewIcon');
         showToast('✅ Photo uploaded successfully!');
     };
     reader.readAsDataURL(file);
@@ -655,6 +670,7 @@ function handleSignatureFile(file) {
         preview.classList.add('preview-image');
         document.getElementById('signatureData').value = e.target.result;
         
+		markFieldAsComplete('signaturePreviewIcon');
         showToast('✅ Signature uploaded successfully!');
     };
     reader.readAsDataURL(file);
@@ -710,6 +726,7 @@ function capturePhoto() {
     document.getElementById('photoData').value = imageData;
     
     closePhotoCamera();
+	markFieldAsComplete('photoPreviewIcon');
     showToast('✅ Photo captured successfully!');
 }
 
@@ -763,6 +780,7 @@ function captureSignature() {
     document.getElementById('signatureData').value = imageData;
     
     closeSignatureCamera();
+	markFieldAsComplete('signaturePreviewIcon');
     showToast('✅ Signature captured successfully!');
 }
 
@@ -838,6 +856,33 @@ function showToast(message) {
                 marginTop: "20px"
             }
         }).showToast();
+    }
+}
+
+// Add visual indicator for successful upload
+function markFieldAsComplete(fieldId) {
+    const container = document.getElementById(fieldId).closest('.upload-card');
+    if (container && !container.querySelector('.upload-success-badge')) {
+        const badge = document.createElement('span');
+        badge.className = 'upload-success-badge';
+        badge.innerHTML = '✓';
+        badge.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4caf50;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        `;
+        container.style.position = 'relative';
+        container.appendChild(badge);
     }
 }
 
