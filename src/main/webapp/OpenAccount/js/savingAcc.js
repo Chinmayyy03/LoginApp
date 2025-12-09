@@ -94,7 +94,7 @@ function fetchCustomerDetails(customerId, type, block) {
                 } else if (type === 'guarantor') {
                     populateGuarantorFields(block, data.customer);
                 }
-                showToast('✅ Customer data loaded successfully!');
+                showToast('Customer data loaded successfully!');
             } else {
                 showToast('❌ Error: ' + (data.message || 'Failed to load customer data'), 'error');
             }
