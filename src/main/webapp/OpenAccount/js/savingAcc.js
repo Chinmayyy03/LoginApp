@@ -221,6 +221,136 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+// ✅ NEW: Helper function to make ONLY fetched fields read-only
+function makeFieldsReadOnly(block) {
+    // Only make fields that are populated from customer data read-only
+    const fieldsToLock = [
+        'select[name="nomineeSalutation[]"]',
+        'input[name="nomineeName[]"]',
+        'input[name="nomineeAddress1[]"]',
+        'input[name="nomineeAddress2[]"]',
+        'input[name="nomineeAddress3[]"]',
+        'select[name="nomineeCountry[]"]',
+        'select[name="nomineeState[]"]',
+        'select[name="nomineeCity[]"]',
+        'input[name="nomineeZip[]"]',
+        'select[name="jointSalutation[]"]',
+        'input[name="jointName[]"]',
+        'input[name="jointAddress1[]"]',
+        'input[name="jointAddress2[]"]',
+        'input[name="jointAddress3[]"]',
+        'select[name="jointCountry[]"]',
+        'select[name="jointState[]"]',
+        'select[name="jointCity[]"]',
+        'input[name="jointZip[]"]',
+		
+		'select[name="coBorrowerSalutation[]"]',
+		'input[name="coBorrowerName[]"]',
+		'input[name="coBorrowerAddress1[]"]',
+		'input[name="coBorrowerAddress2[]"]',
+		'input[name="coBorrowerAddress3[]"]',
+		'select[name="coBorrowerCountry[]"]',
+		'select[name="coBorrowerState[]"]',
+		'select[name="coBorrowerCity[]"]',
+		'input[name="coBorrowerZip[]"]',
+
+		'select[name="guarantorSalutation[]"]',
+		'input[name="guarantorName[]"]',
+		'input[name="guarantorAddress1[]"]',
+		'input[name="guarantorAddress2[]"]',
+		'input[name="guarantorAddress3[]"]',
+		'select[name="guarantorCountry[]"]',
+		'select[name="guarantorState[]"]',
+		'select[name="guarantorCity[]"]',
+		'input[name="guarantorZip[]"]',
+		'input[name="guarantorMemberNo[]"]',
+		'input[name="guarantorBirthDate[]"]',
+		'input[name="guarantorPhoneNo[]"]',
+		'input[name="guarantorMobileNo[]"]'
+	
+    	];
+    
+    fieldsToLock.forEach(selector => {
+        const field = block.querySelector(selector);
+        if (field) {
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+                field.style.backgroundColor = '#f0f0f0';
+                field.style.cursor = 'not-allowed';
+            } else {
+                field.readOnly = true;
+                field.style.backgroundColor = '#f0f0f0';
+                field.style.cursor = 'not-allowed';
+            }
+        }
+    });
+}
+
+// ✅ NEW: Helper function to make ONLY fetched fields editable again
+function makeFieldsEditable(block) {
+    // Only unlock fields that were populated from customer data
+    const fieldsToUnlock = [
+        'select[name="nomineeSalutation[]"]',
+        'input[name="nomineeName[]"]',
+        'input[name="nomineeAddress1[]"]',
+        'input[name="nomineeAddress2[]"]',
+        'input[name="nomineeAddress3[]"]',
+        'select[name="nomineeCountry[]"]',
+        'select[name="nomineeState[]"]',
+        'select[name="nomineeCity[]"]',
+        'input[name="nomineeZip[]"]',
+		
+        'select[name="jointSalutation[]"]',
+        'input[name="jointName[]"]',
+        'input[name="jointAddress1[]"]',
+        'input[name="jointAddress2[]"]',
+        'input[name="jointAddress3[]"]',
+        'select[name="jointCountry[]"]',
+        'select[name="jointState[]"]',
+        'select[name="jointCity[]"]',
+        'input[name="jointZip[]"]',
+		
+		'select[name="coBorrowerSalutation[]"]',
+		'input[name="coBorrowerName[]"]',
+		'input[name="coBorrowerAddress1[]"]',
+		'input[name="coBorrowerAddress2[]"]',
+		'input[name="coBorrowerAddress3[]"]',
+		'select[name="coBorrowerCountry[]"]',
+		'select[name="coBorrowerState[]"]',
+		'select[name="coBorrowerCity[]"]',
+		'input[name="coBorrowerZip[]"]',
+
+		'select[name="guarantorSalutation[]"]',
+		'input[name="guarantorName[]"]',
+		'input[name="guarantorAddress1[]"]',
+		'input[name="guarantorAddress2[]"]',
+		'input[name="guarantorAddress3[]"]',
+		'select[name="guarantorCountry[]"]',
+		'select[name="guarantorState[]"]',
+		'select[name="guarantorCity[]"]',
+		'input[name="guarantorZip[]"]',
+		'input[name="guarantorMemberNo[]"]',
+		'input[name="guarantorBirthDate[]"]',
+		'input[name="guarantorPhoneNo[]"]',
+		'input[name="guarantorMobileNo[]"]'
+    ];
+    
+    fieldsToUnlock.forEach(selector => {
+        const field = block.querySelector(selector);
+        if (field) {
+            if (field.tagName === 'SELECT') {
+                field.disabled = false;
+                field.style.backgroundColor = '';
+                field.style.cursor = '';
+            } else {
+                field.readOnly = false;
+                field.style.backgroundColor = '';
+                field.style.cursor = '';
+            }
+        }
+    });
+}
+
 //==================== NOMINEE FUNCTIONS ====================
 
 function toggleNomineeCustomerID(radio) {
@@ -236,6 +366,8 @@ function toggleNomineeCustomerID(radio) {
         input.required = false;
         input.value = '';
         clearNomineeFields(nomineeBlock);
+		// ✅ Re-enable fields when switching to "No"
+		        makeFieldsEditable(nomineeBlock);
     }
 }
 
@@ -286,6 +418,9 @@ function addNominee() {
         customerIDContainer.style.display = 'none';
     }
 
+	// ✅ Reset all fields to editable state in the new clone
+	    makeFieldsEditable(clone);
+	
     const nomineeBlocks = fieldset.querySelectorAll(".nominee-block");
     const newIndex = nomineeBlocks.length + 1;
     const radios = clone.querySelectorAll('.nomineeHasCustomerRadio');
@@ -369,6 +504,8 @@ function populateNomineeFields(block, customer) {
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
+	// ✅ Make all fields read-only after populating
+	    makeFieldsReadOnly(block);
 }
 
 //==================== JOINT HOLDER FUNCTIONS ====================
@@ -386,6 +523,8 @@ function toggleJointCustomerID(radio) {
         input.required = false;
         input.value = '';
         clearJointFields(jointBlock);
+		// ✅ Re-enable fields when switching to "No"
+		        makeFieldsEditable(jointBlock);
     }
 }
 
@@ -435,7 +574,10 @@ function addJointHolder() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
-
+	
+	// ✅ Reset all fields to editable state in the new clone
+	    makeFieldsEditable(clone);
+		
     const jointBlocks = fieldset.querySelectorAll(".joint-block");
     const newIndex = jointBlocks.length + 1;
     const radios = clone.querySelectorAll('.jointHasCustomerRadio');
@@ -519,6 +661,8 @@ function populateJointFields(block, customer) {
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
+	// ✅ Make all fields read-only after populating
+	    makeFieldsReadOnly(block);
 }
 
 //==================== CO-BORROWER FUNCTIONS ====================
@@ -536,6 +680,8 @@ function toggleCoBorrowerCustomerID(radio) {
         input.required = false;
         input.value = '';
         clearCoBorrowerFields(coBorrowerBlock);
+		// ✅ Re-enable fields when switching to "No"
+		        makeFieldsEditable(coBorrowerBlock);
     }
 }
 
@@ -585,6 +731,9 @@ function addCoBorrower() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
+	
+	// ✅ Reset all fields to editable state in the new clone
+	    makeFieldsEditable(clone);
 
     const coBorrowerBlocks = fieldset.querySelectorAll(".coBorrower-block");
     const newIndex = coBorrowerBlocks.length + 1;
@@ -676,6 +825,8 @@ function populateCoBorrowerFields(block, customer) {
     if (zipInput && customer.zip) {
         zipInput.value = customer.zip;
     }
+	// ✅ Make all fields read-only after populating
+	    makeFieldsReadOnly(block);
 }
 
 //==================== GUARANTOR FUNCTIONS ====================
@@ -693,6 +844,8 @@ function toggleGuarantorCustomerID(radio) {
         input.required = false;
         input.value = '';
         clearGuarantorFields(guarantorBlock);
+		// ✅ Re-enable fields when switching to "No"
+		        makeFieldsEditable(guarantorBlock);
     }
 }
 
@@ -747,6 +900,9 @@ function addGuarantor() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
+	
+	// ✅ Reset all fields to editable state in the new clone
+	    makeFieldsEditable(clone);
 
     const guarantorBlocks = fieldset.querySelectorAll(".guarantor-block");
     const newIndex = guarantorBlocks.length + 1;
@@ -851,6 +1007,8 @@ function populateGuarantorFields(block, customer) {
     if (mobileNoInput && customer.mobileNo) {
         mobileNoInput.value = customer.mobileNo;
     }
+	// ✅ Make all fields read-only after populating
+	    makeFieldsReadOnly(block);
 }
 
 //==================== UTILITY FUNCTIONS ====================
