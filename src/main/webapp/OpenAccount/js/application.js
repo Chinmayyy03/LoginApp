@@ -279,3 +279,123 @@ window.setSocialSubSectorData = function(id, desc) {
 };
 
 // ==================== END LOAN FIELD AUTO-FILL FUNCTIONALITY ====================
+
+
+
+//==================== EMI CALCULATION FUNCTIONS ====================
+
+  /**
+   * Calculate EMI using the Oracle function via AJAX
+   * Calls fn_get_emi_inst from the database
+   */
+  function calculateEMI() {
+      const limitAmount = parseFloat(document.getElementById('limitAmount').value) || 0;
+      const interestRate = parseFloat(document.querySelector('input[name="interestRate"]').value) || 0;
+      const loanPeriod = parseInt(document.getElementById('loanPeriod').value) || 0;
+      const installmentTypeId = document.getElementById('installmentTypeId').value;
+      
+      // Validation
+      if (limitAmount <= 0) {
+          return;
+      }
+      
+      if (interestRate <= 0) {
+          return;
+      }
+      
+      if (loanPeriod <= 0) {
+          return;
+      }
+      
+      if (!installmentTypeId) {
+          return;
+      }
+      
+      // Show loading state
+      const instAmountField = document.querySelector('input[name="instAmount"]');
+      const originalValue = instAmountField.value;
+      instAmountField.value = 'Calculating...';
+      instAmountField.disabled = true;
+      
+      // Call backend to execute Oracle function
+      fetch('calculateEMI.jsp', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+              loanAmount: limitAmount,
+              rate: interestRate,
+              period: loanPeriod,
+              instType: installmentTypeId
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          instAmountField.disabled = false;
+          
+          if (data.success) {
+              instAmountField.value = data.emiAmount;
+              // Removed toast notification - silent calculation
+          } else {
+              instAmountField.value = originalValue;
+              showToast('⚠️ ' + data.message, 'warning');
+          }
+      })
+      .catch(error => {
+          console.error('Error calculating EMI:', error);
+          instAmountField.disabled = false;
+          instAmountField.value = originalValue;
+          showToast('❌ Failed to calculate EMI', 'error');
+      });
+  }
+
+  /**
+   * Auto-calculate EMI when relevant fields change
+   */
+  function setupEMIAutoCalculation() {
+      const limitAmount = document.getElementById('limitAmount');
+      const interestRate = document.querySelector('input[name="interestRate"]');
+      const loanPeriod = document.getElementById('loanPeriod');
+      const installmentTypeId = document.getElementById('installmentTypeId');
+      
+      // Add event listeners for auto-calculation
+      if (limitAmount) {
+          limitAmount.addEventListener('blur', checkAndCalculateEMI);
+          limitAmount.addEventListener('change', checkAndCalculateEMI);
+      }
+      
+      if (interestRate) {
+          interestRate.addEventListener('blur', checkAndCalculateEMI);
+          interestRate.addEventListener('change', checkAndCalculateEMI);
+      }
+      
+      if (loanPeriod) {
+          loanPeriod.addEventListener('blur', checkAndCalculateEMI);
+          loanPeriod.addEventListener('change', checkAndCalculateEMI);
+      }
+      
+      if (installmentTypeId) {
+          installmentTypeId.addEventListener('change', checkAndCalculateEMI);
+      }
+  }
+
+  /**
+   * Check if all required fields are filled before auto-calculating
+   */
+  function checkAndCalculateEMI() {
+      const limitAmount = parseFloat(document.getElementById('limitAmount').value) || 0;
+      const interestRate = parseFloat(document.querySelector('input[name="interestRate"]').value) || 0;
+      const loanPeriod = parseInt(document.getElementById('loanPeriod').value) || 0;
+      const installmentTypeId = document.getElementById('installmentTypeId').value;
+      
+      // Only auto-calculate if all fields have valid values
+      if (limitAmount > 0 && interestRate > 0 && loanPeriod > 0 && installmentTypeId) {
+          calculateEMI();
+      }
+  }
+
+  // Initialize EMI auto-calculation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+      setupEMIAutoCalculation();
+  });
