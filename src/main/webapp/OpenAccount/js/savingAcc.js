@@ -1,31 +1,15 @@
 //==================== CUSTOMER LOOKUP FUNCTIONS ====================
 
-//Global function to set customer data (will be called from loaded content)
+// ✅ MODIFY: Update setCustomerData to handle validation
 window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
-    // Check if this is for co-borrower lookup
-    if (window.currentCoBorrowerInput) {
-        window.currentCoBorrowerInput.value = customerId;
-        fetchCustomerDetails(customerId, 'coBorrower', window.currentCoBorrowerBlock);
-        window.currentCoBorrowerInput = null;
-        window.currentCoBorrowerBlock = null;
-        closeCustomerLookup();
-        showToast('Loading co-borrower customer data...');
-        return;
-    }
-
-    // Check if this is for guarantor lookup
-    if (window.currentGuarantorInput) {
-        window.currentGuarantorInput.value = customerId;
-        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
-        window.currentGuarantorInput = null;
-        window.currentGuarantorBlock = null;
-        closeCustomerLookup();
-        showToast('Loading guarantor customer data...');
-        return;
-    }
-
     // Check if this is for nominee lookup
     if (window.currentNomineeInput) {
+        // Check if already used in other nominee blocks
+        if (isCustomerUsedInSameFieldset(customerId, 'nominee', window.currentNomineeBlock)) {
+            showToast('This customer is already added as another nominee!', 'error');
+            return;
+        }
+        
         window.currentNomineeInput.value = customerId;
         fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
         window.currentNomineeInput = null;
@@ -37,6 +21,12 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
 
     // Check if this is for joint holder lookup
     if (window.currentJointInput) {
+        // Check if already used in other joint holder blocks
+        if (isCustomerUsedInSameFieldset(customerId, 'joint', window.currentJointBlock)) {
+            showToast('This customer is already added as another joint holder!', 'error');
+            return;
+        }
+        
         window.currentJointInput.value = customerId;
         fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
         window.currentJointInput = null;
@@ -46,44 +36,69 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         return;
     }
 
-    // Otherwise, this is for the main customer ID field
+    // Check if this is for Co-Borrower lookup
+    if (window.currentCoBorrowerInput) {
+        // Check if already used in other co-borrower blocks
+        if (isCustomerUsedInSameFieldset(customerId, 'coborrower', window.currentCoBorrowerBlock)) {
+            showToast('This customer is already added as another co-borrower!', 'error');
+            return;
+        }
+        
+        window.currentCoBorrowerInput.value = customerId;
+        fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
+        window.currentCoBorrowerInput = null;
+        window.currentCoBorrowerBlock = null;
+        closeCustomerLookup();
+        showToast('Loading co-borrower customer data...');
+        return;
+    }
+
+    // Check if this is for Guarantor lookup
+    if (window.currentGuarantorInput) {
+        // Check if already used in other guarantor blocks
+        if (isCustomerUsedInSameFieldset(customerId, 'guarantor', window.currentGuarantorBlock)) {
+            showToast('This customer is already added as another guarantor!', 'error');
+            return;
+        }
+        
+        window.currentGuarantorInput.value = customerId;
+        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
+        window.currentGuarantorInput = null;
+        window.currentGuarantorBlock = null;
+        closeCustomerLookup();
+        showToast('Loading guarantor customer data...');
+        return;
+    }
+
+    // ✅ This is for Application fieldset (main customer)
+    // Clear old customer from other fieldsets if needed
+    const oldCustomerId = document.getElementById('customerId').value.trim();
+    if (oldCustomerId && oldCustomerId !== customerId) {
+        const clearedCount = clearCustomerFromOtherFieldsets(oldCustomerId);
+        if (clearedCount > 0) {
+            showToast('Previous customer cleared from ' + clearedCount + ' other fieldset(s)', 'warning');
+        }
+    }
+    
+    // Set new customer in Application fieldset
     document.getElementById('customerId').value = customerId;
     document.getElementById('customerName').value = customerName;
     document.getElementById('categoryCode').value = categoryCode || '';
     document.getElementById('riskCategory').value = riskCategory || '';
 
     closeCustomerLookup();
-
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: "✅ Customer data loaded successfully!",
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
+    showToast('Customer data loaded successfully!');
 };
 
 //Fetch customer details from database
 function fetchCustomerDetails(customerId, type, block) {
     console.log('🔍 Fetching customer details for:', customerId, 'Type:', type);
-    
+
     fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
         .then(response => response.json())
         .then(data => {
             console.log('📦 Received data:', data);
-            
+
             if (data.success) {
                 if (type === 'nominee') {
                     populateNomineeFields(block, data.customer);
@@ -111,17 +126,17 @@ function setSelectValue(selectElement, value, fieldName) {
         console.warn('⚠️ Select element not found for:', fieldName);
         return false;
     }
-    
+
     if (!value || value.trim() === '') {
         console.log('⚠️ Empty value for:', fieldName);
         return false;
     }
-    
+
     const trimmedValue = value.trim().toUpperCase();
     console.log('🔧 Setting ' + fieldName + ' to: "' + trimmedValue + '"');
-    
+
     let found = false;
-    
+
     // Strategy 1: Try exact match on value (case-insensitive)
     for (let i = 0; i < selectElement.options.length; i++) {
         const optionValue = selectElement.options[i].value.trim().toUpperCase();
@@ -132,7 +147,7 @@ function setSelectValue(selectElement, value, fieldName) {
             return true;
         }
     }
-    
+
     // Strategy 2: Try matching on text content
     for (let i = 0; i < selectElement.options.length; i++) {
         const optionText = selectElement.options[i].text.trim().toUpperCase();
@@ -143,7 +158,7 @@ function setSelectValue(selectElement, value, fieldName) {
             return true;
         }
     }
-    
+
     // Strategy 3: Try partial match on value
     for (let i = 0; i < selectElement.options.length; i++) {
         const optionValue = selectElement.options[i].value.trim().toUpperCase();
@@ -154,7 +169,7 @@ function setSelectValue(selectElement, value, fieldName) {
             return true;
         }
     }
-    
+
     if (!found) {
         console.warn('⚠️ Value "' + trimmedValue + '" not found in ' + fieldName + ' dropdown');
         console.log('First 10 available options:');
@@ -162,13 +177,14 @@ function setSelectValue(selectElement, value, fieldName) {
             console.log('  [' + i + '] value="' + selectElement.options[i].value + '" text="' + selectElement.options[i].text + '"');
         }
     }
-    
+
     return found;
 }
 
 // ........................COMMON FUNCTIONS............................
-	
+
 //Customer Lookup Functions with exclusion support
+// ✅ MODIFY: Update openCustomerLookup to handle exclusions properly
 function openCustomerLookup(excludeCustomerId) {
     if (typeof excludeCustomerId === 'undefined') {
         excludeCustomerId = null;
@@ -180,10 +196,25 @@ function openCustomerLookup(excludeCustomerId) {
     modal.style.display = 'flex';
     content.innerHTML = '<div style="text-align:center;padding:40px;">Loading customers...</div>';
 
-    // Build URL with exclusion parameter if provided
+    // Build URL with all exclusions
     let url = 'lookupForCustomerId.jsp';
+    let excludeIds = [];
+    
     if (excludeCustomerId) {
-        url += '?excludeCustomerId=' + encodeURIComponent(excludeCustomerId);
+        excludeIds.push(excludeCustomerId);
+    }
+    
+    // ✅ For Application fieldset: exclude all other used customer IDs
+    const isApplicationLookup = !window.currentNomineeInput && !window.currentJointInput && 
+        !window.currentCoBorrowerInput && !window.currentGuarantorInput;
+    
+    if (isApplicationLookup) {
+        const allUsed = getAllUsedCustomerIds();
+        excludeIds = excludeIds.concat(allUsed);
+    }
+    
+    if (excludeIds.length > 0) {
+        url = url + '?excludeCustomerIds=' + encodeURIComponent(excludeIds.join(','));
     }
 
     fetch(url)
@@ -243,7 +274,7 @@ function makeFieldsReadOnly(block) {
         'select[name="jointState[]"]',
         'select[name="jointCity[]"]',
         'input[name="jointZip[]"]',
-		
+
 		'select[name="coBorrowerSalutation[]"]',
 		'input[name="coBorrowerName[]"]',
 		'input[name="coBorrowerAddress1[]"]',
@@ -267,9 +298,9 @@ function makeFieldsReadOnly(block) {
 		'input[name="guarantorBirthDate[]"]',
 		'input[name="guarantorPhoneNo[]"]',
 		'input[name="guarantorMobileNo[]"]'
-	
+
     	];
-    
+
     fieldsToLock.forEach(selector => {
         const field = block.querySelector(selector);
         if (field) {
@@ -299,7 +330,7 @@ function makeFieldsEditable(block) {
         'select[name="nomineeState[]"]',
         'select[name="nomineeCity[]"]',
         'input[name="nomineeZip[]"]',
-		
+
         'select[name="jointSalutation[]"]',
         'input[name="jointName[]"]',
         'input[name="jointAddress1[]"]',
@@ -309,7 +340,7 @@ function makeFieldsEditable(block) {
         'select[name="jointState[]"]',
         'select[name="jointCity[]"]',
         'input[name="jointZip[]"]',
-		
+
 		'select[name="coBorrowerSalutation[]"]',
 		'input[name="coBorrowerName[]"]',
 		'input[name="coBorrowerAddress1[]"]',
@@ -334,7 +365,7 @@ function makeFieldsEditable(block) {
 		'input[name="guarantorPhoneNo[]"]',
 		'input[name="guarantorMobileNo[]"]'
     ];
-    
+
     fieldsToUnlock.forEach(selector => {
         const field = block.querySelector(selector);
         if (field) {
@@ -389,7 +420,7 @@ function openNomineeCustomerLookup(button) {
     const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
     window.currentNomineeInput = input;
     window.currentNomineeBlock = nomineeBlock;
-    
+
     // Get main customer ID to exclude from lookup
     const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
     openCustomerLookup(mainCustomerId);
@@ -420,7 +451,7 @@ function addNominee() {
 
 	// ✅ Reset all fields to editable state in the new clone
 	    makeFieldsEditable(clone);
-	
+
     const nomineeBlocks = fieldset.querySelectorAll(".nominee-block");
     const newIndex = nomineeBlocks.length + 1;
     const radios = clone.querySelectorAll('.nomineeHasCustomerRadio');
@@ -459,7 +490,7 @@ function updateNomineeSerials() {
 //Populate Nominee fields with customer data
 function populateNomineeFields(block, customer) {
     console.log('📝 Populating Nominee fields:', customer);
-    
+
     const salutationSelect = block.querySelector('select[name="nomineeSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Nominee Salutation');
@@ -546,7 +577,7 @@ function openJointCustomerLookup(button) {
     const input = jointBlock.querySelector('.jointCustomerIDInput');
     window.currentJointInput = input;
     window.currentJointBlock = jointBlock;
-    
+
     // Get main customer ID to exclude from lookup
     const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
     openCustomerLookup(mainCustomerId);
@@ -574,10 +605,10 @@ function addJointHolder() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
-	
+
 	// ✅ Reset all fields to editable state in the new clone
 	    makeFieldsEditable(clone);
-		
+
     const jointBlocks = fieldset.querySelectorAll(".joint-block");
     const newIndex = jointBlocks.length + 1;
     const radios = clone.querySelectorAll('.jointHasCustomerRadio');
@@ -616,7 +647,7 @@ function updateJointSerials() {
 //Populate Joint Holder fields with customer data
 function populateJointFields(block, customer) {
     console.log('📝 Populating Joint Holder fields:', customer);
-    
+
     const salutationSelect = block.querySelector('select[name="jointSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Joint Salutation');
@@ -703,7 +734,7 @@ function openCoBorrowerCustomerLookup(button) {
     const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
     window.currentCoBorrowerInput = input;
     window.currentCoBorrowerBlock = coBorrowerBlock;
-    
+
     // Get main customer ID to exclude from lookup
     const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
     openCustomerLookup(mainCustomerId);
@@ -731,7 +762,7 @@ function addCoBorrower() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
-	
+
 	// ✅ Reset all fields to editable state in the new clone
 	    makeFieldsEditable(clone);
 
@@ -773,7 +804,7 @@ function updateCoBorrowerSerials() {
 // Populate Co-Borrower fields with customer data
 function populateCoBorrowerFields(block, customer) {
     console.log('📝 Populating Co-Borrower fields:', customer);
-    
+
     // Salutation Code
     const salutationSelect = block.querySelector('select[name="coBorrowerSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
@@ -859,7 +890,7 @@ function clearGuarantorFields(block) {
     block.querySelector('select[name="guarantorState[]"]').value = '';
     block.querySelector('select[name="guarantorCity[]"]').value = '';
     block.querySelector('input[name="guarantorZip[]"]').value = '';
-    
+
     block.querySelector('input[name="guarantorMemberNo[]"]').value = '';
     block.querySelector('input[name="guarantorPhoneNo[]"]').value = '';
     block.querySelector('input[name="guarantorMobileNo[]"]').value = '';
@@ -872,7 +903,7 @@ function openGuarantorCustomerLookup(button) {
     const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
     window.currentGuarantorInput = input;
     window.currentGuarantorBlock = guarantorBlock;
-    
+
     // Get main customer ID to exclude from lookup
     const mainCustomerId = document.getElementById('customerId') ? document.getElementById('customerId').value : null;
     openCustomerLookup(mainCustomerId);
@@ -900,7 +931,7 @@ function addGuarantor() {
     if (customerIDContainer) {
         customerIDContainer.style.display = 'none';
     }
-	
+
 	// ✅ Reset all fields to editable state in the new clone
 	    makeFieldsEditable(clone);
 
@@ -942,7 +973,7 @@ function updateGuarantorSerials() {
 //Populate Guarantor fields with customer data
 function populateGuarantorFields(block, customer) {
     console.log('📝 Populating Guarantor fields:', customer);
-    
+
     const salutationSelect = block.querySelector('select[name="guarantorSalutation[]"]');
     if (salutationSelect && customer.salutationCode) {
         setSelectValue(salutationSelect, customer.salutationCode, 'Guarantor Salutation');
@@ -1018,12 +1049,12 @@ function showToast(message, type) {
     if (typeof type === 'undefined') {
         type = 'success';
     }
-    
+
     if (typeof Toastify === 'undefined') {
         console.warn('Toastify library not loaded');
         return;
     }
-    
+
     const styles = {
         success: {
             borderColor: '#4caf50',
@@ -1042,9 +1073,9 @@ function showToast(message, type) {
             icon: 'ℹ️'
         }
     };
-    
+
     const style = styles[type] || styles.info;
-    
+
     Toastify({
         text: style.icon + ' ' + message,
         duration: 5000,
@@ -1064,4 +1095,181 @@ function showToast(message, type) {
         },
         stopOnFocus: true
     }).showToast();
-}
+	}
+	
+	// ✅ NEW: Helper function to collect all used customer IDs
+	function getAllUsedCustomerIds() {
+	    var usedIds = [];
+	    var seenIds = {};
+	    
+	    // Collect from all nominee blocks
+	    var nomineeBlocks = document.querySelectorAll('.nominee-block');
+	    for (var i = 0; i < nomineeBlocks.length; i++) {
+	        var input = nomineeBlocks[i].querySelector('.nomineeCustomerIDInput');
+	        if (input && input.value && input.value.trim()) {
+	            var custId = input.value.trim();
+	            if (!seenIds[custId]) {
+	                usedIds.push(custId);
+	                seenIds[custId] = true;
+	            }
+	        }
+	    }
+	    
+	    // Collect from all joint holder blocks
+	    var jointBlocks = document.querySelectorAll('.joint-block');
+	    for (var j = 0; j < jointBlocks.length; j++) {
+	        var input2 = jointBlocks[j].querySelector('.jointCustomerIDInput');
+	        if (input2 && input2.value && input2.value.trim()) {
+	            var custId2 = input2.value.trim();
+	            if (!seenIds[custId2]) {
+	                usedIds.push(custId2);
+	                seenIds[custId2] = true;
+	            }
+	        }
+	    }
+	    
+	    // Collect from all co-borrower blocks
+	    var coBorrowerBlocks = document.querySelectorAll('.coBorrower-block');
+	    for (var k = 0; k < coBorrowerBlocks.length; k++) {
+	        var input3 = coBorrowerBlocks[k].querySelector('.coBorrowerCustomerIDInput');
+	        if (input3 && input3.value && input3.value.trim()) {
+	            var custId3 = input3.value.trim();
+	            if (!seenIds[custId3]) {
+	                usedIds.push(custId3);
+	                seenIds[custId3] = true;
+	            }
+	        }
+	    }
+	    
+	    // Collect from all guarantor blocks
+	    var guarantorBlocks = document.querySelectorAll('.guarantor-block');
+	    for (var m = 0; m < guarantorBlocks.length; m++) {
+	        var input4 = guarantorBlocks[m].querySelector('.guarantorCustomerIDInput');
+	        if (input4 && input4.value && input4.value.trim()) {
+	            var custId4 = input4.value.trim();
+	            if (!seenIds[custId4]) {
+	                usedIds.push(custId4);
+	                seenIds[custId4] = true;
+	            }
+	        }
+	    }
+	    
+	    return usedIds;
+	}
+
+	// ✅ NEW: Check if customer ID is already used in same fieldset type
+	function isCustomerUsedInSameFieldset(customerId, fieldsetType, currentBlock) {
+	    var selector = '';
+	    var inputClass = '';
+	    
+	    if (fieldsetType === 'nominee') {
+	        selector = '.nominee-block';
+	        inputClass = '.nomineeCustomerIDInput';
+	    }
+	    
+	    if (fieldsetType === 'joint') {
+	        selector = '.joint-block';
+	        inputClass = '.jointCustomerIDInput';
+	    }
+	    
+	    if (fieldsetType === 'coborrower') {
+	        selector = '.coBorrower-block';
+	        inputClass = '.coBorrowerCustomerIDInput';
+	    }
+	    
+	    if (fieldsetType === 'guarantor') {
+	        selector = '.guarantor-block';
+	        inputClass = '.guarantorCustomerIDInput';
+	    }
+	    
+	    if (!selector) {
+	        return false;
+	    }
+	    
+	    var blocks = document.querySelectorAll(selector);
+	    for (var i = 0; i < blocks.length; i++) {
+	        var block = blocks[i];
+	        if (block === currentBlock) {
+	            continue;
+	        }
+	        
+	        var input = block.querySelector(inputClass);
+	        if (input && input.value.trim() === customerId) {
+	            return true;
+	        }
+	    }
+	    
+	    return false;
+	}
+
+	// ✅ NEW: Clear customer data from all fieldsets where it's used (except Application)
+	function clearCustomerFromOtherFieldsets(customerId) {
+	    let clearedCount = 0;
+	    
+	    // Clear from nominee blocks
+	    document.querySelectorAll('.nominee-block').forEach(block => {
+	        const input = block.querySelector('.nomineeCustomerIDInput');
+	        if (input && input.value.trim() === customerId) {
+	            input.value = '';
+	            clearNomineeFields(block);
+	            makeFieldsEditable(block);
+	            // Switch radio to "No"
+	            const noRadio = block.querySelector('input[type="radio"][value="no"]');
+	            if (noRadio) {
+	                noRadio.checked = true;
+	                toggleNomineeCustomerID(noRadio);
+	            }
+	            clearedCount++;
+	        }
+	    });
+	    
+	    // Clear from joint holder blocks
+	    document.querySelectorAll('.joint-block').forEach(block => {
+	        const input = block.querySelector('.jointCustomerIDInput');
+	        if (input && input.value.trim() === customerId) {
+	            input.value = '';
+	            clearJointFields(block);
+	            makeFieldsEditable(block);
+	            const noRadio = block.querySelector('input[type="radio"][value="no"]');
+	            if (noRadio) {
+	                noRadio.checked = true;
+	                toggleJointCustomerID(noRadio);
+	            }
+	            clearedCount++;
+	        }
+	    });
+	    
+	    // Clear from co-borrower blocks
+	    document.querySelectorAll('.coBorrower-block').forEach(block => {
+	        const input = block.querySelector('.coBorrowerCustomerIDInput');
+	        if (input && input.value.trim() === customerId) {
+	            input.value = '';
+	            clearCoBorrowerFields(block);
+	            makeFieldsEditable(block);
+	            const noRadio = block.querySelector('input[type="radio"][value="no"]');
+	            if (noRadio) {
+	                noRadio.checked = true;
+	                toggleCoBorrowerCustomerID(noRadio);
+	            }
+	            clearedCount++;
+	        }
+	    });
+	    
+	    // Clear from guarantor blocks
+	    document.querySelectorAll('.guarantor-block').forEach(block => {
+	        const input = block.querySelector('.guarantorCustomerIDInput');
+	        if (input && input.value.trim() === customerId) {
+	            input.value = '';
+	            clearGuarantorFields(block);
+	            makeFieldsEditable(block);
+	            const noRadio = block.querySelector('input[type="radio"][value="no"]');
+	            if (noRadio) {
+	                noRadio.checked = true;
+	                toggleGuarantorCustomerID(noRadio);
+	            }
+	            clearedCount++;
+	        }
+	    });
+	    
+	    return clearedCount;
+	}

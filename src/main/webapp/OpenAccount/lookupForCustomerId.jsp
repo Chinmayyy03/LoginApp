@@ -9,14 +9,22 @@
 
     String branchCode = (String) sess.getAttribute("branchCode");
     
-    // ✅ Get excludeCustomerId parameter to filter out the main customer
-    String excludeCustomerId = request.getParameter("excludeCustomerId");
+    // ✅ ENHANCED: Accept multiple customer IDs to exclude (comma-separated)
+    String excludeCustomerIds = request.getParameter("excludeCustomerIds");
     
     String query;
-    if (excludeCustomerId != null && !excludeCustomerId.trim().isEmpty()) {
+    if (excludeCustomerIds != null && !excludeCustomerIds.trim().isEmpty()) {
+        // Split comma-separated IDs and build IN clause
+        String[] idsArray = excludeCustomerIds.split(",");
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < idsArray.length; i++) {
+            placeholders.append("?");
+            if (i < idsArray.length - 1) placeholders.append(",");
+        }
+        
         query = "SELECT CUSTOMER_ID, CUSTOMER_NAME, CATEGORY_CODE, RISK_CATEGORY " +
                 "FROM CUSTOMERS " +
-                "WHERE BRANCH_CODE = ? AND STATUS = 'A' AND CUSTOMER_ID != ? " +
+                "WHERE BRANCH_CODE = ? AND STATUS = 'A' AND CUSTOMER_ID NOT IN (" + placeholders + ") " +
                 "ORDER BY CUSTOMER_ID";
     } else {
         query = "SELECT CUSTOMER_ID, CUSTOMER_NAME, CATEGORY_CODE, RISK_CATEGORY " +
@@ -33,9 +41,15 @@
         con = DBConnection.getConnection();
         ps = con.prepareStatement(query);
         ps.setString(1, branchCode);
-        if (excludeCustomerId != null && !excludeCustomerId.trim().isEmpty()) {
-            ps.setString(2, excludeCustomerId.trim());
+        
+        // Bind excluded customer IDs if provided
+        if (excludeCustomerIds != null && !excludeCustomerIds.trim().isEmpty()) {
+            String[] idsArray = excludeCustomerIds.split(",");
+            for (int i = 0; i < idsArray.length; i++) {
+                ps.setString(i + 2, idsArray[i].trim());
+            }
         }
+        
         rs = ps.executeQuery();
 %>
 

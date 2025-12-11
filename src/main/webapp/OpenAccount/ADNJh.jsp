@@ -1025,110 +1025,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
 //==================== CUSTOMER LOOKUP FUNCTIONS ====================
 
-//Global function to set customer data (will be called from loaded content)
-window.setCustomerData = function(customerId, customerName, categoryCode, riskCategory) {
-    // Check if this is for nominee lookup
-    if (window.currentNomineeInput) {
-        window.currentNomineeInput.value = customerId;
-        fetchCustomerDetails(customerId, 'nominee', window.currentNomineeBlock);
-        window.currentNomineeInput = null;
-        window.currentNomineeBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading nominee customer data...');
-        return;
-    }
-
-    // Check if this is for joint holder lookup
-    if (window.currentJointInput) {
-        window.currentJointInput.value = customerId;
-        fetchCustomerDetails(customerId, 'joint', window.currentJointBlock);
-        window.currentJointInput = null;
-        window.currentJointBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading joint holder customer data...');
-        return;
-    }
-
-    // Check if this is for co-borrower lookup
-    if (window.currentCoBorrowerInput) {
-        window.currentCoBorrowerInput.value = customerId;
-        fetchCustomerDetails(customerId, 'coborrower', window.currentCoBorrowerBlock);
-        window.currentCoBorrowerInput = null;
-        window.currentCoBorrowerBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading co-borrower customer data...');
-        return;
-    }
-
-    // Check if this is for guarantor lookup
-    if (window.currentGuarantorInput) {
-        window.currentGuarantorInput.value = customerId;
-        fetchCustomerDetails(customerId, 'guarantor', window.currentGuarantorBlock);
-        window.currentGuarantorInput = null;
-        window.currentGuarantorBlock = null;
-        closeCustomerLookup();
-        showToast('✅ Loading guarantor customer data...');
-        return;
-    }
-
-    // Otherwise, this is for the main customer ID field
-    document.getElementById('customerId').value = customerId;
-    document.getElementById('customerName').value = customerName;
-    document.getElementById('categoryCode').value = categoryCode || '';
-    document.getElementById('riskCategory').value = riskCategory || '';
-
-    closeCustomerLookup();
-
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: "✅ Customer data loaded successfully!",
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            }
-        }).showToast();
-    }
-};
-
-//Fetch customer details from database
-function fetchCustomerDetails(customerId, type, block) {
-    console.log('🔍 Fetching customer details for:', customerId, 'Type:', type);
-    
-    fetch('getCustomerDetails.jsp?customerId=' + encodeURIComponent(customerId))
-        .then(response => response.json())
-        .then(data => {
-            console.log('📦 Received data:', data);
-            
-            if (data.success) {
-                if (type === 'nominee') {
-                    populateNomineeFields(block, data.customer);
-                } else if (type === 'joint') {
-                    populateJointFields(block, data.customer);
-                } else if (type === 'coborrower') {
-                    populateCoBorrowerFields(block, data.customer);
-                } else if (type === 'guarantor') {
-                    populateGuarantorFields(block, data.customer);
-                }
-                showToast('✅ Customer data loaded successfully!');
-            } else {
-                showToast('❌ Error: ' + (data.message || 'Failed to load customer data'));
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error fetching customer details:', error);
-            showToast('❌ Failed to load customer data');
-        });
-}
 
 // ✅ FIXED: Helper function to set select value with multiple matching strategies
 function setSelectValue(selectElement, value, fieldName) {
@@ -1384,6 +1280,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Also run calculation if fields already have values (for page refresh/back button)
     if (openDateInput && openDateInput.value && periodInput && periodInput.value) {
         calculateTermDepositMaturityDate();
+    }
+});
+
+
+//✅ Monitor Application Customer ID changes
+document.addEventListener('DOMContentLoaded', function() {
+    const customerIdField = document.getElementById('customerId');
+    if (customerIdField) {
+        // Store initial value
+        let previousValue = customerIdField.value;
+        
+        // Watch for changes (in case of manual clear/reset)
+        customerIdField.addEventListener('change', function() {
+            const newValue = this.value.trim();
+            if (previousValue && !newValue) {
+                // Customer ID was cleared
+                console.log('Application customer cleared');
+            }
+            previousValue = newValue;
+        });
     }
 });
 </script>

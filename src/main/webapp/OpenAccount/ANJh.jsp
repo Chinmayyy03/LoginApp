@@ -640,6 +640,26 @@ window.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
 });
+
+
+//✅ Monitor Application Customer ID changes
+document.addEventListener('DOMContentLoaded', function() {
+    const customerIdField = document.getElementById('customerId');
+    if (customerIdField) {
+        // Store initial value
+        let previousValue = customerIdField.value;
+        
+        // Watch for changes (in case of manual clear/reset)
+        customerIdField.addEventListener('change', function() {
+            const newValue = this.value.trim();
+            if (previousValue && !newValue) {
+                // Customer ID was cleared
+                console.log('Application customer cleared');
+            }
+            previousValue = newValue;
+        });
+    }
+});
 </script>
 </body>
 </html>
