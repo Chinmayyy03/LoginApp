@@ -316,7 +316,7 @@ body {
 </head>
 <body>
 
-<form action="SaveApplicationServlet" method="post" onsubmit="return validateForm()">
+<form action="SavePigmyApplicationServlet" method="post" onsubmit="return validateForm()">
   <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
   <fieldset>
@@ -456,11 +456,12 @@ body {
         <input type="date" id="pigmyOpenDate" name="openDate" required onchange="calculatePigmyMaturityDate()">
       </div>
       
+
       <div>
         <label>Unit Of Period</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="unitOfPeriod" value="Day" onchange="calculatePigmyMaturityDate()"> Day</label>
-          <label><input type="radio" name="unitOfPeriod" value="Month" checked onchange="calculatePigmyMaturityDate()"> Month</label>
+          <label><input type="radio" name="unitOfPeriod" value="D" onchange="calculatePigmyMaturityDate()"> Day</label>
+          <label><input type="radio" name="unitOfPeriod" value="M" checked onchange="calculatePigmyMaturityDate()"> Month</label>
         </div>
       </div>
 
@@ -919,7 +920,7 @@ window.addEventListener('DOMContentLoaded', function() {
     
     if (status === 'success' && applicationNumber) {
         Toastify({
-            text: "✅ Term Deposit Application saved successfully!\nApplication Number: " + applicationNumber,
+        	text: "✅ Pigmy Application saved successfully!\nApplication Number: " + applicationNumber,
             duration: 6000,
             close: true,
             gravity: "top",
@@ -1170,8 +1171,8 @@ function calculatePigmyMaturityDate() {
         return;
     }
     
-    // Get selected unit (Day or Month)
-    let selectedUnit = 'Month'; // default
+    // Get selected unit (D or M)
+    let selectedUnit = 'M'; // default
     for (let radio of unitRadios) {
         if (radio.checked) {
             selectedUnit = radio.value;
@@ -1198,10 +1199,10 @@ function calculatePigmyMaturityDate() {
     }
     
     // Calculate maturity date based on unit
-    if (selectedUnit === 'Day') {
+    if (selectedUnit === 'D') {
         // Add days
         dateObj.setDate(dateObj.getDate() + period);
-    } else if (selectedUnit === 'Month') {
+    } else if (selectedUnit === 'M') {
         // Add months
         dateObj.setMonth(dateObj.getMonth() + period);
     }
