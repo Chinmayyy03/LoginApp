@@ -147,12 +147,31 @@ public class SaveApplicationServlet extends HttpServlet {
             applicationNumber = generateApplicationNumber(conn, branchCode);
             System.out.println("✅ Generated: " + applicationNumber);
 
-            // Insert APPLICATION
+            // ✅ NEW: Get extra fields with default value NULL if not present
+            String dividentInterestPostTo = trimSafe(request.getParameter("dividendIntPostToAc"));
+            String interestCategory = trimSafe(request.getParameter("dividendIntPostToAcName"));
+            
+            // Keep as null if fields are missing (for savingAcc.jsp)
+            if (dividentInterestPostTo != null && dividentInterestPostTo.isEmpty()) {
+                dividentInterestPostTo = null;
+            }
+            
+            if (interestCategory != null && interestCategory.isEmpty()) {
+                interestCategory = null;
+            }
+            
+            System.out.println("📝 Extra Fields - DIVIDENT_INTEREST_POST_TO: " + 
+                             (dividentInterestPostTo != null ? dividentInterestPostTo : "NULL") + 
+                             ", INTEREST_CATEGORY: " + 
+                             (interestCategory != null ? interestCategory : "NULL"));
+
+            // ✅ UPDATED: Insert APPLICATION with 2 additional fields
             String appSQL = "INSERT INTO APPLICATION.APPLICATION (" +
                 "APPLICATION_NUMBER, BRANCH_CODE, PRODUCT_CODE, APPLICATIONDATE, " +
                 "CUSTOMER_ID, ACCOUNTOPERATIONCAPACITY_ID, USER_ID, MINBALANCE_ID, " +
                 "INTRODUCERACCOUNT_CODE, CATEGORY_CODE, NAME, INTRODUCER_NAME, " +
-                "RISKCATEGORY, STATUS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'E')";
+                "RISKCATEGORY, DIVIDENT_INTEREST_POST_TO, INTEREST_CATEGORY, STATUS) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'E')";
 
             psApp = conn.prepareStatement(appSQL);
             psApp.setString(1, applicationNumber);
@@ -176,6 +195,10 @@ public class SaveApplicationServlet extends HttpServlet {
             psApp.setString(11, trimSafe(request.getParameter("customerName")));
             psApp.setString(12, trimSafe(request.getParameter("introducerAccName")));
             psApp.setString(13, trimSafe(request.getParameter("riskCategory")));
+            
+            // ✅ NEW: Set the 2 extra fields (default "0" if missing)
+            psApp.setString(14, dividentInterestPostTo);
+            psApp.setString(15, interestCategory);
 
             int appRows = psApp.executeUpdate();
             System.out.println("Application inserted: " + appRows + " row(s)");
