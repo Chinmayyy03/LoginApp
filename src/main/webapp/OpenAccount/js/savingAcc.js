@@ -252,9 +252,42 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// ✅ NEW: Helper function to make ONLY fetched fields read-only
+// === HARD LOCK for SELECT fields (cannot open, cannot click, value still submits) ===
+function lockSelect(field) {
+    field.dataset.locked = "true"; // mark as locked
+
+    field.addEventListener("mousedown", stopEvent, true);
+    field.addEventListener("click", stopEvent, true);
+    field.addEventListener("focus", stopEvent, true);
+    field.addEventListener("keydown", stopEvent, true);
+
+    field.style.backgroundColor = "#f0f0f0";
+    field.style.cursor = "not-allowed";
+}
+
+function unlockSelect(field) {
+    field.dataset.locked = "false";
+
+    field.removeEventListener("mousedown", stopEvent, true);
+    field.removeEventListener("click", stopEvent, true);
+    field.removeEventListener("focus", stopEvent, true);
+    field.removeEventListener("keydown", stopEvent, true);
+
+    field.style.backgroundColor = "";
+    field.style.cursor = "";
+}
+
+// Blocks dropdown from opening
+function stopEvent(e) {
+    if (e.target.dataset.locked === "true") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }
+}
+// === LOCK fetched fields ===
 function makeFieldsReadOnly(block) {
-    // Only make fields that are populated from customer data read-only
+
     const fieldsToLock = [
         'select[name="nomineeSalutation[]"]',
         'input[name="nomineeName[]"]',
@@ -265,6 +298,7 @@ function makeFieldsReadOnly(block) {
         'select[name="nomineeState[]"]',
         'select[name="nomineeCity[]"]',
         'input[name="nomineeZip[]"]',
+
         'select[name="jointSalutation[]"]',
         'input[name="jointName[]"]',
         'input[name="jointAddress1[]"]',
@@ -275,51 +309,49 @@ function makeFieldsReadOnly(block) {
         'select[name="jointCity[]"]',
         'input[name="jointZip[]"]',
 
-		'select[name="coBorrowerSalutation[]"]',
-		'input[name="coBorrowerName[]"]',
-		'input[name="coBorrowerAddress1[]"]',
-		'input[name="coBorrowerAddress2[]"]',
-		'input[name="coBorrowerAddress3[]"]',
-		'select[name="coBorrowerCountry[]"]',
-		'select[name="coBorrowerState[]"]',
-		'select[name="coBorrowerCity[]"]',
-		'input[name="coBorrowerZip[]"]',
+        'select[name="coBorrowerSalutation[]"]',
+        'input[name="coBorrowerName[]"]',
+        'input[name="coBorrowerAddress1[]"]',
+        'input[name="coBorrowerAddress2[]"]',
+        'input[name="coBorrowerAddress3[]"]',
+        'select[name="coBorrowerCountry[]"]',
+        'select[name="coBorrowerState[]"]',
+        'select[name="coBorrowerCity[]"]',
+        'input[name="coBorrowerZip[]"]',
 
-		'select[name="guarantorSalutation[]"]',
-		'input[name="guarantorName[]"]',
-		'input[name="guarantorAddress1[]"]',
-		'input[name="guarantorAddress2[]"]',
-		'input[name="guarantorAddress3[]"]',
-		'select[name="guarantorCountry[]"]',
-		'select[name="guarantorState[]"]',
-		'select[name="guarantorCity[]"]',
-		'input[name="guarantorZip[]"]',
-		'input[name="guarantorMemberNo[]"]',
-		'input[name="guarantorBirthDate[]"]',
-		'input[name="guarantorPhoneNo[]"]',
-		'input[name="guarantorMobileNo[]"]'
-
-    	];
+        'select[name="guarantorSalutation[]"]',
+        'input[name="guarantorName[]"]',
+        'input[name="guarantorAddress1[]"]',
+        'input[name="guarantorAddress2[]"]',
+        'input[name="guarantorAddress3[]"]',
+        'select[name="guarantorCountry[]"]',
+        'select[name="guarantorState[]"]',
+        'select[name="guarantorCity[]"]',
+        'input[name="guarantorZip[]"]',
+        'input[name="guarantorMemberNo[]"]',
+        'input[name="guarantorBirthDate[]"]',
+        'input[name="guarantorPhoneNo[]"]',
+        'input[name="guarantorMobileNo[]"]'
+    ];
 
     fieldsToLock.forEach(selector => {
         const field = block.querySelector(selector);
+
         if (field) {
-            if (field.tagName === 'SELECT') {
-                field.disabled = true;
-                field.style.backgroundColor = '#f0f0f0';
-                field.style.cursor = 'not-allowed';
+            if (field.tagName === "SELECT") {
+                lockSelect(field); // ❗ Replace disabled=true
             } else {
                 field.readOnly = true;
-                field.style.backgroundColor = '#f0f0f0';
-                field.style.cursor = 'not-allowed';
             }
+
+            field.style.backgroundColor = "#f0f0f0";
+            field.style.cursor = "not-allowed";
         }
     });
 }
-
-// ✅ NEW: Helper function to make ONLY fetched fields editable again
+// === UNLOCK fetched fields ===
 function makeFieldsEditable(block) {
-    // Only unlock fields that were populated from customer data
+
     const fieldsToUnlock = [
         'select[name="nomineeSalutation[]"]',
         'input[name="nomineeName[]"]',
@@ -341,43 +373,43 @@ function makeFieldsEditable(block) {
         'select[name="jointCity[]"]',
         'input[name="jointZip[]"]',
 
-		'select[name="coBorrowerSalutation[]"]',
-		'input[name="coBorrowerName[]"]',
-		'input[name="coBorrowerAddress1[]"]',
-		'input[name="coBorrowerAddress2[]"]',
-		'input[name="coBorrowerAddress3[]"]',
-		'select[name="coBorrowerCountry[]"]',
-		'select[name="coBorrowerState[]"]',
-		'select[name="coBorrowerCity[]"]',
-		'input[name="coBorrowerZip[]"]',
+        'select[name="coBorrowerSalutation[]"]',
+        'input[name="coBorrowerName[]"]',
+        'input[name="coBorrowerAddress1[]"]',
+        'input[name="coBorrowerAddress2[]"]',
+        'input[name="coBorrowerAddress3[]"]',
+        'select[name="coBorrowerCountry[]"]',
+        'select[name="coBorrowerState[]"]',
+        'select[name="coBorrowerCity[]"]',
+        'input[name="coBorrowerZip[]"]',
 
-		'select[name="guarantorSalutation[]"]',
-		'input[name="guarantorName[]"]',
-		'input[name="guarantorAddress1[]"]',
-		'input[name="guarantorAddress2[]"]',
-		'input[name="guarantorAddress3[]"]',
-		'select[name="guarantorCountry[]"]',
-		'select[name="guarantorState[]"]',
-		'select[name="guarantorCity[]"]',
-		'input[name="guarantorZip[]"]',
-		'input[name="guarantorMemberNo[]"]',
-		'input[name="guarantorBirthDate[]"]',
-		'input[name="guarantorPhoneNo[]"]',
-		'input[name="guarantorMobileNo[]"]'
+        'select[name="guarantorSalutation[]"]',
+        'input[name="guarantorName[]"]',
+        'input[name="guarantorAddress1[]"]',
+        'input[name="guarantorAddress2[]"]',
+        'input[name="guarantorAddress3[]"]',
+        'select[name="guarantorCountry[]"]',
+        'select[name="guarantorState[]"]',
+        'select[name="guarantorCity[]"]',
+        'input[name="guarantorZip[]"]',
+        'input[name="guarantorMemberNo[]"]',
+        'input[name="guarantorBirthDate[]"]',
+        'input[name="guarantorPhoneNo[]"]',
+        'input[name="guarantorMobileNo[]"]'
     ];
 
     fieldsToUnlock.forEach(selector => {
         const field = block.querySelector(selector);
+
         if (field) {
-            if (field.tagName === 'SELECT') {
-                field.disabled = false;
-                field.style.backgroundColor = '';
-                field.style.cursor = '';
+            if (field.tagName === "SELECT") {
+                unlockSelect(field); // ❗ Restore select
             } else {
                 field.readOnly = false;
-                field.style.backgroundColor = '';
-                field.style.cursor = '';
             }
+
+            field.style.backgroundColor = "";
+            field.style.cursor = "";
         }
     });
 }
