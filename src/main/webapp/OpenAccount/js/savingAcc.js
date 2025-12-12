@@ -104,7 +104,7 @@ function fetchCustomerDetails(customerId, type, block) {
                     populateNomineeFields(block, data.customer);
                 } else if (type === 'joint') {
                     populateJointFields(block, data.customer);
-                } else if (type === 'coBorrower') {
+                } else if (type === 'coborrower') {
                     populateCoBorrowerFields(block, data.customer);
                 } else if (type === 'guarantor') {
                     populateGuarantorFields(block, data.customer);
