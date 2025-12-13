@@ -527,11 +527,11 @@ body {
       <label>Repayment Freq.</label>
       <select name="repaymentFreq">
         <option value="">-- Select --</option>
-        <option value="Monthly">Monthly</option>
-        <option value="Quarterly">Quarterly</option>
-        <option value="Half-Yearly">Half-Yearly</option>
-        <option value="Yearly">Yearly</option>
-        <option value="OnMaturity">On Maturity</option>
+        <option value="M">Monthly</option>
+        <option value="Q">Quarterly</option>
+        <option value="H">Half-Yearly</option>
+        <option value="Y">Yearly</option>
+        <option value="O">On Maturity</option>
       </select>
     </div>
 
@@ -539,9 +539,9 @@ body {
       <label>Int. Calculation Method</label>
       <select name="intCalcMethod">
         <option value="">-- Select --</option>
-        <option value="Simple">Simple</option>
-        <option value="Reducing">Reducing</option>
-        <option value="Flat">Flat</option>      
+        <option value="S">Simple</option>
+        <option value="R">Reducing</option>
+        <option value="F">Flat</option>
       </select>
     </div>
 
