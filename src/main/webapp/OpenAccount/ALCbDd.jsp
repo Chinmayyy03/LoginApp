@@ -1101,15 +1101,17 @@ body {
       </div>
 
       <div>
-        <label>Margin %</label>
-        <input type="number" step="0.01" name="marginPercent[]" value="0" min="0" max="100">
-      </div>
+  		<label>Margin %</label>
+  		<input type="number" name="marginPercent[]" step="0.01" min="0" max="100" required>
+	  </div>
+
 
       <div>
-        <label>Deposit A/c Code</label>
-        <input type="text" name="depositAccCode[]">
-      </div>
-
+  		<label>Deposit A/c Code</label>
+ 		<input type="text" name="depositAccCode[]" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" minlength="14" required
+         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,14);"
+         title="Enter exactly 14 digits">
+</div>
       <div>
         <label>Maturity Date</label>
         <input type="date" name="maturityDate[]">
@@ -1117,7 +1119,7 @@ body {
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="securityValue[]" value="0">
+        <input type="number" step="0.01" name="securityValue[]">
       </div>
 
       <div>
@@ -1126,9 +1128,9 @@ body {
       </div>
 
       <div>
-        <label>Particular</label>
-        <input type="text" name="particular[]">
-      </div>
+  		<label>Particular</label>
+  		<input type="text" name="particular[]" maxlength="50" required placeholder="Enter description">
+	  </div>
     </div>
   </div>
 </fieldset>
@@ -1193,6 +1195,8 @@ body {
 <script src="js/savingAcc.js"></script>
 
 <script>
+//==================== Validation FUNCTIONS for Deposit Details ====================
+
 
 // Validation function
 function validateForm() {
