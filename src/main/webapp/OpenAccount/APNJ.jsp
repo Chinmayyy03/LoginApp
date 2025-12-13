@@ -364,7 +364,7 @@ body {
       <div>
         <label>Account Operation Capacity</label>
         <select name="accountOperationCapacity" required>
-          <option value="">-- Select Capacity --</option>
+          <option value="">-- Select --</option>
           <%
             PreparedStatement psAccOpCap = null;
             ResultSet rsAccOpCap = null;
@@ -392,7 +392,7 @@ body {
       <div>
   <label>Min Balance</label>
   <select name="minBalanceID" required>
-    <option value="">-- Select Min Balance --</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psMinBal = null;
       ResultSet rsMinBal = null;
@@ -533,7 +533,7 @@ body {
 <div>
     <label>Salutation Code</label>
     <select name="nomineeSalutation[]" required>
-        <option value="">-- Select Salutation Code --</option>
+        <option value="">-- Select --</option>
         <%
             PreparedStatement psnomineeSalutation = null;
             ResultSet rsnomineeSalutation = null;
@@ -581,7 +581,7 @@ body {
         <div>
           <label>Country</label>
           <select name="nomineeCountry[]">
-            <option value="">-- Select Country --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryNominee = null;
               ResultSet rsCountryNominee = null;
@@ -609,7 +609,7 @@ body {
         <div>
           <label>State</label>
           <select name="nomineeState[]">
-            <option value="">-- Select State --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateNominee = null;
               ResultSet rsStateNominee = null;
@@ -638,7 +638,7 @@ body {
         <div>
           <label>City</label>
           <select name="nomineeCity[]">
-            <option value="">-- Select City --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityNominee = null;
               ResultSet rsCityNominee = null;
@@ -672,7 +672,7 @@ body {
         <div>
           <label>Relation with Guardian</label>
           <select name="nomineeRelation[]" required>
-            <option value="">-- Select Relation --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psRelation = null;
               ResultSet rsRelation = null;
@@ -743,7 +743,7 @@ body {
         <div>
           <label>Salutation Code</label>
           <select name="jointSalutation[]" required>
-            <option value="">-- Select Salutation Code --</option>
+            <option value="">-- Select --</option>
             <%
               PreparedStatement psSalutation2 = null;
               ResultSet rsSalutation2 = null;
@@ -791,7 +791,7 @@ body {
         <div>
           <label>Country</label>
           <select name="jointCountry[]">
-            <option value="">-- Select Country --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryJoint = null;
               ResultSet rsCountryJoint = null;
@@ -818,7 +818,7 @@ body {
        <div>
           <label>State</label>
           <select name="jointState[]">
-            <option value="">-- Select State --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateJoint = null;
               ResultSet rsStateJoint = null;
@@ -847,7 +847,7 @@ body {
         <div>
           <label>City</label>
           <select name="jointCity[]">
-            <option value="">-- Select City --</option>
+            <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityJoint = null;
               ResultSet rsCityJoint = null;
