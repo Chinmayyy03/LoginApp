@@ -541,11 +541,11 @@ body {
       <label>Repayment Freq.</label>
       <select name="repaymentFreq">
         <option value="">-- Select --</option>
-        <option value="Monthly">Monthly</option>
-        <option value="Quarterly">Quarterly</option>
-        <option value="Half-Yearly">Half-Yearly</option>
-        <option value="Yearly">Yearly</option>
-        <option value="OnMaturity">On Maturity</option>
+        <option value="M">Monthly</option>
+        <option value="Q">Quarterly</option>
+        <option value="H">Half-Yearly</option>
+        <option value="Y">Yearly</option>
+        <option value="O">On Maturity</option>
       </select>
     </div>
 
@@ -553,9 +553,9 @@ body {
       <label>Int. Calculation Method</label>
       <select name="intCalcMethod">
         <option value="">-- Select --</option>
-        <option value="Simple">Simple</option>
-        <option value="Reducing">Reducing</option>
-        <option value="Flat">Flat</option>
+        <option value="S">Simple</option>
+        <option value="R">Reducing</option>
+        <option value="F">Flat</option>
       </select>
     </div>
 
@@ -584,10 +584,11 @@ body {
       <input type="number" name="morPeriodMonth" value="0">
     </div>
 
-    <div>
-      <label>Inst. Amount</label>
-      <input type="number" step="0.01" name="instAmount" value="0">
-    </div>
+	<div>
+	  <label>Inst. Amount</label>
+	  <input type="number" step="0.01" name="instAmount" id="instAmount" value="0" readonly 
+	         style="background-color: #f0f0f0; cursor: not-allowed;">
+	</div>
 
     <div>
       <label>Consortium Loan</label>
@@ -1083,7 +1084,7 @@ body {
   </div>
 </fieldset>
 
-<!-- Gold/Silver Security Section -->
+
 <!-- Gold/Silver Security Section -->
 <fieldset id="goldSilverFieldset">
   <legend>
@@ -1103,7 +1104,6 @@ body {
       Gold/Silver <span class="goldsilver-serial">1</span>
     </div>
 
-    <!-- ✅ Changed from form-grid to goldsilver-grid -->
     <div class="goldsilver-grid">
       <div>
         <label>Security Type Code</label>
@@ -1139,14 +1139,16 @@ body {
         <input type="date" name="gsSubmissionDate[]">
       </div>
 
+      <!-- ✅ FIXED: Changed from number to text for GOLDBAGNO (VARCHAR2) -->
       <div>
         <label>Gold Bag No.</label>
-        <input type="number" name="gsGoldBagNo[]" value="0">
+        <input type="text" name="gsGoldBagNo[]" maxlength="10" placeholder="Enter bag number">
       </div>
 
       <div>
         <label>Total Wt.In Grm</label>
-        <input type="number" step="0.01" name="gsTotalWeight[]" value="0">
+        <input type="number" step="0.001" name="gsTotalWeight[]" value="0" 
+               title="Weight in total grams (up to 3 decimal places)">
       </div>
 
       <div>
@@ -1173,13 +1175,12 @@ body {
 
       <div>
         <label>Particular</label>
-        <input type="text" name="gsParticular[]">
+        <input type="text" name="gsParticular[]" maxlength="100">
       </div>
 
-      <!-- ✅ Changed from grid-column: span 3 to using goldsilver-note-field class -->
       <div class="goldsilver-note-field">
         <label>Note</label>
-        <textarea name="gsNote[]" rows="2" style="width: 97%; padding: 8px; 
+        <textarea name="gsNote[]" rows="2" maxlength="300" style="width: 97%; padding: 8px; 
                   border: 1px solid #ccc; border-radius: 4px; font-size: 13px;
                   font-family: Arial, sans-serif;"></textarea>
       </div>

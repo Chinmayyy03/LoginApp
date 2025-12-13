@@ -465,7 +465,7 @@ public class ALCbGsServlet extends HttpServlet {
                 }
             }
 
-            // ========== INSERT GOLD/SILVER SECURITY (APPLICATIONSECURITYGOLDSILVER table) ==========
+         // ========== INSERT GOLD/SILVER SECURITY (APPLICATIONSECURITYGOLDSILVER table) ==========
             String[] gsSecurityTypes = request.getParameterValues("gsSecurityType[]");
             String[] gsSubmissionDates = request.getParameterValues("gsSubmissionDate[]");
             String[] gsGoldBagNos = request.getParameterValues("gsGoldBagNo[]");
@@ -478,13 +478,14 @@ public class ALCbGsServlet extends HttpServlet {
             String[] gsNotes = request.getParameterValues("gsNote[]");
 
             if (gsSecurityTypes != null && gsSecurityTypes.length > 0) {
+                // ✅ FIXED: Removed GOLDRECIPTNO, using only existing columns from your schema
                 String goldSilverSQL = "INSERT INTO APPLICATION.APPLICATIONSECURITYGOLDSILVER (" +
-                    "APPLICATION_NUMBER, SERIAL_NUMBER, SECURITYTYPE_CODE, WEIGHTINTOTALGMS, " +
-                    "RATEPERIODGMS, TOTALVALUE, MARGINPERCENTAGE, SECURITYVALUE, PARTICULAR, " +
-                    "NOTE, SUBMISSIONDATE, GOLDBAGNO, GOLDFRAMERNO, GOLDRECIPTNO, " +
+                    "APPLICATION_NUMBER, SERIAL_NUMBER, SECURITYTYPE_CODE, WEIGHTTOTALGMS, " +
+                    "RATEPER10GMS, TOTALVALUE, MARGINPERCENTAGE, SECURITYVALUE, PARTICULAR, " +
+                    "NOTE, SUBMISSIONDATE, GOLDBAGNO," +
                     "GROSSWT, VALUATION_RATE, GROSTOTALGMS, CURRENT_RATE, DATETIMESTAMP, " +
                     "CREATED_DATE, MODIFIED_DATE) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 psGoldSilver = conn.prepareStatement(goldSilverSQL);
                 int serial = 1;
@@ -502,101 +503,98 @@ public class ALCbGsServlet extends HttpServlet {
                     int gsIdx = 1;
                     Timestamp now = new Timestamp(System.currentTimeMillis());
                     
-                    // 1. APPLICATION_NUMBER
+                    // 1. APPLICATION_NUMBER - CHAR(14 BYTE) - NOT NULL
                     psGoldSilver.setString(gsIdx++, applicationNumber);
                     
-                    // 2. SERIAL_NUMBER
+                    // 2. SERIAL_NUMBER - NUMBER(2,0) - NOT NULL
                     psGoldSilver.setInt(gsIdx++, serial);
                     
-                    // 3. SECURITYTYPE_CODE
+                    // 3. SECURITYTYPE_CODE - CHAR(50 BYTE) - NOT NULL
                     psGoldSilver.setString(gsIdx++, secType);
                     
-                    // 4. WEIGHTINTOTALGMS (same as RATEPERIODGMS)
+                    // 4. WEIGHTINTOTALGMS - NUMBER(6,3) - NULLABLE
                     Double totalWeight = gsTotalWeights != null && i < gsTotalWeights.length ? 
                                         parseDouble(gsTotalWeights[i]) : null;
                     if (totalWeight != null) psGoldSilver.setDouble(gsIdx++, totalWeight);
                     else psGoldSilver.setNull(gsIdx++, Types.DECIMAL);
                     
-                    // 5. RATEPERIODGMS
+                    // 5. RATEPER10GMS - NUMBER(15,2) - NULLABLE
                     Double ratePerGram = gsRatePerGrams != null && i < gsRatePerGrams.length ? 
                                         parseDouble(gsRatePerGrams[i]) : null;
                     if (ratePerGram != null) psGoldSilver.setDouble(gsIdx++, ratePerGram);
                     else psGoldSilver.setNull(gsIdx++, Types.DECIMAL);
                     
-                    // 6. TOTALVALUE
+                    // 6. TOTALVALUE - NUMBER(15,2) - NULLABLE
                     Double totalValue = gsTotalValues != null && i < gsTotalValues.length ? 
                                        parseDouble(gsTotalValues[i]) : null;
                     if (totalValue != null) psGoldSilver.setDouble(gsIdx++, totalValue);
                     else psGoldSilver.setNull(gsIdx++, Types.DECIMAL);
                     
-                    // 7. MARGINPERCENTAGE
+                    // 7. MARGINPERCENTAGE - NUMBER(15,2) - NULLABLE
                     Double margin = gsMargins != null && i < gsMargins.length ? 
                                    parseDouble(gsMargins[i]) : null;
                     if (margin != null) psGoldSilver.setDouble(gsIdx++, margin);
                     else psGoldSilver.setNull(gsIdx++, Types.DECIMAL);
                     
-                    // 8. SECURITYVALUE
+                    // 8. SECURITYVALUE - NUMBER(15,2) - NULLABLE
                     Double securityValue = gsSecurityValues != null && i < gsSecurityValues.length ? 
                                           parseDouble(gsSecurityValues[i]) : null;
                     if (securityValue != null) psGoldSilver.setDouble(gsIdx++, securityValue);
                     else psGoldSilver.setNull(gsIdx++, Types.DECIMAL);
                     
-                    // 9. PARTICULAR
+                    // 9. PARTICULAR - VARCHAR2(100 BYTE) - NULLABLE
                     String particular = gsParticulars != null && i < gsParticulars.length ? 
                                        trimSafe(gsParticulars[i]) : null;
                     if (particular != null && !particular.isEmpty()) 
                         psGoldSilver.setString(gsIdx++, particular);
                     else psGoldSilver.setNull(gsIdx++, Types.VARCHAR);
                     
-                    // 10. NOTE
+                    // 10. NOTE - VARCHAR2(300 BYTE) - NULLABLE
                     String note = gsNotes != null && i < gsNotes.length ? 
                                  trimSafe(gsNotes[i]) : null;
                     if (note != null && !note.isEmpty()) 
                         psGoldSilver.setString(gsIdx++, note);
                     else psGoldSilver.setNull(gsIdx++, Types.VARCHAR);
                     
-                    // 11. SUBMISSIONDATE
+                    // 11. SUBMISSIONDATE - DATE - NULLABLE
                     Date submissionDate = gsSubmissionDates != null && i < gsSubmissionDates.length ? 
                                          parseDate(gsSubmissionDates[i]) : null;
                     if (submissionDate != null) psGoldSilver.setDate(gsIdx++, submissionDate);
                     else psGoldSilver.setNull(gsIdx++, Types.DATE);
                     
-                    // 12. GOLDBAGNO
-                    Integer goldBagNo = gsGoldBagNos != null && i < gsGoldBagNos.length ? 
-                                       parseInt(gsGoldBagNos[i]) : null;
-                    if (goldBagNo != null && goldBagNo != 0) 
-                        psGoldSilver.setInt(gsIdx++, goldBagNo);
-                    else psGoldSilver.setNull(gsIdx++, Types.INTEGER);
+                    // 12. GOLDBAGNO - VARCHAR2(10 BYTE) - NULLABLE
+                    String goldBagNo = gsGoldBagNos != null && i < gsGoldBagNos.length ? 
+                                      trimSafe(gsGoldBagNos[i]) : null;
+                    if (goldBagNo != null && !goldBagNo.isEmpty() && !goldBagNo.equals("0")) 
+                        psGoldSilver.setString(gsIdx++, goldBagNo);
+                    else psGoldSilver.setNull(gsIdx++, Types.VARCHAR);
+                   
                     
-                    // 13. GOLDFRAMERNO (nullable)
-                    psGoldSilver.setNull(gsIdx++, Types.VARCHAR);
+                    // ✅ REMOVED: GOLDRECIPTNO column (doesn't exist in your table)
                     
-                    // 14. GOLDRECIPTNO (nullable)
-                    psGoldSilver.setNull(gsIdx++, Types.VARCHAR);
-                    
-                    // 15. GROSSWT (default 0)
+                    // 14. GROSSWT - NUMBER(15,2) - NULLABLE - Default 0
                     if (totalWeight != null) psGoldSilver.setDouble(gsIdx++, totalWeight);
                     else psGoldSilver.setDouble(gsIdx++, 0);
                     
-                    // 16. VALUATION_RATE (default 0)
+                    // 15. VALUATION_RATE - NUMBER(15,2) - NULLABLE - Default 0
                     if (ratePerGram != null) psGoldSilver.setDouble(gsIdx++, ratePerGram);
                     else psGoldSilver.setDouble(gsIdx++, 0);
                     
-                    // 17. GROSTOTALGMS (default 0)
+                    // 16. GROSTOTALGMS - NUMBER(15,2) - NULLABLE - Default 0
                     if (totalWeight != null) psGoldSilver.setDouble(gsIdx++, totalWeight);
                     else psGoldSilver.setDouble(gsIdx++, 0);
                     
-                    // 18. CURRENT_RATE (default 0)
+                    // 17. CURRENT_RATE - NUMBER(15,2) - NULLABLE - Default 0
                     if (ratePerGram != null) psGoldSilver.setDouble(gsIdx++, ratePerGram);
                     else psGoldSilver.setDouble(gsIdx++, 0);
                     
-                    // 19. DATETIMESTAMP
+                    // 18. DATETIMESTAMP - TIMESTAMP(6) - NOT NULL - Default SYSDATE
                     psGoldSilver.setTimestamp(gsIdx++, now);
                     
-                    // 20. CREATED_DATE
+                    // 19. CREATED_DATE - TIMESTAMP(6) - NULLABLE - Default SYSDATE
                     psGoldSilver.setTimestamp(gsIdx++, now);
                     
-                    // 21. MODIFIED_DATE
+                    // 20. MODIFIED_DATE - TIMESTAMP(6) - NULLABLE
                     psGoldSilver.setNull(gsIdx++, Types.TIMESTAMP);
 
                     psGoldSilver.addBatch();
@@ -609,7 +607,7 @@ public class ALCbGsServlet extends HttpServlet {
                     System.out.println("Gold/Silver securities inserted: " + goldSilverRows.length);
                 }
             }
-
+            
             conn.commit();
             response.sendRedirect("ALCbGs.jsp?status=success&applicationNumber=" +
                                   applicationNumber + "&productCode=" + productCode);
