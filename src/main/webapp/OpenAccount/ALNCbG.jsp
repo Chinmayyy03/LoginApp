@@ -547,10 +547,10 @@ body {
     </div>
 
     <div>
-  <label>Inst. Amount</label>
-  <input type="number" step="0.01" name="instAmount" id="instAmount" value="0" readonly 
+  		<label>Inst. Amount</label>
+  		<input type="number" step="0.01" name="instAmount" id="instAmount" value="0" readonly 
          style="background-color: #f0f0f0; cursor: not-allowed;">
-</div>
+	</div>
 
     <div>
       <label>Consortium Loan</label>
