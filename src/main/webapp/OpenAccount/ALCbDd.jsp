@@ -523,7 +523,7 @@ body {
 
     <div>
       <label>Interest Rate</label>
-      <input type="number" step="0.01" name="interestRate" value="0">
+      <input type="number" step="0.01" name="interestRate">
     </div>
 
     <div>
@@ -1130,7 +1130,7 @@ body {
 
       <div>
   		<label>Particular</label>
-  		<input type="text" name="particular[]" maxlength="50" required placeholder="Enter description">
+  		<input type="text" name="particular[]" maxlength="50">
 	  </div>
     </div>
   </div>

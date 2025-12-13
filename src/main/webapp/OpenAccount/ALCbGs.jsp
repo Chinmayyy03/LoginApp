@@ -561,7 +561,7 @@ body {
 
     <div>
       <label>Interest Rate</label>
-      <input type="number" step="0.01" name="interestRate" value="0">
+      <input type="number" step="0.01" name="interestRate">
     </div>
 
     <div>
@@ -1142,34 +1142,34 @@ body {
       <!-- ✅ FIXED: Changed from number to text for GOLDBAGNO (VARCHAR2) -->
       <div>
         <label>Gold Bag No.</label>
-        <input type="text" name="gsGoldBagNo[]" maxlength="10" placeholder="Enter bag number">
+        <input type="text" name="gsGoldBagNo[]" maxlength="10">
       </div>
 
       <div>
         <label>Total Wt.In Grm</label>
-        <input type="number" step="0.001" name="gsTotalWeight[]" value="0" 
+        <input type="number" step="0.001" name="gsTotalWeight[]" 
                title="Weight in total grams (up to 3 decimal places)">
       </div>
 
       <div>
         <label>Margin %</label>
-        <input type="number" step="0.01" name="gsMargin[]" value="0">
+        <input type="number" step="0.01" name="gsMargin[]">
       </div>
 
       <div>
         <label>Rate/Grams</label>
-        <input type="number" step="0.01" name="gsRatePerGram[]" value="0">
+        <input type="number" step="0.01" name="gsRatePerGram[]">
       </div>
 
       <div>
         <label>Total Value</label>
-        <input type="number" step="0.01" name="gsTotalValue[]" value="0" 
+        <input type="number" step="0.01" name="gsTotalValue[]"
                onchange="calculateSecurityValue(this)">
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="gsSecurityValue[]" value="0" readonly 
+        <input type="number" step="0.01" name="gsSecurityValue[]" readonly 
                style="background-color: #f0f0f0;">
       </div>
 

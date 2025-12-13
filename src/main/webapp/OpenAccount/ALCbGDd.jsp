@@ -1341,7 +1341,7 @@ body {
 
       <div>
   		<label>Particular</label>
-  		<input type="text" name="particular[]" maxlength="50" required placeholder="Enter description">
+  		<input type="text" name="particular[]" maxlength="50" required>
 	  </div>
     </div>
   </div>

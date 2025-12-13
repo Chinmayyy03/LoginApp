@@ -443,7 +443,7 @@ body {
 
       <div>
         <label>Installment Amount</label>
-        <input type="number" step="0.01" name="installmentAmount" value="0" required>
+        <input type="number" step="0.01" name="installmentAmount" required>
       </div>
 
       <div>
@@ -467,7 +467,7 @@ body {
 
       <div>
         <label>Period Of Deposit</label>
-        <input type="number" id="pigmyPeriodOfDeposit" name="periodOfDeposit" min="0" value="0" onchange="calculatePigmyMaturityDate()">
+        <input type="number" id="pigmyPeriodOfDeposit" name="periodOfDeposit" min="0" onchange="calculatePigmyMaturityDate()">
       </div>
 
       <div>

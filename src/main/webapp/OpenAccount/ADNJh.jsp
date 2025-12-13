@@ -450,7 +450,7 @@ body {
 
       <div>
         <label>Period Of Deposit</label>
-        <input type="number" name="periodOfDeposit" min="0" value="0">
+        <input type="number" name="periodOfDeposit" min="0">
       </div>
 
       <div>
@@ -460,7 +460,7 @@ body {
 
       <div>
         <label>Interest Rate</label>
-        <input type="number" step="0.01" name="interestRate" value="0">
+        <input type="number" step="0.01" name="interestRate">
       </div>
 
       <div>
