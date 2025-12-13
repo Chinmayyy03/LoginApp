@@ -366,7 +366,7 @@ body {
       <div>
         <label>Account Operation Capacity</label>
         <select name="accountOperationCapacity" required>
-          <option value="">-- Select Capacity --</option>
+          <option value="">-- Select --</option>
           <%
             PreparedStatement psAccOpCap = null;
             ResultSet rsAccOpCap = null;
@@ -394,7 +394,7 @@ body {
       <div>
   <label>Min Balance</label>
   <select name="minBalanceID" required>
-    <option value="">-- Select Min Balance --</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psMinBal = null;
       ResultSet rsMinBal = null;
@@ -577,7 +577,7 @@ body {
        <div>
   <label>Social Section Id</label>
   <select name="socialSectionId" required>
-    <option value="">-- Select Social Section --</option>
+    <option value="">-- Select --</option>
 
     <%
       PreparedStatement psSocial = null;
@@ -624,7 +624,7 @@ body {
     <div>
   <label>LBR Code</label>
   <select name="lbrCode">
-    <option value="">MIS</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psMIS = null;
       ResultSet rsMIS = null;
@@ -670,7 +670,7 @@ body {
     <div>
   <label>Purpose Id</label>
   <select name="purposeId" required>
-    <option value="">-- Select Purpose --</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psPurpose = null;
       ResultSet rsPurpose = null;
@@ -716,7 +716,7 @@ body {
     <div>
   <label>Classification Id</label>
   <select name="classificationId">
-    <option value="">NOT SPECIFIED</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psClass = null;
       ResultSet rsClass = null;
@@ -748,7 +748,7 @@ body {
     <div>
   <label>Mode Of San. Id</label>
   <select name="modeOfSanId">
-    <option value="">NOT SPECIFIED</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psMOS = null;
       ResultSet rsMOS = null;
@@ -779,7 +779,7 @@ body {
     <div>
   <label>Sanction Authority Id</label>
   <select name="sanctionAuthorityId">
-    <option value="">BRANCH CHAIRMAN</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psSA = null;
       ResultSet rsSA = null;
@@ -810,7 +810,7 @@ body {
     <div>
   <label>Industry Id</label>
   <select name="industryId">
-    <option value="">NOT SPECIFIED</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psInd = null;
       ResultSet rsInd = null;
@@ -904,7 +904,7 @@ body {
       <div>
         <label>Salutation Code</label>
         <select name="coBorrowerSalutation[]" required>
-          <option value="">-- Select Salutation Code --</option>
+          <option value="">-- Select --</option>
           <%
               PreparedStatement psCoBorrowerSal = null;
               ResultSet rsCoBorrowerSal = null;
@@ -954,7 +954,7 @@ body {
       <div>
         <label>Country</label>
         <select name="coBorrowerCountry[]" required>
-          <option value="">-- Select Country --</option>
+          <option value="">-- Select --</option>
           <%
             PreparedStatement psCountryCoBorrower = null;
             ResultSet rsCountryCoBorrower = null;
@@ -983,7 +983,7 @@ body {
       <div>
         <label>State</label>
         <select name="coBorrowerState[]" required>
-          <option value="">-- Select State --</option>
+          <option value="">-- Select --</option>
           <%
             PreparedStatement psStateCoBorrower = null;
             ResultSet rsStateCoBorrower = null;
@@ -1012,7 +1012,7 @@ body {
       <div>
         <label>City</label>
         <select name="coBorrowerCity[]" required>
-          <option value="">-- Select City --</option>
+          <option value="">-- Select --</option>
           <%
             PreparedStatement psCityCoBorrower = null;
             ResultSet rsCityCoBorrower = null;
@@ -1069,7 +1069,7 @@ body {
       <div>
   <label>Security Type Code</label>
   <select name="securityTypeCode[]" required>
-    <option value="">-- Select Security Type --</option>
+    <option value="">-- Select --</option>
     <%
       PreparedStatement psSecType = null;
       ResultSet rsSecType = null;
