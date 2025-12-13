@@ -312,7 +312,7 @@ body {
     gap: 20px;   /* space between the two blocks */
 }
 
-/* Replace the existing Gold/Silver section CSS with this updated version */
+
 
 /* Gold/Silver responsive grid - same as application fieldset */
 .goldsilver-grid {
@@ -615,7 +615,7 @@ body {
        <div>
   <label>Social Section Id</label>
   <select name="socialSectionId" required>
-    <option value="">-- Select Social Section --</option>
+        <option value="">-- Select --</option>
 
     <%
       PreparedStatement psSocial = null;
@@ -662,7 +662,7 @@ body {
     <div>
   <label>LBR Code</label>
   <select name="lbrCode">
-    <option value="">MIS</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psMIS = null;
       ResultSet rsMIS = null;
@@ -708,7 +708,7 @@ body {
     <div>
   <label>Purpose Id</label>
   <select name="purposeId" required>
-    <option value="">-- Select Purpose --</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psPurpose = null;
       ResultSet rsPurpose = null;
@@ -754,7 +754,7 @@ body {
     <div>
   <label>Classification Id</label>
   <select name="classificationId">
-    <option value="">NOT SPECIFIED</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psClass = null;
       ResultSet rsClass = null;
@@ -786,7 +786,7 @@ body {
     <div>
   <label>Mode Of San. Id</label>
   <select name="modeOfSanId">
-    <option value="">NOT SPECIFIED</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psMOS = null;
       ResultSet rsMOS = null;
@@ -817,7 +817,7 @@ body {
     <div>
   <label>Sanction Authority Id</label>
   <select name="sanctionAuthorityId">
-    <option value="">BRANCH CHAIRMAN</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psSA = null;
       ResultSet rsSA = null;
@@ -848,7 +848,7 @@ body {
     <div>
   <label>Industry Id</label>
   <select name="industryId">
-    <option value="">NOT SPECIFIED</option>
+        <option value="">-- Select --</option>
     <%
       PreparedStatement psInd = null;
       ResultSet rsInd = null;
