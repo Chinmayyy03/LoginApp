@@ -568,9 +568,56 @@
 
     <!-- Row 4 -->
     <div>
-      <label>Zip</label>
-      <input type="text" name="zip" value="">
-    </div>
+  		<label>Zip</label>
+  		<input type="text" id="zip" name="zip" maxlength="6" oninput="validateZipLive(this)" />
+  		<span id="zipError" style="color:red;"></span>
+	</div>
+<script>
+const zipField = document.querySelector('input[name="zip"]');
+
+if (zipField) {
+    zipField.maxLength = 6;
+
+    // While typing (live validation)
+    zipField.addEventListener('input', function () {
+
+        // Allow only digits & limit to 6
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+
+        // Live first-digit validation
+        if (this.value.length > 0) {
+            const firstDigit = this.value.charAt(0);
+
+            if (firstDigit !== '4' && firstDigit !== '5') {
+                showError(this, 'ZIP must start with 4 (MH/Goa) or 5 (Karnataka)');
+            } else {
+                clearError(this);
+            }
+        }
+    });
+
+    // Final validation on blur
+    zipField.addEventListener('blur', function () {
+
+        if (this.value === '') {
+            clearError(this);
+            return;
+        }
+
+        // Full ZIP validation
+        if (!/^(4\d{5}|5\d{5})$/.test(this.value)) {
+            showError(
+                this,
+                'Invalid ZIP. Allowed states: Maharashtra, Goa, Karnataka'
+            );
+        } else {
+            clearError(this);
+        }
+    });
+}
+
+</script>
+
 
     <div>
       <label>Mobile No</label>

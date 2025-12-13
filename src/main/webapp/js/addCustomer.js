@@ -109,20 +109,7 @@ if (memberField) {
 }
 
     // ZIP Code validation
-    const zipField = document.querySelector('input[name="zip"]');
-    if (zipField) {
-        zipField.maxLength = 6;
-        zipField.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
-        });
-        zipField.addEventListener('blur', function() {
-            if (this.value && !validationPatterns.zip.test(this.value)) {
-                showError(this, 'ZIP code must be 6 digits');
-            } else {
-                clearError(this);
-            }
-        });
-    }
+    
 
     // Mobile Number validation
     const mobileField = document.querySelector('input[name="mobileNo"]');
