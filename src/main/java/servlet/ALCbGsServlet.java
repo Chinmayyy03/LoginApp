@@ -66,7 +66,7 @@ public class ALCbGsServlet extends HttpServlet {
         if (attempts >= 100) {
             throw new Exception("Failed to generate unique APPLICATION_NUMBER after 100 attempts");
         }
-
+        System.out.println("📌 FINAL APPLICATION_NUMBER = " + applicationNumber);
         return applicationNumber;
     }
 
