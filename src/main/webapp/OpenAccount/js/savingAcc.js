@@ -1305,3 +1305,8 @@ function showToast(message, type) {
 	    
 	    return clearedCount;
 	}
+	
+	//==================== Validation for Application section ====================
+	document.querySelector('input[name="introducerAccName"]').addEventListener('input', function () {
+	  this.value = this.value.replace(/[^A-Za-z\s]/g, '').slice(0, 100);
+	});

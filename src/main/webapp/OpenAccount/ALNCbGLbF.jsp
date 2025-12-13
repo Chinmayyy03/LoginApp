@@ -373,14 +373,16 @@ body {
       </div>
 
       <div>
-        <label>Introducer A/c Code</label>
-        <input type="text" name="introducerAccCode">
-      </div>
+  		<label>Introduer A/c Code</label>
+  		<input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
+    	title="Introduer Account Code must be exactly 14 digits">
+	</div>
 
       <div>
-        <label>Introducer A/c Name</label>
-        <input type="text" name="introducerAccName">
-      </div>
+  		<label>Introducer A/c Name</label>
+  		<input type="text" name="introducerAccName" maxlength="100" pattern="[A-Za-z\s]+"
+    	title="Introducer Name should contain only letters and spaces">
+	</div>
 
       <div>
         <label>Date Of Application</label>

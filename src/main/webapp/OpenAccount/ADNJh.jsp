@@ -352,17 +352,11 @@ body {
     	title="Introduer Account Code must be exactly 14 digits">
 	</div>
 
-
       <div>
   		<label>Introducer A/c Name</label>
   		<input type="text" name="introducerAccName" maxlength="100" pattern="[A-Za-z\s]+"
     	title="Introducer Name should contain only letters and spaces">
 	</div>
-	<script>
-		document.querySelector('input[name="introducerAccName"]').addEventListener('input', function () {
-  			this.value = this.value.replace(/[^A-Za-z\s]/g, '').slice(0, 100);
-		});
-	</script>
 	
       <div>
         <label>Date Of Application</label>
