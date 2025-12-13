@@ -201,39 +201,30 @@ public class SavePigmyApplicationServlet extends HttpServlet {
             System.out.println("📝 Pigmy SQL: " + pigmySQL);
             
             psPigmy = conn.prepareStatement(pigmySQL);
-            
-            System.out.println("=== Setting Pigmy Parameters ===");
-            System.out.println("1. APPLICATION_NUMBER: " + applicationNumber);
-            psPigmy.setString(1, applicationNumber);
-            
+   
+            psPigmy.setString(1, applicationNumber);            
             String agentBranch = trimSafe(request.getParameter("agentBranchCode"));
-            System.out.println("2. AGENTBRANCH_CODE: " + agentBranch);
-            psPigmy.setString(2, agentBranch);
-            
+
+            psPigmy.setString(2, agentBranch);            
             Date fromDate = parseDate(request.getParameter("openDate"));
-            System.out.println("3. FROMDATE: " + fromDate);
-            psPigmy.setDate(3, fromDate);
-            
+
+            psPigmy.setDate(3, fromDate);            
             Double installmentAmount = parseDouble(request.getParameter("installmentAmount"));
-            System.out.println("4. INSTALLMENTAMOUNT: " + installmentAmount);
+
             if (installmentAmount != null) psPigmy.setDouble(4, installmentAmount);
-            else psPigmy.setNull(4, java.sql.Types.NUMERIC);
-            
+            else psPigmy.setNull(4, java.sql.Types.NUMERIC);       
             String unitOfPeriod = trimSafe(request.getParameter("unitOfPeriod"));
-            System.out.println("5. UNITOFPERIOD: " + unitOfPeriod);
+
             psPigmy.setString(5, unitOfPeriod);
             
             Integer periodOfDeposit = parseInt(request.getParameter("periodOfDeposit"));
-            System.out.println("6. PERIODOFDEPOSIT: " + periodOfDeposit);
             if (periodOfDeposit != null) psPigmy.setInt(6, periodOfDeposit);
             else psPigmy.setNull(6, java.sql.Types.NUMERIC);
             
             Date maturityDate = parseDate(request.getParameter("maturityDate"));
-            System.out.println("7. MATURITYDATE: " + maturityDate);
             psPigmy.setDate(7, maturityDate);
             
             String agentIdStr = trimSafe(request.getParameter("agentId"));
-            System.out.println("8. AGENT_ID: " + agentIdStr);
             if (agentIdStr != null && !agentIdStr.isEmpty()) {
                 try {
                     psPigmy.setInt(8, Integer.parseInt(agentIdStr));
@@ -245,11 +236,9 @@ public class SavePigmyApplicationServlet extends HttpServlet {
             }
             
             Double interestRate = parseDouble(request.getParameter("interestRate"));
-            System.out.println("9. INTERESTRATE: " + interestRate);
             if (interestRate != null) psPigmy.setDouble(9, interestRate);
             else psPigmy.setNull(9, java.sql.Types.NUMERIC);
             
-            System.out.println("10. INSTALLMENTFREQUENCY: M");
             psPigmy.setString(10, "M");
             
             System.out.println("🚀 Executing Pigmy INSERT...");
