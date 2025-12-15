@@ -1039,9 +1039,10 @@ body {
       </div>
 
       <div>
-        <label>Zip</label>
-        <input type="number" name="coBorrowerZip[]" value="0">
-      </div>
+  		<label>Zip</label>
+  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6">
+  		<small class="zipError"></small>
+	</div>
     </div>
   </div>
 </fieldset>

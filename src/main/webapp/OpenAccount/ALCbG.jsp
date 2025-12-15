@@ -1046,9 +1046,10 @@ body {
       </div>
 
       <div>
-        <label>Zip</label>
-        <input type="number" name="coBorrowerZip[]" value="0">
-      </div>
+  		<label>Zip</label>
+  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6">
+  		<small class="zipError"></small>
+	</div>
     </div>
   </div>
 </fieldset>
@@ -1231,10 +1232,11 @@ body {
         </select>
       </div>
 
-      <div>
-        <label>Zip</label>
-        <input type="number" name="guarantorZip[]">
-      </div>
+	<div>
+  		<label>Zip</label>
+  		<input type="text" name="guarantorZip[]" class="zip-input" maxlength="6">
+  		<small class="zipError"></small>
+	</div>
 
       <div>
         <label>Member No</label>

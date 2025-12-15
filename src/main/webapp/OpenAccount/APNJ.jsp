@@ -672,9 +672,10 @@ body {
         </div>
 
         <div>
-          <label>Zip</label>
-          <input type="number" name="nomineeZip[]" value="0">
-        </div>
+  			<label>Zip</label>
+  			<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+  			<small class="zipError"></small>
+		</div>
 
         <div>
           <label>Relation with Guardian</label>
@@ -881,9 +882,10 @@ body {
         </div>
 
         <div>
-          <label>Zip</label>
-          <input type="number" name="jointZip[]" value="0">
-        </div>
+  			<label>Zip</label>
+  			<input type="text" name="jointZip[]" class="zip-input" maxlength="6">
+  			<small class="zipError"></small>
+		</div>
       </div>
     </div>
   </fieldset>

@@ -1302,6 +1302,75 @@ function showToast(message, type) {
 	            clearedCount++;
 	        }
 	    });
-	    
 	    return clearedCount;
 	}
+	
+	document.addEventListener("DOMContentLoaded", function () {
+
+	    const zipInputs = document.querySelectorAll(".zip-input");
+
+	    zipInputs.forEach(function (input) {
+	        input.addEventListener("input", function () {
+	            validateZip(input);
+	        });
+	    });
+
+	});
+
+	//==================== ZIP VALIDATION ====================
+	document.addEventListener("DOMContentLoaded", function () {
+
+	    /* 🔴 ADD CSS USING JS */
+	    const style = document.createElement("style");
+	    style.innerHTML = `
+	        .zipError {
+	            color: red;
+	            font-size: 12px;
+	        }
+	        .zip-input.error {
+	            border: 1px solid red;
+	        }
+	    `;
+	    document.head.appendChild(style);
+
+	    /* 🔁 ATTACH VALIDATION TO ALL ZIP INPUTS */
+	    document.querySelectorAll(".zip-input").forEach(input => {
+	        input.addEventListener("input", function () {
+	            validateZip(this);
+	        });
+	    });
+
+	});
+
+	function validateZip(input) {
+	    let zip = input.value;
+	    const error = input.nextElementSibling;
+
+	    // Allow only digits
+	    zip = zip.replace(/\D/g, '');
+	    input.value = zip;
+
+	    // Reset error
+	    error.textContent = "";
+	    input.classList.remove("error");
+
+	    if (zip.length === 0) return;
+
+	    // First digit validation (4 = MH/Goa, 5 = Karnataka)
+	    const firstDigit = zip.charAt(0);
+
+	    if (firstDigit !== '4' && firstDigit !== '5') {
+	        error.textContent = "PIN must start with 4 or 5";
+	        input.classList.add("error");
+	        input.value = "";
+	        return;
+	    }
+
+	    // Length validation
+	    if (zip.length < 6) {
+	        error.textContent = "PIN must be 6 digits";
+	        input.classList.add("error");
+	        return;
+	    }
+	}
+
