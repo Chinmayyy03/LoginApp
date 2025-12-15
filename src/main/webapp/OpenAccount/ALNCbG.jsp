@@ -1480,12 +1480,14 @@ body {
 
       <div>
         <label>Phone No</label>
-        <input type="text" name="guarantorPhoneNo[]" value="0">
+        <input type="text" name="guarantorPhoneNo[]" maxlength="10"
+   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
       </div>
 
       <div>
         <label>Mobile No</label>
-        <input type="text" name="guarantorMobileNo[]" value="0">
+        <input type="text" name="guarantorMobileNo[]" maxlength="10"
+   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
       </div>
     </div>
   </div>
