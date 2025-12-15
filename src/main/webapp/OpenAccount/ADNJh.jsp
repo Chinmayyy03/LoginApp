@@ -354,8 +354,12 @@ body {
 
       <div>
   		<label>Introducer A/c Name</label>
-  		<input type="text" name="introducerAccName" maxlength="100" pattern="[A-Za-z\s]+"
-    	title="Introducer Name should contain only letters and spaces">
+  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
 	</div>
 	<script>
 	document.querySelector('input[name="introducerAccName"]').addEventListener('input', function () {
@@ -513,8 +517,13 @@ body {
 
       <div>
         <label>Credit A/c Name</label>
-        <input type="text" name="creditAccName">
-      </div>
+        <input type="text" name="creditAccName"required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
       <div>
         <label>Deposit Amount</label>
@@ -616,8 +625,13 @@ body {
 
         <div>
           <label>Nominee Name</label>
-          <input type="text" name="nomineeName[]" required>
-        </div>
+          <input type="text" name="nomineeName[]" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
         <div>
           <label>Address 1</label>
@@ -827,8 +841,13 @@ body {
 
         <div>
           <label>Joint Holder Name</label>
-          <input type="text" name="jointName[]" required>
-        </div>
+          <input type="text" name="jointName[]" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
         <div>
           <label>Address 1</label>

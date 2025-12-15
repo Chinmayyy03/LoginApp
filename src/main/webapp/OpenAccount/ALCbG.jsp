@@ -356,14 +356,13 @@ body {
 
       <div>
   		<label>Introducer A/c Name</label>
-  		<input type="text" name="introducerAccName" maxlength="100" pattern="[A-Za-z\s]+"
-    	title="Introducer Name should contain only letters and spaces">
+  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
 	</div>
-	<script>
-	document.querySelector('input[name="introducerAccName"]').addEventListener('input', function () {
-		  this.value = this.value.replace(/[^A-Za-z\s]/g, '').slice(0, 100);
-		});
-	</script>
 
       <div>
         <label>Date Of Application</label>

@@ -355,8 +355,13 @@ body {
 
       <div>
         <label>Introducer A/c Name</label>
-        <input type="text" name="introducerAccName">
-      </div>
+        <input type="text" name="introducerAccName"required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
       <div>
         <label>Date Of Application</label>
@@ -838,7 +843,6 @@ body {
   </select>
 </div>
 
-
     <div>
   <label>Is Director Related</label>
   <div>
@@ -933,8 +937,13 @@ body {
       <!-- ✅ FIXED: Changed from nomineeName[] to coBorrowerName[] -->
       <div>
         <label>Co-Borrower Name</label>
-        <input type="text" name="coBorrowerName[]" required>
-      </div>
+        <input type="text" name="coBorrowerName[]" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
       <div>
         <label>Address 1</label>
