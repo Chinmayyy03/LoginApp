@@ -380,8 +380,12 @@ body {
 
       <div>
   		<label>Introducer A/c Name</label>
-  		<input type="text" name="introducerAccName" maxlength="100" pattern="[A-Za-z\s]+"
-    	title="Introducer Name should contain only letters and spaces">
+  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
 	</div>
 	<script>
 	document.querySelector('input[name="introducerAccName"]').addEventListener('input', function () {
@@ -964,8 +968,13 @@ body {
       <!-- ✅ FIXED: Changed from nomineeName[] to coBorrowerName[] -->
       <div>
         <label>Co-Borrower Name</label>
-        <input type="text" name="coBorrowerName[]" required>
-      </div>
+        <input type="text" name="coBorrowerName[]" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
       <div>
         <label>Address 1</label>
@@ -1149,8 +1158,13 @@ body {
 
       <div>
         <label>Guarantor Name</label>
-        <input type="text" name="guarantorName[]" required>
-      </div>
+        <input type="text" name="guarantorName[]" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
+	</div>
 
       <div>
         <label>Address 1</label>
