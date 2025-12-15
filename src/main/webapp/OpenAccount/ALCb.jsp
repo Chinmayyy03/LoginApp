@@ -859,12 +859,15 @@ body {
 
 <div>
   <label>Director Name</label>
-  <input type="text" name="directorName" id="directorName">
-</div>
+  <input type="text" name="directorName" id="directorName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
 
   </div> <!-- end .form-grid -->
 </fieldset>
-
 
 <!-- Co-Borrower Section -->
 <fieldset id="coBorrowerFieldset">

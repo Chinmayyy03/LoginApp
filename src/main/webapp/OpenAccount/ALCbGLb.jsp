@@ -1264,8 +1264,9 @@ body {
 
       <div>
         <label>Member No</label>
-        <input type="text" name="guarantorMemberNo[]">
-      </div>
+        <input type="text" name="guarantorMemberNo[]" maxlength="2"
+      	oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+	</div>
 
       <div>
         <label>Employee Id</label>
@@ -1279,12 +1280,14 @@ body {
 
       <div>
         <label>Phone No</label>
-        <input type="text" name="guarantorPhoneNo[]">
+        <input type="text" name="guarantorPhoneNo[]" maxlength="10"
+   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
       </div>
 
       <div>
         <label>Mobile No</label>
-        <input type="text" name="guarantorMobileNo[]">
+        <input type="text" name="guarantorMobileNo[]" maxlength="10"
+   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
       </div>
     </div>
   </div>

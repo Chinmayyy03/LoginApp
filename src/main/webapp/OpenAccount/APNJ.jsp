@@ -488,9 +488,12 @@ body {
 
       <div>
         <label>Agent Name</label>
-        <input type="text" name="agentName">
-      </div>
-
+        <input type="text" name="agentName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">
     </div>
   </fieldset>
 

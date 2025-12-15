@@ -1464,8 +1464,9 @@ body {
 
       <div>
         <label>Member No</label>
-        <input type="text" name="guarantorMemberNo[]" value="0">
-      </div>
+        <input type="text" name="guarantorMemberNo[]" maxlength="2"
+      	oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+	</div>
 
       <div>
         <label>Employee Id</label>

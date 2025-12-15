@@ -352,10 +352,11 @@
         <input type="text" name="gstinNo" id="gstinNo">
       </div>
       
-      <div>
-        <label>Member Number</label>
-        <input type="text" name="memberNumber" value="" maxlength="2">
-      </div>
+	<div>
+      <label>Member Number</label>
+      <input type="text" name="memberNumber" maxlength="2"
+      oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+	</div>
 
       <div>
         <label>CKYC No</label>
@@ -628,7 +629,6 @@ if (zipField) {
     <div>
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
-
         <input type="text" name="mobileNo">
       </div>
     </div>
