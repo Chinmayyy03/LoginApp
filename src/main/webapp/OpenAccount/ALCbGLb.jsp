@@ -20,7 +20,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Saving Account Application</title>
+<title>Loan Against Land & Building Application</title>
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <style>
@@ -340,7 +340,7 @@ body {
 </head>
 <body>
 
-<form action="SaveApplicationServlet" method="post" onsubmit="return validateForm()">
+<form action="ALCbGLbServlet" method="post" onsubmit="return validateForm()">
   <!-- ✅ FIX: Use JSP variable to set the value -->
   <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
