@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-@WebServlet("/OpenAccount/ALCbGLbServlet")
-public class ALCbGLbServlet extends HttpServlet {
+@WebServlet("/OpenAccount/ALNCbGLbFServlet")
+public class ALNCbGLbFServlet extends HttpServlet {
 
     // ========= Utility methods =========
 
@@ -121,20 +121,20 @@ public class ALCbGLbServlet extends HttpServlet {
         String customerId = trimSafe(request.getParameter("customerId"));
 
         if (productCode == null || productCode.isEmpty()) {
-            response.sendRedirect("ALCbGLb.jsp?status=error&message=" +
+            response.sendRedirect("ALNCbG.jsp?status=error&message=" +
                 java.net.URLEncoder.encode("Product Code required", "UTF-8"));
             return;
         }
 
         if (customerId == null || customerId.isEmpty()) {
-            response.sendRedirect("ALCbGLb.jsp?status=error&message=" +
+            response.sendRedirect("ALNCbG.jsp?status=error&message=" +
                 java.net.URLEncoder.encode("Customer ID required", "UTF-8") +
                 "&productCode=" + productCode);
             return;
         }
 
         Connection conn = null;
-        PreparedStatement psApp = null, psLoan = null, psCoBorrower = null, psGuarantor = null, psLandBuilding = null;
+        PreparedStatement psApp = null, psLoan = null, psNominee = null, psCoBorrower = null, psGuarantor = null, psLandBuilding = null;
         String applicationNumber = null;
 
         try {
@@ -229,7 +229,7 @@ public class ALCbGLbServlet extends HttpServlet {
                 socialSectionId == null || socialSubSectorId == null || purposeId == null ||
                 industryId == null || misId == null || classificationId == null) {
                 conn.rollback();
-                response.sendRedirect("ALCbGLb.jsp?status=error&message=" +
+                response.sendRedirect("ALNCbG.jsp?status=error&message=" +
                     java.net.URLEncoder.encode("Mandatory loan master fields missing", "UTF-8") +
                     "&productCode=" + productCode);
                 return;
@@ -389,6 +389,83 @@ public class ALCbGLbServlet extends HttpServlet {
 
             psLoan.executeUpdate();
 
+            // ========== INSERT NOMINEES (APPLICATIONNOMINEE) ==========
+            String[] nomineeNames = request.getParameterValues("nomineeName[]");
+            String[] nomineeSalutations = request.getParameterValues("nomineeSalutation[]");
+            String[] nomineeRelations = request.getParameterValues("nomineeRelation[]");
+            String[] nomineeAddr1 = request.getParameterValues("nomineeAddress1[]");
+            String[] nomineeAddr2 = request.getParameterValues("nomineeAddress2[]");
+            String[] nomineeAddr3 = request.getParameterValues("nomineeAddress3[]");
+            String[] nomineeCities = request.getParameterValues("nomineeCity[]");
+            String[] nomineeStates = request.getParameterValues("nomineeState[]");
+            String[] nomineeCountries = request.getParameterValues("nomineeCountry[]");
+            String[] nomineeZips = request.getParameterValues("nomineeZip[]");
+
+            if (nomineeNames != null && nomineeNames.length > 0) {
+                String nomSQL = "INSERT INTO APPLICATION.APPLICATIONNOMINEE (" +
+                    "APPLICATION_NUMBER, SERIAL_NUMBER, SALUTATION_CODE, NAME, " +
+                    "RELATION_ID, ADDRESS1, ADDRESS2, ADDRESS3, CITY_CODE, " +
+                    "STATE_CODE, COUNTRY_CODE, ZIP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                psNominee = conn.prepareStatement(nomSQL);
+                int serial = 1;
+                int validCount = 0;
+
+                for (int i = 0; i < nomineeNames.length; i++) {
+                    String name = trimSafe(nomineeNames[i]);
+                    if (name == null || name.isEmpty()) {
+                        System.out.println("⚠️ Skip nominee " + (i+1) + " - empty name");
+                        continue;
+                    }
+                    
+                    String sal = nomineeSalutations != null && i < nomineeSalutations.length ? 
+                                 trimSafe(nomineeSalutations[i]) : null;
+                    if (sal == null || sal.isEmpty()) {
+                        System.out.println("⚠️ Skip nominee " + (i+1) + " - no salutation");
+                        continue;
+                    }
+                    
+                    System.out.println("✅ Nominee " + serial + ": " + name);
+                    
+                    psNominee.setString(1, applicationNumber);
+                    psNominee.setInt(2, serial);
+                    psNominee.setString(3, sal);
+                    psNominee.setString(4, name);
+                    
+                    Integer rel = nomineeRelations != null && i < nomineeRelations.length ? 
+                                  parseInt(nomineeRelations[i]) : null;
+                    if (rel != null) psNominee.setInt(5, rel);
+                    else psNominee.setNull(5, Types.INTEGER);
+                    
+                    psNominee.setString(6, nomineeAddr1 != null && i < nomineeAddr1.length ? 
+                                          trimSafe(nomineeAddr1[i]) : null);
+                    psNominee.setString(7, nomineeAddr2 != null && i < nomineeAddr2.length ? 
+                                          trimSafe(nomineeAddr2[i]) : null);
+                    psNominee.setString(8, nomineeAddr3 != null && i < nomineeAddr3.length ? 
+                                          trimSafe(nomineeAddr3[i]) : null);
+                    psNominee.setString(9, nomineeCities != null && i < nomineeCities.length ? 
+                                          trimSafe(nomineeCities[i]) : null);
+                    psNominee.setString(10, nomineeStates != null && i < nomineeStates.length ? 
+                                           trimSafe(nomineeStates[i]) : null);
+                    psNominee.setString(11, nomineeCountries != null && i < nomineeCountries.length ? 
+                                           trimSafe(nomineeCountries[i]) : null);
+                    
+                    Integer zip = nomineeZips != null && i < nomineeZips.length ? 
+                                  parseInt(nomineeZips[i]) : null;
+                    if (zip != null && zip != 0) psNominee.setInt(12, zip);
+                    else psNominee.setNull(12, Types.INTEGER);
+
+                    psNominee.addBatch();
+                    validCount++;
+                    serial++;
+                }
+
+                if (validCount > 0) {
+                    int[] nomRows = psNominee.executeBatch();
+                    System.out.println("Nominees inserted: " + nomRows.length);
+                }
+            }
+
             // ========== INSERT CO-BORROWERS (APPLICATIONJOINTHOLDER) ==========
             String[] coBorrowerNames = request.getParameterValues("coBorrowerName[]");
             String[] coBorrowerSalutations = request.getParameterValues("coBorrowerSalutation[]");
@@ -417,39 +494,39 @@ public class ALCbGLbServlet extends HttpServlet {
                         System.out.println("⚠️ Skip co-borrower " + (i+1) + " - empty name");
                         continue;
                     }
-
-                    String sal = coBorrowerSalutations != null && i < coBorrowerSalutations.length ?
+                    
+                    String sal = coBorrowerSalutations != null && i < coBorrowerSalutations.length ? 
                                  trimSafe(coBorrowerSalutations[i]) : null;
                     if (sal == null || sal.isEmpty()) {
                         System.out.println("⚠️ Skip co-borrower " + (i+1) + " - no salutation");
                         continue;
                     }
-
+                    
                     System.out.println("✅ Co-Borrower " + serial + ": " + name);
-
+                    
                     psCoBorrower.setString(1, applicationNumber);
                     psCoBorrower.setInt(2, serial);
                     psCoBorrower.setString(3, sal);
                     psCoBorrower.setString(4, name);
-                    psCoBorrower.setString(5, coBorrowerAddr1 != null && i < coBorrowerAddr1.length ?
+                    psCoBorrower.setString(5, coBorrowerAddr1 != null && i < coBorrowerAddr1.length ? 
                                          trimSafe(coBorrowerAddr1[i]) : null);
-                    psCoBorrower.setString(6, coBorrowerAddr2 != null && i < coBorrowerAddr2.length ?
+                    psCoBorrower.setString(6, coBorrowerAddr2 != null && i < coBorrowerAddr2.length ? 
                                          trimSafe(coBorrowerAddr2[i]) : null);
-                    psCoBorrower.setString(7, coBorrowerAddr3 != null && i < coBorrowerAddr3.length ?
+                    psCoBorrower.setString(7, coBorrowerAddr3 != null && i < coBorrowerAddr3.length ? 
                                          trimSafe(coBorrowerAddr3[i]) : null);
-                    psCoBorrower.setString(8, coBorrowerCities != null && i < coBorrowerCities.length ?
+                    psCoBorrower.setString(8, coBorrowerCities != null && i < coBorrowerCities.length ? 
                                          trimSafe(coBorrowerCities[i]) : null);
-                    psCoBorrower.setString(9, coBorrowerStates != null && i < coBorrowerStates.length ?
+                    psCoBorrower.setString(9, coBorrowerStates != null && i < coBorrowerStates.length ? 
                                          trimSafe(coBorrowerStates[i]) : null);
-                    psCoBorrower.setString(10, coBorrowerCountries != null && i < coBorrowerCountries.length ?
+                    psCoBorrower.setString(10, coBorrowerCountries != null && i < coBorrowerCountries.length ? 
                                           trimSafe(coBorrowerCountries[i]) : null);
-
-                    Integer zip = coBorrowerZips != null && i < coBorrowerZips.length ?
+                    
+                    Integer zip = coBorrowerZips != null && i < coBorrowerZips.length ? 
                                   parseInt(coBorrowerZips[i]) : null;
                     if (zip != null && zip != 0) psCoBorrower.setInt(11, zip);
                     else psCoBorrower.setNull(11, Types.INTEGER);
-
-                    String custId = coBorrowerCustIDs != null && i < coBorrowerCustIDs.length ?
+                    
+                    String custId = coBorrowerCustIDs != null && i < coBorrowerCustIDs.length ? 
                                     trimSafe(coBorrowerCustIDs[i]) : null;
                     if (custId != null && !custId.isEmpty()) psCoBorrower.setString(12, custId);
                     else psCoBorrower.setNull(12, Types.VARCHAR);
@@ -588,7 +665,7 @@ public class ALCbGLbServlet extends HttpServlet {
                     System.out.println("Guarantors inserted: " + guarantorRows.length);
                 }
             }
-
+            
          // ========== INSERT LAND & BUILDING (APPLICATIONSECURITYLANDNBUILDIN) ==========
             String[] securityTypeCodes = request.getParameterValues("securityTypeCode[]");
             String[] lbSubmiDates = request.getParameterValues("lbSubmiDate[]");
@@ -719,7 +796,7 @@ public class ALCbGLbServlet extends HttpServlet {
             }
 
             conn.commit();
-            response.sendRedirect("ALCbGLb.jsp?status=success&applicationNumber=" +
+            response.sendRedirect("ALNCbG.jsp?status=success&applicationNumber=" +
                                   applicationNumber + "&productCode=" + productCode);
 
         } catch (Exception e) {
@@ -727,15 +804,15 @@ public class ALCbGLbServlet extends HttpServlet {
                 try { conn.rollback(); } catch (Exception ignored) {}
             }
             e.printStackTrace();
-            response.sendRedirect("ALCbGLb.jsp?status=error&message=" +
+            response.sendRedirect("ALNCbG.jsp?status=error&message=" +
                 java.net.URLEncoder.encode(e.getMessage(), "UTF-8") +
                 "&productCode=" + (productCode != null ? productCode : ""));
         } finally {
             try { if (psApp != null) psApp.close(); } catch (Exception ignored) {}
             try { if (psLoan != null) psLoan.close(); } catch (Exception ignored) {}
+            try { if (psNominee != null) psNominee.close(); } catch (Exception ignored) {}
             try { if (psCoBorrower != null) psCoBorrower.close(); } catch (Exception ignored) {}
             try { if (psGuarantor != null) psGuarantor.close(); } catch (Exception ignored) {}
-            try { if (psLandBuilding != null) psLandBuilding.close(); } catch (Exception ignored) {}
             try {
                 if (conn != null) {
                     conn.setAutoCommit(true);
