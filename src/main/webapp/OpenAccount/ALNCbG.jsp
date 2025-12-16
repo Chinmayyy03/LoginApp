@@ -1470,7 +1470,7 @@ body {
 
       <div>
         <label>Employee Id</label>
-        <input type="text" name="guarantorEmployeeId[]" value="0">
+        <input type="number" name="guarantorEmployeeId[]" value="0">
       </div>
 
       <div>

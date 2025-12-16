@@ -1255,7 +1255,7 @@ body {
 
       <div>
         <label>Employee Id</label>
-        <input type="text" name="guarantorEmployeeId[]">
+        <input type="number" name="guarantorEmployeeId[]">
       </div>
 
       <div>

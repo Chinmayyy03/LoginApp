@@ -327,7 +327,7 @@ input[type=number] {
 
       <div>
         <label>Item Name</label>
-        <input type="text" name="itemName" required>
+        <input type="text" name="itemName" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')">
       </div>
 
       <div>
@@ -352,12 +352,12 @@ input[type=number] {
 
       <div>
         <label>Description</label>
-        <input type="text" name="description">
+        <input type="text" name="description" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')">
       </div>
 
       <div>
         <label>Bill Number</label>
-        <input type="text" name="billNumber" value="0" required>
+        <input type="text" name="billNumber" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')">
       </div>
 
       <div>
