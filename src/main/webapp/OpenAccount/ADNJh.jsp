@@ -316,7 +316,7 @@ body {
 </head>
 <body>
 
-<form action="SaveApplicationServlet" method="post" onsubmit="return validateForm()">
+<form action="ADNJhServlet" method="post" onsubmit="return validateForm()">
   <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
   <fieldset>
@@ -525,32 +525,32 @@ body {
 	</div>
 
       <div>
-  <label>Deposit Amount</label>
-  <input type="number" step="0.01" name="depositAmount" id="depositAmount" value="0" oninput="validateDeposit()">
-</div>
+  		<label>Deposit Amount</label>
+  		<input type="number" step="0.01" name="depositAmount" id="depositAmount" value="0" oninput="validateDeposit()">
+	</div>
 
       <div>
         <label>Maturity Amount</label>
-        <input type="number" step="0.01" name="maturityAmount" value="0">
+        <input type="number" step="0.01" name="maturityAmount">
       </div>
 
 	  <div>
 	  </div>
 	  
       <div>
-  <label>Cash</label>
-  <input type="number" step="0.01" name="cash" id="cash" value="0" oninput="validateDeposit()">
-</div>
+  		<label>Cash</label>
+  		<input type="number" step="0.01" name="cash" id="cash" value="0" oninput="validateDeposit()">
+	</div>
 
-<div>
-  <label>Clearing</label>
-  <input type="number" step="0.01" name="clearing" id="clearing" value="0" oninput="validateDeposit()">
-</div>
+	<div>
+  		<label>Clearing</label>
+  		<input type="number" step="0.01" name="clearing" id="clearing" value="0" oninput="validateDeposit()">
+	</div>
 
-<div>
-  <label>Transfer</label>
-  <input type="number" step="0.01" name="transfer" id="transfer" value="0" oninput="validateDeposit()">
-</div>
+	<div>
+  		<label>Transfer</label>
+  		<input type="number" step="0.01" name="transfer" id="transfer" value="0" oninput="validateDeposit()">
+	</div>
 
     </div>
   </fieldset>
@@ -1312,7 +1312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateTermDepositMaturityDate();
     }
 });
-
 
 //✅ Monitor Application Customer ID changes
 document.addEventListener('DOMContentLoaded', function() {
