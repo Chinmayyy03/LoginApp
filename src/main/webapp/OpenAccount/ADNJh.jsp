@@ -525,9 +525,9 @@ body {
 	</div>
 
       <div>
-        <label>Deposit Amount</label>
-        <input type="number" step="0.01" name="depositAmount" value="0">
-      </div>
+  <label>Deposit Amount</label>
+  <input type="number" step="0.01" name="depositAmount" id="depositAmount" value="0" oninput="validateDeposit()">
+</div>
 
       <div>
         <label>Maturity Amount</label>
@@ -538,19 +538,19 @@ body {
 	  </div>
 	  
       <div>
-        <label>Cash</label>
-        <input type="number" step="0.01" name="cash" value="0">
-      </div>
+  <label>Cash</label>
+  <input type="number" step="0.01" name="cash" id="cash" value="0" oninput="validateDeposit()">
+</div>
 
-      <div>
-        <label>Clearing</label>
-        <input type="number" step="0.01" name="clearing" value="0">
-      </div>
+<div>
+  <label>Clearing</label>
+  <input type="number" step="0.01" name="clearing" id="clearing" value="0" oninput="validateDeposit()">
+</div>
 
-      <div>
-        <label>Transfer</label>
-        <input type="number" step="0.01" name="transfer" value="0">
-      </div>
+<div>
+  <label>Transfer</label>
+  <input type="number" step="0.01" name="transfer" id="transfer" value="0" oninput="validateDeposit()">
+</div>
 
     </div>
   </fieldset>
@@ -1332,6 +1332,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// check DIPOSIT amount using CASH, CLEARING, TRANSFER
+function validateDeposit() {
+  let deposit = parseFloat(document.getElementById("depositAmount").value) || 0;
+  let cash = parseFloat(document.getElementById("cash").value) || 0;
+  let clearing = parseFloat(document.getElementById("clearing").value) || 0;
+  let transfer = parseFloat(document.getElementById("transfer").value) || 0;
+
+  let total = cash + clearing + transfer;
+
+  if (deposit !== total) {
+    document.getElementById("depositAmount").style.border = "2px solid red";
+  } else {
+    document.getElementById("depositAmount").style.border = "";
+  }
+}
 </script>
 </body>
 </html>
