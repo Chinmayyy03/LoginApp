@@ -53,7 +53,7 @@
     <p><%= String.format("%,.2f", totalLoan) %></p>
 </div>
 
-<div class="card" onclick="openInParentFrame('authorizationPending.jsp', 'Authorization Pending')">
+<div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending')">
     <h3>Authorization Pending</h3>
     <p><%= totalPendingCustomers %></p>
 </div>

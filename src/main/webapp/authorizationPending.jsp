@@ -2,116 +2,90 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
-    // ✅ Get branch code from session
-    HttpSession sess = request.getSession(false);
-    if (sess == null || sess.getAttribute("branchCode") == null) {
+    String branchCode = (String) session.getAttribute("branchCode");
+    if (branchCode == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+	int totalPendingApplications = 0;
+    int totalCustomers = 0;
+    int totalPendingCustomers = 0;
+    double totalLoan = 0; // static for now
 
-    String branchCode = (String) sess.getAttribute("branchCode");
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'A' ")) {
+        ps.setString(1, branchCode);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            totalCustomers = rs.getInt(1);
+        }
+    } catch (Exception e) {
+        totalCustomers = 0;
+    }
+    try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'P' ")) {
+           ps.setString(1, branchCode);
+           ResultSet rs = ps.executeQuery();
+           if (rs.next()) {
+               totalPendingCustomers = rs.getInt(1);
+           }
+       } catch (Exception e) {
+           totalPendingCustomers = 0;
+       }
+    
+ // Count total pending applications (STATUS = 'E')
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE BRANCH_CODE=? AND STATUS = 'E'")) {
+        ps.setString(1, branchCode);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            totalPendingApplications = rs.getInt(1);
+        }
+    } catch (Exception e) {
+        totalPendingApplications = 0;
+    }
 %>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Customer Data - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/totalCustomers.css">
-<script>
-    // ✅ Live search filter (client-side)
-    function searchTable() {
-    var input = document.getElementById("searchInput");
-    var filter = input.value.toLowerCase();
-    var table = document.getElementById("customerTable");
-    var trs = table.getElementsByTagName("tr");
-
-    for (var i = 1; i < trs.length; i++) {
-        var tds = trs[i].getElementsByTagName("td");
-        var found = false;
-        for (var j = 0; j < tds.length; j++) {
-            if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
-        }
-        trs[i].style.display = found ? "" : "none";
-    }
-}
-
-// Update breadcrumb on page load
-window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending');
-    }
-};
-
-// View customer
-function viewCustomer(customerId) {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > View Details');
-    }
-    window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
-}
-</script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
-
-<h2>Authorization Pending list for Branch: <%= branchCode %></h2>
-
-<div class="search-container">
-     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Name, Customer ID">
+    <div class="dashboard-container">
+        <div class="cards-wrapper">
+<div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending')">
+    <h3>Authorization Pending Customers</h3>
+    <p><%= totalPendingCustomers %></p>
 </div>
-
-<div class="table-container">
-<table id="customerTable">
-<%
-try (Connection conn = DBConnection.getConnection();
-     PreparedStatement ps = conn.prepareStatement(
-        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, STATUS FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS = 'P' ORDER BY CUSTOMER_ID")) {
-
-    ps.setString(1, branchCode);
-
-    ResultSet rs = ps.executeQuery();
-
-    boolean hasData = false;
-
-    // Table Header
-    out.println("<tr>");
-    out.println("<th>BRANCH CODE</th>");
-    out.println("<th>CUSTOMER ID</th>");
-    out.println("<th>CUSTOMER NAME</th>");
-    out.println("<th>STATUS</th>");   // added
-    out.println("<th>ACTION</th>");
-    out.println("</tr>");
-
-    while (rs.next()) {
-        hasData = true;
-        String cid = rs.getString("CUSTOMER_ID");
-
-        out.println("<tr>");
-        out.println("<td>" + rs.getString("BRANCH_CODE") + "</td>");
-        out.println("<td>" + rs.getString("CUSTOMER_ID") + "</td>");
-        out.println("<td>" + rs.getString("CUSTOMER_NAME") + "</td>");
-        out.println("<td>" + rs.getString("STATUS") + "</td>");  // added
-
-        out.println("<td><a href='#' onclick=\"viewCustomer('" + cid + "'); return false;\" ");
-        out.println("style='background:#2b0d73;color:white;padding:4px 10px;");
-        out.println("border-radius:4px;text-decoration:none;'>View Details</a></td>");
-        out.println("</tr>");
-    }
-
-    if (!hasData) {
-        out.println("<tr><td colspan='5' class='no-data'>No customers found.</td></tr>");
-    }
-
-} catch (Exception e) {
-    out.println("<tr><td colspan='5' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
-}
-%>
-
-</table>
+<div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending')">
+    <h3>Authorization Pending Application</h3>
+    <p><%= totalPendingApplications %></p>
 </div>
+        </div>
+    </div>
+    
+    <script>
+ // Update breadcrumb when dashboard loads
+    window.onload = function() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Dashboard');
+        }
+    };
 
+    function openInParentFrame(page, breadcrumbPath) {
+        if (window.parent && window.parent.document) {
+            const iframe = window.parent.document.getElementById("contentFrame");
+            if (iframe) {
+                iframe.src = page;
+                
+                if (window.parent.updateParentBreadcrumb) {
+                    window.parent.updateParentBreadcrumb(breadcrumbPath);
+                }
+            }
+        }
+    }
+    </script>
 </body>
 </html>
