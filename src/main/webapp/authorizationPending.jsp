@@ -55,19 +55,19 @@
 <body>
     <div class="dashboard-container">
         <div class="cards-wrapper">
-<div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending')">
-    <h3>Authorization Pending Customers</h3>
-    <p><%= totalPendingCustomers %></p>
+    <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending > Customer List')">
+        <h3>Authorization Pending Customers</h3>
+        <p><%= totalPendingCustomers %></p>
+    </div>
+    <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending > Application List')">
+        <h3>Authorization Pending Application</h3>
+        <p><%= totalPendingApplications %></p>
+    </div>
 </div>
-<div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending')">
-    <h3>Authorization Pending Application</h3>
-    <p><%= totalPendingApplications %></p>
-</div>
-        </div>
     </div>
     
     <script>
- // Update breadcrumb when dashboard loads
+    // Update breadcrumb when dashboard loads
     window.onload = function() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
             window.parent.updateParentBreadcrumb('Authorization Pending');
@@ -86,6 +86,6 @@
             }
         }
     }
-    </script>
+</script>
 </body>
 </html>

@@ -19,8 +19,8 @@
 <title>Customer Data - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="css/totalCustomers.css">
 <script>
-    // ✅ Live search filter (client-side)
-    function searchTable() {
+// ✅ Live search filter (client-side)
+function searchTable() {
     var input = document.getElementById("searchInput");
     var filter = input.value.toLowerCase();
     var table = document.getElementById("customerTable");
@@ -42,14 +42,14 @@
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending');
+        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List');
     }
 };
 
 // View customer
 function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > View Details');
+        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List > View Details');
     }
     window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
 }

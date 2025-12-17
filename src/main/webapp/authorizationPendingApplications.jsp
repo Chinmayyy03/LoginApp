@@ -19,40 +19,40 @@
 <title>Application Data - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="css/totalCustomers.css">
 <script>
-    // ✅ Live search filter (client-side)
-    function searchTable() {
-        var input = document.getElementById("searchInput");
-        var filter = input.value.toLowerCase();
-        var table = document.getElementById("applicationTable");
-        var trs = table.getElementsByTagName("tr");
+//✅ Live search filter (client-side)
+function searchTable() {
+    var input = document.getElementById("searchInput");
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById("applicationTable");
+    var trs = table.getElementsByTagName("tr");
 
-        for (var i = 1; i < trs.length; i++) {
-            var tds = trs[i].getElementsByTagName("td");
-            var found = false;
-            for (var j = 0; j < tds.length; j++) {
-                if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
+    for (var i = 1; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        var found = false;
+        for (var j = 0; j < tds.length; j++) {
+            if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
             }
-            trs[i].style.display = found ? "" : "none";
         }
+        trs[i].style.display = found ? "" : "none";
     }
+}
 
-    // Update breadcrumb on page load
-    window.onload = function() {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Authorization Pending Applications');
-        }
-    };
-
-    // View application
-    function viewApplication(applicationNumber) {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Authorization Pending Applications > View Details');
-        }
-        window.location.href = 'authViewApplication.jsp?appNo=' + applicationNumber;
+// Update breadcrumb on page load
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Authorization Pending > Application List');
     }
+};
+
+// View application
+function viewApplication(applicationNumber) {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Authorization Pending > Application List > View Details');
+    }
+    window.location.href = 'authViewApplication.jsp?appNo=' + applicationNumber;
+}
 </script>
 </head>
 <body>

@@ -100,12 +100,14 @@
 </div>
 
 <script>
-// ========== PAGE MAPPING ==========
+//========== PAGE MAPPING ==========
 const pageMap = {
     'Dashboard': 'dashboard.jsp',
     'Add Customer': 'addCustomer.jsp',
     'Total Customers': 'totalCustomers.jsp',
     'Authorization Pending': 'authorizationPending.jsp',
+    'Customer List': 'authorizationPendingCustomers.jsp',
+    'Application List': 'authorizationPendingApplications.jsp',
     'Loan Details': 'loanDetails.jsp',
     'Open Account': 'newApplication.jsp'
 };
