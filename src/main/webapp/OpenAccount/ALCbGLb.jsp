@@ -563,22 +563,22 @@ body {
 
     <div>
       <label>Penal Int. Rate</label>
-      <input type="number" step="0.01" name="penalIntRate">
+      <input type="number" step="0.01" name="penalIntRate" value="0">
     </div>
 
     <div>
       <label>Mor. Int. Rate</label>
-      <input type="number" step="0.01" name="morIntRate">
+      <input type="number" step="0.01" name="morIntRate" value="0">
     </div>
 
     <div>
       <label>Overdue Int. Rate</label>
-      <input type="number" step="0.01" name="overdueIntRate">
+      <input type="number" step="0.01" name="overdueIntRate" value="0">
     </div>
 
     <div>
       <label>Mor. Period Month</label>
-      <input type="number" name="morPeriodMonth">
+      <input type="number" name="morPeriodMonth" value="0">
     </div>
 
     <div>
