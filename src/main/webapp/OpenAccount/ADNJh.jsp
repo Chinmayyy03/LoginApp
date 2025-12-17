@@ -475,18 +475,6 @@ body {
       </div>
 
       <div>
-        <label>Interest Payment Frequency</label>
-        <select name="interestPaymentFrequency">
-          <option value="">-- Select Frequency --</option>
-          <option value="On Maturity">On Maturity</option>
-          <option value="Monthly">Monthly</option>
-          <option value="Quarterly">Quarterly</option>
-          <option value="Half-Yearly">Half-Yearly</option>
-          <option value="Yearly">Yearly</option>
-        </select>
-      </div>
-
-      <div>
         <label>Interest Paid In Cash</label>
         <div style="flex-direction: row;" class="radio-group">
           <label><input type="radio" name="interestPaidInCash" value="Yes"> Yes</label>
@@ -510,6 +498,17 @@ body {
         </div>
       </div>
 
+      <div>
+        <label>Interest Payment Frequency</label>
+        <select name="interestPaymentFrequency">
+          <option value="">-- Select Frequency --</option>
+          <option value="On Maturity">On Maturity</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+          <option value="Half-Yearly">Half-Yearly</option>
+          <option value="Yearly">Yearly</option>
+        </select>
+      </div>
       <div>
         <label>Credit A/c Code</label>
         <input type="text" name="creditAccCode">
