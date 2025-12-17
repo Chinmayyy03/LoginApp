@@ -119,6 +119,7 @@ public class SaveFAApplicationServlet extends HttpServlet {
         String userId = trimSafe((String) session.getAttribute("userId"));
         String productCode = trimSafe(request.getParameter("productCode"));
         String customerId = trimSafe(request.getParameter("customerId"));
+        String customerName = trimSafe(request.getParameter("customerName"));
 
         if (productCode == null || productCode.isEmpty()) {
             response.sendRedirect("fAApplication.jsp?status=error&message=" +
@@ -134,7 +135,8 @@ public class SaveFAApplicationServlet extends HttpServlet {
         }
 
         Connection conn = null;
-        PreparedStatement psApp = null, psFixedAsset = null;
+        PreparedStatement psApp = null, psFixedAsset = null, psGetCategory = null;
+        ResultSet rsCategory = null;
         String applicationNumber = null;
 
         try {
@@ -143,10 +145,25 @@ public class SaveFAApplicationServlet extends HttpServlet {
 
             applicationNumber = generateApplicationNumber(conn, branchCode);
 
+            // ========== GET CATEGORY_CODE FROM CUSTOMERS TABLE ==========
+            String categoryCode = null;
+            String getCategorySQL = "SELECT CATEGORY_CODE FROM CUSTOMERS WHERE CUSTOMER_ID = ?";
+            psGetCategory = conn.prepareStatement(getCategorySQL);
+            psGetCategory.setString(1, customerId);
+            rsCategory = psGetCategory.executeQuery();
+            
+            if (rsCategory.next()) {
+                categoryCode = rsCategory.getString("CATEGORY_CODE");
+            }
+            
+            rsCategory.close();
+            psGetCategory.close();
+
             // ========== INSERT APPLICATION ==========
             String appSQL = "INSERT INTO APPLICATION.APPLICATION (" +
                 "APPLICATION_NUMBER, BRANCH_CODE, PRODUCT_CODE, APPLICATIONDATE, " +
-                "CUSTOMER_ID, ACCOUNTOPERATIONCAPACITY_ID, USER_ID, STATUS) VALUES (?, ?, ?, ?, ?, ?, ?, 'E')";
+                "CUSTOMER_ID, ACCOUNTOPERATIONCAPACITY_ID, USER_ID, NAME, CATEGORY_CODE, STATUS) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'E')";
 
             psApp = conn.prepareStatement(appSQL);
             psApp.setString(1, applicationNumber);
@@ -156,6 +173,8 @@ public class SaveFAApplicationServlet extends HttpServlet {
             psApp.setString(5, customerId);
             psApp.setInt(6, 0); // Default ACCOUNTOPERATIONCAPACITY_ID to 0
             psApp.setString(7, userId);
+            psApp.setString(8, customerName); // Customer Name
+            psApp.setString(9, categoryCode); // Category Code from CUSTOMERS table
 
             psApp.executeUpdate();
 
@@ -163,8 +182,8 @@ public class SaveFAApplicationServlet extends HttpServlet {
             String faSQL = "INSERT INTO APPLICATION.APPLICATIONFIXEDASSET (" +
                 "APPLICATION_NUMBER, ITEM_NAME, PURCHASEDATE, PURCHASEAMOUNT, " +
                 "NUMBEROFITEM, DEPRICATIONRATE, BILLNUMBER, DESCRIPTION, " +
-                "METHOD_OF_DEP_CAL, DEPRICATION_CALCULATE_ON, CREATD_DATE, MODIFIED_DATE) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "METHOD_OF_DEP_CAL, DEPRICATION_CALCULATE_ON, CREATD_DATE) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             psFixedAsset = conn.prepareStatement(faSQL);
 
@@ -253,9 +272,6 @@ public class SaveFAApplicationServlet extends HttpServlet {
             Timestamp now = new Timestamp(System.currentTimeMillis());
             psFixedAsset.setTimestamp(idx++, now);
 
-            // 12. MODIFIED_DATE - TIMESTAMP(6)
-            psFixedAsset.setTimestamp(idx++, now);
-
             psFixedAsset.executeUpdate();
 
             conn.commit();
@@ -278,6 +294,8 @@ public class SaveFAApplicationServlet extends HttpServlet {
                 java.net.URLEncoder.encode(e.getMessage(), "UTF-8") +
                 "&productCode=" + (productCode != null ? productCode : ""));
         } finally {
+            try { if (rsCategory != null) rsCategory.close(); } catch (Exception ignored) {}
+            try { if (psGetCategory != null) psGetCategory.close(); } catch (Exception ignored) {}
             try { if (psApp != null) psApp.close(); } catch (Exception ignored) {}
             try { if (psFixedAsset != null) psFixedAsset.close(); } catch (Exception ignored) {}
             try {

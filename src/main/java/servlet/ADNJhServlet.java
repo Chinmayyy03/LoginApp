@@ -181,8 +181,8 @@ public class ADNJhServlet extends HttpServlet {
                 "MATURITYDATE, MATURITYVALUE, DEPOSITAMOUNT, INTERESTRATE, " +
                 "INTERESTPAYMENTFREQUENCY, IS_INTEREST_PAID_IN_CASH, " +
                 "IS_RATE_DISCOUNTED, IS_AR_DAYBEGIN, MULTIPLYFACTOR, " +
-                "CREDITACCOUNT_CODE, DATETIMESTAMP, CREATED_DATE, MODIFIED_DATE) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "CREDITACCOUNT_CODE, DATETIMESTAMP, CREATED_DATE) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             psDeposit = conn.prepareStatement(depositSQL);
 
@@ -288,9 +288,6 @@ public class ADNJhServlet extends HttpServlet {
             psDeposit.setTimestamp(idx++, now);
 
             // 16. CREATED_DATE
-            psDeposit.setTimestamp(idx++, now);
-
-            // 17. MODIFIED_DATE
             psDeposit.setTimestamp(idx++, now);
 
             psDeposit.executeUpdate();
