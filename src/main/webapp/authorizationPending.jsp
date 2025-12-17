@@ -70,7 +70,7 @@
  // Update breadcrumb when dashboard loads
     window.onload = function() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard');
+            window.parent.updateParentBreadcrumb('Authorization Pending');
         }
     };
 

@@ -155,7 +155,7 @@ function goBackToList() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending');
     }
-    window.location.href = 'authorizationPending.jsp';
+    window.location.href = 'authorizationPendingCustomers.jsp';
 }
 
 function showAuthorizeConfirmation(event) {
