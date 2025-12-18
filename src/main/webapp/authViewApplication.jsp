@@ -59,7 +59,53 @@
         }
         
         String productCode = getStringSafe(rsApp, "PRODUCT_CODE");
+
+    // ---- Joint Holder allowed product codes ----
+    boolean showJointHolder = false;
+    try {
+        int pc = Integer.parseInt(productCode);
+
+        if (
+            pc == 101 || pc == 102 || pc == 103 || pc == 110 ||
+            pc == 115 || pc == 116 || pc == 117 || pc == 118 ||
+            pc == 119 || pc == 120 || pc == 121 || pc == 122 ||
+            pc == 123 || pc == 151 || pc == 201 || pc == 210 ||
+            pc == 211 || pc == 601 || pc == 615 || pc == 901 ||
+            (pc >= 401 && pc <= 417) ||
+            pc == 420 ||
+            (pc >= 461 && pc <= 475) ||
+            pc == 499
+        ) {
+            showJointHolder = true;
+        }
+    } catch (Exception e) {
+        showJointHolder = false;
+    }
+    
+    // ---- Co-Borrower NOT allowed for these product codes ----
+    boolean showCoBorrower = true;
+
+    try {
+        int pc = Integer.parseInt(productCode);
+
+        if (
+            pc == 101 || pc == 102 || pc == 103 || pc == 110 ||
+            pc == 115 || pc == 116 || pc == 117 || pc == 118 ||
+            pc == 119 || pc == 120 || pc == 121 || pc == 122 ||
+            pc == 123 || pc == 151 || pc == 201 || pc == 210 ||
+            pc == 211 || pc == 601 || pc == 615 || pc == 901 ||
+            (pc >= 401 && pc <= 417) ||
+            pc == 420 ||
+            (pc >= 461 && pc <= 475) ||
+            pc == 499
+        ) {
+            showCoBorrower = false;   // ❌ hide co-borrower
+        }
+    } catch (Exception e) {
+        showCoBorrower = true;
+    }
 %>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -181,18 +227,6 @@ document.addEventListener('keydown', function(event) {
           <label>Risk Category</label>
           <input readonly value="<%= getStringSafe(rsApp,"RISKCATEGORY") %>">
         </div>
-        <div>
-          <label>Status</label>
-          <input readonly value="<%= getStringSafe(rsApp,"STATUS") %>">
-        </div>
-        <div>
-          <label>Created Date</label>
-          <input readonly value="<%= formatDateForInput(rsApp,"CREATED_DATE") %>">
-        </div>
-        <div>
-          <label>Modified Date</label>
-          <input readonly value="<%= formatDateForInput(rsApp,"MODIFIED_DATE") %>">
-        </div>
       </div>
     </fieldset>
 <%
@@ -235,6 +269,10 @@ document.addEventListener('keydown', function(event) {
 	      <label>Period Of Deposit</label>
 	      <input readonly value="<%= getStringSafe(rsMainDeposit,"PERIODOFDEPOSIT") %>">
 	    </div>
+	    <div>
+          <label>Maturity Date</label>
+          <input readonly value="<%= maturityDate %>">
+        </div> 
 
 	    <div>
 	      <label>Interest Rate</label>
@@ -652,7 +690,7 @@ document.addEventListener('keydown', function(event) {
         jointHolders.add(joint);
     }
     
-    if (!jointHolders.isEmpty()) {
+    if (showJointHolder && !jointHolders.isEmpty()) {
 %>
     <fieldset>
       <legend>Joint Holder Details</legend>
@@ -736,7 +774,7 @@ document.addEventListener('keydown', function(event) {
         coBorrowers.add(coBorrower);
     }
     
-    if (!coBorrowers.isEmpty()) {
+    if (showCoBorrower && !coBorrowers.isEmpty()) {
 %>
     <fieldset>
       <legend>Co-Borrower Details</legend>
