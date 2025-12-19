@@ -143,7 +143,12 @@
 
       <div>
         <label>Guardian Name</label>
-        <input type="text" name="guardianName" id="guardianName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')" disabled>
+        <input type="text" name="guardianName" id="guardianName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());" disabled>
       </div>
 
       <div>
@@ -385,12 +390,22 @@
     <!-- Row 1 -->
     <div>
       <label for="motherName">Mother Name</label>
-      <input type="text" id="motherName" name="motherName">
+      <input type="text" id="motherName" name="motherName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">>
     </div>
 
     <div>
       <label for="fatherName">Father Name</label>
-      <input type="text" id="fatherName" name="fatherName">
+      <input type="text" id="fatherName" name="fatherName" required oninput="this.value = this.value
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^\s+/g, '')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());">>
     </div>
 
     <div>
