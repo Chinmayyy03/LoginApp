@@ -44,19 +44,16 @@
     <div class="dashboard-container">
         <div class="cards-wrapper">
             <div class="card" onclick="openInParentFrame('totalCustomers.jsp', 'Dashboard > Total Customers')">
-    <h3>Total Customers</h3>
-    <p><%= totalCustomers %></p>
-</div>
+    			<h3>Total Customers</h3>
+    			<p><%= totalCustomers %></p>
+			</div>
 
-<div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Loan Details')">
-    <h3>Total Loan</h3>
-    <p><%= String.format("%,.2f", totalLoan) %></p>
-</div>
+			<div class="card" onclick="openInParentFrame('loanDetails.jsp', 'Dashboard > Loan Details')">
+    			<h3>Total Loan</h3>
+    			<p><%= String.format("%,.2f", totalLoan) %></p>
+			</div>
 
-<div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending')">
-    <h3>Authorization Pending</h3>
-    <p><%= totalPendingCustomers %></p>
-</div>
+
         </div>
     </div>
     

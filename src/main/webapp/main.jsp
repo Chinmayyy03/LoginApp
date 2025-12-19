@@ -112,6 +112,9 @@ const pageMap = {
     'Open Account': 'newApplication.jsp'
 };
 
+// Track the currently active menu item
+let currentActiveMenu = null;
+
 // ========== PAGE STATE PERSISTENCE ==========
 
 // Save current page state whenever iframe changes
@@ -119,13 +122,17 @@ function loadPage(page, title, breadcrumbPath, anchorEl) {
     // Save to sessionStorage before loading
     sessionStorage.setItem('currentPage', page);
     sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
+    sessionStorage.setItem('activeMenu', title); // Save active menu
     
     document.getElementById("contentFrame").src = page;
     updateBreadcrumb(breadcrumbPath);
     
+    // Update active menu
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
     if (anchorEl && anchorEl.closest) {
-        anchorEl.closest('li').classList.add("active");
+        const menuItem = anchorEl.closest('li');
+        menuItem.classList.add("active");
+        currentActiveMenu = menuItem;
     }
 }
 
@@ -136,7 +143,7 @@ function navigateToBreadcrumb(page, title, path) {
     
     document.getElementById("contentFrame").src = page;
     updateBreadcrumb(path);
-    updateActiveMenu(title);
+    // DON'T update active menu here - keep current selection
 }
 
 // ========== BREADCRUMB FUNCTIONS ==========
@@ -165,32 +172,27 @@ function updateBreadcrumb(path) {
     breadcrumbNav.innerHTML = breadcrumbHTML;
 }
 
-function updateActiveMenu(title) {
-    document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
-    const menuLink = Array.from(document.querySelectorAll(".menu li a")).find(
-        a => a.textContent.trim().includes(title)
-    );
-    if (menuLink) {
-        menuLink.closest('li').classList.add("active");
+// Helper function to update active menu based on saved menu name
+function updateActiveMenuFromSession() {
+    const savedMenu = sessionStorage.getItem('activeMenu');
+    if (savedMenu) {
+        document.querySelectorAll(".menu li").forEach(li => {
+            const link = li.querySelector('a');
+            if (link && link.textContent.trim().includes(savedMenu)) {
+                li.classList.add('active');
+                currentActiveMenu = li;
+            } else {
+                li.classList.remove('active');
+            }
+        });
     }
 }
 
-// Helper function to update active menu based on page
-function updateActiveMenuFromPage(page) {
-    document.querySelectorAll(".menu li").forEach(li => {
-        const savedPage = li.getAttribute('data-page');
-        if (savedPage === page) {
-            li.classList.add('active');
-        } else {
-            li.classList.remove('active');
-        }
-    });
-}
-
-// Allow child pages to update breadcrumb
+// Allow child pages to update breadcrumb WITHOUT changing menu selection
 window.updateParentBreadcrumb = function(path) {
     sessionStorage.setItem('currentBreadcrumb', path);
     updateBreadcrumb(path);
+    // DON'T change active menu here
 };
 
 // ========== RESTORE STATE ON LOAD ==========
@@ -203,18 +205,25 @@ window.onload = function () {
         // Reloading → load last opened page
         document.getElementById("contentFrame").src = savedPage;
         updateBreadcrumb(savedBreadcrumb);
-        updateActiveMenuFromPage(savedPage);
+        updateActiveMenuFromSession(); // Restore menu selection
     } else {
         // First-time opening website → load Dashboard
         document.getElementById("contentFrame").src = "dashboard.jsp";
         updateBreadcrumb("Dashboard");
         sessionStorage.setItem("currentPage", "dashboard.jsp");
         sessionStorage.setItem("currentBreadcrumb", "Dashboard");
+        sessionStorage.setItem("activeMenu", "Dashboard");
+        
+        // Set Dashboard as active
+        const dashboardItem = document.querySelector('.menu li[data-page="dashboard.jsp"]');
+        if (dashboardItem) {
+            dashboardItem.classList.add('active');
+            currentActiveMenu = dashboardItem;
+        }
     }
 
     updateDate();
 };
-
 
 // ========== DATE UPDATE ==========
 
