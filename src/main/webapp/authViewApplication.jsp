@@ -213,7 +213,7 @@ document.addEventListener('keydown', function(event) {
         </div>
         <div>
           <label>Date Of Application</label>
-          <input readonly value="<%= formatDateForInput(rsApp,"DATEOFAPPLICATION") %>">
+          <input readonly value="<%= formatDateForInput(rsApp,"APPLICATIONDATE") %>">
         </div>
         <div>
           <label>Account Operation Capacity</label>
@@ -579,6 +579,10 @@ document.addEventListener('keydown', function(event) {
         <div>
           <label>Depreciation Calculate On</label>
           <input readonly value="<%= getStringSafe(rsFixed,"DEPRICATION_CALCULATE_ON") %>">
+        </div>
+        <div>
+          <label>Created Date</label>
+          <input readonly value="<%= formatDateForInput(rsFixed,"CREATD_DATE") %>">
         </div>
       </div>
     </fieldset>
