@@ -609,7 +609,7 @@ document.addEventListener('keydown', function(event) {
 </button>
 
 </div>
-</div>
+
   </form>
   
 <div style="text-align:center; margin-top:30px;">

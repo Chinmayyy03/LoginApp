@@ -1181,10 +1181,10 @@ document.addEventListener('keydown', function(event) {
 </form>
 
 <div style="text-align:center; margin-top:30px;">
-    <form id="authorizeForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;" onsubmit="return showAuthorizeConfirmation(event)">
+    <form id="authorizeForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;">
         <input type="hidden" name="appNo" value="<%= appNo %>">
         <input type="hidden" name="status" value="A">
-        <button type="submit"
+        <button type="button" onclick="showAuthorizeConfirmation(event)"
             style="padding:10px 22px; background:linear-gradient(45deg, #28a745, #34ce57); color:white;
                    border:none; border-radius:6px; cursor:pointer;
                    font-size:16px; font-weight:bold;">
@@ -1194,10 +1194,10 @@ document.addEventListener('keydown', function(event) {
 
     &nbsp;&nbsp;&nbsp;
 
-    <form id="rejectForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;" onsubmit="return showRejectConfirmation(event)">
+    <form id="rejectForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;">
         <input type="hidden" name="appNo" value="<%= appNo %>">
         <input type="hidden" name="status" value="R">
-        <button type="submit"
+        <button type="button" onclick="showRejectConfirmation(event)"
             style="padding:10px 22px; background:linear-gradient(45deg, #dc3545, #e74c3c); color:white;
                    border:none; border-radius:6px; cursor:pointer;
                    font-size:16px; font-weight:bold;">
@@ -1227,7 +1227,35 @@ document.addEventListener('keydown', function(event) {
         </div>
     </div>
 </div>
+<script>
+function showAuthorizeConfirmation(event) {
+    event.preventDefault(); // Prevent default form submission
+    document.getElementById('authorizeModal').style.display = 'block';
+    return false; // Don't submit yet
+}
 
+function showRejectConfirmation(event) {
+    event.preventDefault(); // Prevent default form submission
+    document.getElementById('rejectModal').style.display = 'block';
+    return false; // Don't submit yet
+}
+
+function closeAuthorizeModal() {
+    document.getElementById('authorizeModal').style.display = 'none';
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+
+function confirmAuthorize() {
+    document.getElementById('authorizeForm').submit();
+}
+
+function confirmReject() {
+    document.getElementById('rejectForm').submit();
+}
+</script>
 </body>
 </html>
 
