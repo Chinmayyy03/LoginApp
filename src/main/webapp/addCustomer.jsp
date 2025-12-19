@@ -136,7 +136,7 @@
       <div>
         <label>Is Minor</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="isMinor" id="isMinor1" value="yes" onclick="toggleMinorFields()"> Yes</label>
+          <label><input type="radio" name="isMinor" id="isMinor1" value="yes" required onclick="toggleMinorFields()"> Yes</label>
           <label><input type="radio" name="isMinor" id="isMinor2" value="no" onclick="toggleMinorFields()"> No</label>
         </div>
       </div>
@@ -395,7 +395,7 @@
         .replace(/\s{2,}/g, ' ')
         .replace(/^\s+/g, '')
         .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">>
+        .replace(/\b\w/g, c => c.toUpperCase());">
     </div>
 
     <div>
@@ -405,13 +405,13 @@
         .replace(/\s{2,}/g, ' ')
         .replace(/^\s+/g, '')
         .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">>
+        .replace(/\b\w/g, c => c.toUpperCase());">
     </div>
 
     <div>
       <label>Marital Status</label>
       <div class="radio-group">
-        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" onclick="toggleMarriedFields()"> Married</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" required onclick="toggleMarriedFields()"> Married</label>
         <label><input type="radio" name="maritalStatus" id="maritalStatus1" value="Single" onclick="toggleMarriedFields()"> Single</label>
         <label><input type="radio" name="maritalStatus" id="maritalStatus2" value="Other" onclick="toggleMarriedFields()"> Other</label>
       </div>
@@ -420,12 +420,12 @@
     <!-- Row 2 -->
     <div>
       <label for="children">No. of Children</label>
-		<input type="number" id="children" name="children" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);">
+		<input type="number" id="children" name="children" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled>
     </div>
 
     <div>
       <label for="dependents">No. of Dependents</label>
-      <input type="number" id="dependents" name="dependents" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);">
+      <input type="number" id="dependents" name="dependents" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled>
     </div>
     
 </fieldset>

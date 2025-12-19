@@ -60,9 +60,9 @@
         <p><%= totalPendingCustomers %></p>
     </div>
     <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending > Application List')">
-        <h3>Authorization Pending Application</h3>
-        <p><%= totalPendingApplications %></p>
-    </div>
+    <h3>Authorization Pending Application</h3>
+    <p><%= totalPendingApplications %></p>
+</div>
 </div>
     </div>
     

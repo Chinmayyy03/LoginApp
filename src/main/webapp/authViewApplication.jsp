@@ -115,18 +115,18 @@
   <link rel="stylesheet" href="css/addCustomer.css">
   <link rel="stylesheet" href="css/authViewCustomers.css">
   <script>
-window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending Applications > View Details');
-    }
-};
+  window.onload = function() {
+	    if (window.parent && window.parent.updateParentBreadcrumb) {
+	        window.parent.updateParentBreadcrumb('Authorization Pending > Application List > View Details');
+	    }
+	};
 
-function goBackToList() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending Applications');
-    }
-    window.location.href = 'authorizationPendingApplications.jsp';
-}
+	function goBackToList() {
+	    if (window.parent && window.parent.updateParentBreadcrumb) {
+	        window.parent.updateParentBreadcrumb('Authorization Pending > Application List');
+	    }
+	    window.location.href = 'authorizationPendingApplications.jsp';
+	}
 
 function showAuthorizeConfirmation(event) {
     event.preventDefault();

@@ -40,6 +40,7 @@ function searchTable() {
 }
 
 // Update breadcrumb on page load
+// Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Authorization Pending > Application List');
