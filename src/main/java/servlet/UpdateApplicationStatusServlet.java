@@ -251,9 +251,10 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             "OFFICER_ID, CATEGORY_CODE, INTRODUCERACCOUNT_CODE, APPLICATION_NUMBER, INTRODUCER_NAME, " +
             "CREATED_DATE, MODIFIED_DATE, RISKCATEGORY, OLD_AC_TYPE, OLD_AC_NO, TOD_LIMIT, " +
             "TOD_DATE, TOD_PERIOD, OLD_ACC_NAME, DIRECTOR_ID, GUARDIAN_CUSTOMER_ID, IS_TRF_HO, " +
-            "APPLICATION_SERIAL_NO, INT_REC_HO, INT_PAY_HO, DEBR_TRF_HO, FINAL_HO_TRF, IS_FUND_FINAL, " +
+            "APPLICATION_SERIAL_NO, INT_REC_HO, INT_PAY_HO, " +  // REMOVED DEBR_TRF_HO
+            "FINAL_HO_TRF, IS_FUND_FINAL, " +
             "DIVIDENT_INTEREST_POST_TO, ORG_CUSTOMER_ID, TOD_APPLICABLE_DATE, INTEREST_CATEGORY) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  // 40 parameters instead of 41
         
         PreparedStatement ps = conn.prepareStatement(sql);
         
@@ -277,7 +278,17 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         }
         
         ps.setString(idx++, rsApp.getString("USER_ID"));
-        ps.setNull(idx++, Types.INTEGER); // AGENT_ID
+        // AGENT_ID - insert 0 if not present
+        String agentIdStr = rsApp.getString("AGENT_ID");
+        if (agentIdStr != null && !agentIdStr.trim().isEmpty()) {
+            try {
+                ps.setInt(idx++, Integer.parseInt(agentIdStr));
+            } catch (Exception e) {
+                ps.setInt(idx++, 0);
+            }
+        } else {
+            ps.setInt(idx++, 0);
+        }
         
         // ACCOUNTMINBALANCE_ID
         String minBalStr = rsApp.getString("MINBALANCE_ID");
@@ -316,7 +327,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ps.setInt(idx++, 0); // APPLICATION_SERIAL_NO
         ps.setInt(idx++, 0); // INT_REC_HO
         ps.setInt(idx++, 0); // INT_PAY_HO
-        ps.setInt(idx++, 0); // DEBR_TRF_HO
+        // REMOVED: ps.setInt(idx++, 0); // DEBR_TRF_HO - THIS COLUMN DOESN'T EXIST
         ps.setString(idx++, "N"); // FINAL_HO_TRF
         ps.setString(idx++, "N"); // IS_FUND_FINAL
         
@@ -361,10 +372,10 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ResultSet rsNom = psSelect.executeQuery();
         
         String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTNOMINEE (" +
-            "ACCOUNT_CODE, SERIAL_NUMBER, SALUTATION_CODE, NAME, RELATION_ID, " +
-            "ADDRESS1, ADDRESS2, ADDRESS3, CITY_CODE, STATE_CODE, COUNTRY_CODE, ZIP, " +
-            "DATETIMESTAMP, CREATED_DATE, MODIFIED_DATE) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        	    "ACCOUNT_CODE, SERIAL_NUMBER, SALUTATION_CODE, NAME, RELATION_ID, " +
+        	    "ADDRESS1, ADDRESS2, ADDRESS3, CITY_CODE, STATE_CODE, COUNTRY_CODE, ZIP, " +
+        	    "CREATED_DATE, MODIFIED_DATE) " +  // REMOVED DATETIMESTAMP
+        	    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  // 14 parameters instead of 15
         
         PreparedStatement psInsert = conn.prepareStatement(insertSQL);
         
@@ -405,7 +416,6 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             }
             
             Timestamp now = new Timestamp(System.currentTimeMillis());
-            psInsert.setTimestamp(idx++, now);
             psInsert.setTimestamp(idx++, now);
             psInsert.setNull(idx++, Types.TIMESTAMP);
             
@@ -702,15 +712,16 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ResultSet rsDep = psSelect.executeQuery();
         
         if (rsDep.next()) {
-            String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTDEPOSIT (" +
-                "ACCOUNT_CODE, FROMDATE, DEPOSITAMOUNT, UNITOFPERIOD, PERIODOFDEPOSIT, MATURITYDATE, " +
-                "MATURITYVALUE, INTERESTPAYMENTFREQUENCY, IS_INTEREST_PAID_IN_CASH, IS_RATE_DISCOUNTED, " +
-                "INTERESTRATE, MULTIPLYFACTOR, CREDITACCOUNT_CODE, LIENACCOUNT_CODE, LIEN_STATUS, " +
-                "PROCESSFOR_MATURITY, IS_AR_DAYBEGIN, MATURE_TRANSACTIONDATE, CATEGORY_CODE, " +
-                "NAME, AGENT_BRANCH_CODE, AGENT_ID, IS_TDS_APPLICABLE, BIRTH_DATE, TDS_PAID, " +
-                "TDS_PAYABLE, IS_AR_DAYBEGIN, CREATED_DATE, MODIFIED_DATE, OPENING_RD_PRODUCTS, " +
-                "OPENING_INT_POSTED) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        	String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTDEPOSIT (" +
+        		    "ACCOUNT_CODE, FROMDATE, DEPOSITAMOUNT, UNITOFPERIOD, PERIODOFDEPOSIT, MATURITYDATE, " +
+        		    "MATURITYVALUE, INTERESTPAYMENTFREQUENCY, IS_INTEREST_PAID_IN_CASH, IS_RATE_DISCOUNTED, " +
+        		    "INTERESTRATE, MULTIPLYFACTOR, CREDITACCOUNT_CODE, INTERESTPAID, INTERESTPAYBLE, " +  // Changed LIENACCOUNT_CODE to INTERESTPAID, LIEN_STATUS to INTERESTPAYBLE
+        		    "AMOUNTINMATUREDEPOSIT, PENDINGCASHINTEREST, LAST_INTEREST_PAID_DATE, PENAL_INTEREST_RECEIVED, " +  // Changed PROCESSFOR_MATURITY to AMOUNTINMATUREDEPOSIT, etc.
+        		    "CATEGORY_CODE, LIENACCOUNT_CODE, LIEN_STATUS, PROCESSFOR_MATURITY, " +
+        		    "MATURE_TRANSACTIONDATE, NAME, AGENT_BRANCH_CODE, AGENT_ID, IS_TDS_APPLICABLE, " +
+        		    "BIRTH_DATE, TDS_PAID, TDS_PAYABLE, IS_AR_DAYBEGIN, " +  // Keep only one IS_AR_DAYBEGIN
+        		    "CREATED_DATE, MODIFIED_DATE, OPENING_RD_PRODUCTS, OPENING_INT_POSTED) " +
+        		    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  // 36 parameters
             
             PreparedStatement psInsert = conn.prepareStatement(insertSQL);
             
@@ -811,23 +822,29 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ResultSet rsLoan = psSelect.executeQuery();
         
         if (rsLoan.next()) {
-            String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTLOAN (" +
-                "ACCOUNT_CODE, SANCTIONAUTHORITY_ID, MODEOFSANCTION_ID, SANCTIONDATE, " +
-                "SANCTIONAMOUNT, PERIODOFLOAN, INSTALLMENTAMOUNT, LIMITAMOUNT, DRAWINGPOWER, " +
-                "ACCOUNTREVIEWDATE, REPAYMENTFREQUENCY, REGISTERAMOUNT, DATEOFREGISTRATION, " +
-                "RESOLUTIONNUMBER, SOCIALSECTOR_ID, SOCIALSECTION_ID, SOCIALSUBSECTOR_ID, " +
-                "IS_CONSORTIUM_LOAN, MORATORIUMPEROIDMONTH, DOCUMENTSUBMISSIONDATE, PURPOSE_ID, " +
-                "INDUSTRY_ID, DIRECTOR_ID, MIS_ID, AREA_CODE, SUBAREA_CODE, CLASSIFICATION_ID, " +
-                "CURRENTINTERESTRATE, CURRENTPENALINTERESTRATE, CURRENTOVERDUEINTERESTRATE, " +
-                "CURRENTMORATORIUMINTERESTRATE, INTERESTCALCULATIONMETHOD, INSTALLMENTTYPE_ID, " +
-                "IS_DIRECTOR_RELATED, DATETIMESTAMP, CREATED_DATE, MODIFIED_DATE, MEMBER_TYPE, " +
-                "MEMBER_NO, PRINCIPLE_AMOUNT, IS_STANDARD, SANCTIONAMOUNT, AREA_CODE, SUBAREA_CODE, " +
-                "IS_LOSS_ASSET, PRINCIPLE_AMOUNT, SUIT, IS_STANDARD, HEALTH_CODE, SANCTIONAMOUNT, " +
-                "SUBARFA_CODE, IS_DIRECTOR_RELATED, IS_LOAN_SUBACCT, BANK_INSURANCE_START_DATE, " +
-                "BANK_INSURANCE_DATE, BANK_INSURANCE_PERCENTAGE, PRINCIPAL_OVERDUE, INTEREST_OVERDUE, " +
-                "OVERDUE_INTEREST_OVERDUE, INTEREST_RECEIVED, OVERDUE_INTEREST_RECEIVED, " +
-                "POSTED_INTEREST_OVERDUE, PENDING_INTEREST_RECEIVED, SUIT) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+        	String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTLOAN (" +
+        		    "ACCOUNT_CODE, SANCTIONAUTHORITY_ID, MODEOFSANCTION_ID, SANCTIONSECTOR_ID, " +
+        		    "SOCIALSUCTOR_ID, SOCIALSUBSECTOR_ID, PURPOSE_ID, INDUSTRY_ID, PAYMENTFREQUENCY, " +
+        		    "IS_CONSORTIUM_LOAN, MORATORIUMPEROID, LIMITAMOUNT, SANCTIONDATE, " +
+        		    "ACCOUNTREVIEWDATE, INSTALLMENTAMOUNT, DOCUMENTSUBMISSIONDATE, REGISTERAMOUNT, " +
+        		    "DATEOFREGISTRATION, RESOLUTIONNUMBER, PERIODOFLOAN, DIRECTOR_ID, MIS_ID, " +
+        		    "AREA_CODE, CLASSIFICATION_ID, LASTDATEOFPENALINTEREST, LASTDATEOFOVERDUE_INTEREST, " +
+        		    "LASTDATEOFREGULAINTEREST, CURRENTINTERESTRATE, CURRENTPENALINTERESTRATE, " +
+        		    "CURRENTOVERDUEINTERESTRATE, CURRENTMORATORIUMINTERESTRATE, INTERESTCALCULATIONMETHOD, " +
+        		    "INSTALLMENTTYPE_ID, PRINICPAL_OVERDUE, INTEREST_OVERDUE, OVERDUE_INTEREST_OVERDUE, " +
+        		    "INTEREST_RECEIVABLE, OVERDUE_INTEREST_RECEIVABLE, UNACCOUNTED_INTEREST, " +
+        		    "POSTREMATUREININTEREST_RECEIVED, NORMAL_INTEREST_RECEIVED, MORATORIUM_INTEREST_RECEIVED, " +
+        		    "OTHER_CHARGES_RECEIVED, PENAL_ARRERS, MORATORIUM_ARRERS, OVERDUE_ARRERS, " +
+        		    "NORMAL_ARRERS, POSTAGE, INSURANCE, NOTICE_FEES, COURT_CHARGES, RECOVERY_EXPENSES, " +
+        		    "OTHER_CHARGES, TOTALINTERESTCHARGED, IS_DIRECTOR_RELATED, DISBURSED_AMOUNT, " +
+        		    "PRINCIPAL_ADVANCE, PRINCIPAL_INSTALLMENT, SUBAREA_CODE, CREATED_DATE, " +
+        		    "IS_RO_ADJ_RAN, SUIT, HEALTH_CODE, INTEREST_APPLY, SUBARFA_CODE, CREATED_DATE, " +
+        		    "MODIFIED_DATE, IS_LOSS_ASSET, PRINCIPLE_AMOUNT, SANCTIONAMOUNT, AREA_CODE, " +
+        		    "SUBAREA_CODE, IS_STANDARD, BANK_INSURANCE_START_DATE, BANK_INSURANCE_DATE, " +
+        		    "BANK_INSURANCE_PERCENTAGE, NORMAL_INTEREST_RECEIVED, MORATORIUM_INTEREST_RECEIVED, " +
+        		    "OTHER_CHARGES_RECEIVED, INTEREST_RECEIVABLE_RECEIVED, PENDING_INTEREST_RECEIVED, " +
+        		    "SUIT) " +
+        		    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
                        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
                        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
                        "?, ?, ?, ?, ?)";
