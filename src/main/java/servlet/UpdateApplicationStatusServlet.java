@@ -887,213 +887,151 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             "SUBAREA_CODE, CREATED_DATE, MODIFIED_DATE, INT_ADJ_DATE, IS_LOSS_ASSET, PRINCIPLE_AMOUNT, " +
             "IS_BANK_INSURANCE_APPL, BANK_INSURANCE_START_DATE, BANK_INSURANCE_END_DATE, " +
             "BANK_INSURANCE_PERCENTAGE) " +
-            "VALUES (" +
-		    String.join(", ", java.util.Collections.nCopies(92, "?")) + ")";
+            "VALUES (" + String.join(", ", java.util.Collections.nCopies(92, "?")) + ")";
 
         PreparedStatement psInsert = conn.prepareStatement(insertSQL);
         int idx = 1;
 
-        // 1 ACCOUNT_CODE
+        // 1. ACCOUNT_CODE
         psInsert.setString(idx++, accountCode);
 
-        // 2 SANCTIONAUTHORITY_ID (same name in APPLICATIONLOAN)
-        psInsert.setInt(idx++, rsLoan.getInt("SANCTIONAUTHORITY_ID"));
+        // 2-4. Authority, Mode, Social Sector
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "SANCTIONAUTHORITY_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "MODEOFSANCTION_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "SOCIALSECTOR_ID", 0));
 
-        // 3 MODEOFSANCTION_ID
-        psInsert.setInt(idx++, rsLoan.getInt("MODEOFSANCTION_ID"));
+        // 5-8. Social Section, Subsector, Purpose, Industry
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "SOCIALSECTION_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "SOCIALSUBSECTOR_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "PURPOSE_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "INDUSTRY_ID", 0));
 
-        // 4 SOCIALSECTOR_ID
-        psInsert.setInt(idx++, rsLoan.getInt("SOCIALSECTOR_ID"));
+        // 9-10. Repayment Frequency, Consortium
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "REPAYMENTFREQUENCY", "M"));
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_CONSORTIUM_LOAN", "N"));
 
-        // 5 SOCIALSECTION_ID  (use APPLICATIONLOAN column name here)
-        psInsert.setInt(idx++, rsLoan.getInt("SOCIALSECTION_ID"));
+        // 11-12. Limit Amount, Sanction Date
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "LIMITAMOUNT", 0));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "SANCTIONDATE"));
 
-        // 6 SOCIALSUBSECTOR_ID
-        psInsert.setInt(idx++, rsLoan.getInt("SOCIALSUBSECTOR_ID"));
+        // 13-15. Review Date, Installment Amount, Moratorium
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "ACCOUNTREVIEWDATE"));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INSTALLMENTAMOUNT", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "MORATORIUMPEROIDMONTH", 0));
 
-        // 7 PURPOSE_ID
-        psInsert.setInt(idx++, rsLoan.getInt("PURPOSE_ID"));
+        // 16-20. Document Submission, Registration, Resolution, Period, Director
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "DOCUMENTSUBMISSIONDATE"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "DATEOFREGISTRATION"));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "REGISTERAMOUNT", 0));
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "RESOLUTIONNUMBER", null));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "PERIODOFLOAN", 0));
 
-        // 8 INDUSTRY_ID
-        psInsert.setInt(idx++, rsLoan.getInt("INDUSTRY_ID"));
+        // 21-23. Director, MIS, Classification
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "DIRECTOR_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "MIS_ID", 0));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "CLASSIFICATION_ID", 0));
 
-        // 9 REPAYMENTFREQUENCY
-        psInsert.setString(idx++, rsLoan.getString("REPAYMENTFREQUENCY"));
+        // 24-27. Last Dates of Interest Types
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFINTEREST"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFPENALINTEREST"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFOVERDUEINTEREST"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFMORATORIUMINTEREST"));
 
-        // 10 IS_CONSORTIUM_LOAN
-        psInsert.setString(idx++, rsLoan.getString("IS_CONSORTIUM_LOAN"));
+        // 28-31. Current Interest Rates
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "CURRENTINTERESTRATE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "CURRENTPENALINTERESTRATE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "CURRENTOVERDUEINTERESTRATE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "CURRENTMORATORIUMINTERESTRATE", 0));
 
-        // 11 LIMITAMOUNT
-        psInsert.setDouble(idx++, rsLoan.getDouble("LIMITAMOUNT"));
+        // 32-33. Calculation Method, Installment Type
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "INTERESTCALCULATIONMETHOD", "D"));
+        psInsert.setInt(idx++, getIntOrDefault(rsLoan, "INSTALLMENTTYPE_ID", 0));
 
-        // 12 SANCTIONDATE
-        psInsert.setDate(idx++, rsLoan.getDate("SANCTIONDATE"));
+        // 34-43. Overdue, Receivables, and Interest Received
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PRINCIPAL_OVERDUE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INTEREST_OVERDUE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OVERDUE_INTEREST_RESERVE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INTEREST_RECEIVABLE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OVERDUE_INTEREST_RECEIVABLE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "UNACCOUNTED_INTEREST", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "POSTEDBUTUNRECOVEREDINTEREST", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "NORMAL_INTEREST_RECEIVED", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "MORATORIUM_INTEREST_RECEIVED", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OTHER_CHARGES_RECEIVED", 0));
 
-        // 13 ACCOUNTREVIEWDATE
-        psInsert.setDate(idx++, rsLoan.getDate("ACCOUNTREVIEWDATE"));
+        // 44-54. Arrears and Charges
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PENAL_ARRIERS", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "MORATORIUM_ARRIERS", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OVERDUE_ARRIERS", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "NORMAL_ARRIERS", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "POSTAGE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INSURANCE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "NOTICE_FEES", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "COURT_CHARGES", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "RECOVERY_EXPENSES", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OTHER_CHARGES", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "TOTALINTERESTCHARGED", 0));
 
-        // 14 INSTALLMENTAMOUNT
-        psInsert.setDouble(idx++, rsLoan.getDouble("INSTALLMENTAMOUNT"));
+        // 55. Director Related
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_DIRECTOR_RELATED", "N"));
 
-        // 15 MORATORIUMPEROIDMONTH
-        psInsert.setInt(idx++, rsLoan.getInt("MORATORIUMPEROIDMONTH"));
+        // 56-60. Disbursed Amount, Advances, Installments
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "DISBURSED_AMOUNT", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PRINCIPAL_ADVANCE", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PRINCIPAL_INSTALLMENT", 0));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INTEREST_INSTALLMENT", 0));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "NEXTINSTALLMENTDATE"));
 
-        // 16 DOCUMENTSUBMISSIONDATE
-        psInsert.setDate(idx++, rsLoan.getDate("DOCUMENTSUBMISSIONDATE"));
+        // 61-73. Receivables Received (all set to 0 for new loan)
+        psInsert.setDouble(idx++, 0); // INSURANCE_RECEIVABLE_RECEIVED
+        psInsert.setDouble(idx++, 0); // NOTICE_FEES_RECEIVED
+        psInsert.setDouble(idx++, 0); // POSTAGE_RECEIVED
+        psInsert.setDouble(idx++, 0); // COURT_CHARGES_RECEIVED
+        psInsert.setDouble(idx++, 0); // RECOVERY_EXPENSES_RECEIVED
+        psInsert.setDouble(idx++, 0); // PENDING_INTEREST_RECEIVED
+        psInsert.setDouble(idx++, 0); // OVERDUE_INTEREST_RECEIVED
+        psInsert.setDouble(idx++, 0); // NORMAL_INTEREST_RECEIVED2
+        psInsert.setDouble(idx++, 0); // MORATORIUM_INTEREST_RECEIVED2
+        psInsert.setDouble(idx++, 0); // OTHER_CHARGES_RECEIVED2
+        psInsert.setDouble(idx++, 0); // INTEREST_RECEIVABLE_RECEIVED
+        psInsert.setDouble(idx++, 0); // PENDING_INTEREST_OIR_RECEIVED
+        psInsert.setDouble(idx++, 0); // UNACCOUNTED_INTEREST_RECEIVED
 
-        // 17 DATEOFREGISTRATION
-        psInsert.setDate(idx++, rsLoan.getDate("DATEOFREGISTRATION"));
+        // 74-79. Advertisement, Surcharge, Interest Apply, Suit, Health, Standard
+        psInsert.setDouble(idx++, 0); // ADVERTISEMENT_RECEIVED
+        psInsert.setDouble(idx++, 0); // SURCHARGE_RECEIVED
+        psInsert.setDouble(idx++, 0); // SURCHARGE
+        psInsert.setDouble(idx++, 0); // ADVERTISEMENT
+        psInsert.setString(idx++, "Y"); // INTEREST_APPLY
+        psInsert.setString(idx++, "N"); // SUIT
 
-        // 18 REGISTERAMOUNT
-        psInsert.setDouble(idx++, rsLoan.getDouble("REGISTERAMOUNT"));
+        // 80-82. Health Code, Standard, Sanction Amount
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "HEALTH_CODE", null));
+        psInsert.setString(idx++, "Y"); // IS_STANDARD
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "SANCTIONAMOUNT", 0));
 
-        // 19 RESOLUTIONNUMBER
-        psInsert.setString(idx++, rsLoan.getString("RESOLUTIONNUMBER"));
+        // 83-84. Area Code, Subarea Code
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "AREA_CODE", null));
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "SUBAREA_CODE", null));
 
-        // 20 PERIODOFLOAN
-        psInsert.setInt(idx++, rsLoan.getInt("PERIODOFLOAN"));
+        // 85-87. Timestamps
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        psInsert.setTimestamp(idx++, now); // CREATED_DATE
+        psInsert.setNull(idx++, Types.TIMESTAMP); // MODIFIED_DATE
+        psInsert.setNull(idx++, Types.DATE); // INT_ADJ_DATE
 
-        // 21 DIRECTOR_ID
-        psInsert.setInt(idx++, rsLoan.getInt("DIRECTOR_ID"));
+        // 88-89. Loss Asset, Principle Amount
+        psInsert.setString(idx++, "N"); // IS_LOSS_ASSET
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PRINCIPLE_AMOUNT", 0));
 
-        // 22 MIS_ID
-        psInsert.setInt(idx++, rsLoan.getInt("MIS_ID"));
+        // 90-92. Bank Insurance
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_BANK_INSURANCE_APPL", "N"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "BANK_INSURANCE_START_DATE"));
+        psInsert.setDate(idx++, getDateOrNull(rsLoan, "BANK_INSURANCE_END_DATE"));
+        psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "BANK_INSURANCE_PERCENTAGE", 0));
 
-        // 23 CLASSIFICATION_ID
-        psInsert.setInt(idx++, rsLoan.getInt("CLASSIFICATION_ID"));
-
-        // 24 LASTDATEOFINTEREST
-        psInsert.setDate(idx++, rsLoan.getDate("LASTDATEOFINTEREST"));
-
-        // 25 LASTDATEOFPENALINTEREST
-        psInsert.setDate(idx++, rsLoan.getDate("LASTDATEOFPENALINTEREST"));
-
-        // 26 LASTDATEOFOVERDUEINTEREST
-        psInsert.setDate(idx++, rsLoan.getDate("LASTDATEOFOVERDUEINTEREST"));
-
-        // 27 LASTDATEOFMORATORIUMINTEREST
-        psInsert.setDate(idx++, rsLoan.getDate("LASTDATEOFMORATORIUMINTEREST"));
-
-        // 28 CURRENTINTERESTRATE
-        psInsert.setDouble(idx++, rsLoan.getDouble("CURRENTINTERESTRATE"));
-
-        // 29 CURRENTPENALINTERESTRATE
-        psInsert.setDouble(idx++, rsLoan.getDouble("CURRENTPENALINTERESTRATE"));
-
-        // 30 CURRENTOVERDUEINTERESTRATE
-        psInsert.setDouble(idx++, rsLoan.getDouble("CURRENTOVERDUEINTERESTRATE"));
-
-        // 31 CURRENTMORATORIUMINTERESTRATE
-        psInsert.setDouble(idx++, rsLoan.getDouble("CURRENTMORATORIUMINTERESTRATE"));
-
-        // 32 INTERESTCALCULATIONMETHOD
-        psInsert.setString(idx++, rsLoan.getString("INTERESTCALCULATIONMETHOD"));
-
-        // 33 INSTALLMENTTYPE_ID
-        psInsert.setInt(idx++, rsLoan.getInt("INSTALLMENTTYPE_ID"));
-
-        // 34 PRINCIPAL_OVERDUE
-        psInsert.setDouble(idx++, rsLoan.getDouble("PRINCIPAL_OVERDUE"));
-
-        // 35 INTEREST_OVERDUE
-        psInsert.setDouble(idx++, rsLoan.getDouble("INTEREST_OVERDUE"));
-
-        // 36 OVERDUE_INTEREST_RESERVE
-        psInsert.setDouble(idx++, rsLoan.getDouble("OVERDUE_INTEREST_RESERVE"));
-
-        // 37 INTEREST_RECEIVABLE
-        psInsert.setDouble(idx++, rsLoan.getDouble("INTEREST_RECEIVABLE"));
-
-        // 38 OVERDUE_INTEREST_RECEIVABLE
-        psInsert.setDouble(idx++, rsLoan.getDouble("OVERDUE_INTEREST_RECEIVABLE"));
-
-        // 39 UNACCOUNTED_INTEREST
-        psInsert.setDouble(idx++, rsLoan.getDouble("UNACCOUNTED_INTEREST"));
-
-        // 40 POSTEDBUTUNRECOVEREDINTEREST
-        psInsert.setDouble(idx++, rsLoan.getDouble("POSTEDBUTUNRECOVEREDINTEREST"));
-
-        // 41 NORMAL_INTEREST_RECEIVED
-        psInsert.setDouble(idx++, rsLoan.getDouble("NORMAL_INTEREST_RECEIVED"));
-
-        // 42 MORATORIUM_INTEREST_RECEIVED
-        psInsert.setDouble(idx++, rsLoan.getDouble("MORATORIUM_INTEREST_RECEIVED"));
-
-        // 43 OTHER_CHARGES_RECEIVED
-        psInsert.setDouble(idx++, rsLoan.getDouble("OTHER_CHARGES_RECEIVED"));
-
-        // 44 PENAL_ARRIERS
-        psInsert.setDouble(idx++, rsLoan.getDouble("PENAL_ARRIERS"));
-
-        // 45 MORATORIUM_ARRIERS
-        psInsert.setDouble(idx++, rsLoan.getDouble("MORATORIUM_ARRIERS"));
-
-        // 46 OVERDUE_ARRIERS
-        psInsert.setDouble(idx++, rsLoan.getDouble("OVERDUE_ARRIERS"));
-
-        // 47 NORMAL_ARRIERS
-        psInsert.setDouble(idx++, rsLoan.getDouble("NORMAL_ARRIERS"));
-
-        // 48 POSTAGE
-        psInsert.setDouble(idx++, rsLoan.getDouble("POSTAGE"));
-
-        // 49 INSURANCE
-        psInsert.setDouble(idx++, rsLoan.getDouble("INSURANCE"));
-
-        // 50 NOTICE_FEES
-        psInsert.setDouble(idx++, rsLoan.getDouble("NOTICE_FEES"));
-
-        // 51 COURT_CHARGES
-        psInsert.setDouble(idx++, rsLoan.getDouble("COURT_CHARGES"));
-
-        // 52 RECOVERY_EXPENSES
-        psInsert.setDouble(idx++, rsLoan.getDouble("RECOVERY_EXPENSES"));
-
-        // 53 OTHER_CHARGES
-        psInsert.setDouble(idx++, rsLoan.getDouble("OTHER_CHARGES"));
-
-        // 54 TOTALINTERESTCHARGED
-        psInsert.setDouble(idx++, rsLoan.getDouble("TOTALINTERESTCHARGED"));
-
-        // 55 IS_DIRECTOR_RELATED
-        psInsert.setString(idx++, rsLoan.getString("IS_DIRECTOR_RELATED"));
-
-        // 56 DISBURSED_AMOUNT
-        psInsert.setDouble(idx++, rsLoan.getDouble("DISBURSED_AMOUNT"));
-
-        // 57 PRINCIPAL_ADVANCE
-        psInsert.setDouble(idx++, rsLoan.getDouble("PRINCIPAL_ADVANCE"));
-
-        // 58 PRINCIPAL_INSTALLMENT
-        psInsert.setDouble(idx++, rsLoan.getDouble("PRINCIPAL_INSTALLMENT"));
-
-        // 59 INTEREST_INSTALLMENT
-        psInsert.setDouble(idx++, rsLoan.getDouble("INTEREST_INSTALLMENT"));
-
-        // 60 NEXTINSTALLMENTDATE
-        psInsert.setDate(idx++, rsLoan.getDate("NEXTINSTALLMENTDATE"));
-
-        // 61–92: continue the same pattern for
-        // INSURANCE_RECEIVABLE_RECEIVED, NOTICE_FEES_RECEIVED, POSTAGE_RECEIVED,
-        // COURT_CHARGES_RECEIVED, RECOVERY_EXPENSES_RECEIVED, PENDING_INTEREST_RECEIVED,
-        // OVERDUE_INTEREST_RECEIVED, NORMAL_INTEREST_RECEIVED2, MORATORIUM_INTEREST_RECEIVED2,
-        // OTHER_CHARGES_RECEIVED2, INTEREST_RECEIVABLE_RECEIVED, PENDING_INTEREST_OIR_RECEIVED,
-        // UNACCOUNTED_INTEREST_RECEIVED, ADVERTISEMENT_RECEIVED, SURCHARGE_RECEIVED, SURCHARGE,
-        // ADVERTISEMENT, INTEREST_APPLY, SUIT, HEALTH_CODE, IS_STANDARD, SANCTIONAMOUNT,
-        // AREA_CODE, SUBAREA_CODE, CREATED_DATE, MODIFIED_DATE, INT_ADJ_DATE, IS_LOSS_ASSET,
-        // PRINCIPLE_AMOUNT, IS_BANK_INSURANCE_APPL, BANK_INSURANCE_START_DATE,
-        // BANK_INSURANCE_END_DATE, BANK_INSURANCE_PERCENTAGE
-
-        // example for the last few:
-        psInsert.setDouble(idx++, rsLoan.getDouble("INSURANCE_RECEIVABLE_RECEIVED"));
-        psInsert.setDouble(idx++, rsLoan.getDouble("NOTICE_FEES_RECEIVED"));
-        // ... fill all remaining columns in order ...
-        // make sure final idx-1 == 92
-
-        System.out.println("Loan params bound: " + (idx - 1));
         psInsert.executeUpdate();
         psInsert.close();
-
         rsLoan.close();
         psSelect.close();
 
@@ -1119,7 +1057,64 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             return;
         }
         
-        System.out.println("✅ Inserted guarantors into ACCOUNT.ACCOUNTGUARANTOR");
+        String selectSQL = "SELECT * FROM APPLICATION.APPLICATIONGUARANTOR WHERE APPLICATION_NUMBER = ? ORDER BY SERIAL_NUMBER";
+        PreparedStatement psSelect = conn.prepareStatement(selectSQL);
+        psSelect.setString(1, appNo);
+        ResultSet rsGuar = psSelect.executeQuery();
+        
+        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTGUARANTOR (" +
+            "ACCOUNT_CODE, SERIAL_NUMBER, NAME, DATEOFBIRTH, ADDRESS1, ADDRESS2, ADDRESS3, " +
+            "CITY_CODE, STATE_CODE, COUNTRY_CODE, ZIP, PHONENUMBER, MOBILENUMBER, " +
+            "CUSTOMER_ID, CREATED_DATE, MODIFIED_DATE) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement psInsert = conn.prepareStatement(insertSQL);
+        int insertedCount = 0;
+        
+        while (rsGuar.next()) {
+            int idx = 1;
+            psInsert.setString(idx++, accountCode);
+            psInsert.setInt(idx++, rsGuar.getInt("SERIAL_NUMBER"));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "NAME", null));
+            psInsert.setDate(idx++, getDateOrNull(rsGuar, "DATEOFBIRTH"));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "ADDRESS1", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "ADDRESS2", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "ADDRESS3", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "CITY_CODE", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "STATE_CODE", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "COUNTRY_CODE", null));
+            
+            String zipStr = getStringOrDefault(rsGuar, "ZIP", null);
+            if (zipStr != null && !zipStr.trim().isEmpty() && !zipStr.equals("0")) {
+                try {
+                    psInsert.setInt(idx++, Integer.parseInt(zipStr));
+                } catch (Exception e) {
+                    psInsert.setInt(idx++, 0);
+                }
+            } else {
+                psInsert.setInt(idx++, 0);
+            }
+            
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "PHONENUMBER", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "MOBILENUMBER", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGuar, "CUSTOMER_ID", null));
+            
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            psInsert.setTimestamp(idx++, now);
+            psInsert.setNull(idx++, Types.TIMESTAMP);
+            
+            psInsert.addBatch();
+            insertedCount++;
+        }
+        
+        if (insertedCount > 0) {
+            int[] results = psInsert.executeBatch();
+            System.out.println("✅ Inserted " + results.length + " guarantors into ACCOUNT.ACCOUNTGUARANTOR");
+        }
+        
+        rsGuar.close();
+        psSelect.close();
+        psInsert.close();
     }
 
     // ========== INSERT SECURITY DEPOSIT ==========
@@ -1141,7 +1136,48 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             return;
         }
         
-        System.out.println("✅ Inserted security deposits");
+        String selectSQL = "SELECT * FROM APPLICATION.APPLICATIONSECURITYDEPOSIT WHERE APPLICATION_NUMBER = ? ORDER BY SERIAL_NUMBER";
+        PreparedStatement psSelect = conn.prepareStatement(selectSQL);
+        psSelect.setString(1, appNo);
+        ResultSet rsSec = psSelect.executeQuery();
+        
+        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYDEPOSIT (" +
+            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSIONDATE, " +
+            "DEPOSITACCOUNT_CODE, MARGINPERCENTAGE, RELEASEDATE, SECURITYVALUE, " +
+            "PARTICULAR, CREATED_DATE, MODIFIED_DATE) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement psInsert = conn.prepareStatement(insertSQL);
+        int insertedCount = 0;
+        
+        while (rsSec.next()) {
+            int idx = 1;
+            psInsert.setString(idx++, accountCode);
+            psInsert.setInt(idx++, rsSec.getInt("SERIAL_NUMBER"));
+            psInsert.setString(idx++, getStringOrDefault(rsSec, "SECURITYTYPE_CODE", null));
+            psInsert.setDate(idx++, getDateOrNull(rsSec, "SUBMISSIONDATE"));
+            psInsert.setString(idx++, getStringOrDefault(rsSec, "DEPOSITACCOUNT_CODE", null));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsSec, "MARGINPERCENTAGE", 0));
+            psInsert.setDate(idx++, getDateOrNull(rsSec, "RELEASEDATE"));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsSec, "SECURITYVALUE", 0));
+            psInsert.setString(idx++, getStringOrDefault(rsSec, "PARTICULAR", null));
+            
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            psInsert.setTimestamp(idx++, now);
+            psInsert.setNull(idx++, Types.TIMESTAMP);
+            
+            psInsert.addBatch();
+            insertedCount++;
+        }
+        
+        if (insertedCount > 0) {
+            int[] results = psInsert.executeBatch();
+            System.out.println("✅ Inserted " + results.length + " security deposits into ACCOUNT.ACCOUNTSECURITYDEPOSIT");
+        }
+        
+        rsSec.close();
+        psSelect.close();
+        psInsert.close();
     }
 
     // ========== INSERT GOLD/SILVER SECURITY ==========
@@ -1163,7 +1199,59 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             return;
         }
         
-        System.out.println("✅ Inserted gold/silver security");
+        String selectSQL = "SELECT * FROM APPLICATION.APPLICATIONSECURITYGOLDSILVER WHERE APPLICATION_NUMBER = ? ORDER BY SERIAL_NUMBER";
+        PreparedStatement psSelect = conn.prepareStatement(selectSQL);
+        psSelect.setString(1, appNo);
+        ResultSet rsGold = psSelect.executeQuery();
+        
+        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYGOLDSILVER (" +
+            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, WEIGHTTOTALGMS, RATEPERIOGMS, " +
+            "TOTALVALUE, MARGINPERCENTAGE, RELEASEDATE, GOLDBANC, SECURITYVALUE, " +
+            "PARTICULAR, NOTE, SUBMISSIONDATE, CREATED_DATE, MODIFIED_DATE, " +
+            "GOLDRECIEPTNO, GOLDDRAWERNO, GROSTOTALGMS, VALUATION_RATE, CURRENT_RATE) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement psInsert = conn.prepareStatement(insertSQL);
+        int insertedCount = 0;
+        
+        while (rsGold.next()) {
+            int idx = 1;
+            psInsert.setString(idx++, accountCode);
+            psInsert.setInt(idx++, rsGold.getInt("SERIAL_NUMBER"));
+            psInsert.setString(idx++, getStringOrDefault(rsGold, "SECURITYTYPE_CODE", null));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "WEIGHTTOTALGMS", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "RATEPERIOGMS", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "TOTALVALUE", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "MARGINPERCENTAGE", 0));
+            psInsert.setDate(idx++, getDateOrNull(rsGold, "RELEASEDATE"));
+            psInsert.setString(idx++, getStringOrDefault(rsGold, "GOLDBANC", null));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "SECURITYVALUE", 0));
+            psInsert.setString(idx++, getStringOrDefault(rsGold, "PARTICULAR", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGold, "NOTE", null));
+            psInsert.setDate(idx++, getDateOrNull(rsGold, "SUBMISSIONDATE"));
+            
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            psInsert.setTimestamp(idx++, now);
+            psInsert.setNull(idx++, Types.TIMESTAMP);
+            
+            psInsert.setInt(idx++, getIntOrDefault(rsGold, "GOLDRECIEPTNO", 0));
+            psInsert.setInt(idx++, getIntOrDefault(rsGold, "GOLDDRAWERNO", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "GROSTOTALGMS", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "VALUATION_RATE", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "CURRENT_RATE", 0));
+            
+            psInsert.addBatch();
+            insertedCount++;
+        }
+        
+        if (insertedCount > 0) {
+            int[] results = psInsert.executeBatch();
+            System.out.println("✅ Inserted " + results.length + " gold/silver securities into ACCOUNT.ACCOUNTSECURITYGOLDSILVER");
+        }
+        
+        rsGold.close();
+        psSelect.close();
+        psInsert.close();
     }
 
     // ========== INSERT LAND & BUILDING SECURITY ==========
@@ -1185,9 +1273,101 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             return;
         }
         
-        System.out.println("✅ Inserted land & building security");
+        String selectSQL = "SELECT * FROM APPLICATION.APPLICATIONSECURITYLANDNBULDIN WHERE APPLICATION_NUMBER = ? ORDER BY SERIAL_NUMBER";
+        PreparedStatement psSelect = conn.prepareStatement(selectSQL);
+        psSelect.setString(1, appNo);
+        ResultSet rsLand = psSelect.executeQuery();
+        
+        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYLANDNBUILDING (" +
+            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSION_DATE, " +
+            "VALUEDAMOUNT, LOCATION, AREA, UNITOFAREA, REMARK, " +
+            "MARGINPERCENTAGE, SECURITYVALUE, PARTICULAR, CREATED_DATE, MODIFIED_DATE, " +
+            "EAST, WEST, NORTH, SOUTH, ENGINEER_NAME) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement psInsert = conn.prepareStatement(insertSQL);
+        int insertedCount = 0;
+        
+        while (rsLand.next()) {
+            int idx = 1;
+            psInsert.setString(idx++, accountCode);
+            psInsert.setInt(idx++, rsLand.getInt("SERIAL_NUMBER"));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "SECURITYTYPE_CODE", null));
+            psInsert.setDate(idx++, getDateOrNull(rsLand, "SUBMISSION_DATE"));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "VALUEDAMOUNT", 0));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "LOCATION", null));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "AREA", 0));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "UNITOFAREA", null));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "REMARK", null));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "MARGINPERCENTAGE", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "SECURITYVALUE", 0));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "PARTICULAR", null));
+            
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            psInsert.setTimestamp(idx++, now);
+            psInsert.setNull(idx++, Types.TIMESTAMP);
+            
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "EAST", null));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "WEST", null));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "NORTH", null));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "SOUTH", null));
+            psInsert.setString(idx++, getStringOrDefault(rsLand, "ENGINEER_NAME", null));
+            
+            psInsert.addBatch();
+            insertedCount++;
+        }
+        
+        if (insertedCount > 0) {
+            int[] results = psInsert.executeBatch();
+            System.out.println("✅ Inserted " + results.length + " land & building securities into ACCOUNT.ACCOUNTSECURITYLANDNBUILDING");
+        }
+        
+        rsLand.close();
+        psSelect.close();
+        psInsert.close();
     }
 
+    // ========== HELPER METHODS FOR NULL-SAFE COLUMN ACCESS ==========
+    private String getStringOrDefault(ResultSet rs, String columnName, String defaultValue) {
+        try {
+            String value = rs.getString(columnName);
+            return (value != null && !value.trim().isEmpty()) ? value : defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private int getIntOrDefault(ResultSet rs, String columnName, int defaultValue) {
+        try {
+            String value = rs.getString(columnName);
+            if (value != null && !value.trim().isEmpty()) {
+                return Integer.parseInt(value);
+            }
+            return defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private double getDoubleOrDefault(ResultSet rs, String columnName, double defaultValue) {
+        try {
+            String value = rs.getString(columnName);
+            if (value != null && !value.trim().isEmpty()) {
+                return Double.parseDouble(value);
+            }
+            return defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private Date getDateOrNull(ResultSet rs, String columnName) {
+        try {
+            return rs.getDate(columnName);
+        } catch (Exception e) {
+            return null;
+        }
+    }
     // ========== UPDATE BRANCH2PRODUCT LASTACCOUNT_NUMBER ==========
     private void updateBranchProductLastAccount(Connection conn, String branchCode, String productCode, long lastAccountNumber) throws Exception {
         String updateSQL = "UPDATE BRANCH.BRANCH2PRODUCT SET LASTACCOUNT_NUMBER = ? WHERE BRANCH_CODE = ? AND PRODUCT_CODE = ?";
