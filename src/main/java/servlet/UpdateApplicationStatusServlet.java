@@ -862,23 +862,23 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             return;
         }
 
-        // EXACT 92 columns from the table screenshot
+        // EXACT 92 columns as per your list
         String insertSQL =
             "INSERT INTO ACCOUNT.ACCOUNTLOAN (" +
             "ACCOUNT_CODE,SANCTIONAUTHORITY_ID,MODEOFSANCTION_ID,SOCIALSECTOR_ID,SOCIALSECTION_ID," +
-            "SOCIALSUBSECTOR_ID,PURPOSE_ID,INDUSTRY_ID,REPAYMENTFREQUENCY,IS_CONSORTIUM_LOAN," +
+            "SOCIALSUBSECTOR_ID,PURPOSE_ID,INDUSTRY_ID,REPAYMENTFREQUENCY,IS_COMSORTIUML_LOAN," +
             "DRAWINGPOWER,LIMITAMOUNT,SANCTIONDATE,ACCOUNTREVIEWDATE,INSTALLMENTAMOUNT,MORATORIUMPEROIDMONTH," +
             "DOCUMENTSUBMISSIONDATE,DATEOFREGISTRATION,REGISTERAMOUNT,RESOLUTIONNUMBER,PERIODOFLOAN,DIRECTOR_ID,MIS_ID,CLASSIFICATION_ID," +
             "LASTDATEOFINTEREST,LASTDATEOFPENALINTEREST,LASTDATEOFOVERDUEINTEREST,LASTDATEOFMORATORIUMINTEREST," +
             "CURRENTINTERESTRATE,CURRENTPENALINTERESTRATE,CURRENTOVERDUEINTERESTRATE,CURRENTMORATORIUMINTERESTRATE,INTERESTCALCULATIONMETHOD,INSTALLMENTTYPE_ID," +
             "PRINCIPAL_OVERDUE,INTEREST_OVERDUE,OVERDUE_INTEREST_RESERVE,INTEREST_RECEIVABLE,OVERDUE_INTEREST_RECEIVABLE,UNACCOUNTED_INTEREST,POSTEDBUTUNRECOVEREDINTEREST," +
             "NORMAL_ARRIERS,PENAL_ARRIERS,MORATORIUM_ARRIERS,OVERDUE_ARRIERS,POSTAGE,INSURANCE,NOTICE_FEES,COURT_CHARGES,RECOVERY_EXPENSES,OTHER_CHARGES,TOTALINTERESTCHARGED," +
-            "IS_DIRECTOR_RELATED,DISBURSED_AMOUNT,PRINCIPAL_ADVANCE,PRINCIPAL_INSTALLMENT,INTEREST_INSTALLMENT,NEXTINSTALLMENTDATE," +
-            "INSURANCE_RECEIVABLE_RECEIVED,NOTICE_FEES_RECEIVED,POSTAGE_RECEIVED,COURT_CHARGES_RECEIVED,RECOVERY_EXPENSES_RECEIVED," +
+            "IS_DIRECTOR_RELATED,DISBURESED_AMOUNT,PRINCIPAL_ADAVANCE,PRINCIPAL_INSTALLMENT,INTEREST_INSTALLMENT,NEXTINSTALLMENTDATE," +
+            "INSURANCE_RECEIVABLE_RECEIVED,NOTICE_FEES_RECEIVED,POSTAGE_RECEIVED,COURTE_CHARGES_RECEIVED,RECOVERY_EXPENCES_RECEIVED," +
             "PENDING_INTEREST_RECEIVED,OVERDUE_INTEREST_RECEIVED,NORMAL_INTEREST_RECEIVED,MORATORIUM_INTEREST_RECEIVED,OTHER_CHARGES_RECEIVED," +
-            "INTEREST_RECEIVABLE_RECEIVED,PENDING_INTEREST_OIR_RECEIVED,UNACCOUNTED_INTEREST_RECEIVED,ADVERTISEMENT_RECEIVED,SURCHARGE_RECEIVED," +
+            "INTEREST_RECEIVABLE_RECEIVED,PENDING_INTEREST_OIR_RECEIVED,UNACCOUNTED_INTEREST_RECEIVED,UNRECOVERED_INTEREST_RECEIVED,ADVERTISEMENT_RECEIVED,SURCHARGE_RECEIVED," +
             "SURCHARGE,ADVERTISEMENT,INTEREST_APPLY,SUIT,HEALTH_CODE,IS_STANDARD,SANCTIONAMOUNT,AREA_CODE,SUBAREA_CODE," +
-            "CREATED_DATE,MODIFIED_DATE,INT_ADJ_DATE,IS_LOSS_ASSET,PRINCIPLE_AMOUNT," +
+            "CRTEATED_DATE,MODIFIED_DATE,INT_ADJ_DATE,IS_LOSS_ASSET,PRINCIPLE_AMOUNT," +
             "IS_BANK_INSURANCE_APPL,BANK_INSURANCE_START_DATE,BANK_INSURANCE_END_DATE,BANK_INSURANCE_PERCENTAGE" +
             ") VALUES (" + String.join(", ", java.util.Collections.nCopies(92, "?")) + ")";
 
@@ -899,7 +899,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
 
         // 9-10: Flags
         psInsert.setString(idx++, getStringOrDefault(rsLoan, "REPAYMENTFREQUENCY", "M"));
-        psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_CONSORTIUM_LOAN", "N"));
+        psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_CONSORTIUM_LOAN", "N")); // Note: column name has typo IS_COMSORTIUML_LOAN
 
         // 11-16: Amounts and dates
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "DRAWINGPOWER", 0));
@@ -919,7 +919,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setInt(idx++, getIntOrDefault(rsLoan, "MIS_ID", 0));
         psInsert.setInt(idx++, getIntOrDefault(rsLoan, "CLASSIFICATION_ID", 0));
 
-        // 25-28: Last dates
+        // 25-28: Last dates (in the order from your list)
         psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFINTEREST"));
         psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFPENALINTEREST"));
         psInsert.setDate(idx++, getDateOrNull(rsLoan, "LASTDATEOFOVERDUEINTEREST"));
@@ -957,7 +957,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "OTHER_CHARGES", 0));
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "TOTALINTERESTCHARGED", 0));
 
-        // 53-58: Disbursement
+        // 53-58: Disbursement (note: typos in column names DISBURESED_AMOUNT, PRINCIPAL_ADAVANCE)
         psInsert.setString(idx++, getStringOrDefault(rsLoan, "IS_DIRECTOR_RELATED", "N"));
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "DISBURSED_AMOUNT", 0));
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "PRINCIPAL_ADVANCE", 0));
@@ -965,12 +965,12 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "INTEREST_INSTALLMENT", 0));
         psInsert.setDate(idx++, getDateOrNull(rsLoan, "NEXTINSTALLMENTDATE"));
 
-        // 59-73: All RECEIVED columns (15 columns) - all set to 0
+        // 59-74: All RECEIVED columns (16 columns) - all set to 0
         psInsert.setDouble(idx++, 0); // INSURANCE_RECEIVABLE_RECEIVED
         psInsert.setDouble(idx++, 0); // NOTICE_FEES_RECEIVED
         psInsert.setDouble(idx++, 0); // POSTAGE_RECEIVED
-        psInsert.setDouble(idx++, 0); // COURT_CHARGES_RECEIVED
-        psInsert.setDouble(idx++, 0); // RECOVERY_EXPENSES_RECEIVED
+        psInsert.setDouble(idx++, 0); // COURTE_CHARGES_RECEIVED (note: typo in column name)
+        psInsert.setDouble(idx++, 0); // RECOVERY_EXPENCES_RECEIVED (note: typo in column name)
         psInsert.setDouble(idx++, 0); // PENDING_INTEREST_RECEIVED
         psInsert.setDouble(idx++, 0); // OVERDUE_INTEREST_RECEIVED
         psInsert.setDouble(idx++, 0); // NORMAL_INTEREST_RECEIVED
@@ -979,10 +979,11 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setDouble(idx++, 0); // INTEREST_RECEIVABLE_RECEIVED
         psInsert.setDouble(idx++, 0); // PENDING_INTEREST_OIR_RECEIVED
         psInsert.setDouble(idx++, 0); // UNACCOUNTED_INTEREST_RECEIVED
+        psInsert.setDouble(idx++, 0); // UNRECOVERED_INTEREST_RECEIVED
         psInsert.setDouble(idx++, 0); // ADVERTISEMENT_RECEIVED
         psInsert.setDouble(idx++, 0); // SURCHARGE_RECEIVED
 
-        // 74-79: Additional charges and flags
+        // 75-80: Additional charges and flags
         psInsert.setDouble(idx++, 0);                        // SURCHARGE
         psInsert.setDouble(idx++, 0);                        // ADVERTISEMENT
         psInsert.setString(idx++, "Y");                      // INTEREST_APPLY
@@ -990,14 +991,14 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setInt(idx++, getIntOrDefault(rsLoan, "HEALTH_CODE", 0));
         psInsert.setString(idx++, "Y");                      // IS_STANDARD
 
-        // 80-83: Amounts and codes
+        // 81-83: Amounts and codes
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "SANCTIONAMOUNT", 0));
         psInsert.setInt(idx++, getIntOrDefault(rsLoan, "AREA_CODE", 0));
         psInsert.setInt(idx++, getIntOrDefault(rsLoan, "SUBAREA_CODE", 0));
 
-        // 84-86: Audit dates
+        // 84-86: Audit dates (note: typo CRTEATED_DATE)
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        psInsert.setTimestamp(idx++, now);                   // CREATED_DATE
+        psInsert.setTimestamp(idx++, now);                   // CRTEATED_DATE
         psInsert.setNull(idx++, Types.TIMESTAMP);            // MODIFIED_DATE
         psInsert.setNull(idx++, Types.DATE);                 // INT_ADJ_DATE
 
@@ -1009,7 +1010,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.setDate(idx++, getDateOrNull(rsLoan, "BANK_INSURANCE_END_DATE"));
         psInsert.setDouble(idx++, getDoubleOrDefault(rsLoan, "BANK_INSURANCE_PERCENTAGE", 0));
 
-        System.out.println("insertLoan final idx = " + idx); // should print 93
+        System.out.println("✅ insertLoan - Set " + (idx - 1) + " parameters (should be 92)");
 
         psInsert.executeUpdate();
         psInsert.close();
@@ -1161,7 +1162,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.close();
     }
 
-    // ========== INSERT GOLD/SILVER SECURITY ==========
+ // ========== INSERT GOLD/SILVER SECURITY ==========
     private void insertGoldSilverSecurity(Connection conn, String appNo, String accountCode) throws Exception {
         String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATIONSECURITYGOLDSILVER WHERE APPLICATION_NUMBER = ?";
         PreparedStatement psCheck = conn.prepareStatement(checkSQL);
@@ -1186,8 +1187,8 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ResultSet rsGold = psSelect.executeQuery();
         
         String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYGOLDSILVER (" +
-            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, WEIGHTTOTALGMS, RATEPERIOGMS, " +
-            "TOTALVALUE, MARGINPERCENTAGE, RELEASEDATE, GOLDBANC, SECURITYVALUE, " +
+            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, WEIGHTTOTALGMS, RATEPER10GMS, " +
+            "TOTALVALUE, MARGINPERCENTAGE, RELEASEDATE, GOLDBAGNO, SECURITYVALUE, " +
             "PARTICULAR, NOTE, SUBMISSIONDATE, CREATED_DATE, MODIFIED_DATE, " +
             "GOLDRECIEPTNO, GOLDDRAWERNO, GROSTOTALGMS, VALUATION_RATE, CURRENT_RATE) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -1201,11 +1202,11 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             psInsert.setInt(idx++, rsGold.getInt("SERIAL_NUMBER"));
             psInsert.setString(idx++, getStringOrDefault(rsGold, "SECURITYTYPE_CODE", null));
             psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "WEIGHTTOTALGMS", 0));
-            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "RATEPERIOGMS", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "RATEPER10GMS", 0));  // Changed from RATEPERIOGMS
             psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "TOTALVALUE", 0));
             psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "MARGINPERCENTAGE", 0));
             psInsert.setDate(idx++, getDateOrNull(rsGold, "RELEASEDATE"));
-            psInsert.setString(idx++, getStringOrDefault(rsGold, "GOLDBANC", null));
+            psInsert.setString(idx++, getStringOrDefault(rsGold, "GOLDBAGNO", null));  // Changed from GOLDBANC
             psInsert.setDouble(idx++, getDoubleOrDefault(rsGold, "SECURITYVALUE", 0));
             psInsert.setString(idx++, getStringOrDefault(rsGold, "PARTICULAR", null));
             psInsert.setString(idx++, getStringOrDefault(rsGold, "NOTE", null));
@@ -1234,7 +1235,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psSelect.close();
         psInsert.close();
     }
-
+    
     // ========== INSERT LAND & BUILDING SECURITY ==========
     private void insertLandBuildingSecurity(Connection conn, String appNo, String accountCode) throws Exception {
         String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATIONSECURITYLANDNBULDIN WHERE APPLICATION_NUMBER = ?";
