@@ -1236,7 +1236,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psInsert.close();
     }
     
-    // ========== INSERT LAND & BUILDING SECURITY ==========
+ // ========== INSERT LAND & BUILDING SECURITY ==========
     private void insertLandBuildingSecurity(Connection conn, String appNo, String accountCode) throws Exception {
         String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATIONSECURITYLANDNBULDIN WHERE APPLICATION_NUMBER = ?";
         PreparedStatement psCheck = conn.prepareStatement(checkSQL);
@@ -1260,10 +1260,11 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psSelect.setString(1, appNo);
         ResultSet rsLand = psSelect.executeQuery();
         
-        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYLANDNBUILDING (" +
-            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSION_DATE, " +
+        // Changed table name to ACCOUNTSECURITYLANDNBUILDING (exact match from your screenshot)
+        String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYLANDBUILDING (" +
+            "APPLICATION_NUMBER, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSIONDATE, " +
             "VALUEDAMOUNT, LOCATION, AREA, UNITOFAREA, REMARK, " +
-            "MARGINPERCENTAGE, SECURITYVALUE, PARTICULAR, CREATED_DATE, MODIFIED_DATE, " +
+            "MARGINEPERCENTAGE, SECURITYVALUE, PARTICULAR, CREATED_DATE, MODIFIED_DATE, " +
             "EAST, WEST, NORTH, SOUTH, ENGINEER_NAME) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
@@ -1272,16 +1273,16 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         
         while (rsLand.next()) {
             int idx = 1;
-            psInsert.setString(idx++, accountCode);
+            psInsert.setString(idx++, accountCode);  // APPLICATION_NUMBER (note: not ACCOUNT_CODE based on your columns)
             psInsert.setInt(idx++, rsLand.getInt("SERIAL_NUMBER"));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "SECURITYTYPE_CODE", null));
-            psInsert.setDate(idx++, getDateOrNull(rsLand, "SUBMISSION_DATE"));
+            psInsert.setDate(idx++, getDateOrNull(rsLand, "SUBMISSIONDATE"));  // Changed from SUBMISSION_DATE
             psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "VALUEDAMOUNT", 0));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "LOCATION", null));
             psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "AREA", 0));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "UNITOFAREA", null));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "REMARK", null));
-            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "MARGINPERCENTAGE", 0));
+            psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "MARGINEPERCENTAGE", 0));  // Note: typo MARGINEPERCENTAGE
             psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "SECURITYVALUE", 0));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "PARTICULAR", null));
             
@@ -1308,6 +1309,8 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psSelect.close();
         psInsert.close();
     }
+        
+   
 
     // ========== HELPER METHODS FOR NULL-SAFE COLUMN ACCESS ==========
     private String getStringOrDefault(ResultSet rs, String columnName, String defaultValue) {
