@@ -87,6 +87,28 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         return accountCode;
     }
 
+	 // ========== VALIDATE BRANCH2PRODUCT EXISTS ==========
+	    private void validateBranchProductExists(Connection conn, String branchCode, String productCode) throws Exception {
+	        String checkSQL = "SELECT COUNT(*) FROM BRANCH.BRANCH2PRODUCT WHERE BRANCH_CODE = ? AND PRODUCT_CODE = ?";
+	        PreparedStatement psCheck = conn.prepareStatement(checkSQL);
+	        psCheck.setString(1, branchCode);
+	        psCheck.setString(2, productCode);
+	        ResultSet rs = psCheck.executeQuery();
+	        
+	        int count = 0;
+	        if (rs.next()) {
+	            count = rs.getInt(1);
+	        }
+	        rs.close();
+	        psCheck.close();
+	        
+	        if (count == 0) {
+	            throw new Exception("BRANCH2PRODUCT record not found for Branch=" + branchCode + ", Product=" + productCode + ". Cannot create account.");
+	        }
+	        
+	        System.out.println("✅ BRANCH2PRODUCT record exists for Branch=" + branchCode + ", Product=" + productCode);
+	    }
+	    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -137,14 +159,21 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
                 String branchCode = rsApp.getString("BRANCH_CODE");
                 String productCode = rsApp.getString("PRODUCT_CODE");
                 String customerId = rsApp.getString("CUSTOMER_ID");
-                
+
+                // 1.1 VALIDATE BRANCH2PRODUCT EXISTS - DO THIS FIRST!
+                validateBranchProductExists(conn, branchCode, productCode);
+
                 // 2. Generate ACCOUNT_CODE
                 accountCode = generateAccountCode(conn, branchCode, productCode);
                 System.out.println("📌 Generated ACCOUNT_CODE: " + accountCode);
                 
                 // 3. Insert into ACCOUNT.ACCOUNT table
                 insertAccountData(conn, rsApp, accountCode, appNo);
-                
+
+                // 3.1 Update BRANCH2PRODUCT LASTACCOUNT_NUMBER
+                long sequenceNumber = Long.parseLong(accountCode.substring(7, 14));
+                updateBranchProductLastAccount(conn, branchCode, productCode, sequenceNumber);
+
                 // 4. Insert Nominees if present
                 insertNominees(conn, appNo, accountCode);
                 
@@ -345,8 +374,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         ps.executeUpdate();
         ps.close();
         System.out.println("✅ Inserted into ACCOUNT.ACCOUNT: " + accountCode);
-    }
-
+    }        
     // ========== INSERT NOMINEES ==========
     private void insertNominees(Connection conn, String appNo, String accountCode) throws Exception {
         String checkSQL = "SELECT COUNT(*) FROM APPLICATION.APPLICATIONNOMINEE WHERE APPLICATION_NUMBER = ?";
@@ -953,4 +981,22 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         
         System.out.println("✅ Inserted land & building security");
     }
-}
+
+    // ========== UPDATE BRANCH2PRODUCT LASTACCOUNT_NUMBER ==========
+    private void updateBranchProductLastAccount(Connection conn, String branchCode, String productCode, long lastAccountNumber) throws Exception {
+        String updateSQL = "UPDATE BRANCH.BRANCH2PRODUCT SET LASTACCOUNT_NUMBER = ? WHERE BRANCH_CODE = ? AND PRODUCT_CODE = ?";
+        PreparedStatement psUpdate = conn.prepareStatement(updateSQL);
+        psUpdate.setLong(1, lastAccountNumber);
+        psUpdate.setString(2, branchCode);
+        psUpdate.setString(3, productCode);
+        
+        int rows = psUpdate.executeUpdate();
+        psUpdate.close();
+        
+        if (rows > 0) {
+            System.out.println("✅ Updated BRANCH2PRODUCT: Branch=" + branchCode + ", Product=" + productCode + ", LastAccount=" + lastAccountNumber);
+        } else {
+            throw new Exception("Failed to update BRANCH2PRODUCT for Branch=" + branchCode + ", Product=" + productCode);
+        }
+    }
+    }  // This is the last closing brace of the class
