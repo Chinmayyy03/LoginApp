@@ -81,7 +81,7 @@
 <div class="main-content">
     <header>
         <div id="breadcrumbNav" class="breadcrumb-container"></div>
-        <div id="liveDate"></div>
+        <div id="workingDate" style=" color: #fff; font-size: 14px; opacity: 0.9;">Loading working date...</div>
     </header>
 
     <iframe id="contentFrame" frameborder="0"></iframe>
@@ -195,6 +195,27 @@ window.updateParentBreadcrumb = function(path) {
     // DON'T change active menu here
 };
 
+// ========== WORKING DATE FUNCTIONS ==========
+
+function updateWorkingDate() {
+    fetch('getWorkingDate.jsp')
+        .then(response => response.json())
+        .then(data => {
+            const dateElement = document.getElementById("workingDate");
+            if (data.error) {
+                dateElement.innerText = "Working Date: Error - " + data.error;
+                dateElement.style.color = "#e74c3c";
+            } else {
+                dateElement.innerText = "Working Date: " + data.workingDate;
+                dateElement.style.color = "#fff";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching working date:', error);
+            document.getElementById("workingDate").innerText = "Working Date: Connection Error";
+        });
+}
+
 // ========== RESTORE STATE ON LOAD ==========
 
 window.onload = function () {
@@ -222,20 +243,10 @@ window.onload = function () {
         }
     }
 
-    updateDate();
+    // Update working date immediately and then every 30 seconds
+    updateWorkingDate();
+    setInterval(updateWorkingDate, 30000); // Refresh every 30 seconds
 };
-
-// ========== DATE UPDATE ==========
-
-function updateDate() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateElement = document.getElementById("liveDate");
-    if (dateElement) {
-        dateElement.innerText = now.toLocaleDateString('en-US', options);
-    }
-}
-setInterval(updateDate, 1000);
 
 // ========== LOGOUT FUNCTIONS ==========
 
