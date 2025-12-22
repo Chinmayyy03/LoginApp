@@ -67,14 +67,25 @@ function viewApplication(applicationNumber) {
 <div class="table-container">
 <table id="applicationTable">
 <%
-try (Connection conn = DBConnection.getConnection();
-     PreparedStatement ps = conn.prepareStatement(
+try (Connection conn = DBConnection.getConnection()) {
+    
+    // ✅ Get working date from session
+    Date workingDate = (Date) session.getAttribute("workingDate");
+    
+    if (workingDate == null) {
+        out.println("<tr><td colspan='5' class='no-data'>Working date not available. Please refresh the page.</td></tr>");
+        return;
+    }
+    
+    PreparedStatement ps = conn.prepareStatement(
         "SELECT BRANCH_CODE, APPLICATION_NUMBER, NAME, STATUS " +
         "FROM APPLICATION.APPLICATION " +
         "WHERE BRANCH_CODE = ? AND STATUS = 'E' " +
-        "ORDER BY APPLICATION_NUMBER")) {
+        "AND TRUNC(APPLICATIONDATE) = TRUNC(?) " +
+        "ORDER BY APPLICATION_NUMBER");
 
     ps.setString(1, branchCode);
+    ps.setDate(2, workingDate);
 
     ResultSet rs = ps.executeQuery();
 

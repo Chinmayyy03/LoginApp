@@ -7,11 +7,16 @@
         response.sendRedirect("login.jsp");
         return;
     }
-	int totalPendingApplications = 0;
+    
+    // ✅ Get working date from session
+    Date workingDate = (Date) session.getAttribute("workingDate");
+    
+    int totalPendingApplications = 0;
     int totalCustomers = 0;
     int totalPendingCustomers = 0;
     double totalLoan = 0; // static for now
 
+    // Count total customers (STATUS = 'A')
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'A' ")) {
         ps.setString(1, branchCode);
@@ -22,27 +27,35 @@
     } catch (Exception e) {
         totalCustomers = 0;
     }
-    try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'P' ")) {
-           ps.setString(1, branchCode);
-           ResultSet rs = ps.executeQuery();
-           if (rs.next()) {
-               totalPendingCustomers = rs.getInt(1);
-           }
-       } catch (Exception e) {
-           totalPendingCustomers = 0;
-       }
     
- // Count total pending applications (STATUS = 'E')
+    // Count total pending customers (STATUS = 'P') - NO DATE FILTER
     try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM APPLICATION.APPLICATION WHERE BRANCH_CODE=? AND STATUS = 'E'")) {
+         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'P' ")) {
         ps.setString(1, branchCode);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            totalPendingApplications = rs.getInt(1);
+            totalPendingCustomers = rs.getInt(1);
         }
     } catch (Exception e) {
-        totalPendingApplications = 0;
+        totalPendingCustomers = 0;
+    }
+    
+    // ✅ Count total pending applications (STATUS = 'E') for working date ONLY
+    if (workingDate != null) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT COUNT(*) FROM APPLICATION.APPLICATION " +
+                 "WHERE BRANCH_CODE=? AND STATUS = 'E' " +
+                 "AND TRUNC(APPLICATIONDATE) = TRUNC(?)")) {
+            ps.setString(1, branchCode);
+            ps.setDate(2, workingDate);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                totalPendingApplications = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            totalPendingApplications = 0;
+        }
     }
 %>
 

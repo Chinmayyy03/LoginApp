@@ -208,6 +208,8 @@ function updateWorkingDate() {
             } else {
                 dateElement.innerText = "Working Date: " + data.workingDate;
                 dateElement.style.color = "#fff";
+                
+                sessionStorage.setItem('workingDate', data.workingDate);
             }
         })
         .catch(error => {

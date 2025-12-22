@@ -19,10 +19,8 @@
     try {
         conn = DBConnection.getConnection();
         
-        // Default bank code is 0100 for all branches
         String bankCode = "0100";
         
-        // Call the function to get working date
         String functionCall = "{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}";
         cstmt = conn.prepareCall(functionCall);
         cstmt.registerOutParameter(1, Types.DATE);
@@ -32,11 +30,12 @@
         
         Date workingDate = cstmt.getDate(1);
         
-        // Format the date to match JavaScript's toLocaleDateString format
+        // ✅ Store working date in session
+        session.setAttribute("workingDate", workingDate);
+        
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, MMMM d, yyyy");
         String formattedDate = sdf.format(workingDate);
         
-        // Return JSON response
         out.print("{\"workingDate\": \"" + formattedDate + "\"}");
         
     } catch (Exception e) {
