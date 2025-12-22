@@ -52,6 +52,11 @@
     			<h3>Total Loan</h3>
     			<p><%= String.format("%,.2f", totalLoan) %></p>
 			</div>
+			
+			<div class="card" onclick="openInParentFrame('totalApplications.jsp', 'Dashboard > Total Applications')">
+    			<h3>Total Applications</h3>
+    			
+			</div>
 
 
         </div>
