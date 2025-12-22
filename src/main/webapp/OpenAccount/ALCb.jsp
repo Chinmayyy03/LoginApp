@@ -1,11 +1,33 @@
 <%@ page import="java.sql.*, db.DBConnection" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 
 <%
     String branchCode = (String) session.getAttribute("branchCode");
     if (branchCode == null) {
         response.sendRedirect("login.jsp");
         return;
+    }
+    
+ // Fetch working date for this branch
+    String workingDateStr = "";
+    try (Connection connWorkDate = DBConnection.getConnection()) {
+        String bankCode = "0100"; // Default bank code
+        CallableStatement cstmtWorkDate = connWorkDate.prepareCall("{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}");
+        cstmtWorkDate.registerOutParameter(1, Types.DATE);
+        cstmtWorkDate.setString(2, bankCode);
+        cstmtWorkDate.setString(3, branchCode);
+        cstmtWorkDate.execute();
+        
+        Date workingDate = cstmtWorkDate.getDate(1);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        workingDateStr = sdf.format(workingDate);
+        
+        cstmtWorkDate.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+        // Fallback to current date if error
+        workingDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
     }
     
     // ✅ FIX: Capture productCode from request parameter
@@ -365,9 +387,10 @@ body {
 	</div>
 
       <div>
-        <label>Date Of Application</label>
-        <input type="date" name="dateOfApplication" required>
-      </div>
+    	<label>Date Of Application</label>
+    	<input type="date" name="dateOfApplication" value="<%= workingDateStr %>" readonly 
+           style="background-color: #f0f0f0; cursor: not-allowed;" required>
+	</div>
 
       <div>
         <label>Account Operation Capacity</label>
