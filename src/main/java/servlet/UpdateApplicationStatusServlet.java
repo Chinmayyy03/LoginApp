@@ -1260,9 +1260,8 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         psSelect.setString(1, appNo);
         ResultSet rsLand = psSelect.executeQuery();
         
-        // Changed table name to ACCOUNTSECURITYLANDNBUILDING (exact match from your screenshot)
         String insertSQL = "INSERT INTO ACCOUNT.ACCOUNTSECURITYLANDBUILDING (" +
-            "APPLICATION_NUMBER, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSIONDATE, " +
+            "ACCOUNT_CODE, SERIAL_NUMBER, SECURITYTYPE_CODE, SUBMISSION_DATE, " +
             "VALUEDAMOUNT, LOCATION, AREA, UNITOFAREA, REMARK, " +
             "MARGINEPERCENTAGE, SECURITYVALUE, PARTICULAR, CREATED_DATE, MODIFIED_DATE, " +
             "EAST, WEST, NORTH, SOUTH, ENGINEER_NAME) " +
@@ -1273,10 +1272,10 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         
         while (rsLand.next()) {
             int idx = 1;
-            psInsert.setString(idx++, accountCode);  // APPLICATION_NUMBER (note: not ACCOUNT_CODE based on your columns)
+            psInsert.setString(idx++, accountCode);  // ACCOUNT_CODE
             psInsert.setInt(idx++, rsLand.getInt("SERIAL_NUMBER"));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "SECURITYTYPE_CODE", null));
-            psInsert.setDate(idx++, getDateOrNull(rsLand, "SUBMISSIONDATE"));  // Changed from SUBMISSION_DATE
+            psInsert.setDate(idx++, getDateOrNull(rsLand, "SUBMISSION_DATE"));  // SUBMISSION_DATE with underscore
             psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "VALUEDAMOUNT", 0));
             psInsert.setString(idx++, getStringOrDefault(rsLand, "LOCATION", null));
             psInsert.setDouble(idx++, getDoubleOrDefault(rsLand, "AREA", 0));
@@ -1302,14 +1301,13 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         
         if (insertedCount > 0) {
             int[] results = psInsert.executeBatch();
-            System.out.println("✅ Inserted " + results.length + " land & building securities into ACCOUNT.ACCOUNTSECURITYLANDNBUILDING");
+            System.out.println("✅ Inserted " + results.length + " land & building securities into ACCOUNT.ACCOUNTSECURITYLANDBUILDING");
         }
         
         rsLand.close();
         psSelect.close();
         psInsert.close();
     }
-        
    
 
     // ========== HELPER METHODS FOR NULL-SAFE COLUMN ACCESS ==========
