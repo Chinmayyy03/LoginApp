@@ -461,9 +461,10 @@ body {
 <fieldset id="loanFieldset">
   <legend>Loan Details</legend>
   <div class="form-grid">
+  
 	<div>
-  		<label>Submission Date</label>
-  		<input type="date" name="submissionDate" id="submissionDate">
+    	<label>Submission Date</label>
+    	<input type="date" name="submissionDate" id="submissionDate" value="<%= workingDateStr %>">
 	</div>
 
     <div>

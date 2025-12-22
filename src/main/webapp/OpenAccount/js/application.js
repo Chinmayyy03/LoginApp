@@ -126,14 +126,9 @@ function handleLimitAmountChange() {
  */
 function initializeLoanFields() {
     // Set today's date for submission and registration dates
-    const submissionDate = document.getElementById('submissionDate');
     const registrationDate = document.getElementById('registrationDate');
     
     const today = getTodayDate();
-    
-    if (submissionDate) {
-        submissionDate.value = today;
-    }
     
     if (registrationDate) {
         registrationDate.value = today;
