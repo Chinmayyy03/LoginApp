@@ -141,6 +141,12 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
+            
+            // ✅ Get working date from session
+            Date workingDate = (Date) session.getAttribute("workingDate");
+            if (workingDate == null) {
+                throw new Exception("Working date not available in session");
+            }
 
             // ========== AUTHORIZE (Status = 'A') ==========
             if ("A".equals(status)) {
@@ -168,7 +174,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
                 System.out.println("📌 Generated ACCOUNT_CODE: " + accountCode);
                 
                 // 3. Insert into ACCOUNT.ACCOUNT table
-                insertAccountData(conn, rsApp, accountCode, appNo);
+                insertAccountData(conn, rsApp, accountCode, appNo, workingDate);
 
                 // 3.1 Update BRANCH2PRODUCT LASTACCOUNT_NUMBER
                 long sequenceNumber = Long.parseLong(accountCode.substring(7, 14));
@@ -272,7 +278,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
     }
 
     // ========== INSERT ACCOUNT DATA ==========
-    private void insertAccountData(Connection conn, ResultSet rsApp, String accountCode, String appNo) throws Exception {
+    private void insertAccountData(Connection conn, ResultSet rsApp, String accountCode, String appNo , Date workingDate) throws Exception {
         String sql = "INSERT INTO ACCOUNT.ACCOUNT (" +
             "ACCOUNT_CODE, NAME, DATEACCOUNTOPEN, DATEACCOUNTCLOSE, CUSTOMER_ID, " +
             "ACCOUNTOPERATIONCAPACITY_ID, USER_ID, AGENT_ID, ACCOUNTMINBALANCE_ID, " +
@@ -290,7 +296,7 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
         int idx = 1;
         ps.setString(idx++, accountCode);
         ps.setString(idx++, rsApp.getString("NAME"));
-        ps.setDate(idx++, new Date(System.currentTimeMillis())); // DATEACCOUNTOPEN
+        ps.setDate(idx++, workingDate); // DATEACCOUNTOPEN
         ps.setNull(idx++, Types.DATE); // DATEACCOUNTCLOSE
         ps.setString(idx++, rsApp.getString("CUSTOMER_ID"));
         
