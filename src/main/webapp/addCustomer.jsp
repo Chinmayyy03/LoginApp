@@ -887,9 +887,9 @@ if (zipField) {
 
 <!-- Submit & Reset Buttons -->
   <div class="form-buttons">
-    <button type="submit">Submit</button>
-    <button type="reset">Reset</button>
-  </div>
+  <button type="submit">Submit</button>
+  <button type="reset" onclick="resetFormWithUploads()">Reset</button>
+</div>
   
 </form>
 
@@ -984,6 +984,56 @@ document.addEventListener('DOMContentLoaded', function () {
     let checked = Array.from(individualRadios).find(r => r.checked);
     toggleFieldsByIndividual(checked ? checked.value === 'yes' : true);
 });
+
+
+function resetFormWithUploads() {
+  // Let the default form reset happen first
+  setTimeout(() => {
+    // Reset Photo Upload
+    const photoPreview = document.getElementById('photoPreviewIcon');
+    if (photoPreview) {
+      photoPreview.src = 'images/photo-icon.png';
+      photoPreview.classList.remove('preview-image');
+    }
+    document.getElementById('photoData').value = '';
+    document.getElementById('photoInput').value = '';
+    
+    // Remove photo success badge
+    const photoCard = photoPreview?.closest('.upload-card');
+    if (photoCard) {
+      const photoBadge = photoCard.querySelector('.upload-success-badge');
+      if (photoBadge) photoBadge.remove();
+    }
+    
+    // Reset Signature Upload
+    const signaturePreview = document.getElementById('signaturePreviewIcon');
+    if (signaturePreview) {
+      signaturePreview.src = 'images/signature-icon.png';
+      signaturePreview.classList.remove('preview-image');
+    }
+    document.getElementById('signatureData').value = '';
+    document.getElementById('signatureInput').value = '';
+    
+    // Remove signature success badge
+    const signatureCard = signaturePreview?.closest('.upload-card');
+    if (signatureCard) {
+      const signatureBadge = signatureCard.querySelector('.upload-success-badge');
+      if (signatureBadge) signatureBadge.remove();
+    }
+    
+    // Clear any error messages
+    document.querySelectorAll('.error-message').forEach(err => err.remove());
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+      field.style.borderColor = '';
+      field.style.backgroundColor = '';
+    });
+    
+    // Show confirmation toast
+    if (typeof showInfoToast === 'function') {
+      showInfoToast('🔄 Form has been reset including photo and signature');
+    }
+  }, 10);
+}
 </script>
 
 </body>
