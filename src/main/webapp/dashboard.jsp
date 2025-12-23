@@ -229,10 +229,20 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-
+        @media (max-width: 1400px) {
+            .cards-wrapper {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+                @media (max-width: 1300px) {
+            .cards-wrapper {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
         @media (max-width: 1200px) {
             .cards-wrapper {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
