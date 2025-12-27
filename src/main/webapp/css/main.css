@@ -44,65 +44,65 @@ body {
 .menu {
     list-style: none;
     padding: 0;
-    margin : 0px 10px 0px 10px;
-  	flex-grow:1;  
+    margin: 0px 10px 0px 10px;
+    flex-grow: 1;  
 }
  
 .menu li a {
-  display: flex;                 /* keeps icon + text aligned */
-  align-items: center;
-  gap: 8px;                      /* space between icon and text */
-  text-decoration: none;
-  color: inherit;                /* inherit color from li/sidebar */
-  padding: 15px 20px;
-  width: 100%;
-  transition: all 0.4s;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  box-sizing: border-box;
-  border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    padding: 15px 20px;
+    width: 100%;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    box-sizing: border-box;
+    border-radius: 6px;
 }
 
 /* hover effect background (subtle) */
 .menu li a:hover {
-  background-color: rgba(166, 166, 166, 0.06);
+    background-color: rgba(166, 166, 166, 0.06);
 }
 
 /* sliding overlay from left */
 .menu li a::before {
-  content: "";
-  position: absolute;
-  width: 0;
-  height: 100%;
-  background: #0077b6; /* slightly translucent overlay */
-  left: 0;
-  top: 0;
-  transition: all 0.4s;
-  z-index: -1;
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 100%;
+    background: #0077b6;
+    left: 0;
+    top: 0;
+    transition: all 0.4s;
+    z-index: -1;
 }
 
 /* expand overlay on hover */
 .menu li a:hover::before {
-  width: 100%;
+    width: 100%;
 }
 
 /* active state styling for li -> apply to the anchor too */
 .menu li.active > a {
-  background: #0077b6; /* you already used this for active li */
-  color: #fff;
+    background: #0077b6;
+    color: #fff;
 }
 
 .menu li.active > a::before {
-  width: 100%;
-  background: rgba(0,0,0,0.08);
+    width: 100%;
+    background: rgba(0, 0, 0, 0.08);
 }
 
 /* ensure images inside anchors don't overflow */
 .menu li a img {
-  display: inline-block;
-  vertical-align: middle;
-  flex: 0 0 auto;
+    display: inline-block;
+    vertical-align: middle;
+    flex: 0 0 auto;
 }
 
 /* Logout section */
@@ -130,131 +130,108 @@ body {
     height: 100vh;
 }
 
-/* Header */
-header {
-    background: linear-gradient(90deg, #1d314f, #5aa7f0);
-    padding: 15px 30px;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: fixed;
-    width: calc(100% - 250px);
-    top: 0;
-    height: 70px;
-    box-sizing: border-box;
-    z-index: 100;
-}
-
-header h1 {
-    font-size: 26px;
-    margin: 0;
-}
-
-#liveDate {
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-/* Iframe */
-iframe {
-    flex: 1;
-    margin-top: 70px;
-    width: 100%;
-    height: calc(100vh - 70px);
-    border: none;
-    
-}
-
+/* ============================================
+   HEADER STYLES REMOVED - NOW IN main.jsp
+   ============================================
+   The following styles are now inline in main.jsp:
+   - header
+   - .bank-title
+   - .nav-row
+   - .breadcrumb-container
+   - .breadcrumb-link
+   - .breadcrumb-separator
+   - .breadcrumb-current
+   - #workingDate
+   - iframe adjustments
+   ============================================ */
 
 /* Logout confirmation modal styles */
-        .logout-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s;
-        }
+.logout-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
 
-        .logout-modal-content {
-            background: linear-gradient(135deg, #192947, #1d314f);
-            margin: 15% auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 400px;
-            max-width: 90%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            color: white;
-            text-align: center;
-            animation: slideDown 0.3s;
-        }
+.logout-modal-content {
+    background: linear-gradient(135deg, #192947, #1d314f);
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-align: center;
+    animation: slideDown 0.3s;
+}
 
-        .logout-modal-content h2 {
-            margin-top: 0;
-            color: #fff;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
+.logout-modal-content h2 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
 
-        .logout-modal-content p {
-            color: #cfd8dc;
-            font-size: 16px;
-            margin-bottom: 25px;
-        }
+.logout-modal-content p {
+    color: #cfd8dc;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
 
-        .logout-modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
+.logout-modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
 
-        .logout-btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.logout-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-        .logout-btn-confirm {
-            background: linear-gradient(45deg, #d32f2f, #f44336);
-            color: white;
-        }
+.logout-btn-confirm {
+    background: linear-gradient(45deg, #d32f2f, #f44336);
+    color: white;
+}
 
-        .logout-btn-confirm:hover {
-            background: linear-gradient(45deg, #b71c1c, #d32f2f);
-            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
-        }
+.logout-btn-confirm:hover {
+    background: linear-gradient(45deg, #b71c1c, #d32f2f);
+    box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+}
 
-        .logout-btn-cancel {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+.logout-btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
 
-        .logout-btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+.logout-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
-        @keyframes slideDown {
-            from { 
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to { 
-                transform: translateY(0);
-                opacity: 1;
-            }
-
-        }
+@keyframes slideDown {
+    from { 
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
