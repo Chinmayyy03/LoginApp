@@ -37,143 +37,78 @@ public class DashboardService {
     }
 
     /**
-     * Execute the database function to get card value
-     * This calls your existing database functions
+     * Execute the database function and return the full string result
      */
-    public double executeCardFunction(String functionName, String parameters, String tableName, String branchCode) throws SQLException {
-        double result = 0.0;
+    public String executeCardFunctionAsString(String functionName, String parameters, 
+                                             String tableName, String branchCode) throws SQLException {
+        String result = "";
         
         if (functionName == null || functionName.trim().isEmpty()) {
             return result;
         }
         
-        // Parse parameters
-        String[] params = parameters != null && !parameters.trim().isEmpty() ? parameters.split(",") : new String[0];
+        // Parse parameters from database (comma-separated)
+        String[] params = parameters != null && !parameters.trim().isEmpty() 
+                         ? parameters.split(",") 
+                         : new String[0];
         
-        // Try different function signatures
-        // First try: FUNCTION(branchCode, param1, param2)
-        try {
-            result = callFunctionWithBranchFirst(functionName, params, branchCode);
-            return result;
-        } catch (SQLException e1) {
-            // If that fails, try: FUNCTION(param1, branchCode, param2)
-            try {
-                result = callFunctionWithBranchMiddle(functionName, params, branchCode);
-                return result;
-            } catch (SQLException e2) {
-                // If that fails too, try: FUNCTION(branchCode)
-                try {
-                    result = callFunctionWithBranchOnly(functionName, branchCode);
-                    return result;
-                } catch (SQLException e3) {
-                    System.err.println("Error executing function: " + functionName);
-                    System.err.println("Parameters: " + parameters);
-                    e3.printStackTrace();
-                    throw e3;
-                }
-            }
-        }
-    }
-
-    /**
-     * Try calling function with branch code as first parameter
-     * FUNCTION(branchCode, param1, param2, ...)
-     */
-    private double callFunctionWithBranchFirst(String functionName, String[] params, String branchCode) throws SQLException {
+        // Build SQL with function call, replacing DATE with SYSDATE
         StringBuilder sql = new StringBuilder("SELECT ").append(functionName).append("(");
-        sql.append("?"); // Branch code first
         
         for (int i = 0; i < params.length; i++) {
-            sql.append(", ?");
+            if (i > 0) sql.append(", ");
+            
+            String param = params[i].trim().toUpperCase();
+            if (param.equals("DATE")) {
+                sql.append("SYSDATE");
+            } else {
+                sql.append("?");
+            }
         }
         sql.append(") FROM DUAL");
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            ps = conn.prepareStatement(sql.toString());
             
-            ps.setString(1, branchCode);
-            
+            // Set only non-DATE parameters
+            int paramIndex = 1;
             for (int i = 0; i < params.length; i++) {
-                setParameter(ps, i + 2, params[i].trim());
+                String param = params[i].trim().toUpperCase();
+                if (!param.equals("DATE")) {
+                    ps.setString(paramIndex++, params[i].trim());
+                }
             }
             
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getDouble(1);
+                result = rs.getString(1);
+                if (result == null) {
+                    result = "";
+                }
             }
-        }
-        return 0.0;
-    }
-
-    /**
-     * Try calling function with branch code in middle
-     * FUNCTION(param1, branchCode, param2, ...)
-     */
-    private double callFunctionWithBranchMiddle(String functionName, String[] params, String branchCode) throws SQLException {
-        if (params.length == 0) {
-            throw new SQLException("No parameters for middle position");
+        } catch (SQLException e) {
+            System.err.println("Error executing function: " + functionName);
+            System.err.println("Parameters: " + parameters);
+            System.err.println("SQL: " + sql.toString());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (ps != null) ps.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
         
-        StringBuilder sql = new StringBuilder("SELECT ").append(functionName).append("(");
-        sql.append("?"); // First param
-        sql.append(", ?"); // Branch code
-        
-        for (int i = 1; i < params.length; i++) {
-            sql.append(", ?");
-        }
-        sql.append(") FROM DUAL");
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-            
-            setParameter(ps, 1, params[0].trim()); // First param
-            ps.setString(2, branchCode); // Branch code
-            
-            for (int i = 1; i < params.length; i++) {
-                setParameter(ps, i + 2, params[i].trim());
-            }
-            
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getDouble(1);
-            }
-        }
-        return 0.0;
-    }
-
-    /**
-     * Try calling function with only branch code
-     * FUNCTION(branchCode)
-     */
-    private double callFunctionWithBranchOnly(String functionName, String branchCode) throws SQLException {
-        String sql = "SELECT " + functionName + "(?) FROM DUAL";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, branchCode);
-            
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getDouble(1);
-            }
-        }
-        return 0.0;
-    }
-
-    /**
-     * Set parameter based on its value
-     */
-    private void setParameter(PreparedStatement ps, int index, String param) throws SQLException {
-        if (param.equalsIgnoreCase("DATE")) {
-            ps.setDate(index, new java.sql.Date(System.currentTimeMillis()));
-        } else {
-            ps.setString(index, param);
-        }
+        return result;
     }
 
     /**
      * Get card value with proper formatting
+     * Separates the two outputs from function with a dash
      */
     public String getFormattedCardValue(DashboardCard card, String branchCode) {
         try {
@@ -182,33 +117,103 @@ public class DashboardService {
                 return "N/A";
             }
             
-            double value = executeCardFunction(
+            // Get the full string result from function
+            String fullResult = executeCardFunctionAsString(
                 card.getFuncationName(), 
                 card.getParamitar(), 
                 card.getTableName(), 
                 branchCode
             );
-            card.setValue(value);
             
-            String description = card.getDescription().toUpperCase();
-            String functionName = card.getFuncationName().toUpperCase();
-            
-            // Check if it's a count
-            if (description.contains("CUSTOMER") || description.contains("MEMBER") || 
-                description.contains("COUNT") || description.contains("TYPE") ||
-                functionName.contains("CUSTOMER")) {
-                return String.format("%d", (int) value);
-            } 
-            // Check if it's a percentage
-            else if (description.contains("%") || description.contains("PERCENT") ||
-                     functionName.contains("PERCENTAGE")) {
-                return String.format("%.2f%%", value);
-            } 
-            // Default: currency
-            else {
-                return String.format("₹%,.2f", value);
+            // Parse the result - format is like "5  1212"
+            if (fullResult != null && !fullResult.trim().isEmpty()) {
+                String[] parts = fullResult.trim().split("\\s+");
+                
+                if (parts.length >= 2) {
+                    // We have both parts - separate with dash
+                    String firstPart = parts[0].trim();
+                    String secondPart = parts[1].trim();
+                    
+                    try {
+                        double value = Double.parseDouble(firstPart);
+                        card.setValue(value);
+                        
+                        String description = card.getDescription().toUpperCase();
+                        String functionName = card.getFuncationName().toUpperCase();
+                        
+                        // Format based on type
+                        String formattedFirst = "";
+                        
+                        // Check if it's a count
+                        if (description.contains("CUSTOMER") || description.contains("MEMBER") || 
+                            description.contains("COUNT") || description.contains("TYPE") ||
+                            description.contains("LOAN") ||
+                            functionName.contains("CUSTOMER") || functionName.contains("LOAN")) {
+                            formattedFirst = String.format("%d", (int) value);
+                        } 
+                        // Check if it's a percentage
+                        else if (description.contains("%") || description.contains("PERCENT") ||
+                                 functionName.contains("PERCENTAGE")) {
+                            formattedFirst = String.format("%.2f%%", value);
+                        } 
+                        // Default: currency
+                        else {
+                            formattedFirst = String.format("₹%,.2f", value);
+                        }
+                        
+                        // Return both parts separated by dash
+                        return formattedFirst + " - " + secondPart;
+                        
+                    } catch (NumberFormatException e) {
+                        return fullResult; // Return as-is if can't parse
+                    }
+                } else if (parts.length == 1) {
+                    // Only one part returned
+                    try {
+                        double value = Double.parseDouble(parts[0]);
+                        card.setValue(value);
+                        
+                        String description = card.getDescription().toUpperCase();
+                        String functionName = card.getFuncationName().toUpperCase();
+                        
+                        // Check if it's a count
+                        if (description.contains("CUSTOMER") || description.contains("MEMBER") || 
+                            description.contains("COUNT") || description.contains("TYPE") ||
+                            description.contains("LOAN") ||
+                            functionName.contains("CUSTOMER") || functionName.contains("LOAN")) {
+                            return String.format("%d", (int) value);
+                        } 
+                        // Check if it's a percentage
+                        else if (description.contains("%") || description.contains("PERCENT") ||
+                                 functionName.contains("PERCENTAGE")) {
+                            return String.format("%.2f%%", value);
+                        } 
+                        // Default: currency
+                        else {
+                            return String.format("₹%,.2f", value);
+                        }
+                    } catch (NumberFormatException e) {
+                        return fullResult;
+                    }
+                }
             }
+            
+            return "0";
+            
         } catch (SQLException e) {
+            String errorMsg = e.getMessage();
+            
+            // Check if function doesn't exist
+            if (errorMsg != null && (errorMsg.contains("ORA-00904") || errorMsg.contains("invalid identifier"))) {
+                System.err.println("Function not found: " + card.getFuncationName());
+                return "Pending";
+            }
+            // Check for data type conversion errors
+            else if (errorMsg != null && (errorMsg.contains("ORA-17059") || errorMsg.contains("Failed to convert"))) {
+                System.err.println("Data type error for card: " + card.getDescription());
+                return "Pending";
+            }
+            
             System.err.println("SQL Error for card: " + card.getDescription());
             e.printStackTrace();
             return "Pending";
