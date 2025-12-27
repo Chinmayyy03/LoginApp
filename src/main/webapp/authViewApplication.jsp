@@ -216,13 +216,59 @@ document.addEventListener('keydown', function(event) {
           <input readonly value="<%= formatDateForInput(rsApp,"APPLICATIONDATE") %>">
         </div>
         <div>
-          <label>Account Operation Capacity</label>
-          <input readonly value="<%= getStringSafe(rsApp,"ACCOUNTOPERATIONCAPACITY_ID") %>">
-        </div>
+      <label>Account Operation Capacity</label>
+      <input readonly value="<%
+        String accOpCapId = getStringSafe(rsApp,"ACCOUNTOPERATIONCAPACITY_ID");
+        String accOpCapDesc = "";
+        if (!accOpCapId.isEmpty()) {
+            PreparedStatement psAccOpCap = null;
+            ResultSet rsAccOpCap = null;
+            try {
+                psAccOpCap = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM GLOBALCONFIG.ACCOUNTOPERATIONCAPACITY WHERE ACCOUNTOPERATIONCAPACITY_ID = ?"
+                );
+                psAccOpCap.setString(1, accOpCapId);
+                rsAccOpCap = psAccOpCap.executeQuery();
+                if (rsAccOpCap.next()) {
+                    accOpCapDesc = rsAccOpCap.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                accOpCapDesc = accOpCapId; // Fallback to ID if error
+            } finally {
+                try { if (rsAccOpCap != null) rsAccOpCap.close(); } catch (Exception ex) {}
+                try { if (psAccOpCap != null) psAccOpCap.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(accOpCapDesc.isEmpty() ? accOpCapId : accOpCapDesc);
+      %>">
+    </div>
         <div>
-          <label>Min Balance ID</label>
-          <input readonly value="<%= getStringSafe(rsApp,"MINBALANCE_ID") %>">
-        </div>
+      <label>Min Balance</label>
+      <input readonly value="<%
+        String minBalId = getStringSafe(rsApp,"MINBALANCE_ID");
+        String minBalValue = "";
+        if (!minBalId.isEmpty()) {
+            PreparedStatement psMinBal = null;
+            ResultSet rsMinBal = null;
+            try {
+                psMinBal = conn.prepareStatement(
+                    "SELECT MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE WHERE MINBALANCE_ID = ?"
+                );
+                psMinBal.setString(1, minBalId);
+                rsMinBal = psMinBal.executeQuery();
+                if (rsMinBal.next()) {
+                    minBalValue = rsMinBal.getString("MINBALANCE");
+                }
+            } catch (Exception e) {
+                minBalValue = minBalId; // Fallback to ID if error
+            } finally {
+                try { if (rsMinBal != null) rsMinBal.close(); } catch (Exception ex) {}
+                try { if (psMinBal != null) psMinBal.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(minBalValue.isEmpty() ? minBalId : minBalValue);
+      %>">
+    </div>
         <div>
           <label>Risk Category</label>
           <input readonly value="<%= getStringSafe(rsApp,"RISKCATEGORY") %>">
@@ -370,10 +416,33 @@ document.addEventListener('keydown', function(event) {
           <label>A/c Review Date</label>
           <input readonly value="<%= formatDateForInput(rsLoan,"ACCOUNTREVIEWDATE") %>">
         </div>
-        <div>
-          <label>Installment Type Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"INSTALLMENTTYPE_ID") %>">
-        </div>
+	 <div>
+      <label>Installment Type</label>
+      <input readonly value="<%
+        String instTypeId = getStringSafe(rsLoan,"INSTALLMENTTYPE_ID");
+        String instTypeDesc = "";
+        if (!instTypeId.isEmpty()) {
+            PreparedStatement psInstType = null;
+            ResultSet rsInstType = null;
+            try {
+                psInstType = conn.prepareStatement(
+                    "SELECT INSTALLMENTTYPE FROM HEADOFFICE.INSTALLMENTTYPE WHERE INSTALLMENTTYPE_ID = ?"
+                );
+                psInstType.setString(1, instTypeId);
+                rsInstType = psInstType.executeQuery();
+                if (rsInstType.next()) {
+                    instTypeDesc = rsInstType.getString("INSTALLMENTTYPE");
+                }
+            } catch (Exception e) {
+                instTypeDesc = instTypeId;
+            } finally {
+                try { if (rsInstType != null) rsInstType.close(); } catch (Exception ex) {}
+                try { if (psInstType != null) psInstType.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(instTypeDesc.isEmpty() ? instTypeId : instTypeDesc);
+      %>">
+    </div>
         <div>
           <label>Repayment Freq.</label>
           <input readonly value="<%= getStringSafe(rsLoan,"REPAYMENTFREQUENCY") %>">
@@ -411,49 +480,302 @@ document.addEventListener('keydown', function(event) {
           <input readonly value="<%= getStringSafe(rsLoan,"IS_CONSORTIUM_LOAN") %>">
         </div>
         <div>
-          <label>Area Code</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"AREA_CODE") %>">
-        </div>
+      <label>Area</label>
+      <input readonly value="<%
+        String areaCode = getStringSafe(rsLoan,"AREA_CODE");
+        String areaName = "";
+        if (!areaCode.isEmpty()) {
+            PreparedStatement psArea = null;
+            ResultSet rsArea = null;
+            try {
+                psArea = conn.prepareStatement(
+                    "SELECT AREA_NAME FROM HEADOFFICE.AREA WHERE AREA_CODE = ?"
+                );
+                psArea.setString(1, areaCode);
+                rsArea = psArea.executeQuery();
+                if (rsArea.next()) {
+                    areaName = rsArea.getString("AREA_NAME");
+                }
+            } catch (Exception e) {
+                areaName = areaCode;
+            } finally {
+                try { if (rsArea != null) rsArea.close(); } catch (Exception ex) {}
+                try { if (psArea != null) psArea.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(areaName.isEmpty() ? areaCode : areaName);
+      %>">
+    </div>
         <div>
-          <label>Social Section Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"SOCIALSECTION_ID") %>">
-        </div>
+      <label>Social Section</label>
+      <input readonly value="<%
+        String socialSecId = getStringSafe(rsLoan,"SOCIALSECTION_ID");
+        String socialSecDesc = "";
+        if (!socialSecId.isEmpty()) {
+            PreparedStatement psSocialSec = null;
+            ResultSet rsSocialSec = null;
+            try {
+                psSocialSec = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTION WHERE SOCIALSECTION_ID = ?"
+                );
+                psSocialSec.setString(1, socialSecId);
+                rsSocialSec = psSocialSec.executeQuery();
+                if (rsSocialSec.next()) {
+                    socialSecDesc = rsSocialSec.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                socialSecDesc = socialSecId;
+            } finally {
+                try { if (rsSocialSec != null) rsSocialSec.close(); } catch (Exception ex) {}
+                try { if (psSocialSec != null) psSocialSec.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(socialSecDesc.isEmpty() ? socialSecId : socialSecDesc);
+      %>">
+    </div>
         <div>
-          <label>Sub Area Code</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"SUBAREA_CODE") %>">
-        </div>
+      <label>Sub Area</label>
+      <input readonly value="<%
+        String subAreaCode = getStringSafe(rsLoan,"SUBAREA_CODE");
+        String subAreaName = "";
+        if (!subAreaCode.isEmpty()) {
+            PreparedStatement psSubArea = null;
+            ResultSet rsSubArea = null;
+            try {
+                psSubArea = conn.prepareStatement(
+                    "SELECT SUBAREA_NAME FROM HEADOFFICE.SUBAREA WHERE SUBAREA_CODE = ?"
+                );
+                psSubArea.setString(1, subAreaCode);
+                rsSubArea = psSubArea.executeQuery();
+                if (rsSubArea.next()) {
+                    subAreaName = rsSubArea.getString("SUBAREA_NAME");
+                }
+            } catch (Exception e) {
+                subAreaName = subAreaCode;
+            } finally {
+                try { if (rsSubArea != null) rsSubArea.close(); } catch (Exception ex) {}
+                try { if (psSubArea != null) psSubArea.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(subAreaName.isEmpty() ? subAreaCode : subAreaName);
+      %>">
+    </div>
         <div>
-          <label>LBR Code</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"MIS_ID") %>">
-        </div>
+      <label>LBR Code</label>
+      <input readonly value="<%
+        String misId = getStringSafe(rsLoan,"MIS_ID");
+        String misDesc = "";
+        if (!misId.isEmpty()) {
+            PreparedStatement psMIS = null;
+            ResultSet rsMIS = null;
+            try {
+                psMIS = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.MIS WHERE MIS_ID = ?"
+                );
+                psMIS.setString(1, misId);
+                rsMIS = psMIS.executeQuery();
+                if (rsMIS.next()) {
+                    misDesc = rsMIS.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                misDesc = misId;
+            } finally {
+                try { if (rsMIS != null) rsMIS.close(); } catch (Exception ex) {}
+                try { if (psMIS != null) psMIS.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(misDesc.isEmpty() ? misId : misDesc);
+      %>">
+    </div>
         <div>
-          <label>Social Sector Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"SOCIALSECTOR_ID") %>">
-        </div>
+      <label>Social Sector</label>
+      <input readonly value="<%
+        String socialSectorId = getStringSafe(rsLoan,"SOCIALSECTOR_ID");
+        String socialSectorDesc = "";
+        if (!socialSectorId.isEmpty()) {
+            PreparedStatement psSocialSector = null;
+            ResultSet rsSocialSector = null;
+            try {
+                psSocialSector = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.SOCIALSECTOR WHERE SOCIALSECTOR_ID = ?"
+                );
+                psSocialSector.setString(1, socialSectorId);
+                rsSocialSector = psSocialSector.executeQuery();
+                if (rsSocialSector.next()) {
+                    socialSectorDesc = rsSocialSector.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                socialSectorDesc = socialSectorId;
+            } finally {
+                try { if (rsSocialSector != null) rsSocialSector.close(); } catch (Exception ex) {}
+                try { if (psSocialSector != null) psSocialSector.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(socialSectorDesc.isEmpty() ? socialSectorId : socialSectorDesc);
+      %>">
+    </div>
         <div>
-          <label>Purpose Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"PURPOSE_ID") %>">
-        </div>
+      <label>Purpose</label>
+      <input readonly value="<%
+        String purposeId = getStringSafe(rsLoan,"PURPOSE_ID");
+        String purposeDesc = "";
+        if (!purposeId.isEmpty()) {
+            PreparedStatement psPurpose = null;
+            ResultSet rsPurpose = null;
+            try {
+                psPurpose = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.PURPOSE WHERE PURPOSE_ID = ?"
+                );
+                psPurpose.setString(1, purposeId);
+                rsPurpose = psPurpose.executeQuery();
+                if (rsPurpose.next()) {
+                    purposeDesc = rsPurpose.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                purposeDesc = purposeId;
+            } finally {
+                try { if (rsPurpose != null) rsPurpose.close(); } catch (Exception ex) {}
+                try { if (psPurpose != null) psPurpose.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(purposeDesc.isEmpty() ? purposeId : purposeDesc);
+      %>">
+    </div>
         <div>
-          <label>Social SubSector Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"SOCIALSUBSECTOR_ID") %>">
-        </div>
+      <label>Social SubSector</label>
+      <input readonly value="<%
+        String socialSubSectorId = getStringSafe(rsLoan,"SOCIALSUBSECTOR_ID");
+        String socialSubSectorDesc = "";
+        if (!socialSubSectorId.isEmpty()) {
+            PreparedStatement psSocialSubSector = null;
+            ResultSet rsSocialSubSector = null;
+            try {
+                psSocialSubSector = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.SOCIALSUBSECTOR WHERE SOCIALSUBSECTOR_ID = ?"
+                );
+                psSocialSubSector.setString(1, socialSubSectorId);
+                rsSocialSubSector = psSocialSubSector.executeQuery();
+                if (rsSocialSubSector.next()) {
+                    socialSubSectorDesc = rsSocialSubSector.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                socialSubSectorDesc = socialSubSectorId;
+            } finally {
+                try { if (rsSocialSubSector != null) rsSocialSubSector.close(); } catch (Exception ex) {}
+                try { if (psSocialSubSector != null) psSocialSubSector.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(socialSubSectorDesc.isEmpty() ? socialSubSectorId : socialSubSectorDesc);
+      %>">
+    </div>
         <div>
-          <label>Classification Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"CLASSIFICATION_ID") %>">
-        </div>
+      <label>Classification</label>
+      <input readonly value="<%
+        String classificationId = getStringSafe(rsLoan,"CLASSIFICATION_ID");
+        String classificationDesc = "";
+        if (!classificationId.isEmpty()) {
+            PreparedStatement psClassification = null;
+            ResultSet rsClassification = null;
+            try {
+                psClassification = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.CLASSIFICATION WHERE CLASSIFICATION_ID = ?"
+                );
+                psClassification.setString(1, classificationId);
+                rsClassification = psClassification.executeQuery();
+                if (rsClassification.next()) {
+                    classificationDesc = rsClassification.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                classificationDesc = classificationId;
+            } finally {
+                try { if (rsClassification != null) rsClassification.close(); } catch (Exception ex) {}
+                try { if (psClassification != null) psClassification.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(classificationDesc.isEmpty() ? classificationId : classificationDesc);
+      %>">
+    </div>
         <div>
-          <label>Mode Of San. Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"MODEOFSANCTION_ID") %>">
-        </div>
+      <label>Mode Of Sanction</label>
+      <input readonly value="<%
+        String modeOfSanId = getStringSafe(rsLoan,"MODEOFSANCTION_ID");
+        String modeOfSanDesc = "";
+        if (!modeOfSanId.isEmpty()) {
+            PreparedStatement psModeOfSan = null;
+            ResultSet rsModeOfSan = null;
+            try {
+                psModeOfSan = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.MODEOFSANCTION WHERE MODEOFSANCTION_ID = ?"
+                );
+                psModeOfSan.setString(1, modeOfSanId);
+                rsModeOfSan = psModeOfSan.executeQuery();
+                if (rsModeOfSan.next()) {
+                    modeOfSanDesc = rsModeOfSan.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                modeOfSanDesc = modeOfSanId;
+            } finally {
+                try { if (rsModeOfSan != null) rsModeOfSan.close(); } catch (Exception ex) {}
+                try { if (psModeOfSan != null) psModeOfSan.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(modeOfSanDesc.isEmpty() ? modeOfSanId : modeOfSanDesc);
+      %>">
+    </div>
         <div>
-          <label>Sanction Authority Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"SANCTIONAUTHORITY_ID") %>">
-        </div>
+      <label>Sanction Authority</label>
+      <input readonly value="<%
+        String sanctionAuthId = getStringSafe(rsLoan,"SANCTIONAUTHORITY_ID");
+        String sanctionAuthDesc = "";
+        if (!sanctionAuthId.isEmpty()) {
+            PreparedStatement psSanctionAuth = null;
+            ResultSet rsSanctionAuth = null;
+            try {
+                psSanctionAuth = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.SANCTIONAUTHORITY WHERE SANCTIONAUTHORITY_ID = ?"
+                );
+                psSanctionAuth.setString(1, sanctionAuthId);
+                rsSanctionAuth = psSanctionAuth.executeQuery();
+                if (rsSanctionAuth.next()) {
+                    sanctionAuthDesc = rsSanctionAuth.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                sanctionAuthDesc = sanctionAuthId;
+            } finally {
+                try { if (rsSanctionAuth != null) rsSanctionAuth.close(); } catch (Exception ex) {}
+                try { if (psSanctionAuth != null) psSanctionAuth.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(sanctionAuthDesc.isEmpty() ? sanctionAuthId : sanctionAuthDesc);
+      %>">
+    </div>
         <div>
-          <label>Industry Id</label>
-          <input readonly value="<%= getStringSafe(rsLoan,"INDUSTRY_ID") %>">
-        </div>
+      <label>Industry</label>
+      <input readonly value="<%
+        String industryId = getStringSafe(rsLoan,"INDUSTRY_ID");
+        String industryDesc = "";
+        if (!industryId.isEmpty()) {
+            PreparedStatement psIndustry = null;
+            ResultSet rsIndustry = null;
+            try {
+                psIndustry = conn.prepareStatement(
+                    "SELECT DESCRIPTION FROM HEADOFFICE.INDUSTRY WHERE INDUSTRY_ID = ?"
+                );
+                psIndustry.setString(1, industryId);
+                rsIndustry = psIndustry.executeQuery();
+                if (rsIndustry.next()) {
+                    industryDesc = rsIndustry.getString("DESCRIPTION");
+                }
+            } catch (Exception e) {
+                industryDesc = industryId;
+            } finally {
+                try { if (rsIndustry != null) rsIndustry.close(); } catch (Exception ex) {}
+                try { if (psIndustry != null) psIndustry.close(); } catch (Exception ex) {}
+            }
+        }
+        out.print(industryDesc.isEmpty() ? industryId : industryDesc);
+      %>">
+    </div>
         <div>
           <label>Is Director Related</label>
           <input readonly value="<%= getStringSafe(rsLoan,"IS_DIRECTOR_RELATED") %>">
