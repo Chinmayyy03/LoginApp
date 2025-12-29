@@ -79,6 +79,12 @@
             </a>
         </li>
         
+        <li data-page="view.jsp">
+            <a href="#" onclick="loadPage('masters.jsp', 'Masters', 'Masters', this); return false;">
+                <img src="images/newApplication.png" width="22" height="22">
+               View
+            </a>
+        </li>
     </ul>
 
     <div class="logout">
