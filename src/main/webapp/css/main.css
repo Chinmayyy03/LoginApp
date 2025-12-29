@@ -205,17 +205,30 @@ header {
 .branch-section {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.25), rgba(33, 150, 243, 0.3));
     padding: 5px 15px;
-    border-radius: 6px;
-    border-left: 3px solid #4fc3f7;
+    border-radius: 8px;
+    border: 2px solid #4fc3f7;
+    border-left: 4px solid #03a9f4;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
+    transition: all 0.3s ease;
+}
+
+.branch-section:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.5);
+    border-color: #03a9f4;
 }
 
 .branch-name {
-    font-size: clamp(12px, 0.95vw, 14px);
-    font-weight: 600;
+    font-size: clamp(13px, 1vw, 15px);
+    font-weight: 700;
+    letter-spacing: 0.5px;
     white-space: nowrap;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    position: relative;
 }
 
 /* Navigation Row */
@@ -301,7 +314,7 @@ iframe {
     flex: 1;
     width: 100%;
     height: 100%;
-    margin-top: 68px;
+    margin-top: 79px;
     border: none;
     overflow: auto;
 }
@@ -401,6 +414,17 @@ iframe {
         opacity: 1;
     }
 }
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 16px rgba(79, 195, 247, 0.6);
+    }
+}
+.branch-section.highlight {
+    animation: pulse 2s ease-in-out infinite;
+}
 
 /* ============================================
    RESPONSIVE BREAKPOINTS
@@ -413,8 +437,11 @@ iframe {
         letter-spacing: 1.2px;
     }
     
+    .branch-section {
+        padding: 10px 24px;
+    }
     .branch-name {
-        font-size: 15px;
+        font-size: 16px;
     }
     
     .breadcrumb-link,
@@ -504,7 +531,11 @@ iframe {
     }
     
     .branch-section {
-        align-self: flex-start;
+        padding: 6px 15px;
+        border-left-width: 3px;
+    }
+    .branch-name {
+        font-size: 12px;
     }
     
     .nav-row {
@@ -550,11 +581,15 @@ iframe {
     }
     
     .branch-section {
-        padding: 4px 10px;
+        padding: 5px 12px;
     }
     
     .branch-name {
         font-size: 11px;
+    }
+    .branch-name::before {
+        font-size: 1em;
+        margin-right: 6px;
     }
     
     .breadcrumb-link,
