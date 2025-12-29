@@ -967,15 +967,84 @@ document.addEventListener('keydown', function(event) {
           </div>
           <div>
             <label>Country</label>
-            <input readonly value="<%= nominee.get("COUNTRY_CODE") %>">
+            <input readonly value="<%
+              String countryCode = nominee.get("COUNTRY_CODE");
+              String countryName = "";
+              if (!countryCode.isEmpty()) {
+                  PreparedStatement psCountry = null;
+                  ResultSet rsCountry = null;
+                  try {
+                      psCountry = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.COUNTRY WHERE COUNTRY_CODE = ?"
+                      );
+                      psCountry.setString(1, countryCode);
+                      rsCountry = psCountry.executeQuery();
+                      if (rsCountry.next()) {
+                          countryName = rsCountry.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      countryName = countryCode;
+                  } finally {
+                      try { if (rsCountry != null) rsCountry.close(); } catch (Exception ex) {}
+                      try { if (psCountry != null) psCountry.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(countryName.isEmpty() ? countryCode : countryName);
+            %>">
           </div>
           <div>
             <label>State</label>
-            <input readonly value="<%= nominee.get("STATE_CODE") %>">
+            <input readonly value="<%
+              String stateCode = nominee.get("STATE_CODE");
+              String stateName = "";
+              if (!stateCode.isEmpty()) {
+                  PreparedStatement psState = null;
+                  ResultSet rsState = null;
+                  try {
+                      psState = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.STATE WHERE STATE_CODE = ?"
+                      );
+                      psState.setString(1, stateCode);
+                      rsState = psState.executeQuery();
+                      if (rsState.next()) {
+                          stateName = rsState.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      stateName = stateCode;
+                  } finally {
+                      try { if (rsState != null) rsState.close(); } catch (Exception ex) {}
+                      try { if (psState != null) psState.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(stateName.isEmpty() ? stateCode : stateName);
+            %>">
           </div>
           <div>
             <label>City</label>
-            <input readonly value="<%= nominee.get("CITY_CODE") %>">
+            <input readonly value="<%
+              String cityCode = nominee.get("CITY_CODE");
+              String cityName = "";
+              if (!cityCode.isEmpty()) {
+                  PreparedStatement psCity = null;
+                  ResultSet rsCity = null;
+                  try {
+                      psCity = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.CITY WHERE CITY_CODE = ?"
+                      );
+                      psCity.setString(1, cityCode);
+                      rsCity = psCity.executeQuery();
+                      if (rsCity.next()) {
+                          cityName = rsCity.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cityName = cityCode;
+                  } finally {
+                      try { if (rsCity != null) rsCity.close(); } catch (Exception ex) {}
+                      try { if (psCity != null) psCity.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cityName.isEmpty() ? cityCode : cityName);
+            %>">
           </div>
           <div>
             <label>ZIP</label>
@@ -983,7 +1052,30 @@ document.addEventListener('keydown', function(event) {
           </div>
           <div>
             <label>Relation</label>
-            <input readonly value="<%= nominee.get("RELATION_ID") %>">
+            <input readonly value="<%
+              String relationId = nominee.get("RELATION_ID");
+              String relationDesc = "";
+              if (!relationId.isEmpty()) {
+                  PreparedStatement psRelation = null;
+                  ResultSet rsRelation = null;
+                  try {
+                      psRelation = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.RELATION WHERE RELATION_ID = ?"
+                      );
+                      psRelation.setString(1, relationId);
+                      rsRelation = psRelation.executeQuery();
+                      if (rsRelation.next()) {
+                          relationDesc = rsRelation.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      relationDesc = relationId;
+                  } finally {
+                      try { if (rsRelation != null) rsRelation.close(); } catch (Exception ex) {}
+                      try { if (psRelation != null) psRelation.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(relationDesc.isEmpty() ? relationId : relationDesc);
+            %>">
           </div>
         </div>
       </div>
@@ -1055,15 +1147,84 @@ document.addEventListener('keydown', function(event) {
           </div>
           <div>
             <label>Country</label>
-            <input readonly value="<%= joint.get("COUNTRY_CODE") %>">
+            <input readonly value="<%
+              String jCountryCode = joint.get("COUNTRY_CODE");
+              String jCountryName = "";
+              if (!jCountryCode.isEmpty()) {
+                  PreparedStatement psJCountry = null;
+                  ResultSet rsJCountry = null;
+                  try {
+                      psJCountry = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.COUNTRY WHERE COUNTRY_CODE = ?"
+                      );
+                      psJCountry.setString(1, jCountryCode);
+                      rsJCountry = psJCountry.executeQuery();
+                      if (rsJCountry.next()) {
+                          jCountryName = rsJCountry.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      jCountryName = jCountryCode;
+                  } finally {
+                      try { if (rsJCountry != null) rsJCountry.close(); } catch (Exception ex) {}
+                      try { if (psJCountry != null) psJCountry.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(jCountryName.isEmpty() ? jCountryCode : jCountryName);
+            %>">
           </div>
           <div>
             <label>State</label>
-            <input readonly value="<%= joint.get("STATE_CODE") %>">
+            <input readonly value="<%
+              String jStateCode = joint.get("STATE_CODE");
+              String jStateName = "";
+              if (!jStateCode.isEmpty()) {
+                  PreparedStatement psJState = null;
+                  ResultSet rsJState = null;
+                  try {
+                      psJState = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.STATE WHERE STATE_CODE = ?"
+                      );
+                      psJState.setString(1, jStateCode);
+                      rsJState = psJState.executeQuery();
+                      if (rsJState.next()) {
+                          jStateName = rsJState.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      jStateName = jStateCode;
+                  } finally {
+                      try { if (rsJState != null) rsJState.close(); } catch (Exception ex) {}
+                      try { if (psJState != null) psJState.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(jStateName.isEmpty() ? jStateCode : jStateName);
+            %>">
           </div>
-          <div>
+         <div>
             <label>City</label>
-            <input readonly value="<%= joint.get("CITY_CODE") %>">
+            <input readonly value="<%
+              String jCityCode = joint.get("CITY_CODE");
+              String jCityName = "";
+              if (!jCityCode.isEmpty()) {
+                  PreparedStatement psJCity = null;
+                  ResultSet rsJCity = null;
+                  try {
+                      psJCity = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.CITY WHERE CITY_CODE = ?"
+                      );
+                      psJCity.setString(1, jCityCode);
+                      rsJCity = psJCity.executeQuery();
+                      if (rsJCity.next()) {
+                          jCityName = rsJCity.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      jCityName = jCityCode;
+                  } finally {
+                      try { if (rsJCity != null) rsJCity.close(); } catch (Exception ex) {}
+                      try { if (psJCity != null) psJCity.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(jCityName.isEmpty() ? jCityCode : jCityName);
+            %>">
           </div>
           <div>
             <label>ZIP</label>
@@ -1139,15 +1300,84 @@ document.addEventListener('keydown', function(event) {
           </div>
           <div>
             <label>Country</label>
-            <input readonly value="<%= coBorrower.get("COUNTRY_CODE") %>">
+            <input readonly value="<%
+              String cbCountryCode = coBorrower.get("COUNTRY_CODE");
+              String cbCountryName = "";
+              if (!cbCountryCode.isEmpty()) {
+                  PreparedStatement psCbCountry = null;
+                  ResultSet rsCbCountry = null;
+                  try {
+                      psCbCountry = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.COUNTRY WHERE COUNTRY_CODE = ?"
+                      );
+                      psCbCountry.setString(1, cbCountryCode);
+                      rsCbCountry = psCbCountry.executeQuery();
+                      if (rsCbCountry.next()) {
+                          cbCountryName = rsCbCountry.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbCountryName = cbCountryCode;
+                  } finally {
+                      try { if (rsCbCountry != null) rsCbCountry.close(); } catch (Exception ex) {}
+                      try { if (psCbCountry != null) psCbCountry.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbCountryName.isEmpty() ? cbCountryCode : cbCountryName);
+            %>">
           </div>
-          <div>
+         <div>
             <label>State</label>
-            <input readonly value="<%= coBorrower.get("STATE_CODE") %>">
+            <input readonly value="<%
+              String cbStateCode = coBorrower.get("STATE_CODE");
+              String cbStateName = "";
+              if (!cbStateCode.isEmpty()) {
+                  PreparedStatement psCbState = null;
+                  ResultSet rsCbState = null;
+                  try {
+                      psCbState = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.STATE WHERE STATE_CODE = ?"
+                      );
+                      psCbState.setString(1, cbStateCode);
+                      rsCbState = psCbState.executeQuery();
+                      if (rsCbState.next()) {
+                          cbStateName = rsCbState.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbStateName = cbStateCode;
+                  } finally {
+                      try { if (rsCbState != null) rsCbState.close(); } catch (Exception ex) {}
+                      try { if (psCbState != null) psCbState.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbStateName.isEmpty() ? cbStateCode : cbStateName);
+            %>">
           </div>
           <div>
             <label>City</label>
-            <input readonly value="<%= coBorrower.get("CITY_CODE") %>">
+            <input readonly value="<%
+              String cbCityCode = coBorrower.get("CITY_CODE");
+              String cbCityName = "";
+              if (!cbCityCode.isEmpty()) {
+                  PreparedStatement psCbCity = null;
+                  ResultSet rsCbCity = null;
+                  try {
+                      psCbCity = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.CITY WHERE CITY_CODE = ?"
+                      );
+                      psCbCity.setString(1, cbCityCode);
+                      rsCbCity = psCbCity.executeQuery();
+                      if (rsCbCity.next()) {
+                          cbCityName = rsCbCity.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbCityName = cbCityCode;
+                  } finally {
+                      try { if (rsCbCity != null) rsCbCity.close(); } catch (Exception ex) {}
+                      try { if (psCbCity != null) psCbCity.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbCityName.isEmpty() ? cbCityCode : cbCityName);
+            %>">
           </div>
           <div>
             <label>ZIP</label>
@@ -1215,15 +1445,84 @@ document.addEventListener('keydown', function(event) {
           </div>
           <div>
             <label>Country</label>
-            <input readonly value="<%= guarantor.get("COUNTRY_CODE") %>">
+            <input readonly value="<%
+              String gCountryCode = guarantor.get("COUNTRY_CODE");
+              String gCountryName = "";
+              if (!gCountryCode.isEmpty()) {
+                  PreparedStatement psGCountry = null;
+                  ResultSet rsGCountry = null;
+                  try {
+                      psGCountry = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.COUNTRY WHERE COUNTRY_CODE = ?"
+                      );
+                      psGCountry.setString(1, gCountryCode);
+                      rsGCountry = psGCountry.executeQuery();
+                      if (rsGCountry.next()) {
+                          gCountryName = rsGCountry.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      gCountryName = gCountryCode;
+                  } finally {
+                      try { if (rsGCountry != null) rsGCountry.close(); } catch (Exception ex) {}
+                      try { if (psGCountry != null) psGCountry.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(gCountryName.isEmpty() ? gCountryCode : gCountryName);
+            %>">
           </div>
           <div>
             <label>State</label>
-            <input readonly value="<%= guarantor.get("STATE_CODE") %>">
+            <input readonly value="<%
+              String gStateCode = guarantor.get("STATE_CODE");
+              String gStateName = "";
+              if (!gStateCode.isEmpty()) {
+                  PreparedStatement psGState = null;
+                  ResultSet rsGState = null;
+                  try {
+                      psGState = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.STATE WHERE STATE_CODE = ?"
+                      );
+                      psGState.setString(1, gStateCode);
+                      rsGState = psGState.executeQuery();
+                      if (rsGState.next()) {
+                          gStateName = rsGState.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      gStateName = gStateCode;
+                  } finally {
+                      try { if (rsGState != null) rsGState.close(); } catch (Exception ex) {}
+                      try { if (psGState != null) psGState.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(gStateName.isEmpty() ? gStateCode : gStateName);
+            %>">
           </div>
           <div>
             <label>City</label>
-            <input readonly value="<%= guarantor.get("CITY_CODE") %>">
+            <input readonly value="<%
+              String gCityCode = guarantor.get("CITY_CODE");
+              String gCityName = "";
+              if (!gCityCode.isEmpty()) {
+                  PreparedStatement psGCity = null;
+                  ResultSet rsGCity = null;
+                  try {
+                      psGCity = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.CITY WHERE CITY_CODE = ?"
+                      );
+                      psGCity.setString(1, gCityCode);
+                      rsGCity = psGCity.executeQuery();
+                      if (rsGCity.next()) {
+                          gCityName = rsGCity.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      gCityName = gCityCode;
+                  } finally {
+                      try { if (rsGCity != null) rsGCity.close(); } catch (Exception ex) {}
+                      try { if (psGCity != null) psGCity.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(gCityName.isEmpty() ? gCityCode : gCityName);
+            %>">
           </div>
           <div>
             <label>ZIP</label>
@@ -1292,7 +1591,30 @@ document.addEventListener('keydown', function(event) {
         <div class="form-grid">
           <div>
             <label>Security Type</label>
-            <input readonly value="<%= lb.get("SECURITYTYPE_CODE") %>">
+            <input readonly value="<%
+              String lbSecTypeCode = lb.get("SECURITYTYPE_CODE");
+              String lbSecTypeDesc = "";
+              if (!lbSecTypeCode.isEmpty()) {
+                  PreparedStatement psLbSecType = null;
+                  ResultSet rsLbSecType = null;
+                  try {
+                      psLbSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psLbSecType.setString(1, lbSecTypeCode);
+                      rsLbSecType = psLbSecType.executeQuery();
+                      if (rsLbSecType.next()) {
+                          lbSecTypeDesc = rsLbSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      lbSecTypeDesc = lbSecTypeCode;
+                  } finally {
+                      try { if (rsLbSecType != null) rsLbSecType.close(); } catch (Exception ex) {}
+                      try { if (psLbSecType != null) psLbSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(lbSecTypeDesc.isEmpty() ? lbSecTypeCode : lbSecTypeDesc);
+            %>">
           </div>
           <div>
             <label>Submission Date</label>
@@ -1371,7 +1693,30 @@ document.addEventListener('keydown', function(event) {
         <div class="form-grid">
           <div>
             <label>Security Type</label>
-            <input readonly value="<%= deposit.get("SECURITYTYPE_CODE") %>">
+            <input readonly value="<%
+              String depSecTypeCode = deposit.get("SECURITYTYPE_CODE");
+              String depSecTypeDesc = "";
+              if (!depSecTypeCode.isEmpty()) {
+                  PreparedStatement psDepSecType = null;
+                  ResultSet rsDepSecType = null;
+                  try {
+                      psDepSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psDepSecType.setString(1, depSecTypeCode);
+                      rsDepSecType = psDepSecType.executeQuery();
+                      if (rsDepSecType.next()) {
+                          depSecTypeDesc = rsDepSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      depSecTypeDesc = depSecTypeCode;
+                  } finally {
+                      try { if (rsDepSecType != null) rsDepSecType.close(); } catch (Exception ex) {}
+                      try { if (psDepSecType != null) psDepSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(depSecTypeDesc.isEmpty() ? depSecTypeCode : depSecTypeDesc);
+            %>">
           </div>
           <div>
             <label>Submission Date</label>
@@ -1444,6 +1789,32 @@ document.addEventListener('keydown', function(event) {
         <div class="form-grid">
           <div>
             <label>Security Type</label>
+            <input readonly value="<%
+              String gsSecTypeCode = gs.get("SECURITYTYPE_CODE");
+              String gsSecTypeDesc = "";
+              if (!gsSecTypeCode.isEmpty()) {
+                  PreparedStatement psGsSecType = null;
+                  ResultSet rsGsSecType = null;
+                  try {
+                      psGsSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psGsSecType.setString(1, gsSecTypeCode);
+                      rsGsSecType = psGsSecType.executeQuery();
+                      if (rsGsSecType.next()) {
+                          gsSecTypeDesc = rsGsSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      gsSecTypeDesc = gsSecTypeCode;
+                  } finally {
+                      try { if (rsGsSecType != null) rsGsSecType.close(); } catch (Exception ex) {}
+                      try { if (psGsSecType != null) psGsSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(gsSecTypeDesc.isEmpty() ? gsSecTypeCode : gsSecTypeDesc);
+            %>">
+          </div>
+            <label>Security Type</label>
             <input readonly value="<%= gs.get("SECURITYTYPE_CODE") %>">
           </div>
           <div>
@@ -1483,7 +1854,7 @@ document.addEventListener('keydown', function(event) {
             <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
           </div>
         </div>
-      </div>
+
       <%
         }
       %>
