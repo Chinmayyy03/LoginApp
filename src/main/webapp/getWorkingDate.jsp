@@ -15,8 +15,8 @@
 
     Connection conn = null;
     CallableStatement cstmt = null;
-    PreparedStatement psBank = null;
-    ResultSet rsBank = null;
+    PreparedStatement psBank = null, psBranch = null;
+    ResultSet rsBank = null, rsBranch = null;
 
     try {
         conn = DBConnection.getConnection();
@@ -49,7 +49,25 @@
         rsBank.close();
         psBank.close();
         
-        // ✅ Step 2: Fetch Working Date
+        // ✅ Step 2: Fetch Branch Name from BRANCHES table
+        String branchName = "";
+        
+        String branchQuery = "SELECT NAME FROM BRANCHES WHERE BRANCH_CODE = ?";
+        psBranch = conn.prepareStatement(branchQuery);
+        psBranch.setString(1, branchCode);
+        rsBranch = psBranch.executeQuery();
+        
+        if (rsBranch.next()) {
+            branchName = rsBranch.getString("NAME");
+            session.setAttribute("branchName", branchName);
+        } else {
+            branchName = "Branch Not Found";
+        }
+        
+        rsBranch.close();
+        psBranch.close();
+        
+        // ✅ Step 3: Fetch Working Date
         String functionCall = "{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}";
         cstmt = conn.prepareCall(functionCall);
         cstmt.registerOutParameter(1, Types.DATE);
@@ -65,11 +83,13 @@
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, MMMM d, yyyy");
         String formattedDate = sdf.format(workingDate);
         
-        // ✅ Step 3: Return JSON with both Bank Name and Working Date
+        // ✅ Step 4: Return JSON with Bank Name, Branch Name, and Working Date
         out.print("{");
         out.print("\"bankName\": \"" + bankName.replace("\"", "'") + "\",");
         out.print("\"bankShortName\": \"" + bankShortName.replace("\"", "'") + "\",");
         out.print("\"bankCode\": \"" + bankCode + "\",");
+        out.print("\"branchName\": \"" + branchName.replace("\"", "'") + "\",");
+        out.print("\"branchCode\": \"" + branchCode + "\",");
         out.print("\"workingDate\": \"" + formattedDate + "\"");
         out.print("}");
         
@@ -78,7 +98,9 @@
         out.print("{\"error\": \"" + e.getMessage().replace("\"", "'") + "\"}");
     } finally {
         try { if (rsBank != null) rsBank.close(); } catch (Exception ignored) {}
+        try { if (rsBranch != null) rsBranch.close(); } catch (Exception ignored) {}
         try { if (psBank != null) psBank.close(); } catch (Exception ignored) {}
+        try { if (psBranch != null) psBranch.close(); } catch (Exception ignored) {}
         try { if (cstmt != null) cstmt.close(); } catch (Exception ignored) {}
         try { if (conn != null) conn.close(); } catch (Exception ignored) {}
     }

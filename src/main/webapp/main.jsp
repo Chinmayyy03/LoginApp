@@ -31,66 +31,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Dashboard</title>
     <link rel="stylesheet" href="css/main.css">
     <style>
         /* ============================================
-           HEADER WITH BANK NAME & BREADCRUMB
+           FULLY RESPONSIVE LAYOUT - OPTION 2
            ============================================ */
 
-        /* Header Container */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Responsive */
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 200;
+            transition: transform 0.3s ease;
+        }
+
+        /* Main Content - Responsive */
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        /* Header Container - Responsive */
         header {
-            background: linear-gradient(90deg, #1d314f, #5aa7f0);
-            padding: 12px 30px 8px 30px;
+            background: linear-gradient(90deg, #2c4a6f, #5a9bd5);
+            padding: 8px 30px 6px 30px;
             color: white;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
             position: fixed;
             width: calc(100% - 250px);
             top: 0;
+            left: 250px;
             box-sizing: border-box;
             z-index: 100;
-            
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: width 0.3s ease, left 0.3s ease;
         }
 
-        /* Bank Name Title */
+        /* Title Row - Bank Left, Branch Right */
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+            gap: 15px;
+        }
+
+        /* Bank Section with Icon */
+        .bank-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bank-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
         .bank-title {
-            font-size: 22px;
+            font-size: clamp(14px, 1.2vw, 18px);
             font-weight: 700;
-            letter-spacing: 1.2px;
-            color: #ffffff;
+            letter-spacing: clamp(0.4px, 0.08vw, 1px);
             text-transform: uppercase;
-            text-align: center;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
             margin: 0;
             padding: 0;
             line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Navigation Row (Breadcrumb + Date) */
+        /* Branch Section */
+        .branch-section {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 5px 15px;
+            border-radius: 6px;
+            border-left: 3px solid #4fc3f7;
+            flex-shrink: 0;
+        }
+
+        .branch-name {
+            font-size: clamp(12px, 0.95vw, 14px);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Navigation Row */
         .nav-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding-top: 0;
-            min-height: 30px;
+            min-height: 26px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        /* Breadcrumb Navigation Styling */
+        /* Breadcrumb Navigation - Responsive */
         .breadcrumb-container {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 16px;
+            gap: clamp(6px, 0.5vw, 8px);
+            font-size: clamp(12px, 0.9vw, 14px);
             color: #ffffff;
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 200px;
+            flex-wrap: wrap;
         }
 
         .breadcrumb-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(6px, 0.5vw, 8px);
         }
 
         .breadcrumb-link {
@@ -98,11 +183,12 @@
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
-            padding: 4px 10px;
-            font-size: 16px;
+            padding: 3px 8px;
+            font-size: clamp(12px, 0.9vw, 14px);
             border-radius: 4px;
             background: rgba(255, 255, 255, 0.1);
-            line-height: 1.5;
+            line-height: 1.3;
+            white-space: nowrap;
         }
 
         .breadcrumb-link:hover {
@@ -114,117 +200,246 @@
             color: #ffffff;
             font-weight: 600;
             user-select: none;
-            font-size: 18px;
+            font-size: clamp(14px, 1vw, 16px);
         }
 
         .breadcrumb-current {
             color: #ffffff;
             font-weight: 600;
             background: rgba(255, 255, 255, 0.15);
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 4px;
-            line-height: 1.5;
-            font-size: 16px;
+            line-height: 1.3;
+            font-size: clamp(12px, 0.9vw, 14px);
+            white-space: nowrap;
         }
 
-        /* Working Date Styling */
+        /* Working Date - Responsive */
         #workingDate {
             color: #ffffff;
-            font-size: 16px;
+            font-size: clamp(12px, 0.9vw, 14px);
             font-weight: 500;
-            padding: 4px 12px;
+            padding: 3px 10px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             white-space: nowrap;
-            line-height: 1.5;
+            line-height: 1.3;
+            flex-shrink: 0;
         }
 
-        /* Adjust iframe for new header height */
+        /* iframe - Fully Responsive */
         iframe {
             flex: 1;
-            margin-top: 85px;
             width: 100%;
-            height: calc(100vh - 85px);
+            height: 100%;
+            margin-top: 75px;
             border: none;
+            overflow: auto;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 1200px) {
+        /* Desktop - Large screens (1920px+) */
+        @media (min-width: 1920px) {
             .bank-title {
-                font-size: 18px;
-                letter-spacing: 0.8px;
+                font-size: 20px;
+                letter-spacing: 1.2px;
             }
             
-            .breadcrumb-container {
-                font-size: 14px;
+            .branch-name {
+                font-size: 15px;
             }
             
-            .breadcrumb-link {
-                padding: 3px 8px;
-                font-size: 14px;
-            }
-            
-            .breadcrumb-current {
-                font-size: 14px;
-                padding: 3px 10px;
-            }
-            
+            .breadcrumb-link,
+            .breadcrumb-current,
             #workingDate {
-                font-size: 14px;
-                padding: 3px 10px;
+                font-size: 15px;
             }
         }
 
-        @media (max-width: 768px) {
+        /* Desktop - Medium screens (1440px - 1919px) */
+        @media (min-width: 1440px) and (max-width: 1919px) {
             header {
-                padding: 10px 15px 8px 15px;
+                padding: 8px 25px 6px 25px;
+            }
+        }
+
+        /* Laptop - Standard (1024px - 1439px) */
+        @media (min-width: 1024px) and (max-width: 1439px) {
+            header {
+                padding: 7px 20px 5px 20px;
+            }
+            
+            .nav-row {
+                min-height: 24px;
+            }
+        }
+
+        /* Tablet - Landscape (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            header {
+                padding: 6px 15px 5px 15px;
             }
             
             .bank-title {
                 font-size: 15px;
-                letter-spacing: 0.6px;
+            }
+            
+            .branch-name {
+                font-size: 12px;
+            }
+            
+            .breadcrumb-container {
+                min-width: 150px;
+            }
+            
+            iframe {
+                margin-top: 78px;
+            }
+        }
+
+        /* Tablet - Portrait & Mobile (max-width: 767px) */
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                z-index: 300;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            header {
+                width: 100%;
+                left: 0;
+                padding: 6px 15px 5px 15px;
+                position: relative;
+            }
+            
+            .title-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .bank-section {
+                width: 100%;
+            }
+            
+            .bank-title {
+                white-space: normal;
+                word-wrap: break-word;
+            }
+            
+            .branch-section {
+                align-self: flex-start;
             }
             
             .nav-row {
                 flex-direction: column;
-                gap: 8px;
                 align-items: flex-start;
+                gap: 6px;
             }
             
             .breadcrumb-container {
-                font-size: 13px;
-                flex-wrap: wrap;
-            }
-            
-            .breadcrumb-link {
-                padding: 2px 6px;
-                font-size: 13px;
-            }
-            
-            .breadcrumb-current {
-                padding: 2px 8px;
-                font-size: 13px;
+                width: 100%;
+                min-width: auto;
             }
             
             #workingDate {
-                font-size: 13px;
-                padding: 2px 8px;
+                align-self: flex-start;
             }
             
             iframe {
-                margin-top: 100px;
-                height: calc(100vh - 100px);
+                position: relative;
+                margin-top: 0;
+                width: 100%;
+                min-height: calc(100vh - 250px);
+                height: auto;
             }
         }
 
+        /* Mobile - Small (360px - 480px) */
         @media (max-width: 480px) {
-            .bank-title {
+            header {
+                padding: 5px 10px 4px 10px;
+                gap: 3px;
+            }
+            
+            .bank-icon {
+                width: 20px;
+                height: 20px;
                 font-size: 12px;
-                letter-spacing: 0.4px;
+            }
+            
+            .bank-title {
+                font-size: 11px;
+                letter-spacing: 0.3px;
+            }
+            
+            .branch-section {
+                padding: 4px 10px;
+            }
+            
+            .branch-name {
+                font-size: 11px;
+            }
+            
+            .breadcrumb-link,
+            .breadcrumb-current,
+            #workingDate {
+                font-size: 11px;
+                padding: 2px 6px;
             }
             
             .breadcrumb-separator {
-                font-size: 14px;
+                font-size: 13px;
+            }
+            
+            iframe {
+                min-height: calc(100vh - 280px);
+            }
+        }
+
+        /* Mobile - Extra Small (max-width: 359px) */
+        @media (max-width: 359px) {
+            .bank-title {
+                font-size: 10px;
+            }
+            
+            .branch-name {
+                font-size: 10px;
+            }
+            
+            .breadcrumb-link,
+            .breadcrumb-current,
+            #workingDate {
+                font-size: 10px;
+                padding: 2px 5px;
+            }
+            
+            iframe {
+                min-height: calc(100vh - 300px);
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (max-height: 600px) and (orientation: landscape) {
+            iframe {
+                min-height: 400px;
+            }
+        }
+
+        /* High DPI screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .bank-title,
+            .breadcrumb-link,
+            #workingDate {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
             }
         }
     </style>
@@ -282,10 +497,23 @@
 
 <div class="main-content">
     <header>
-        <!-- Bank Name Title (Dynamically Loaded) -->
-        <h1 class="bank-title" id="bankNameTitle">
-            Loading Bank Name...
-        </h1>
+        <!-- Title Row: Bank Name (Left) + Branch Name (Right) -->
+        <div class="title-row">
+            <!-- Bank Section with Icon -->
+            <div class="bank-section">
+                <div class="bank-icon">🏦</div>
+                <h1 class="bank-title" id="bankNameTitle">
+                    Loading Bank Name...
+                </h1>
+            </div>
+            
+            <!-- Branch Section (Without "BRANCH" text) -->
+            <div class="branch-section">
+                <div class="branch-name" id="branchName">
+                    Loading...
+                </div>
+            </div>
+        </div>
         
         <!-- Navigation Row: Breadcrumb + Working Date -->
         <div class="nav-row">
@@ -401,7 +629,7 @@ window.updateParentBreadcrumb = function(path) {
     updateBreadcrumb(path);
 };
 
-// ========== WORKING DATE & BANK NAME FUNCTIONS ==========
+// ========== WORKING DATE, BANK NAME & BRANCH NAME FUNCTIONS ==========
 
 function updateWorkingDateAndBankName() {
     fetch('getWorkingDate.jsp')
@@ -409,11 +637,13 @@ function updateWorkingDateAndBankName() {
         .then(data => {
             const dateElement = document.getElementById("workingDate");
             const bankNameElement = document.getElementById("bankNameTitle");
+            const branchNameElement = document.getElementById("branchName");
             
             if (data.error) {
                 dateElement.innerText = "Error: " + data.error;
                 dateElement.style.color = "#ffcccc";
                 bankNameElement.innerText = "Error Loading Bank Name";
+                branchNameElement.innerText = "Error";
             } else {
                 // Update Working Date
                 dateElement.innerText = "Working Date: " + data.workingDate;
@@ -425,12 +655,20 @@ function updateWorkingDateAndBankName() {
                     sessionStorage.setItem('bankName', data.bankName);
                     sessionStorage.setItem('bankCode', data.bankCode);
                 }
+                
+                // Update Branch Name (without "BRANCH:" prefix)
+                if (data.branchName) {
+                    branchNameElement.innerText = data.branchName.toUpperCase();
+                    sessionStorage.setItem('branchName', data.branchName);
+                    sessionStorage.setItem('branchCode', data.branchCode);
+                }
             }
         })
         .catch(error => {
             console.error('Error fetching working date and bank name:', error);
             document.getElementById("workingDate").innerText = "Connection Error";
             document.getElementById("bankNameTitle").innerText = "Connection Error";
+            document.getElementById("branchName").innerText = "Error";
         });
 }
 
@@ -458,7 +696,7 @@ window.onload = function () {
         }
     }
 
-    // Update working date AND bank name immediately
+    // Update working date, bank name AND branch name immediately
     updateWorkingDateAndBankName();
     
     // Refresh every 30 seconds
