@@ -47,7 +47,7 @@
       <div>
         <label>Is Individual</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="isIndividual" value="yes"> Yes</label>
+          <label><input type="radio" name="isIndividual" value="yes" required> Yes</label>
           <label><input type="radio" name="isIndividual" value="no"> No</label>
         </div>
       </div>
@@ -120,7 +120,7 @@
       
       <div>
         <label>Customer Name</label>
-        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')" readonly>
+        <input type="text" name="customerName" id="customerName" oninput="this.value = this.value.replace(/[^A-Za-z]/g, ' ')" required>
       </div>
 
       <div>
@@ -930,7 +930,6 @@ document.addEventListener('DOMContentLoaded', function () {
             'firstName',
             'middleName',
             'surname',
-            'customerName',
             'birthDate',
             'gender',
             'salutationCode',
