@@ -51,7 +51,7 @@ function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Dashboard > Total Customer > View Details');
     }
-    window.location.href = 'viewCustomer.jsp?cid=' + customerId;
+    window.location.href = 'viewCustomer.jsp?cid=' + customerId + '&returnPage=totalCustomers.jsp';
 }
 </script>
 </head>

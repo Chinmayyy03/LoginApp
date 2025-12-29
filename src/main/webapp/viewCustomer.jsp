@@ -1,6 +1,12 @@
 <%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.Date, java.util.Base64" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
+    String returnPage = request.getParameter("returnPage");
+    if (returnPage == null || returnPage.trim().isEmpty()) {
+        returnPage = "totalCustomers.jsp"; // default fallback
+    }
+%>
+<%
     // ✅ Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
@@ -223,19 +229,31 @@ body {
 }
 </style>
 <script>
-//Update breadcrumb on page load
+// Update breadcrumb on page load
 window.onload = function() {
+    var returnPage = '<%= returnPage %>';
+    var breadcrumb = 'Dashboard > Total Customer > View Details';
+    
+    // Set appropriate breadcrumb based on return page
+    if (returnPage === 'aTypeMember.jsp') {
+        breadcrumb = 'Dashboard > A Type member > View Details';
+    } else if (returnPage === 'bTypeMember.jsp') {
+        breadcrumb = 'Dashboard > B Type member > View Details';
+    } else if (returnPage === 'otherMember.jsp') {
+        breadcrumb = 'Dashboard > OTHER > View Details';
+    } else if (returnPage === 'totalCustomers.jsp') {
+        breadcrumb = 'Dashboard > Total Customer > View Details';
+    }
+    
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Customers > View Details');
+        window.parent.updateParentBreadcrumb(breadcrumb);
     }
 };
 
-// Go back to list
+// Go back to the page where user came from
 function goBackToList() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Customers');
-    }
-    window.location.href = 'totalCustomers.jsp';
+    var returnPage = '<%= returnPage %>';
+    window.location.href = returnPage;
 }
 </script>
 </head>
