@@ -52,17 +52,23 @@ public class DashboardService {
                          ? parameters.split(",") 
                          : new String[0];
         
-        // Build SQL with function call, replacing DATE with SYSDATE
+        // Build SQL with function call, replacing DATE with SYSDATE and BRANCH with branchCode
         StringBuilder sql = new StringBuilder("SELECT ").append(functionName).append("(");
         
+        int paramCount = 0;
         for (int i = 0; i < params.length; i++) {
-            if (i > 0) sql.append(", ");
+            if (paramCount > 0) sql.append(", ");
             
             String param = params[i].trim().toUpperCase();
             if (param.equals("DATE")) {
                 sql.append("SYSDATE");
+                paramCount++;
+            } else if (param.equals("BRANCH")) {
+                sql.append("?");
+                paramCount++;
             } else {
                 sql.append("?");
+                paramCount++;
             }
         }
         sql.append(") FROM DUAL");
@@ -75,12 +81,16 @@ public class DashboardService {
             conn = DBConnection.getConnection();
             ps = conn.prepareStatement(sql.toString());
             
-            // Set only non-DATE parameters
+            // Set parameters (skip DATE, replace BRANCH with branchCode)
             int paramIndex = 1;
             for (int i = 0; i < params.length; i++) {
                 String param = params[i].trim().toUpperCase();
                 if (!param.equals("DATE")) {
-                    ps.setString(paramIndex++, params[i].trim());
+                    if (param.equals("BRANCH")) {
+                        ps.setString(paramIndex++, branchCode);
+                    } else {
+                        ps.setString(paramIndex++, params[i].trim());
+                    }
                 }
             }
             
@@ -94,6 +104,7 @@ public class DashboardService {
         } catch (SQLException e) {
             System.err.println("Error executing function: " + functionName);
             System.err.println("Parameters: " + parameters);
+            System.err.println("Branch Code: " + branchCode);
             System.err.println("SQL: " + sql.toString());
             e.printStackTrace();
             throw e;

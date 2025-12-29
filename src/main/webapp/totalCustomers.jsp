@@ -68,7 +68,7 @@ function viewCustomer(customerId) {
 <%
 try (Connection conn = DBConnection.getConnection();
      PreparedStatement ps = conn.prepareStatement(
-        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS = 'A' ORDER BY CUSTOMER_ID")) {
+        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS='A' AND IS_ACTIVE='Y' ORDER BY CUSTOMER_ID")) {
 
     ps.setString(1, branchCode);
     ResultSet rs = ps.executeQuery();
