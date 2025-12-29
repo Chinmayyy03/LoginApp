@@ -49,7 +49,8 @@ window.onload = function() {
 // View account details
 function viewAccount(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('View > Total Accounts' > View Details');
+        // FIXED: Removed extra quote that was breaking the breadcrumb
+        window.parent.updateParentBreadcrumb('View > Total Accounts > View Details');
     }
     window.location.href = 'viewAccount.jsp?accountCode=' + accountCode;
 }

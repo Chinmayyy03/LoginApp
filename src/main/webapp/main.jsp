@@ -185,8 +185,9 @@ const pageMap = {
     'Application List': 'authorizationPendingApplications.jsp',
     'Loan Details': 'loanDetails.jsp',
     'Open Account': 'newApplication.jsp',
-    'View': 'view.jsp',
-    'Total Accounts': 'totalAccounts.jsp'
+    'Masters': 'masters.jsp',
+    'View': 'View/view.jsp',  // FIXED: Added correct path
+    'Total Accounts': 'View/totalAccounts.jsp'  // FIXED: Added correct path
 };
 
 // Track the currently active menu item
@@ -372,6 +373,3 @@ document.addEventListener('keydown', function(event) {
 });
 
 </script>
-
-</body>
-</html>
