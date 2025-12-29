@@ -42,14 +42,14 @@ function searchTable() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Accounts');
+        window.parent.updateParentBreadcrumb('View > Total Accounts');
     }
 };
 
 // View account details
 function viewAccount(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Accounts > View Details');
+        window.parent.updateParentBreadcrumb('View > Total Accounts' > View Details');
     }
     window.location.href = 'viewAccount.jsp?accountCode=' + accountCode;
 }

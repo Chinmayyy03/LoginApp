@@ -79,12 +79,12 @@
             </a>
         </li>
         
-        <li data-page="view.jsp">
-            <a href="#" onclick="loadPage('masters.jsp', 'Masters', 'Masters', this); return false;">
-                <img src="images/newApplication.png" width="22" height="22">
-               View
-            </a>
-        </li>
+        <li data-page="View/view.jsp">
+    		<a href="#" onclick="loadPage('View/view.jsp', 'View', 'View', this); return false;">
+        		<img src="images/newApplication.png" width="22" height="22">
+        		View
+    		</a>
+		</li>
     </ul>
 
     <div class="logout">
@@ -184,7 +184,9 @@ const pageMap = {
     'Customer List': 'authorizationPendingCustomers.jsp',
     'Application List': 'authorizationPendingApplications.jsp',
     'Loan Details': 'loanDetails.jsp',
-    'Open Account': 'newApplication.jsp'
+    'Open Account': 'newApplication.jsp',
+    'View': 'view.jsp',
+    'Total Accounts': 'totalAccounts.jsp'
 };
 
 // Track the currently active menu item
