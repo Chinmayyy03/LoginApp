@@ -17,7 +17,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Total Accounts - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/totalCustomers.css">
+<link rel="stylesheet" href="../css/totalCustomers.css">
 <script>
 // Live search filter (client-side)
 function searchTable() {

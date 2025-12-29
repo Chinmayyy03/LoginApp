@@ -190,7 +190,7 @@
         <% if (workingDate != null) { %>
         
         <!-- Total Accounts Card -->
-        <div class="card" onclick="openInParentFrame('totalAccounts.jsp', 'View > Total Accounts')">
+        <div class="card" onclick="openInParentFrame('View/totalAccounts.jsp', 'View > Total Accounts')">
             <h3>Total Accounts</h3>
             <p><%= totalAccounts %></p>
         </div>
