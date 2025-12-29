@@ -7,6 +7,7 @@ public class DashboardCard {
     private String paramitar;
     private String tableName;
     private double value;
+    private String pageLink;
 
     public DashboardCard() {
     }
@@ -19,7 +20,6 @@ public class DashboardCard {
         this.tableName = tableName;
     }
 
-    // Getters and Setters
     public int getSrNumber() {
         return srNumber;
     }
@@ -66,5 +66,13 @@ public class DashboardCard {
 
     public void setValue(double value) {
         this.value = value;
+    }
+
+    public String getPageLink() {
+        return pageLink;
+    }
+
+    public void setPageLink(String pageLink) {
+        this.pageLink = pageLink;
     }
 }

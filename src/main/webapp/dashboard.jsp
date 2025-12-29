@@ -38,7 +38,6 @@
         color: #1a1a1a;
     }
 
-    /* ================= CONTAINER ================= */
     .dashboard-container {
         display: flex;
         justify-content: center;
@@ -49,19 +48,17 @@
         width: 100%;
     }
 
-    /* ================= GRID ================= */
     .cards-wrapper {
         display: grid;
-        grid-template-columns: repeat(4, 260px); /* MAX 4 CARDS */
+        grid-template-columns: repeat(4, 260px);
         gap: 20px;
         padding: 20px;
         justify-content: center;
         width: 100%;
     }
 
-    /* ================= CARD ================= */
     .card {
-        width: 260px; /* 🔒 FIXED WIDTH */
+        width: 260px;
         background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
         color: white;
         padding: 22px 26px;
@@ -122,7 +119,6 @@
         transform: scale(0.97);
     }
 
-    /* ================= ERROR ================= */
     .error-message {
         grid-column: 1 / -1;
         color: #dc2626;
@@ -132,23 +128,18 @@
         text-align: center;
     }
 
-    /* ================= RESPONSIVE BREAKPOINTS ================= */
-
-    /* Laptop → 3 cards */
     @media (max-width: 1250px) {
         .cards-wrapper {
             grid-template-columns: repeat(3, 260px);
         }
     }
 
-    /* Tablet → 2 cards */
     @media (max-width: 900px) {
         .cards-wrapper {
             grid-template-columns: repeat(2, 260px);
         }
     }
 
-    /* Mobile → 1 card */
     @media (max-width: 580px) {
         .cards-wrapper {
             grid-template-columns: repeat(1, 260px);
@@ -174,12 +165,15 @@
 
                     if (card.getDescription() == null) continue;
 
-                    String formattedValue =
-                            dashboardService.getFormattedCardValue(card, branchCode);
+                    String formattedValue = dashboardService.getFormattedCardValue(card, branchCode);
 
-                    String pageLink = card.getDescription().toLowerCase()
-                            .replaceAll("[^a-z0-9]+", "")
-                            .replaceAll("\\s+", "") + ".jsp";
+                  
+                    String pageLink = card.getPageLink();
+
+					if (pageLink == null || pageLink.trim().isEmpty()) {
+    				pageLink = "dashboard.jsp"; // safe fallback
+					}
+
         %>
 
         <div class="card"

@@ -42,14 +42,14 @@ function searchTable() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Customer');
+        window.parent.updateParentBreadcrumb('Dashboard > OTHER');
     }
 };
 
 // View customer and update breadcrumb
 function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Customer > View Details');
+        window.parent.updateParentBreadcrumb('Dashboard > OTHER > View Details');
     }
     window.location.href = 'viewCustomer.jsp?cid=' + customerId;
 }
@@ -68,7 +68,7 @@ function viewCustomer(customerId) {
 <%
 try (Connection conn = DBConnection.getConnection();
      PreparedStatement ps = conn.prepareStatement(
-        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS='A' AND IS_ACTIVE='Y' ORDER BY CUSTOMER_ID")) {
+        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS='A' AND IS_ACTIVE='Y' AND MEMBER_TYPE='O' ORDER BY CUSTOMER_ID")) {
 
     ps.setString(1, branchCode);
     ResultSet rs = ps.executeQuery();

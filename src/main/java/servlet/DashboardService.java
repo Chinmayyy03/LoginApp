@@ -14,7 +14,7 @@ public class DashboardService {
      */
     public List<DashboardCard> getDashboardCards() throws SQLException {
         List<DashboardCard> cards = new ArrayList<>();
-        String sql = "SELECT SR_NUMBER, DESCRIPTION, FUNCATION_NAME, PARAMITAR, TABLE_NAME " +
+        String sql = "SELECT SR_NUMBER, DESCRIPTION, FUNCATION_NAME, PARAMITAR, TABLE_NAME, PAGE_LINK " +
                     "FROM GLOBALCONFIG.DASHBOARD " +
                     "WHERE DESCRIPTION IS NOT NULL " +
                     "ORDER BY SR_NUMBER";
@@ -30,6 +30,7 @@ public class DashboardService {
                 card.setFuncationName(rs.getString("FUNCATION_NAME"));
                 card.setParamitar(rs.getString("PARAMITAR"));
                 card.setTableName(rs.getString("TABLE_NAME"));
+                card.setPageLink(rs.getString("PAGE_LINK"));
                 cards.add(card);
             }
         }
