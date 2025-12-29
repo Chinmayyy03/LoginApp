@@ -72,12 +72,13 @@
             </a>
         </li>
         
-        <li data-page="masters.jsp">
-            <a href="#" onclick="loadPage('masters.jsp', 'Masters', 'Masters', this); return false;">
+         <li data-page="Master/masters.jsp">
+            <a href="#" onclick="loadPage('masters', 'Masters', 'Masters', this); return false;">
                 <img src="images/newApplication.png" width="22" height="22">
                Master
             </a>
         </li>
+        
         
         <li data-page="View/view.jsp">
     		<a href="#" onclick="loadPage('View/view.jsp', 'View', 'View', this); return false;">
