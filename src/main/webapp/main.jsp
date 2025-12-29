@@ -132,6 +132,43 @@
 </div>
 
 <script>
+//========== SESSION MONITORING ==========
+
+function checkSession() {
+    fetch('sessionCheck.jsp')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.sessionValid) {
+                // Session expired - redirect entire page to login
+                sessionStorage.clear();
+                window.top.location.href = 'login.jsp';
+            }
+        })
+        .catch(error => {
+            console.error('Session check error:', error);
+        });
+}
+
+// Check session every 30 seconds
+setInterval(checkSession, 30000);
+
+// Check session on page visibility change (when user returns to tab)
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        checkSession();
+    }
+});
+
+// Check session on any user interaction
+['click', 'keydown', 'mousemove'].forEach(event => {
+    document.addEventListener(event, function() {
+        if (!window.lastSessionCheck || Date.now() - window.lastSessionCheck > 10000) {
+            window.lastSessionCheck = Date.now();
+            checkSession();
+        }
+    }, { passive: true, once: false });
+});
+
 //========== PAGE MAPPING ==========
 const pageMap = {
     'Dashboard': 'dashboard.jsp',
@@ -266,6 +303,9 @@ function updateWorkingDateAndBankName() {
 // ========== RESTORE STATE ON LOAD ==========
 
 window.onload = function () {
+    // Initial session check
+    checkSession();
+    
     const savedPage = sessionStorage.getItem('currentPage');
     const savedBreadcrumb = sessionStorage.getItem('currentBreadcrumb');
 
