@@ -155,6 +155,8 @@ header {
     z-index: 100;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     transition: width 0.3s ease, left 0.3s ease;
+    min-height: 79px; /* Fixed header height */
+    max-height: 79px; /* Prevent header from growing */
 }
 
 /* Title Row - Bank Left, Branch Right */
@@ -164,6 +166,7 @@ header {
     align-items: center;
     margin-bottom: 2px;
     gap: 15px;
+    min-height: 32px; /* Fixed height */
 }
 
 /* Bank Section with Icon */
@@ -188,9 +191,9 @@ header {
 }
 
 .bank-title {
-    font-size: clamp(14px, 1.2vw, 18px);
+    font-size: 22px; /* Fixed size instead of clamp */
     font-weight: 700;
-    letter-spacing: clamp(0.4px, 0.08vw, 1px);
+    letter-spacing: 1px;
     text-transform: uppercase;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
     margin: 0;
@@ -213,6 +216,7 @@ header {
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
     transition: all 0.3s ease;
+    height: 28px; /* Fixed height */
 }
 
 .branch-section:hover {
@@ -222,13 +226,12 @@ header {
 }
 
 .branch-name {
-    font-size: clamp(13px, 1vw, 15px);
+    font-size: 15px; /* Fixed size instead of clamp */
     font-weight: 700;
     letter-spacing: 0.5px;
     white-space: nowrap;
     color: #ffffff;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    position: relative;
 }
 
 /* Navigation Row */
@@ -237,21 +240,39 @@ header {
     justify-content: space-between;
     align-items: center;
     padding-top: 0;
-    min-height: 26px;
-    flex-wrap: wrap;
+    min-height: 26px; /* Fixed height */
+    max-height: 26px;
+    flex-wrap: nowrap; /* Prevent wrapping */
     gap: 8px;
+    overflow: hidden; /* Hide overflow if content is too wide */
 }
 
 /* Breadcrumb Navigation - Responsive */
 .breadcrumb-container {
     display: flex;
     align-items: center;
-    gap: clamp(6px, 0.5vw, 8px);
-    font-size: clamp(12px, 0.9vw, 14px);
+    gap: 8px;
+    font-size: 14px; /* Fixed size instead of clamp */
     color: #ffffff;
     flex: 1 1 auto;
     min-width: 200px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    overflow-x: auto; /* Add horizontal scroll if needed */
+    overflow-y: hidden;
+}
+
+/* Hide scrollbar but keep functionality */
+.breadcrumb-container::-webkit-scrollbar {
+    height: 3px;
+}
+
+.breadcrumb-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.breadcrumb-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
 }
 
 .breadcrumb-item {
@@ -266,7 +287,7 @@ header {
     font-weight: 500;
     transition: all 0.3s ease;
     padding: 3px 8px;
-    font-size: clamp(12px, 0.9vw, 14px);
+    font-size: 14px; /* Fixed size */
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.1);
     line-height: 1.3;
@@ -282,7 +303,7 @@ header {
     color: #ffffff;
     font-weight: 600;
     user-select: none;
-    font-size: clamp(14px, 1vw, 16px);
+    font-size: 16px; /* Fixed size */
 }
 
 .breadcrumb-current {
@@ -292,14 +313,14 @@ header {
     padding: 3px 10px;
     border-radius: 4px;
     line-height: 1.3;
-    font-size: clamp(12px, 0.9vw, 14px);
+    font-size: 14px; /* Fixed size */
     white-space: nowrap;
 }
 
 /* Working Date - Responsive */
 #workingDate {
     color: #ffffff;
-    font-size: clamp(12px, 0.9vw, 14px);
+    font-size: 14px; /* Fixed size instead of clamp */
     font-weight: 500;
     padding: 3px 10px;
     background: rgba(255, 255, 255, 0.1);
@@ -314,7 +335,7 @@ iframe {
     flex: 1;
     width: 100%;
     height: 100%;
-    margin-top: 79px;
+    margin-top: 79px; /* Match fixed header height */
     border: none;
     overflow: auto;
 }
@@ -429,45 +450,6 @@ iframe {
 /* ============================================
    RESPONSIVE BREAKPOINTS
    ============================================ */
-
-/* Desktop - Large screens (1920px+) */
-@media (min-width: 1920px) {
-    .bank-title {
-        font-size: 20px;
-        letter-spacing: 1.2px;
-    }
-    
-    .branch-section {
-        padding: 10px 24px;
-    }
-    .branch-name {
-        font-size: 16px;
-    }
-    
-    .breadcrumb-link,
-    .breadcrumb-current,
-    #workingDate {
-        font-size: 15px;
-    }
-}
-
-/* Desktop - Medium screens (1440px - 1919px) */
-@media (min-width: 1440px) and (max-width: 1919px) {
-    header {
-        padding: 8px 25px 6px 25px;
-    }
-}
-
-/* Laptop - Standard (1024px - 1439px) */
-@media (min-width: 1024px) and (max-width: 1439px) {
-    header {
-        padding: 7px 20px 5px 20px;
-    }
-    
-    .nav-row {
-        min-height: 24px;
-    }
-}
 
 /* Tablet - Landscape (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
