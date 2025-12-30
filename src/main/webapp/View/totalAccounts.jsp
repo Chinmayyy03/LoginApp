@@ -191,13 +191,12 @@ window.onload = function() {
     }
 };
 
-// View account details
-function viewAccount(accountCode) {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('View > Total Accounts > View Details');
+
+    function viewAccount(accountCode) {
+        window.location.href =
+            '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode;
     }
-    window.location.href = 'viewAccount.jsp?accountCode=' + accountCode;
-}
+
 </script>
 </head>
 <body>
