@@ -9,6 +9,7 @@
         return;
     }
 
+    // Only load card structure (fast - no function calls)
     DashboardService dashboardService = new DashboardService();
     List<DashboardCard> cards = null;
 
@@ -115,12 +116,16 @@
         word-wrap: break-word;
         overflow-wrap: break-word;
         line-height: 1.2;
-        /* Key fix: Scale down text if it gets too long */
         display: block;
         max-width: 100%;
     }
 
-    /* Dynamically scale font size for long text */
+    .card p.loading {
+        font-size: 18px;
+        opacity: 0.7;
+        font-weight: 400;
+    }
+
     .card p.long-text {
         font-size: 24px;
     }
@@ -145,6 +150,16 @@
         padding: 20px;
         border-radius: 8px;
         text-align: center;
+    }
+
+    /* Loading animation */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .loading {
+        animation: pulse 1.5s ease-in-out infinite;
     }
 
     /* Tablet Landscape */
@@ -246,30 +261,18 @@
         <%
             if (cards != null && !cards.isEmpty()) {
                 for (DashboardCard card : cards) {
-
                     if (card.getDescription() == null) continue;
 
-                    String formattedValue = dashboardService.getFormattedCardValue(card, branchCode);
-
                     String pageLink = card.getPageLink();
-
                     if (pageLink == null || pageLink.trim().isEmpty()) {
                         pageLink = "dashboard.jsp";
                     }
-
-                    // Determine text length class for responsive sizing
-                    String textLengthClass = "";
-                    if (formattedValue.length() > 20) {
-                        textLengthClass = "very-long-text";
-                    } else if (formattedValue.length() > 12) {
-                        textLengthClass = "long-text";
-                    }
         %>
 
-        <div class="card"
+        <div class="card" id="card-<%= card.getSrNumber() %>"
              onclick="openInParentFrame('<%= pageLink %>', 'Dashboard > <%= card.getDescription() %>')">
             <h3><%= card.getDescription() %></h3>
-            <p class="<%= textLengthClass %>"><%= formattedValue %></p>
+            <p class="loading" id="value-<%= card.getSrNumber() %>">Loading...</p>
         </div>
 
         <%
@@ -289,23 +292,81 @@
 </div>
 
 <script>
-    window.onload = function () {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Dashboard');
+// Card data loaded from server
+const cardsData = [
+    <%
+    if (cards != null) {
+        boolean first = true;
+        for (DashboardCard card : cards) {
+            if (card.getDescription() == null) continue;
+            if (!first) out.print(",");
+            first = false;
+    %>
+    {
+        srNumber: <%= card.getSrNumber() %>,
+        functionName: '<%= card.getFuncationName() != null ? card.getFuncationName() : "" %>',
+        paramitar: '<%= card.getParamitar() != null ? card.getParamitar() : "" %>',
+        tableName: '<%= card.getTableName() != null ? card.getTableName() : "" %>'
+    }
+    <%
         }
-    };
+    }
+    %>
+];
 
-    function openInParentFrame(page, breadcrumbPath) {
-        if (window.parent && window.parent.document) {
-            const iframe = window.parent.document.getElementById("contentFrame");
-            if (iframe) {
-                iframe.src = page;
-                if (window.parent.updateParentBreadcrumb) {
-                    window.parent.updateParentBreadcrumb(breadcrumbPath);
-                }
+window.onload = function () {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb('Dashboard');
+    }
+    
+    // Load card values asynchronously
+    loadCardValues();
+};
+
+async function loadCardValues() {
+    // Load each card value one by one (or batch them)
+    for (let card of cardsData) {
+        loadSingleCard(card);
+    }
+}
+
+async function loadSingleCard(card) {
+    try {
+        const response = await fetch('getCardValue.jsp?sr=' + card.srNumber);
+        const data = await response.json();
+        
+        const valueElement = document.getElementById('value-' + card.srNumber);
+        if (valueElement) {
+            valueElement.textContent = data.value;
+            valueElement.classList.remove('loading');
+            
+            // Adjust font size based on length
+            if (data.value.length > 20) {
+                valueElement.classList.add('very-long-text');
+            } else if (data.value.length > 12) {
+                valueElement.classList.add('long-text');
+            }
+        }
+    } catch (error) {
+        const valueElement = document.getElementById('value-' + card.srNumber);
+        if (valueElement) {
+            valueElement.textContent = 'Error';
+            valueElement.classList.remove('loading');
+        }
+    }
+}
+
+function openInParentFrame(page, breadcrumbPath) {
+    if (window.parent && window.parent.document) {
+        const iframe = window.parent.document.getElementById("contentFrame");
+        if (iframe) {
+            iframe.src = page;
+            if (window.parent.updateParentBreadcrumb) {
+                window.parent.updateParentBreadcrumb(breadcrumbPath);
             }
         }
     }
+}
 </script>
 </body>
 </html>
