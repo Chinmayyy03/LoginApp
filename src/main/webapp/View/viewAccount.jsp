@@ -1415,7 +1415,7 @@
     }
 
     // Check for Land & Building Details
-    psLandBuilding = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYLANDNBULDING WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
+    psLandBuilding = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYLANDBUILDING WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
     psLandBuilding.setString(1, accountCode);
     rsLandBuilding = psLandBuilding.executeQuery();
     
@@ -1437,6 +1437,8 @@
         lb.put("NORTH", getStringSafe(rsLandBuilding, "NORTH"));
         lb.put("SOUTH", getStringSafe(rsLandBuilding, "SOUTH"));
         lb.put("ENGINEER_NAME", getStringSafe(rsLandBuilding, "ENGINEER_NAME"));
+        lb.put("CREATED_DATE", formatDateForInput(rsLandBuilding, "CREATED_DATE"));
+        lb.put("MODIFIED_DATE", formatDateForInput(rsLandBuilding, "MODIFIED_DATE"));
         landBuildings.add(lb);
     }
     
@@ -1632,7 +1634,7 @@
 <%
     }
 
-    // Check for Gold/Silver Details
+ // Check for Gold/Silver Details
     psGoldSilver = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYGOLDSILVER WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
     psGoldSilver.setString(1, accountCode);
     rsGoldSilver = psGoldSilver.executeQuery();
@@ -1656,6 +1658,8 @@
         gs.put("GROSTOTALGMS", getStringSafe(rsGoldSilver, "GROSTOTALGMS"));
         gs.put("VALUATION_RATE", getStringSafe(rsGoldSilver, "VALUATION_RATE"));
         gs.put("CURRENT_RATE", getStringSafe(rsGoldSilver, "CURRENT_RATE"));
+        gs.put("CREATED_DATE", formatDateForInput(rsGoldSilver, "CREATED_DATE"));
+        gs.put("MODIFIED_DATE", formatDateForInput(rsGoldSilver, "MODIFIED_DATE"));
         goldSilvers.add(gs);
     }
     
@@ -1753,6 +1757,14 @@
             <label>Particular</label>
             <input readonly value="<%= gs.get("PARTICULAR") %>">
           </div>
+          <div>
+            <label>Created Date</label>
+            <input readonly value="<%= gs.get("CREATED_DATE") %>">
+          </div>
+          <div>
+            <label>Modified Date</label>
+            <input readonly value="<%= gs.get("MODIFIED_DATE") %>">
+          </div>
           <div style="grid-column: span 3;">
             <label>Note</label>
             <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
@@ -1765,6 +1777,7 @@
     </fieldset>
 <%
     }
+
     // Check for Joint Holder Details
     if (showJointHolder) {
         psJoint = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTJOINTHOLDER WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
