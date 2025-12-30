@@ -61,7 +61,7 @@
     .card {
         background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
         color: white;
-        padding: 25px 28px;
+        padding: 18px 20px;
         border-radius: 20px;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -98,45 +98,45 @@
     }
 
     .card h3 {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
-        margin: 0 0 15px 0;
+        margin: 0 0 10px 0;
         position: relative;
         z-index: 1;
-        line-height: 1.3;
-        min-height: 48px;
+        line-height: 1.25;
+        min-height: 40px;
+        word-wrap: break-word;
     }
 
     .card p {
-    font-size: 32px;
-    font-weight: 700;
-    margin: 0;
-    position: relative;
-    z-index: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-    display: block;
-    max-width: 100%;
-	}
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.2;
+        display: block;
+        width: 100%;
+        hyphens: none;
+    }
 
     .card p.loading {
         font-size: 18px;
         opacity: 0.7;
         font-weight: 400;
+        word-break: normal;
     }
 
-    .card p.long-text {
-        font-size: 22px;
-    }
-
-    .card p.very-long-text {
-        font-size: 16px;
-    }
-    .card p.extra-long-text {
-    font-size: 13px;
-	}
+    /* Adaptive font sizes based on content length */
+    .card p.size-1 { font-size: 28px; line-height: 1.2; }  /* 0-12 chars */
+    .card p.size-2 { font-size: 24px; line-height: 1.2; }  /* 13-16 chars */
+    .card p.size-3 { font-size: 21px; line-height: 1.2; }   /* 17-20 chars */
+    .card p.size-4 { font-size: 18px; line-height: 1.25; }   /* 21-25 chars */
+    .card p.size-5 { font-size: 15px; line-height: 1.25; }  /* 26-32 chars */
+    .card p.size-6 { font-size: 13px; line-height: 1.3; }   /* 33-40 chars */
+    .card p.size-7 { font-size: 11px; line-height: 1.35; }  /* 41+ chars */
 
     .card:hover {
         transform: translateY(-6px) scale(1.02);
@@ -176,6 +176,14 @@
             gap: 25px;
             grid-template-columns: repeat(3, 1fr);
         }
+
+        .card p.size-1 { font-size: 26px; }
+        .card p.size-2 { font-size: 22px; }
+        .card p.size-3 { font-size: 19px; }
+        .card p.size-4 { font-size: 16px; }
+        .card p.size-5 { font-size: 14px; }
+        .card p.size-6 { font-size: 12px; }
+        .card p.size-7 { font-size: 10px; }
     }
 
     /* Tablet Portrait */
@@ -190,13 +198,17 @@
         }
 
         .card h3 {
-            font-size: 16px;
-            min-height: 42px;
+            font-size: 15px;
+            min-height: 38px;
         }
 
-        .card p {
-            font-size: 28px;
-        }
+        .card p.size-1 { font-size: 24px; }
+        .card p.size-2 { font-size: 20px; }
+        .card p.size-3 { font-size: 18px; }
+        .card p.size-4 { font-size: 15px; }
+        .card p.size-5 { font-size: 13px; }
+        .card p.size-6 { font-size: 11px; }
+        .card p.size-7 { font-size: 10px; }
     }
 
     /* Mobile */
@@ -211,30 +223,23 @@
         }
 
         .card {
-            padding: 20px 24px;
+            padding: 16px 18px;
             min-height: 140px;
         }
 
         .card h3 {
-            font-size: 15px;
-            min-height: 38px;
-            margin-bottom: 12px;
-        }
-
-        .card p {
-            font-size: 26px;
-        }
-
-        .card p.long-text {
-            font-size: 18px;
-        }
-
-        .card p.very-long-text {
             font-size: 14px;
+            min-height: 36px;
+            margin-bottom: 8px;
         }
-        .card p.extra-long-text {
-    	font-size: 11px;
-		}
+
+        .card p.size-1 { font-size: 22px; }
+        .card p.size-2 { font-size: 19px; }
+        .card p.size-3 { font-size: 17px; }
+        .card p.size-4 { font-size: 14px; }
+        .card p.size-5 { font-size: 12px; }
+        .card p.size-6 { font-size: 10px; }
+        .card p.size-7 { font-size: 9px; }
     }
 
     /* Extra Small Mobile */
@@ -248,16 +253,20 @@
         }
 
         .card {
-            padding: 18px 20px;
+            padding: 14px 16px;
         }
 
         .card h3 {
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .card p {
-            font-size: 24px;
-        }
+        .card p.size-1 { font-size: 20px; }
+        .card p.size-2 { font-size: 17px; }
+        .card p.size-3 { font-size: 15px; }
+        .card p.size-4 { font-size: 13px; }
+        .card p.size-5 { font-size: 10px; }
+        .card p.size-6 { font-size: 8px; }
+        .card p.size-7 { font-size: 7px; }
     }
 </style>
 </head>
@@ -331,7 +340,7 @@ window.onload = function () {
 };
 
 async function loadCardValues() {
-    // Load each card value one by one (or batch them)
+    // Load each card value one by one
     for (let card of cardsData) {
         loadSingleCard(card);
     }
@@ -347,15 +356,30 @@ async function loadSingleCard(card) {
             valueElement.textContent = data.value;
             valueElement.classList.remove('loading');
             
-            // Adjust font size based on length (more granular)
+            // Remove all size classes first
+            valueElement.className = valueElement.className.replace(/size-\d+/g, '').trim();
+            
+            // Calculate appropriate size class based on text length
             const length = data.value.length;
-            if (length > 30) {
-                valueElement.classList.add('extra-long-text');
-            } else if (length > 20) {
-                valueElement.classList.add('very-long-text');
-            } else if (length > 12) {
-                valueElement.classList.add('long-text');
+            let sizeClass = 'size-1';
+            
+            if (length <= 12) {
+                sizeClass = 'size-1';
+            } else if (length <= 16) {
+                sizeClass = 'size-2';
+            } else if (length <= 20) {
+                sizeClass = 'size-3';
+            } else if (length <= 25) {
+                sizeClass = 'size-4';
+            } else if (length <= 32) {
+                sizeClass = 'size-5';
+            } else if (length <= 40) {
+                sizeClass = 'size-6';
+            } else {
+                sizeClass = 'size-7';
             }
+            
+            valueElement.classList.add(sizeClass);
         }
     } catch (error) {
         const valueElement = document.getElementById('value-' + card.srNumber);
