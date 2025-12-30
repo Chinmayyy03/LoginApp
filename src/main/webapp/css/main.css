@@ -233,6 +233,12 @@ header {
     color: #ffffff;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
+.branch-name::before {
+    content: "BRANCH: ";
+    font-weight: 600;
+    margin-right: 6px;
+    opacity: 0.9;
+}
 
 /* Navigation Row */
 .nav-row {
