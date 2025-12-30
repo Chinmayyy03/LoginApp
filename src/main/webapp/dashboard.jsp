@@ -108,17 +108,18 @@
     }
 
     .card p {
-        font-size: 32px;
-        font-weight: 700;
-        margin: 0;
-        position: relative;
-        z-index: 1;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        line-height: 1.2;
-        display: block;
-        max-width: 100%;
-    }
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    display: block;
+    max-width: 100%;
+	}
 
     .card p.loading {
         font-size: 18px;
@@ -127,12 +128,15 @@
     }
 
     .card p.long-text {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .card p.very-long-text {
-        font-size: 18px;
+        font-size: 16px;
     }
+    .card p.extra-long-text {
+    font-size: 13px;
+	}
 
     .card:hover {
         transform: translateY(-6px) scale(1.02);
@@ -222,12 +226,15 @@
         }
 
         .card p.long-text {
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .card p.very-long-text {
-            font-size: 16px;
+            font-size: 14px;
         }
+        .card p.extra-long-text {
+    	font-size: 11px;
+		}
     }
 
     /* Extra Small Mobile */
@@ -340,10 +347,13 @@ async function loadSingleCard(card) {
             valueElement.textContent = data.value;
             valueElement.classList.remove('loading');
             
-            // Adjust font size based on length
-            if (data.value.length > 20) {
+            // Adjust font size based on length (more granular)
+            const length = data.value.length;
+            if (length > 30) {
+                valueElement.classList.add('extra-long-text');
+            } else if (length > 20) {
                 valueElement.classList.add('very-long-text');
-            } else if (data.value.length > 12) {
+            } else if (length > 12) {
                 valueElement.classList.add('long-text');
             }
         }
