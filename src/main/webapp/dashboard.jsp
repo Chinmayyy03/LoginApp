@@ -42,7 +42,7 @@
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 20px;
+        padding: 40px;
         background-color: #e8e4fc;
         min-height: 100vh;
         width: 100%;
@@ -50,25 +50,27 @@
 
     .cards-wrapper {
         display: grid;
-        grid-template-columns: repeat(4, 260px);
-        gap: 20px;
-        padding: 20px;
-        justify-content: center;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        padding: 0;
         width: 100%;
+        max-width: 1400px;
     }
 
     .card {
-        width: 260px;
         background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
         color: white;
-        padding: 22px 26px;
+        padding: 25px 28px;
         border-radius: 20px;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         position: relative;
         overflow: hidden;
         cursor: pointer;
-        min-height: 150px;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     .card::before,
@@ -77,6 +79,7 @@
         position: absolute;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
     }
 
     .card::before {
@@ -94,20 +97,36 @@
     }
 
     .card h3 {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
-        margin-bottom: 12px;
+        margin: 0 0 15px 0;
         position: relative;
         z-index: 1;
+        line-height: 1.3;
+        min-height: 48px;
     }
 
     .card p {
-        font-size: 30px;
+        font-size: 32px;
         font-weight: 700;
         margin: 0;
         position: relative;
         z-index: 1;
-        word-break: break-word;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.2;
+        /* Key fix: Scale down text if it gets too long */
+        display: block;
+        max-width: 100%;
+    }
+
+    /* Dynamically scale font size for long text */
+    .card p.long-text {
+        font-size: 24px;
+    }
+
+    .card p.very-long-text {
+        font-size: 18px;
     }
 
     .card:hover {
@@ -128,21 +147,86 @@
         text-align: center;
     }
 
-    @media (max-width: 1250px) {
+    /* Tablet Landscape */
+    @media (max-width: 1200px) {
+        .dashboard-container {
+            padding: 30px;
+        }
+
         .cards-wrapper {
-            grid-template-columns: repeat(3, 260px);
+            gap: 25px;
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 
+    /* Tablet Portrait */
     @media (max-width: 900px) {
+        .dashboard-container {
+            padding: 25px;
+        }
+
         .cards-wrapper {
-            grid-template-columns: repeat(2, 260px);
+            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            min-height: 42px;
+        }
+
+        .card p {
+            font-size: 28px;
         }
     }
 
-    @media (max-width: 580px) {
+    /* Mobile */
+    @media (max-width: 600px) {
+        .dashboard-container {
+            padding: 20px 15px;
+        }
+
         .cards-wrapper {
-            grid-template-columns: repeat(1, 260px);
+            gap: 18px;
+            grid-template-columns: 1fr;
+        }
+
+        .card {
+            padding: 20px 24px;
+            min-height: 140px;
+        }
+
+        .card h3 {
+            font-size: 15px;
+            min-height: 38px;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            font-size: 26px;
+        }
+
+        .card p.long-text {
+            font-size: 20px;
+        }
+
+        .card p.very-long-text {
+            font-size: 16px;
+        }
+    }
+
+    /* Extra Small Mobile */
+    @media (max-width: 400px) {
+        .dashboard-container {
+            padding: 15px 10px;
+        }
+
+        .cards-wrapper {
+            gap: 15px;
+        }
+
+        .card {
+            padding: 18px 20px;
         }
 
         .card h3 {
@@ -150,7 +234,7 @@
         }
 
         .card p {
-            font-size: 28px;
+            font-size: 24px;
         }
     }
 </style>
@@ -167,19 +251,25 @@
 
                     String formattedValue = dashboardService.getFormattedCardValue(card, branchCode);
 
-                  
                     String pageLink = card.getPageLink();
 
-					if (pageLink == null || pageLink.trim().isEmpty()) {
-    				pageLink = "dashboard.jsp"; // safe fallback
-					}
+                    if (pageLink == null || pageLink.trim().isEmpty()) {
+                        pageLink = "dashboard.jsp";
+                    }
 
+                    // Determine text length class for responsive sizing
+                    String textLengthClass = "";
+                    if (formattedValue.length() > 20) {
+                        textLengthClass = "very-long-text";
+                    } else if (formattedValue.length() > 12) {
+                        textLengthClass = "long-text";
+                    }
         %>
 
         <div class="card"
              onclick="openInParentFrame('<%= pageLink %>', 'Dashboard > <%= card.getDescription() %>')">
             <h3><%= card.getDescription() %></h3>
-            <p><%= formattedValue %></p>
+            <p class="<%= textLengthClass %>"><%= formattedValue %></p>
         </div>
 
         <%
