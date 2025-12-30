@@ -1532,10 +1532,10 @@
             <label>Engineer Name</label>
             <input readonly value="<%= lb.get("ENGINEER_NAME") %>">
           </div>
-          <div style="grid-column: span 3;">
-            <label>Particular</label>
-            <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= lb.get("PARTICULAR") %></textarea>
-          </div>
+          <div>
+		  <label>Particular</label>
+		  <textarea readonly style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= lb.get("PARTICULAR") %></textarea>
+		</div>
         </div>
       </div>
       <%
@@ -1765,10 +1765,10 @@
             <label>Modified Date</label>
             <input readonly value="<%= gs.get("MODIFIED_DATE") %>">
           </div>
-          <div style="grid-column: span 3;">
-            <label>Note</label>
-            <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
-          </div>
+          <div>
+		  <label>Note</label>
+		  <textarea readonly style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
+		</div>
         </div>
       </div>
       <%

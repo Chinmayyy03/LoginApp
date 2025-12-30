@@ -1648,7 +1648,7 @@ document.addEventListener('keydown', function(event) {
             <label>Remark</label>
             <input readonly value="<%= lb.get("REMARK") %>">
           </div>
-          <div style="grid-column: span 3;">
+          <div>
             <label>Particular</label>
             <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= lb.get("PARTICULAR") %></textarea>
           </div>
@@ -1850,7 +1850,7 @@ document.addEventListener('keydown', function(event) {
             <label>Particular</label>
             <input readonly value="<%= gs.get("PARTICULAR") %>">
           </div>
-          <div style="grid-column: span 3;">
+          <div>
             <label>Note</label>
             <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
           </div>
