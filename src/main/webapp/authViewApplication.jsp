@@ -1814,6 +1814,7 @@ document.addEventListener('keydown', function(event) {
               out.print(gsSecTypeDesc.isEmpty() ? gsSecTypeCode : gsSecTypeDesc);
             %>">
           </div>
+          <div>
             <label>Security Type</label>
             <input readonly value="<%= gs.get("SECURITYTYPE_CODE") %>">
           </div>

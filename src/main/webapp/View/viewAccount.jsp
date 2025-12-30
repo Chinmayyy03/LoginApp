@@ -40,8 +40,10 @@
     Connection conn = null;
     PreparedStatement psAccount = null, psNominee = null, psJoint = null, psGuarantor = null;
     PreparedStatement psDeposit = null, psLoan = null, psPigmy = null, psFixed = null;
+    PreparedStatement psLandBuilding = null, psDepositSec = null, psGoldSilver = null;
     ResultSet rsAccount = null, rsNominee = null, rsJoint = null, rsGuarantor = null;
     ResultSet rsDeposit = null, rsLoan = null, rsPigmy = null, rsFixed = null;
+    ResultSet rsLandBuilding = null, rsDepositSec = null, rsGoldSilver = null;
 
     try {
         conn = DBConnection.getConnection();
@@ -83,6 +85,29 @@
     } catch (Exception e) {
         showJointHolder = false;
     }
+    // ---- Co-Borrower NOT allowed for these product codes (same logic as application) ----
+    boolean showCoBorrower = true;
+
+    try {
+        int pc = Integer.parseInt(productCode);
+
+        if (
+            pc == 101 || pc == 102 || pc == 103 || pc == 110 ||
+            pc == 115 || pc == 116 || pc == 117 || pc == 118 ||
+            pc == 119 || pc == 120 || pc == 121 || pc == 122 ||
+            pc == 123 || pc == 151 || pc == 201 || pc == 210 ||
+            pc == 211 || pc == 601 || pc == 615 || pc == 901 ||
+            (pc >= 401 && pc <= 417) ||
+            pc == 420 ||
+            (pc >= 461 && pc <= 475) ||
+            pc == 499
+        ) {
+            showCoBorrower = false;   // ❌ hide co-borrower
+        }
+    } catch (Exception e) {
+        showCoBorrower = true;
+    }
+    
 %>
 
 <!DOCTYPE html>
@@ -359,7 +384,7 @@
         </div>
         <div>
           <label>Amount In Matured Deposit</label>
-          <input readonly value="<%= getStringSafe(rsDeposit,"AMOUNTINMATUREDEPOSIT") %>">
+          <input readonly value="<%= getStringSafe(rsDeposit,"AMOUNTINMATUREDDEPOSIT") %>">
         </div>
         <div>
           <label>Pending Cash Interest</label>
@@ -1208,7 +1233,538 @@
     </fieldset>
 <%
     }
+    // Check for Co-Borrower Details (using same ACCOUNTJOINTHOLDER table)
+    if (showCoBorrower) {
+        PreparedStatement psCoBorrower = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTJOINTHOLDER WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
+        psCoBorrower.setString(1, accountCode);
+        ResultSet rsCoBorrower = psCoBorrower.executeQuery();
+        
+        List<Map<String, String>> coBorrowers = new ArrayList<>();
+        while (rsCoBorrower.next()) {
+            Map<String, String> coBorrower = new HashMap<>();
+            coBorrower.put("CUSTOMER_ID", getStringSafe(rsCoBorrower, "CUSTOMER_ID"));
+            coBorrower.put("SALUTATION_CODE", getStringSafe(rsCoBorrower, "SALUTATION_CODE"));
+            coBorrower.put("NAME", getStringSafe(rsCoBorrower, "NAME"));
+            coBorrower.put("ADDRESS1", getStringSafe(rsCoBorrower, "ADDRESS1"));
+            coBorrower.put("ADDRESS2", getStringSafe(rsCoBorrower, "ADDRESS2"));
+            coBorrower.put("ADDRESS3", getStringSafe(rsCoBorrower, "ADDRESS3"));
+            coBorrower.put("CITY_CODE", getStringSafe(rsCoBorrower, "CITY_CODE"));
+            coBorrower.put("STATE_CODE", getStringSafe(rsCoBorrower, "STATE_CODE"));
+            coBorrower.put("COUNTRY_CODE", getStringSafe(rsCoBorrower, "COUNTRY_CODE"));
+            coBorrower.put("ZIP", getStringSafe(rsCoBorrower, "ZIP"));
+            coBorrower.put("GENDER", getStringSafe(rsCoBorrower, "GENDER"));
+            coBorrower.put("BIRTH_DATE", formatDateForInput(rsCoBorrower, "BIRTH_DATE"));
+            coBorrower.put("RELATION", getStringSafe(rsCoBorrower, "RELATION"));
+            coBorrower.put("PHONE_NUMBER", getStringSafe(rsCoBorrower, "PHONE_NUMBER"));
+            coBorrower.put("PAN_NUMBER", getStringSafe(rsCoBorrower, "PAN_NUMBER"));
+            coBorrowers.add(coBorrower);
+        }
+        
+        if (!coBorrowers.isEmpty()) {
+%>
+    <fieldset>
+      <legend>Co-Borrower Details</legend>
+      <%
+        for (int i = 0; i < coBorrowers.size(); i++) {
+            Map<String, String> coBorrower = coBorrowers.get(i);
+      %>
+      <div class="nominee-card" style="background: #e8e4fc; border: 1px solid #d0d0d0; border-radius: 10px; padding: 15px; margin-top: 15px;">
+        <h4 style="color: #373279; margin-bottom: 10px;">Co-Borrower <%= (i+1) %></h4>
+        <div class="personal-grid">
+          <% if (!coBorrower.get("CUSTOMER_ID").isEmpty()) { %>
+          <div>
+            <label>Customer ID</label>
+            <input readonly value="<%= coBorrower.get("CUSTOMER_ID") %>">
+          </div>
+          <% } %>
+          <div>
+            <label>Salutation</label>
+            <input readonly value="<%= coBorrower.get("SALUTATION_CODE") %>">
+          </div>
+          <div>
+            <label>Name</label>
+            <input readonly value="<%= coBorrower.get("NAME") %>">
+          </div>
+          <div>
+            <label>Gender</label>
+            <input readonly value="<%= coBorrower.get("GENDER") %>">
+          </div>
+          <div>
+            <label>Birth Date</label>
+            <input readonly value="<%= coBorrower.get("BIRTH_DATE") %>">
+          </div>
+          <div>
+            <label>Relation</label>
+            <input readonly value="<%= coBorrower.get("RELATION") %>">
+          </div>
+          <div>
+            <label>Phone Number</label>
+            <input readonly value="<%= coBorrower.get("PHONE_NUMBER") %>">
+          </div>
+          <div>
+            <label>PAN Number</label>
+            <input readonly value="<%= coBorrower.get("PAN_NUMBER") %>">
+          </div>
+          <div>
+            <label>Address 1</label>
+            <input readonly value="<%= coBorrower.get("ADDRESS1") %>">
+          </div>
+          <div>
+            <label>Address 2</label>
+            <input readonly value="<%= coBorrower.get("ADDRESS2") %>">
+          </div>
+          <div>
+            <label>Address 3</label>
+            <input readonly value="<%= coBorrower.get("ADDRESS3") %>">
+          </div>
+          <div>
+            <label>City</label>
+            <input readonly value="<%
+              String cbCityCode = coBorrower.get("CITY_CODE");
+              String cbCityName = "";
+              if (!cbCityCode.isEmpty()) {
+                  PreparedStatement psCbCity = null;
+                  ResultSet rsCbCity = null;
+                  try {
+                      psCbCity = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.CITY WHERE CITY_CODE = ?"
+                      );
+                      psCbCity.setString(1, cbCityCode);
+                      rsCbCity = psCbCity.executeQuery();
+                      if (rsCbCity.next()) {
+                          cbCityName = rsCbCity.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbCityName = cbCityCode;
+                  } finally {
+                      try { if (rsCbCity != null) rsCbCity.close(); } catch (Exception ex) {}
+                      try { if (psCbCity != null) psCbCity.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbCityName.isEmpty() ? cbCityCode : cbCityName);
+            %>">
+          </div>
+          <div>
+            <label>State</label>
+            <input readonly value="<%
+              String cbStateCode = coBorrower.get("STATE_CODE");
+              String cbStateName = "";
+              if (!cbStateCode.isEmpty()) {
+                  PreparedStatement psCbState = null;
+                  ResultSet rsCbState = null;
+                  try {
+                      psCbState = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.STATE WHERE STATE_CODE = ?"
+                      );
+                      psCbState.setString(1, cbStateCode);
+                      rsCbState = psCbState.executeQuery();
+                      if (rsCbState.next()) {
+                          cbStateName = rsCbState.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbStateName = cbStateCode;
+                  } finally {
+                      try { if (rsCbState != null) rsCbState.close(); } catch (Exception ex) {}
+                      try { if (psCbState != null) psCbState.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbStateName.isEmpty() ? cbStateCode : cbStateName);
+            %>">
+          </div>
+          <div>
+            <label>Country</label>
+            <input readonly value="<%
+              String cbCountryCode = coBorrower.get("COUNTRY_CODE");
+              String cbCountryName = "";
+              if (!cbCountryCode.isEmpty()) {
+                  PreparedStatement psCbCountry = null;
+                  ResultSet rsCbCountry = null;
+                  try {
+                      psCbCountry = conn.prepareStatement(
+                          "SELECT NAME FROM GLOBALCONFIG.COUNTRY WHERE COUNTRY_CODE = ?"
+                      );
+                      psCbCountry.setString(1, cbCountryCode);
+                      rsCbCountry = psCbCountry.executeQuery();
+                      if (rsCbCountry.next()) {
+                          cbCountryName = rsCbCountry.getString("NAME");
+                      }
+                  } catch (Exception e) {
+                      cbCountryName = cbCountryCode;
+                  } finally {
+                      try { if (rsCbCountry != null) rsCbCountry.close(); } catch (Exception ex) {}
+                      try { if (psCbCountry != null) psCbCountry.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(cbCountryName.isEmpty() ? cbCountryCode : cbCountryName);
+            %>">
+          </div>
+          <div>
+            <label>ZIP</label>
+            <input readonly value="<%= coBorrower.get("ZIP") %>">
+          </div>
+        </div>
+      </div>
+      <%
+        }
+      %>
+    </fieldset>
+<%
+        }
+        try { if (rsCoBorrower != null) rsCoBorrower.close(); } catch (Exception ex) {}
+        try { if (psCoBorrower != null) psCoBorrower.close(); } catch (Exception ex) {}
+    }
 
+    // Check for Land & Building Details
+    psLandBuilding = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYLANDNBULDING WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
+    psLandBuilding.setString(1, accountCode);
+    rsLandBuilding = psLandBuilding.executeQuery();
+    
+    List<Map<String, String>> landBuildings = new ArrayList<>();
+    while (rsLandBuilding.next()) {
+        Map<String, String> lb = new HashMap<>();
+        lb.put("SECURITYTYPE_CODE", getStringSafe(rsLandBuilding, "SECURITYTYPE_CODE"));
+        lb.put("SUBMISSION_DATE", formatDateForInput(rsLandBuilding, "SUBMISSION_DATE"));
+        lb.put("VALUEDAMOUNT", getStringSafe(rsLandBuilding, "VALUEDAMOUNT"));
+        lb.put("MARGINEPERCENTAGE", getStringSafe(rsLandBuilding, "MARGINEPERCENTAGE"));
+        lb.put("AREA", getStringSafe(rsLandBuilding, "AREA"));
+        lb.put("UNITOFAREA", getStringSafe(rsLandBuilding, "UNITOFAREA"));
+        lb.put("LOCATION", getStringSafe(rsLandBuilding, "LOCATION"));
+        lb.put("SECURITYVALUE", getStringSafe(rsLandBuilding, "SECURITYVALUE"));
+        lb.put("REMARK", getStringSafe(rsLandBuilding, "REMARK"));
+        lb.put("PARTICULAR", getStringSafe(rsLandBuilding, "PARTICULAR"));
+        lb.put("EAST", getStringSafe(rsLandBuilding, "EAST"));
+        lb.put("WEST", getStringSafe(rsLandBuilding, "WEST"));
+        lb.put("NORTH", getStringSafe(rsLandBuilding, "NORTH"));
+        lb.put("SOUTH", getStringSafe(rsLandBuilding, "SOUTH"));
+        lb.put("ENGINEER_NAME", getStringSafe(rsLandBuilding, "ENGINEER_NAME"));
+        landBuildings.add(lb);
+    }
+    
+    if (!landBuildings.isEmpty()) {
+%>
+    <fieldset>
+      <legend>Land & Building Details</legend>
+      <%
+        for (int i = 0; i < landBuildings.size(); i++) {
+            Map<String, String> lb = landBuildings.get(i);
+      %>
+      <div class="nominee-card" style="background: #e8e4fc; border: 1px solid #d0d0d0; border-radius: 10px; padding: 15px; margin-top: 15px;">
+        <h4 style="color: #373279; margin-bottom: 10px;">Land & Building <%= (i+1) %></h4>
+        <div class="form-grid">
+          <div>
+            <label>Security Type</label>
+            <input readonly value="<%
+              String lbSecTypeCode = lb.get("SECURITYTYPE_CODE");
+              String lbSecTypeDesc = "";
+              if (!lbSecTypeCode.isEmpty()) {
+                  PreparedStatement psLbSecType = null;
+                  ResultSet rsLbSecType = null;
+                  try {
+                      psLbSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psLbSecType.setString(1, lbSecTypeCode);
+                      rsLbSecType = psLbSecType.executeQuery();
+                      if (rsLbSecType.next()) {
+                          lbSecTypeDesc = rsLbSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      lbSecTypeDesc = lbSecTypeCode;
+                  } finally {
+                      try { if (rsLbSecType != null) rsLbSecType.close(); } catch (Exception ex) {}
+                      try { if (psLbSecType != null) psLbSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(lbSecTypeDesc.isEmpty() ? lbSecTypeCode : lbSecTypeDesc);
+            %>">
+          </div>
+          <div>
+            <label>Submission Date</label>
+            <input readonly value="<%= lb.get("SUBMISSION_DATE") %>">
+          </div>
+          <div>
+            <label>Amount Valued</label>
+            <input readonly value="<%= lb.get("VALUEDAMOUNT") %>">
+          </div>
+          <div>
+            <label>Margin %</label>
+            <input readonly value="<%= lb.get("MARGINEPERCENTAGE") %>">
+          </div>
+          <div>
+            <label>Area</label>
+            <input readonly value="<%= lb.get("AREA") %>">
+          </div>
+          <div>
+            <label>Unit Of Area</label>
+            <input readonly value="<%= lb.get("UNITOFAREA") %>">
+          </div>
+          <div>
+            <label>Location</label>
+            <input readonly value="<%= lb.get("LOCATION") %>">
+          </div>
+          <div>
+            <label>Security Value</label>
+            <input readonly value="<%= lb.get("SECURITYVALUE") %>">
+          </div>
+          <div>
+            <label>Remark</label>
+            <input readonly value="<%= lb.get("REMARK") %>">
+          </div>
+          <div>
+            <label>East</label>
+            <input readonly value="<%= lb.get("EAST") %>">
+          </div>
+          <div>
+            <label>West</label>
+            <input readonly value="<%= lb.get("WEST") %>">
+          </div>
+          <div>
+            <label>North</label>
+            <input readonly value="<%= lb.get("NORTH") %>">
+          </div>
+          <div>
+            <label>South</label>
+            <input readonly value="<%= lb.get("SOUTH") %>">
+          </div>
+          <div>
+            <label>Engineer Name</label>
+            <input readonly value="<%= lb.get("ENGINEER_NAME") %>">
+          </div>
+          <div style="grid-column: span 3;">
+            <label>Particular</label>
+            <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= lb.get("PARTICULAR") %></textarea>
+          </div>
+        </div>
+      </div>
+      <%
+        }
+      %>
+    </fieldset>
+<%
+    }
+
+    // Check for Deposit Security Details
+    psDepositSec = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYDEPOSIT WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
+    psDepositSec.setString(1, accountCode);
+    rsDepositSec = psDepositSec.executeQuery();
+    
+    List<Map<String, String>> depositSecurities = new ArrayList<>();
+    while (rsDepositSec.next()) {
+        Map<String, String> deposit = new HashMap<>();
+        deposit.put("SECURITYTYPE_CODE", getStringSafe(rsDepositSec, "SECURITYTYPE_CODE"));
+        deposit.put("SUBMISSIONDATE", formatDateForInput(rsDepositSec, "SUBMISSIONDATE"));
+        deposit.put("MARGINPERCENTAGE", getStringSafe(rsDepositSec, "MARGINPERCENTAGE"));
+        deposit.put("DEPOSITACCOUNT_CODE", getStringSafe(rsDepositSec, "DEPOSITACCOUNT_CODE"));
+        deposit.put("RELEASEDATE", formatDateForInput(rsDepositSec, "RELEASEDATE"));
+        deposit.put("SECURITYVALUE", getStringSafe(rsDepositSec, "SECURITYVALUE"));
+        deposit.put("PARTICULAR", getStringSafe(rsDepositSec, "PARTICULAR"));
+        depositSecurities.add(deposit);
+    }
+    
+    if (!depositSecurities.isEmpty()) {
+%>
+    <fieldset>
+      <legend>Security Deposit Details</legend>
+      <%
+        for (int i = 0; i < depositSecurities.size(); i++) {
+            Map<String, String> deposit = depositSecurities.get(i);
+      %>
+      <div class="nominee-card" style="background: #e8e4fc; border: 1px solid #d0d0d0; border-radius: 10px; padding: 15px; margin-top: 15px;">
+        <h4 style="color: #373279; margin-bottom: 10px;">Security Deposit <%= (i+1) %></h4>
+        <div class="form-grid">
+          <div>
+            <label>Security Type</label>
+            <input readonly value="<%
+              String depSecTypeCode = deposit.get("SECURITYTYPE_CODE");
+              String depSecTypeDesc = "";
+              if (!depSecTypeCode.isEmpty()) {
+                  PreparedStatement psDepSecType = null;
+                  ResultSet rsDepSecType = null;
+                  try {
+                      psDepSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psDepSecType.setString(1, depSecTypeCode);
+                      rsDepSecType = psDepSecType.executeQuery();
+                      if (rsDepSecType.next()) {
+                          depSecTypeDesc = rsDepSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      depSecTypeDesc = depSecTypeCode;
+                  } finally {
+                      try { if (rsDepSecType != null) rsDepSecType.close(); } catch (Exception ex) {}
+                      try { if (psDepSecType != null) psDepSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(depSecTypeDesc.isEmpty() ? depSecTypeCode : depSecTypeDesc);
+            %>">
+          </div>
+          <div>
+            <label>Submission Date</label>
+            <input readonly value="<%= deposit.get("SUBMISSIONDATE") %>">
+          </div>
+          <div>
+            <label>Margin %</label>
+            <input readonly value="<%= deposit.get("MARGINPERCENTAGE") %>">
+          </div>
+          <div>
+            <label>Deposit A/c Code</label>
+            <input readonly value="<%= deposit.get("DEPOSITACCOUNT_CODE") %>">
+          </div>
+          <div>
+            <label>Release Date</label>
+            <input readonly value="<%= deposit.get("RELEASEDATE") %>">
+          </div>
+          <div>
+            <label>Security Value</label>
+            <input readonly value="<%= deposit.get("SECURITYVALUE") %>">
+          </div>
+          <div style="grid-column: span 3;">
+            <label>Particular</label>
+            <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= deposit.get("PARTICULAR") %></textarea>
+          </div>
+        </div>
+      </div>
+      <%
+        }
+      %>
+    </fieldset>
+<%
+    }
+
+    // Check for Gold/Silver Details
+    psGoldSilver = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTSECURITYGOLDSILVER WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
+    psGoldSilver.setString(1, accountCode);
+    rsGoldSilver = psGoldSilver.executeQuery();
+    
+    List<Map<String, String>> goldSilvers = new ArrayList<>();
+    while (rsGoldSilver.next()) {
+        Map<String, String> gs = new HashMap<>();
+        gs.put("SECURITYTYPE_CODE", getStringSafe(rsGoldSilver, "SECURITYTYPE_CODE"));
+        gs.put("SUBMISSIONDATE", formatDateForInput(rsGoldSilver, "SUBMISSIONDATE"));
+        gs.put("GOLDBAGNO", getStringSafe(rsGoldSilver, "GOLDBAGNO"));
+        gs.put("WEIGHTTOTALGMS", getStringSafe(rsGoldSilver, "WEIGHTTOTALGMS"));
+        gs.put("MARGINPERCENTAGE", getStringSafe(rsGoldSilver, "MARGINPERCENTAGE"));
+        gs.put("RATEPER10GMS", getStringSafe(rsGoldSilver, "RATEPER10GMS"));
+        gs.put("TOTALVALUE", getStringSafe(rsGoldSilver, "TOTALVALUE"));
+        gs.put("SECURITYVALUE", getStringSafe(rsGoldSilver, "SECURITYVALUE"));
+        gs.put("PARTICULAR", getStringSafe(rsGoldSilver, "PARTICULAR"));
+        gs.put("NOTE", getStringSafe(rsGoldSilver, "NOTE"));
+        gs.put("RELEASEDATE", formatDateForInput(rsGoldSilver, "RELEASEDATE"));
+        gs.put("GOLDRECIEPTNO", getStringSafe(rsGoldSilver, "GOLDRECIEPTNO"));
+        gs.put("GOLDDRAWERNO", getStringSafe(rsGoldSilver, "GOLDDRAWERNO"));
+        gs.put("GROSTOTALGMS", getStringSafe(rsGoldSilver, "GROSTOTALGMS"));
+        gs.put("VALUATION_RATE", getStringSafe(rsGoldSilver, "VALUATION_RATE"));
+        gs.put("CURRENT_RATE", getStringSafe(rsGoldSilver, "CURRENT_RATE"));
+        goldSilvers.add(gs);
+    }
+    
+    if (!goldSilvers.isEmpty()) {
+%>
+    <fieldset>
+      <legend>Gold/Silver Details</legend>
+      <%
+        for (int i = 0; i < goldSilvers.size(); i++) {
+            Map<String, String> gs = goldSilvers.get(i);
+      %>
+      <div class="nominee-card" style="background: #e8e4fc; border: 1px solid #d0d0d0; border-radius: 10px; padding: 15px; margin-top: 15px;">
+        <h4 style="color: #373279; margin-bottom: 10px;">Gold/Silver <%= (i+1) %></h4>
+        <div class="form-grid">
+          <div>
+            <label>Security Type</label>
+            <input readonly value="<%
+              String gsSecTypeCode = gs.get("SECURITYTYPE_CODE");
+              String gsSecTypeDesc = "";
+              if (!gsSecTypeCode.isEmpty()) {
+                  PreparedStatement psGsSecType = null;
+                  ResultSet rsGsSecType = null;
+                  try {
+                      psGsSecType = conn.prepareStatement(
+                          "SELECT DESCRIPTION FROM GLOBALCONFIG.SECURITYTYPE WHERE SECURITYTYPE_CODE = ?"
+                      );
+                      psGsSecType.setString(1, gsSecTypeCode);
+                      rsGsSecType = psGsSecType.executeQuery();
+                      if (rsGsSecType.next()) {
+                          gsSecTypeDesc = rsGsSecType.getString("DESCRIPTION");
+                      }
+                  } catch (Exception e) {
+                      gsSecTypeDesc = gsSecTypeCode;
+                  } finally {
+                      try { if (rsGsSecType != null) rsGsSecType.close(); } catch (Exception ex) {}
+                      try { if (psGsSecType != null) psGsSecType.close(); } catch (Exception ex) {}
+                  }
+              }
+              out.print(gsSecTypeDesc.isEmpty() ? gsSecTypeCode : gsSecTypeDesc);
+            %>">
+          </div>
+          <div>
+            <label>Submission Date</label>
+            <input readonly value="<%= gs.get("SUBMISSIONDATE") %>">
+          </div>
+          <div>
+            <label>Gold Bag No</label>
+            <input readonly value="<%= gs.get("GOLDBAGNO") %>">
+          </div>
+          <div>
+            <label>Total Weight (Grm)</label>
+            <input readonly value="<%= gs.get("WEIGHTTOTALGMS") %>">
+          </div>
+          <div>
+            <label>Gross Total (Grm)</label>
+            <input readonly value="<%= gs.get("GROSTOTALGMS") %>">
+          </div>
+          <div>
+            <label>Margin %</label>
+            <input readonly value="<%= gs.get("MARGINPERCENTAGE") %>">
+          </div>
+          <div>
+            <label>Rate/10Grm</label>
+            <input readonly value="<%= gs.get("RATEPER10GMS") %>">
+          </div>
+          <div>
+            <label>Valuation Rate</label>
+            <input readonly value="<%= gs.get("VALUATION_RATE") %>">
+          </div>
+          <div>
+            <label>Current Rate</label>
+            <input readonly value="<%= gs.get("CURRENT_RATE") %>">
+          </div>
+          <div>
+            <label>Total Value</label>
+            <input readonly value="<%= gs.get("TOTALVALUE") %>">
+          </div>
+          <div>
+            <label>Security Value</label>
+            <input readonly value="<%= gs.get("SECURITYVALUE") %>">
+          </div>
+          <div>
+            <label>Release Date</label>
+            <input readonly value="<%= gs.get("RELEASEDATE") %>">
+          </div>
+          <div>
+            <label>Gold Receipt No</label>
+            <input readonly value="<%= gs.get("GOLDRECIEPTNO") %>">
+          </div>
+          <div>
+            <label>Gold Drawer No</label>
+            <input readonly value="<%= gs.get("GOLDDRAWERNO") %>">
+          </div>
+          <div>
+            <label>Particular</label>
+            <input readonly value="<%= gs.get("PARTICULAR") %>">
+          </div>
+          <div style="grid-column: span 3;">
+            <label>Note</label>
+            <textarea readonly style="width: 97%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; resize: vertical;" rows="2"><%= gs.get("NOTE") %></textarea>
+          </div>
+        </div>
+      </div>
+      <%
+        }
+      %>
+    </fieldset>
+<%
+    }
     // Check for Joint Holder Details
     if (showJointHolder) {
         psJoint = conn.prepareStatement("SELECT * FROM ACCOUNT.ACCOUNTJOINTHOLDER WHERE ACCOUNT_CODE = ? ORDER BY SERIAL_NUMBER");
@@ -1580,5 +2136,12 @@
         try { if (psPigmy != null) psPigmy.close(); } catch (Exception ex) {}
         try { if (psFixed != null) psFixed.close(); } catch (Exception ex) {}
         try { if (conn != null) conn.close(); } catch (Exception ex) {}
+        try { if (rsLandBuilding != null) rsLandBuilding.close(); } catch (Exception ex) {}
+        try { if (psLandBuilding != null) psLandBuilding.close(); } catch (Exception ex) {}
+        try { if (rsDepositSec != null) rsDepositSec.close(); } catch (Exception ex) {}
+        try { if (psDepositSec != null) psDepositSec.close(); } catch (Exception ex) {}
+        try { if (rsGoldSilver != null) rsGoldSilver.close(); } catch (Exception ex) {}
+        try { if (psGoldSilver != null) psGoldSilver.close(); } catch (Exception ex) {}
+        
     }
 %>
