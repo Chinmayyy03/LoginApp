@@ -68,7 +68,7 @@
         position: relative;
         overflow: hidden;
         cursor: pointer;
-        min-height: 160px;
+        min-height: 100px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
