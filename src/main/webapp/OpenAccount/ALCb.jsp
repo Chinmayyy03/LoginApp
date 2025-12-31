@@ -552,7 +552,7 @@ body {
 
     <div>
       <label>Interest Rate</label>
-      <input type="number" step="0.01" name="interestRate" value="0">
+      <input type="number" step="0.01" name="interestRate" >
     </div>
 
     <div>
