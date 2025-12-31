@@ -79,11 +79,17 @@
             </a>
         </li>
         
-        
         <li data-page="View/view.jsp">
     		<a href="#" onclick="loadPage('View/view.jsp', 'View', 'View', this); return false;">
         		<img src="images/right-arrow.png" width="22" height="22">
         		View
+    		</a>
+		</li>
+		
+		<li data-page="Transactions/transactions.jsp">
+    		<a href="#" onclick="loadPage('Transactions/transactions.jsp', 'Transactions', 'Transactions', this); return false;">
+        		<img src="images/right-arrow.png" width="22" height="22">
+        		Transactions
     		</a>
 		</li>
     </ul>
