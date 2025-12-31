@@ -9,9 +9,12 @@ body {
 /* ============================================
    SIDEBAR STYLES
    ============================================ */
+/* ============================================
+   ENHANCED SIDEBAR STYLES
+   ============================================ */
 .sidebar {
     width: 250px;
-    background: linear-gradient(90deg, #192947, #1d314f);
+    background: linear-gradient(180deg, #1a2332, #243447, #1a2332);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -21,11 +24,14 @@ body {
     left: 0;
     z-index: 200;
     transition: transform 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
 }
 
 .profile-section {
     text-align: center;
-    padding: 30px 10px 10px;
+    padding: 30px 10px 20px;
+    background: rgba(0, 119, 182, 0.1);
+    border-bottom: 2px solid rgba(0, 119, 182, 0.3);
 }
 
 .profile-pic {
@@ -34,95 +40,200 @@ body {
     border-radius: 50%;
     border: 3px solid #0077b6;
     object-fit: cover;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.4);
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+    border-color: #00b4d8;
+    box-shadow: 0 6px 20px rgba(0, 180, 216, 0.6);
 }
 
 .user-name {
-    margin-top: 10px;
+    margin-top: 12px;
     font-size: 20px;
     font-weight: 600;
-    color: #cfd8dc;
+    color: #ffffff;
     line-height: 1.4;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Sidebar menu */ 
+/* Enhanced Sidebar Menu */ 
 .menu {
     list-style: none;
-    padding: 0;
-    margin: 0px 10px 0px 10px;
-    flex-grow: 1;  
+    padding: 20px 12px;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.menu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.menu::-webkit-scrollbar-thumb {
+    background: rgba(0, 119, 182, 0.5);
+    border-radius: 3px;
+}
+
+.menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 119, 182, 0.8);
+}
+
+.menu li {
+    margin-bottom: 8px;
+    position: relative;
 }
  
 .menu li a {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     text-decoration: none;
-    color: inherit;
-    padding: 15px 20px;
+    color: #b8c5d6;
+    padding: 14px 16px;
     width: 100%;
-    transition: all 0.4s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     z-index: 1;
     box-sizing: border-box;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
 }
 
-/* hover effect background (subtle) */
+/* Subtle hover background */
 .menu li a:hover {
-    background-color: rgba(166, 166, 166, 0.06);
+    background: linear-gradient(90deg, rgba(0, 119, 182, 0.15), rgba(0, 180, 216, 0.1));
+    color: #ffffff;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 119, 182, 0.2);
 }
 
-/* sliding overlay from left */
+/* Modern sliding indicator from left */
 .menu li a::before {
     content: "";
     position: absolute;
-    width: 0;
-    height: 100%;
-    background: #0077b6;
+    width: 4px;
+    height: 0%;
+    background: linear-gradient(180deg, #0077b6, #00b4d8);
     left: 0;
-    top: 0;
-    transition: all 0.4s;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
     z-index: -1;
+    border-radius: 0 4px 4px 0;
 }
 
-/* expand overlay on hover */
+/* Expand indicator on hover */
 .menu li a:hover::before {
-    width: 100%;
+    height: 100%;
 }
 
-/* active state styling for li -> apply to the anchor too */
+/* Active state with modern styling */
 .menu li.active > a {
-    background: #0077b6;
-    color: #fff;
+    background: linear-gradient(90deg, rgba(0, 119, 182, 0.25), rgba(0, 180, 216, 0.15));
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: inset 4px 0 0 #0077b6, 0 2px 12px rgba(0, 119, 182, 0.3);
 }
 
 .menu li.active > a::before {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.08);
+    height: 100%;
+    width: 4px;
 }
 
-/* ensure images inside anchors don't overflow */
+/* Enhanced arrow icon styling */
 .menu li a img {
+    width: 18px;
+    height: 18px;
     display: inline-block;
     vertical-align: middle;
     flex: 0 0 auto;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    filter: brightness(1.2);
 }
 
-/* Logout section */
+/* Arrow animation on hover */
+.menu li a:hover img {
+    transform: translateX(4px);
+    opacity: 1;
+    filter: brightness(1.5) drop-shadow(0 0 4px rgba(0, 180, 216, 0.6));
+}
+
+/* Active arrow styling */
+.menu li.active > a img {
+    opacity: 1;
+    filter: brightness(1.5) drop-shadow(0 0 6px rgba(0, 180, 216, 0.8));
+}
+
+/* Menu text animation */
+.menu li a span {
+    transition: all 0.3s ease;
+}
+
+.menu li a:hover span {
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced Logout section */
 .logout {
     padding: 20px;
     text-align: center;
+    border-top: 2px solid rgba(0, 119, 182, 0.2);
+    background: rgba(0, 0, 0, 0.15);
 }
 
 .logout a {
-    color: #bbb;
+    color: #b8c5d6;
     text-decoration: none;
     font-weight: 500;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(211, 47, 47, 0.1);
 }
 
 .logout a:hover {
-    color: red;
+    background: rgba(211, 47, 47, 0.2);
+    color: #ff6b6b;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+/* Add ripple effect on click */
+.menu li a:active {
+    transform: scale(0.98) translateX(4px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        z-index: 300;
+    }
+    
+    .menu {
+        padding: 15px 10px;
+    }
+    
+    .menu li a {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
 }
 
 /* ============================================
