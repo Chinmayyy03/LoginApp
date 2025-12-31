@@ -129,7 +129,22 @@
         }
 
         /* ---------------- Responsive CSS Added ---------------- */
+        @media (max-width: 1000px) {
+            .row {
+                flex-direction: column;
+                gap: 15px;
+            }
 
+            input {
+                width: 100%;
+            }
+
+            .input-box {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
         @media (max-width: 768px) {
             .row {
                 flex-direction: column;
