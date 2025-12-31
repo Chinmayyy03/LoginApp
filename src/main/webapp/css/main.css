@@ -24,12 +24,12 @@ body {
     left: 0;
     z-index: 200;
     transition: transform 0.3s ease;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+    /*box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3); */
 }
 
 .profile-section {
     text-align: center;
-    padding: 30px 10px 20px;
+    padding: 30px 10px 5px;
     background: linear-gradient(90deg,#182542, #1d314f);
 }
 
@@ -50,7 +50,7 @@ body {
 }
 
 .user-name {
-    margin-top: 12px;
+    margin-top: 6px;
     font-size: 20px;
     font-weight: 600;
     color: #ffffff;
@@ -321,9 +321,7 @@ header {
     padding: 5px 10px;
     border-radius: 8px;
     border: 2px solid #4fc3f7;
-    border-left: 4px solid #03a9f4;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
     transition: all 0.3s ease;
     height: 24px; /* Fixed height */
 }
@@ -343,7 +341,7 @@ header {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 .branch-name::before {
-    content: "BRANCH: ";
+    content: "BRANCH:";
     font-weight: 600;
     margin-right: 6px;
     opacity: 0.9;
