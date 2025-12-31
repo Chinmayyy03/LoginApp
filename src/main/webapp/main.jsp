@@ -184,17 +184,23 @@ document.addEventListener('visibilitychange', function() {
 
 //========== PAGE MAPPING ==========
 const pageMap = {
-    'Dashboard': 'dashboard.jsp',
-    'Add Customer': 'addCustomer.jsp',
-    'Total Customers': 'totalCustomers.jsp',
-    'Authorization Pending': 'authorizationPending.jsp',
-    'Customer List': 'authorizationPendingCustomers.jsp',
-    'Application List': 'authorizationPendingApplications.jsp',
-    'Loan Details': 'loanDetails.jsp',
-    'Open Account': 'newApplication.jsp',
-    'Masters': 'masters.jsp',
-    'View': 'View/view.jsp',  // FIXED: Added correct path
-    'Total Accounts': 'View/totalAccounts.jsp'  // FIXED: Added correct path
+		'Dashboard': 'dashboard.jsp',
+	    'Add Customer': 'addCustomer.jsp',
+	    'Total Customers': 'totalCustomers.jsp',
+	    'Total Customer': 'totalCustomers.jsp',
+	    'Authorization Pending': 'authorizationPending.jsp',
+	    'Customer List': 'authorizationPendingCustomers.jsp',
+	    'Application List': 'authorizationPendingApplications.jsp',
+	    'Loan Details': 'loanDetails.jsp',
+	    'Open Account': 'newApplication.jsp',
+	    'Masters': 'Master/masters.jsp',
+	    'View': 'View/view.jsp',
+	    'Total Accounts': 'View/totalAccounts.jsp',
+	    'Transactions': 'Transactions/transactions.jsp',
+	    'A Type member': 'aTypeMember.jsp',
+	    'B Type member': 'bTypeMember.jsp',
+	    'OTHER': 'otherMember.jsp',
+	    'View Details': 'viewCustomer.jsp'
 };
 
 // Track the currently active menu item

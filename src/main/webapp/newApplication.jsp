@@ -279,11 +279,10 @@
         </div>
     </form>
 
-
-	<!-- 🔽 IFRAME for loading dynamic pages with auto-resize -->
-	<iframe id="resultFrame" name="resultFrame"
-	        style="width:100%; min-height:400px; border:1px solid #ccc; margin-top:20px;">
-	</iframe>
+    <!-- 🔽 IFRAME for loading dynamic pages -->
+    <iframe id="resultFrame" name="resultFrame"
+            style="width:100%; height:800px; border:1px solid #ccc; margin-top:20px;">
+    </iframe>
 
 </div>
 
@@ -347,60 +346,6 @@ function showToast(message, type = 'error') {
         stopOnFocus: true
     }).showToast();
 }
-
-// ========== AUTO-RESIZE IFRAME ==========
-function resizeIframe() {
-    const iframe = document.getElementById('resultFrame');
-    if (!iframe) return;
-    
-    try {
-        // Try to access iframe content (works if same origin)
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const iframeBody = iframeDoc.body;
-        const iframeHtml = iframeDoc.documentElement;
-        
-        // Get the maximum height
-        const height = Math.max(
-            iframeBody.scrollHeight,
-            iframeBody.offsetHeight,
-            iframeHtml.clientHeight,
-            iframeHtml.scrollHeight,
-            iframeHtml.offsetHeight
-        );
-        
-        // Set iframe height with padding
-        iframe.style.height = (height + 50) + 'px';
-        console.log('IFrame resized to:', height + 50, 'px');
-    } catch (e) {
-        console.log('Cannot access iframe content (cross-origin?):', e);
-        // Fallback to default height
-        iframe.style.height = '800px';
-    }
-}
-
-// Listen for messages from child iframes (more reliable method)
-window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'resize') {
-        const iframe = document.getElementById('resultFrame');
-        if (iframe) {
-            iframe.style.height = (event.data.height + 50) + 'px';
-            console.log('IFrame resized via message to:', event.data.height + 50, 'px');
-        }
-    }
-});
-
-// Auto-resize when iframe loads
-document.addEventListener('DOMContentLoaded', function() {
-    const iframe = document.getElementById('resultFrame');
-    if (iframe) {
-        iframe.onload = function() {
-            // Small delay to ensure content is rendered
-            setTimeout(resizeIframe, 100);
-            // Try again after a bit more time for slower loading content
-            setTimeout(resizeIframe, 500);
-        };
-    }
-});
 
 function checkForm(event) {
     event.preventDefault(); // stop default submit
@@ -549,10 +494,6 @@ function checkForm(event) {
     console.log("Lookup key =", key);
 
     if (pageMap[key]) {
-        // Reset iframe to minimum height before loading new content
-        const iframe = document.getElementById('resultFrame');
-        iframe.style.height = "400px";
-        
         // set form action to correct JSP
         document.getElementById("productForm").action = pageMap[key];
         document.getElementById("productForm").submit();  // now submit
@@ -593,8 +534,6 @@ function sendBack(code, desc, type) {
 
 // This is called by lookup.jsp when a row is clicked
 function setValueFromLookup(code, desc, type) {
-    const iframe = document.getElementById("resultFrame");
-    
     if (type === "account") {
         document.getElementById("accountType").value = code;
         document.getElementById("accDescription").value = desc;
@@ -602,10 +541,7 @@ function setValueFromLookup(code, desc, type) {
         // 👉 Clear product fields and IFrame when new account type selected
         document.getElementById("productCode").value = "";
         document.getElementById("prodDescription").value = "";
-        
-        // Reset iframe height to minimum
-        iframe.src = "";
-        iframe.style.height = "400px";
+        document.getElementById("resultFrame").src = "";
         
         showToast('Account Type selected successfully', 'success');
     }
@@ -613,10 +549,7 @@ function setValueFromLookup(code, desc, type) {
     if (type === "product") {
         document.getElementById("productCode").value = code;
         document.getElementById("prodDescription").value = desc;
-        
-        // Reset iframe height to minimum before loading new content
-        iframe.src = "";
-        iframe.style.height = "400px";
+        document.getElementById("resultFrame").src = "";
         
         showToast('Product Code selected successfully', 'success');
     }
