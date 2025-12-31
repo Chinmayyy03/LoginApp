@@ -31,7 +31,6 @@ body {
     text-align: center;
     padding: 30px 10px 20px;
     background: linear-gradient(90deg,#182542, #1d314f);
-    border-bottom: 2px solid rgba(0, 119, 182, 0.3);
 }
 
 .profile-pic {
@@ -187,7 +186,6 @@ body {
 .logout {
     padding: 20px;
     text-align: center;
-    border-top: 2px solid rgba(0, 119, 182, 0.2);
     background: linear-gradient(90deg,#182542, #1d314f);
 }
 
