@@ -46,35 +46,35 @@
     <ul class="menu">
        <li class="active" data-page="dashboard.jsp">
             <a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
-                <img src="images/dashboard.png" width="20" height="20">
+                <img src="images/right-arrow.png" width="20" height="20">
                 Dashboard
             </a>
        </li>
 
         <li data-page="addCustomer.jsp">
             <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
-                <img src="images/addCustomer.png" width="20" height="20">
+                <img src="images/right-arrow.png" width="20" height="20">
                 Add Customer
             </a>
         </li>
         
         <li data-page="authorizationPending.jsp">
             <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
-                <img src="images/authorizationPending.png" width="22" height="22">
+                <img src="images/right-arrow.png" width="22" height="22">
                 Authorization Pending
             </a>
         </li>
         
         <li data-page="newApplication.jsp">
             <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', 'Open Account', this); return false;">
-                <img src="images/newApplication.png" width="22" height="22">
+                <img src="images/right-arrow.png" width="22" height="22">
                 Open Account
             </a>
         </li>
         
          <li data-page="Master/masters.jsp">
             <a href="#" onclick="loadPage('masters', 'Masters', 'Masters', this); return false;">
-                <img src="images/newApplication.png" width="22" height="22">
+                <img src="images/right-arrow.png" width="22" height="22">
                Master
             </a>
         </li>
@@ -82,7 +82,7 @@
         
         <li data-page="View/view.jsp">
     		<a href="#" onclick="loadPage('View/view.jsp', 'View', 'View', this); return false;">
-        		<img src="images/newApplication.png" width="22" height="22">
+        		<img src="images/right-arrow.png" width="22" height="22">
         		View
     		</a>
 		</li>
