@@ -2004,6 +2004,30 @@ function calcReviewDate() {
           });
       }
   });
+
+function notifyParentResize() {
+    try {
+        const height = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight
+        );
+        window.parent.postMessage({ type: 'resize', height: height }, '*');
+    } catch (e) {
+        console.error('Could not notify parent:', e);
+    }
+}
+
+// Auto-notify on load and when content changes
+window.addEventListener('load', function() {
+    notifyParentResize();
+    setTimeout(notifyParentResize, 500);
+});
+
+const observer = new MutationObserver(notifyParentResize);
+observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+// Make globally available for manual calls
+window.triggerResize = notifyParentResize;
 </script>
 </body>
 </html>
