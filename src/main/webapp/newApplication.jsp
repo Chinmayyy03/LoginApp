@@ -281,7 +281,7 @@
     align-items:center;
 ">
     <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
-        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <button onclick="closeLookup()" style="float:right; cursor:pointer;">✖</button>
         <div id="lookupContent"></div>
     </div>
 </div>
