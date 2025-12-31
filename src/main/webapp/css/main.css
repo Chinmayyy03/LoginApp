@@ -14,7 +14,7 @@ body {
    ============================================ */
 .sidebar {
     width: 250px;
-    background: linear-gradient(180deg, #1a2332, #243447, #1a2332);
+    background: linear-gradient(90deg,#182542, #1d314f);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -30,7 +30,7 @@ body {
 .profile-section {
     text-align: center;
     padding: 30px 10px 20px;
-    background: rgba(0, 119, 182, 0.1);
+    background: linear-gradient(90deg,#182542, #1d314f);
     border-bottom: 2px solid rgba(0, 119, 182, 0.3);
 }
 
@@ -188,7 +188,7 @@ body {
     padding: 20px;
     text-align: center;
     border-top: 2px solid rgba(0, 119, 182, 0.2);
-    background: rgba(0, 0, 0, 0.15);
+    background: linear-gradient(90deg,#182542, #1d314f);
 }
 
 .logout a {
