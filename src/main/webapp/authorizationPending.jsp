@@ -1,4 +1,3 @@
-<%@ page import="java.sql.*, db.DBConnection" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
@@ -6,56 +5,6 @@
     if (branchCode == null) {
         response.sendRedirect("login.jsp");
         return;
-    }
-    
-    // ✅ Get working date from session
-    Date workingDate = (Date) session.getAttribute("workingDate");
-    
-    int totalPendingApplications = 0;
-    int totalCustomers = 0;
-    int totalPendingCustomers = 0;
-    double totalLoan = 0; // static for now
-
-    // Count total customers (STATUS = 'A')
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'A' ")) {
-        ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            totalCustomers = rs.getInt(1);
-        }
-    } catch (Exception e) {
-        totalCustomers = 0;
-    }
-    
-    // Count total pending customers (STATUS = 'P') - NO DATE FILTER
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM CUSTOMERS WHERE BRANCH_CODE=? AND STATUS = 'P' ")) {
-        ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            totalPendingCustomers = rs.getInt(1);
-        }
-    } catch (Exception e) {
-        totalPendingCustomers = 0;
-    }
-    
-    // ✅ Count total pending applications (STATUS = 'E') for working date ONLY
-    if (workingDate != null) {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                 "SELECT COUNT(*) FROM APPLICATION.APPLICATION " +
-                 "WHERE BRANCH_CODE=? AND STATUS = 'E' " +
-                 "AND TRUNC(APPLICATIONDATE) = TRUNC(?)")) {
-            ps.setString(1, branchCode);
-            ps.setDate(2, workingDate);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                totalPendingApplications = rs.getInt(1);
-            }
-        } catch (Exception e) {
-            totalPendingApplications = 0;
-        }
     }
 %>
 
@@ -68,15 +17,16 @@
 <body>
     <div class="dashboard-container">
         <div class="cards-wrapper">
-    <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending > Customer List')">
-        <h3>Authorization Pending Customers</h3>
-        <p><%= totalPendingCustomers %></p>
-    </div>
-    <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending > Application List')">
-    <h3>Authorization Pending Application</h3>
-    <p><%= totalPendingApplications %></p>
-</div>
-</div>
+            <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending > Customer List')">
+                <h3>Authorization Pending Customers</h3>
+                <p class="loading" id="pending-customers-value">Loading...</p>
+            </div>
+            
+            <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending > Application List')">
+                <h3>Authorization Pending Application</h3>
+                <p class="loading" id="pending-applications-value">Loading...</p>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -85,7 +35,42 @@
         if (window.parent && window.parent.updateParentBreadcrumb) {
             window.parent.updateParentBreadcrumb('Authorization Pending');
         }
+        
+        // Load card values asynchronously
+        loadCardValues();
     };
+    
+    async function loadCardValues() {
+        // Load both cards in parallel
+        await Promise.all([
+            loadCard('pending_customers', 'pending-customers-value', 'auth'),
+            loadCard('pending_applications', 'pending-applications-value', 'auth')
+        ]);
+    }
+    
+    async function loadCard(cardId, elementId, cardType) {
+        try {
+            const response = await fetch('getCardValueUnified.jsp?type=' + cardType + '&id=' + cardId);
+            const data = await response.json();
+            
+            const valueElement = document.getElementById(elementId);
+            if (valueElement) {
+                if (data.error) {
+                    valueElement.textContent = 'Error';
+                } else {
+                    valueElement.textContent = data.value;
+                }
+                valueElement.classList.remove('loading');
+            }
+        } catch (error) {
+            console.error('Error loading card:', error);
+            const valueElement = document.getElementById(elementId);
+            if (valueElement) {
+                valueElement.textContent = 'Error';
+                valueElement.classList.remove('loading');
+            }
+        }
+    }
 
     function openInParentFrame(page, breadcrumbPath) {
         if (window.parent && window.parent.document) {

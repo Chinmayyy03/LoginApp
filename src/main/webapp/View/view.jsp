@@ -10,32 +10,6 @@
     }
 
     String branchCode = (String) sess.getAttribute("branchCode");
-    
-    // Get working date from session
-    Date workingDate = (Date) session.getAttribute("workingDate");
-    
-    // Count total accounts for current working date
-    int totalAccounts = 0;
-    
-    if (workingDate != null) {
-        try (Connection conn = DBConnection.getConnection()) {
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT COUNT(*) as TOTAL " +
-                "FROM ACCOUNT.ACCOUNT " +
-                "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
-                "AND TRUNC(DATEACCOUNTOPEN) = TRUNC(?)");
-            
-            ps.setString(1, branchCode);
-            ps.setDate(2, workingDate);
-            
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                totalAccounts = rs.getInt("TOTAL");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 %>
 
 <!DOCTYPE html>
@@ -132,6 +106,18 @@
         word-break: break-word;
     }
 
+    .card p.loading {
+        font-size: 18px;
+        opacity: 0.7;
+        font-weight: 400;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
     .card:hover {
         transform: translateY(-6px) scale(1.02);
         box-shadow: 0 12px 30px rgba(74, 158, 255, 0.35);
@@ -187,22 +173,13 @@
 <body>
 <div class="dashboard-container">
     <div class="cards-wrapper">
-        <% if (workingDate != null) { %>
-        
         <!-- Total Accounts Card -->
         <div class="card" onclick="openInParentFrame('View/totalAccounts.jsp', 'View > Total Accounts')">
             <h3>Total Accounts</h3>
-            <p><%= totalAccounts %></p>
+            <p class="loading" id="total-accounts-value">Loading...</p>
         </div>
         
-        <% } else { %>
-        
-        <div class="error-message">
-            <h3>Working Date Not Available</h3>
-            <p>Please refresh the page to load the working date.</p>
-        </div>
-        
-        <% } %>
+        <!-- Add more cards here as needed -->
     </div>
 </div>
 
@@ -211,7 +188,41 @@
         if (window.parent && window.parent.updateParentBreadcrumb) {
             window.parent.updateParentBreadcrumb('View');
         }
+        
+        // Load card values asynchronously
+        loadCardValues();
     };
+    
+    async function loadCardValues() {
+        // Load Total Accounts card
+        await loadCard('total_accounts', 'total-accounts-value', 'view');
+        
+        // Add more cards here as needed
+    }
+    
+    async function loadCard(cardId, elementId, cardType) {
+        try {
+            const response = await fetch('../getCardValueUnified.jsp?type=' + cardType + '&id=' + cardId);
+            const data = await response.json();
+            
+            const valueElement = document.getElementById(elementId);
+            if (valueElement) {
+                if (data.error) {
+                    valueElement.textContent = 'Error';
+                } else {
+                    valueElement.textContent = data.value;
+                }
+                valueElement.classList.remove('loading');
+            }
+        } catch (error) {
+            console.error('Error loading card:', error);
+            const valueElement = document.getElementById(elementId);
+            if (valueElement) {
+                valueElement.textContent = 'Error';
+                valueElement.classList.remove('loading');
+            }
+        }
+    }
 
     function openInParentFrame(page, breadcrumbPath) {
         if (window.parent && window.parent.document) {
