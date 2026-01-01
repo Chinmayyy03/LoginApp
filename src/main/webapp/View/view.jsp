@@ -2,7 +2,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
-    // Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("login.jsp");
@@ -27,44 +26,43 @@
     body {
         margin: 0;
         font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-        background: #e8e4fc;
+        background: #f5f7fa;
         color: #1a1a1a;
     }
 
-    /* ================= CONTAINER ================= */
     .dashboard-container {
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 20px;
+        padding: 40px;
         background-color: #e8e4fc;
         min-height: 100vh;
         width: 100%;
     }
 
-    /* ================= GRID ================= */
     .cards-wrapper {
         display: grid;
-        grid-template-columns: repeat(4, 260px);
-        gap: 20px;
-        padding: 20px;
-        justify-content: center;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        padding: 0;
         width: 100%;
+        max-width: 1400px;
     }
 
-    /* ================= CARD ================= */
     .card {
-        width: 260px;
         background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
         color: white;
-        padding: 22px 26px;
+        padding: 18px 20px;
         border-radius: 20px;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         position: relative;
         overflow: hidden;
         cursor: pointer;
-        min-height: 150px;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     .card::before,
@@ -73,6 +71,7 @@
         position: absolute;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
     }
 
     .card::before {
@@ -90,32 +89,40 @@
     }
 
     .card h3 {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 600;
-        margin-bottom: 12px;
+        margin: 0 0 10px 0;
         position: relative;
         z-index: 1;
+        line-height: 1.25;
+        min-height: 40px;
+        word-wrap: break-word;
     }
 
     .card p {
-        font-size: 30px;
+        font-size: 28px;
         font-weight: 700;
         margin: 0;
         position: relative;
         z-index: 1;
-        word-break: break-word;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.2;
     }
 
     .card p.loading {
         font-size: 18px;
         opacity: 0.7;
         font-weight: 400;
-        animation: pulse 1.5s ease-in-out infinite;
     }
 
     @keyframes pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
+    }
+
+    .loading {
+        animation: pulse 1.5s ease-in-out infinite;
     }
 
     .card:hover {
@@ -127,45 +134,55 @@
         transform: scale(0.97);
     }
 
-    /* ================= ERROR MESSAGE ================= */
-    .error-message {
-        grid-column: 1 / -1;
-        color: #dc2626;
-        background: #fee2e2;
-        padding: 20px;
-        border-radius: 8px;
-        text-align: center;
-    }
-
-    /* ================= RESPONSIVE BREAKPOINTS ================= */
-
-    /* Laptop → 3 cards */
-    @media (max-width: 1250px) {
+    @media (max-width: 1200px) {
+        .dashboard-container { padding: 30px; }
         .cards-wrapper {
-            grid-template-columns: repeat(3, 260px);
+            gap: 25px;
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 
-    /* Tablet → 2 cards */
     @media (max-width: 900px) {
+        .dashboard-container { padding: 25px; }
         .cards-wrapper {
-            grid-template-columns: repeat(2, 260px);
+            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .card h3 {
+            font-size: 15px;
+            min-height: 38px;
+        }
+        .card p {
+            font-size: 24px;
         }
     }
 
-    /* Mobile → 1 card */
-    @media (max-width: 580px) {
+    @media (max-width: 600px) {
+        .dashboard-container { padding: 20px 15px; }
         .cards-wrapper {
-            grid-template-columns: repeat(1, 260px);
+            gap: 18px;
+            grid-template-columns: 1fr;
         }
-
+        .card {
+            padding: 16px 18px;
+            min-height: 140px;
+        }
         .card h3 {
             font-size: 14px;
+            min-height: 36px;
+            margin-bottom: 8px;
         }
-
         .card p {
-            font-size: 28px;
+            font-size: 22px;
         }
+    }
+
+    @media (max-width: 400px) {
+        .dashboard-container { padding: 15px 10px; }
+        .cards-wrapper { gap: 15px; }
+        .card { padding: 14px 16px; }
+        .card h3 { font-size: 13px; }
+        .card p { font-size: 20px; }
     }
 </style>
 </head>
@@ -189,15 +206,11 @@
             window.parent.updateParentBreadcrumb('View');
         }
         
-        // Load card values asynchronously
         loadCardValues();
     };
     
     async function loadCardValues() {
-        // Load Total Accounts card
         await loadCard('total_accounts', 'total-accounts-value', 'view');
-        
-        // Add more cards here as needed
     }
     
     async function loadCard(cardId, elementId, cardType) {
