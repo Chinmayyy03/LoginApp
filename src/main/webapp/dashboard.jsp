@@ -130,13 +130,13 @@
     }
 
     /* Adaptive font sizes based on content length */
-    .card p.size-1 { font-size: 28px; line-height: 1.2; }
-    .card p.size-2 { font-size: 24px; line-height: 1.2; }
-    .card p.size-3 { font-size: 21px; line-height: 1.2; }
-    .card p.size-4 { font-size: 18px; line-height: 1.25; }
-    .card p.size-5 { font-size: 15px; line-height: 1.25; }
-    .card p.size-6 { font-size: 13px; line-height: 1.3; }
-    .card p.size-7 { font-size: 11px; line-height: 1.35; }
+    .card p.size-1 { font-size: 28px; line-height: 1.2; }  /* 0-12 chars */
+    .card p.size-2 { font-size: 24px; line-height: 1.2; }  /* 13-16 chars */
+    .card p.size-3 { font-size: 21px; line-height: 1.2; }   /* 17-20 chars */
+    .card p.size-4 { font-size: 18px; line-height: 1.25; }   /* 21-25 chars */
+    .card p.size-5 { font-size: 15px; line-height: 1.25; }  /* 26-32 chars */
+    .card p.size-6 { font-size: 13px; line-height: 1.3; }   /* 33-40 chars */
+    .card p.size-7 { font-size: 11px; line-height: 1.35; }  /* 41+ chars */
 
     .card:hover {
         transform: translateY(-6px) scale(1.02);
@@ -156,6 +156,7 @@
         text-align: center;
     }
 
+    /* Loading animation */
     @keyframes pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
@@ -165,12 +166,17 @@
         animation: pulse 1.5s ease-in-out infinite;
     }
 
+    /* Tablet Landscape */
     @media (max-width: 1200px) {
-        .dashboard-container { padding: 30px; }
+        .dashboard-container {
+            padding: 30px;
+        }
+
         .cards-wrapper {
             gap: 25px;
             grid-template-columns: repeat(3, 1fr);
         }
+
         .card p.size-1 { font-size: 26px; }
         .card p.size-2 { font-size: 22px; }
         .card p.size-3 { font-size: 19px; }
@@ -180,16 +186,22 @@
         .card p.size-7 { font-size: 10px; }
     }
 
+    /* Tablet Portrait */
     @media (max-width: 900px) {
-        .dashboard-container { padding: 25px; }
+        .dashboard-container {
+            padding: 25px;
+        }
+
         .cards-wrapper {
             gap: 20px;
             grid-template-columns: repeat(2, 1fr);
         }
+
         .card h3 {
             font-size: 15px;
             min-height: 38px;
         }
+
         .card p.size-1 { font-size: 24px; }
         .card p.size-2 { font-size: 20px; }
         .card p.size-3 { font-size: 18px; }
@@ -199,21 +211,28 @@
         .card p.size-7 { font-size: 10px; }
     }
 
+    /* Mobile */
     @media (max-width: 600px) {
-        .dashboard-container { padding: 20px 15px; }
+        .dashboard-container {
+            padding: 20px 15px;
+        }
+
         .cards-wrapper {
             gap: 18px;
             grid-template-columns: 1fr;
         }
+
         .card {
             padding: 16px 18px;
             min-height: 140px;
         }
+
         .card h3 {
             font-size: 14px;
             min-height: 36px;
             margin-bottom: 8px;
         }
+
         .card p.size-1 { font-size: 22px; }
         .card p.size-2 { font-size: 19px; }
         .card p.size-3 { font-size: 17px; }
@@ -223,11 +242,24 @@
         .card p.size-7 { font-size: 9px; }
     }
 
+    /* Extra Small Mobile */
     @media (max-width: 400px) {
-        .dashboard-container { padding: 15px 10px; }
-        .cards-wrapper { gap: 15px; }
-        .card { padding: 14px 16px; }
-        .card h3 { font-size: 13px; }
+        .dashboard-container {
+            padding: 15px 10px;
+        }
+
+        .cards-wrapper {
+            gap: 15px;
+        }
+
+        .card {
+            padding: 14px 16px;
+        }
+
+        .card h3 {
+            font-size: 13px;
+        }
+
         .card p.size-1 { font-size: 20px; }
         .card p.size-2 { font-size: 17px; }
         .card p.size-3 { font-size: 15px; }
@@ -287,7 +319,10 @@ const cardsData = [
             first = false;
     %>
     {
-        srNumber: <%= card.getSrNumber() %>
+        srNumber: <%= card.getSrNumber() %>,
+        functionName: '<%= card.getFuncationName() != null ? card.getFuncationName() : "" %>',
+        paramitar: '<%= card.getParamitar() != null ? card.getParamitar() : "" %>',
+        tableName: '<%= card.getTableName() != null ? card.getTableName() : "" %>'
     }
     <%
         }
@@ -313,8 +348,7 @@ async function loadCardValues() {
 
 async function loadSingleCard(card) {
     try {
-        // Use unified handler with type="dashboard"
-        const response = await fetch('getCardValueUnified.jsp?type=dashboard&id=' + card.srNumber);
+        const response = await fetch('getCardValue.jsp?sr=' + card.srNumber);
         const data = await response.json();
         
         const valueElement = document.getElementById('value-' + card.srNumber);
