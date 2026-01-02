@@ -364,142 +364,28 @@ function checkForm(event) {
         return;
     }
 
-    // 🔥 MAPPING: accountType + productCode → JSP page
+    // 🔥 NEW SIMPLIFIED MAPPING: Based on Account Type only
     const pageMap = {
-        "SB_201": "OpenAccount/savingAcc.jsp",
-        "SB_211": "OpenAccount/savingAcc.jsp",
-        "SB_210": "OpenAccount/savingAcc.jsp",
-        "CA_101": "OpenAccount/savingAcc.jsp",
-        "CA_102": "OpenAccount/savingAcc.jsp",
-        "CA_103": "OpenAccount/savingAcc.jsp",
-        "CA_110": "OpenAccount/savingAcc.jsp",
-        "CA_115": "OpenAccount/savingAcc.jsp",
-        "CA_116": "OpenAccount/savingAcc.jsp",
-        "CA_117": "OpenAccount/savingAcc.jsp",
-        "CA_118": "OpenAccount/savingAcc.jsp",
-        "CA_119": "OpenAccount/savingAcc.jsp",
-        "CA_120": "OpenAccount/savingAcc.jsp",
-        "CA_121": "OpenAccount/savingAcc.jsp",
-        "CA_122": "OpenAccount/savingAcc.jsp",
-        "CA_123": "OpenAccount/savingAcc.jsp",
-        "CA_151": "OpenAccount/savingAcc.jsp",
-        "SH_901": "OpenAccount/ANJh.jsp",
-        "CC_301": "OpenAccount/ALCbG.jsp",
-        "CC_302": "OpenAccount/ALCbG.jsp",
-        "CC_303": "OpenAccount/ALCbG.jsp",
-        "CC_304": "OpenAccount/ALCbG.jsp",
-        "TL_501": "OpenAccount/ALCbG.jsp",
-        "TL_502": "OpenAccount/ALCbG.jsp",
-        "TL_506": "OpenAccount/ALCbG.jsp",
-        "TL_508": "OpenAccount/ALCbG.jsp",
-        "TL_510": "OpenAccount/ALCbG.jsp",
-        "TL_511": "OpenAccount/ALCbG.jsp",
-        "TL_512": "OpenAccount/ALCbG.jsp",
-        "TL_513": "OpenAccount/ALCbG.jsp",
-        "TL_519": "OpenAccount/ALCbG.jsp",
-        "TL_521": "OpenAccount/ALCbG.jsp",
-        "TL_522": "OpenAccount/ALCbG.jsp",
-        "TL_524": "OpenAccount/ALCbG.jsp",
-        "TL_527": "OpenAccount/ALCbG.jsp",
-        "TL_529": "OpenAccount/ALCbG.jsp",
-        "TL_530": "OpenAccount/ALCbG.jsp",
-        "TL_532": "OpenAccount/ALCbG.jsp",
-        "TL_533": "OpenAccount/ALCbG.jsp",
-        "TL_534": "OpenAccount/ALCbG.jsp",
-        "TL_535": "OpenAccount/ALCbG.jsp",
-        "TL_536": "OpenAccount/ALCbG.jsp",
-        "TL_537": "OpenAccount/ALCbG.jsp",
-        "TL_538": "OpenAccount/ALCbG.jsp",
-        "TL_542": "OpenAccount/ALCbG.jsp",
-        "TL_547": "OpenAccount/ALCbG.jsp",
-        "TL_548": "OpenAccount/ALCbG.jsp",
-        "TL_558": "OpenAccount/ALCbG.jsp",
-        "TL_559": "OpenAccount/ALCbG.jsp",
-        "TL_560": "OpenAccount/ALCbG.jsp",
-        "TL_576": "OpenAccount/ALCbG.jsp",
-        "TL_580": "OpenAccount/ALCbG.jsp",
-        "TL_581": "OpenAccount/ALCbG.jsp",
-        "FA_801": "OpenAccount/fAApplication.jsp",
-        "FA_802": "OpenAccount/fAApplication.jsp",
-        "FA_803": "OpenAccount/fAApplication.jsp",
-        "FA_804": "OpenAccount/fAApplication.jsp",
-        "PG_601": "OpenAccount/APNJ.jsp",
-        "PG_615": "OpenAccount/APNJ.jsp",
-        "TD_401": "OpenAccount/ADNJh.jsp",
-        "TD_402": "OpenAccount/ADNJh.jsp",
-        "TD_403": "OpenAccount/ADNJh.jsp",
-        "TD_404": "OpenAccount/ADNJh.jsp",
-        "TD_405": "OpenAccount/ADNJh.jsp",
-        "TD_406": "OpenAccount/ADNJh.jsp",
-        "TD_407": "OpenAccount/ADNJh.jsp",
-        "TD_408": "OpenAccount/ADNJh.jsp",
-        "TD_409": "OpenAccount/ADNJh.jsp",
-        "TD_410": "OpenAccount/ADNJh.jsp",
-        "TD_411": "OpenAccount/ADNJh.jsp",
-        "TD_412": "OpenAccount/ADNJh.jsp",
-        "TD_413": "OpenAccount/ADNJh.jsp",
-        "TD_414": "OpenAccount/ADNJh.jsp",
-        "TD_415": "OpenAccount/ADNJh.jsp",
-        "TD_416": "OpenAccount/ADNJh.jsp",
-        "TD_417": "OpenAccount/ADNJh.jsp",
-        "TD_420": "OpenAccount/ADNJh.jsp",
-        "TD_461": "OpenAccount/ADNJh.jsp",
-        "TD_462": "OpenAccount/ADNJh.jsp",
-        "TD_463": "OpenAccount/ADNJh.jsp",
-        "TD_464": "OpenAccount/ADNJh.jsp",
-        "TD_465": "OpenAccount/ADNJh.jsp",
-        "TD_466": "OpenAccount/ADNJh.jsp",
-        "TD_467": "OpenAccount/ADNJh.jsp",
-        "TD_468": "OpenAccount/ADNJh.jsp",
-        "TD_469": "OpenAccount/ADNJh.jsp",
-        "TD_470": "OpenAccount/ADNJh.jsp",
-        "TD_471": "OpenAccount/ADNJh.jsp",
-        "TD_472": "OpenAccount/ADNJh.jsp",
-        "TD_473": "OpenAccount/ADNJh.jsp",
-        "TD_474": "OpenAccount/ADNJh.jsp",
-        "TD_475": "OpenAccount/ADNJh.jsp",
-        "TD_499": "OpenAccount/ADNJh.jsp",
-        "TL_549": "OpenAccount/ALCb.jsp",
-        "TL_701": "OpenAccount/ALCb.jsp",
-        "TL_702": "OpenAccount/ALCb.jsp",
-        "TL_703": "OpenAccount/ALCb.jsp",
-        "TL_704": "OpenAccount/ALCb.jsp",
-        "TL_705": "OpenAccount/ALCb.jsp",
-        "TL_706": "OpenAccount/ALCb.jsp",
-        "TL_505": "OpenAccount/ALCbGs.jsp",
-        "TL_550": "OpenAccount/ALCbGs.jsp",
-        "TL_561": "OpenAccount/ALCbGs.jsp",
-        "TL_507": "OpenAccount/ALCbDd.jsp",
-        "TL_509": "OpenAccount/ALCbDd.jsp",
-        "TL_514": "OpenAccount/ALCbDd.jsp",
-        "TL_515": "OpenAccount/ALCbGDd.jsp",
-        "TL_516": "OpenAccount/ALCbGDd.jsp",
-        "TL_517": "OpenAccount/ALCbGDd.jsp",
-        "TL_526": "OpenAccount/ALCbGDd.jsp",
-        "TL_552": "OpenAccount/ALCbGDd.jsp",
-        "TL_503": "OpenAccount/ALCbGLb.jsp",
-        "TL_518": "OpenAccount/ALCbGLb.jsp",
-        "TL_523": "OpenAccount/ALCbGLb.jsp",
-        "TL_531": "OpenAccount/ALCbGLb.jsp",
-        "TL_541": "OpenAccount/ALCbGLb.jsp",
-        "TL_504": "OpenAccount/ALNCbG.jsp",
-        "TL_525": "OpenAccount/ALNCbG.jsp",
-        "TL_528": "OpenAccount/ALNCbG.jsp",
-        "TL_520": "OpenAccount/ALNCbGLbF.jsp"
+        "SB": "OpenAccount/savingAcc.jsp",
+        "CA": "OpenAccount/savingAcc.jsp",
+        "TD": "OpenAccount/deposit.jsp",
+        "CC": "OpenAccount/loan.jsp",
+        "TL": "OpenAccount/loan.jsp",
+        "PG": "OpenAccount/pigmy.jsp",
+        "SH": "OpenAccount/shares.jsp",
+        "FA": "OpenAccount/fAApplication.jsp"
     };
 
-    // create key
-    let key = accType + "_" + prodCode;
+    console.log("Account Type =", accType);
 
-    console.log("Lookup key =", key);
-
-    if (pageMap[key]) {
-        // set form action to correct JSP
-        document.getElementById("productForm").action = pageMap[key];
+    // Check if mapping exists for this account type
+    if (pageMap[accType]) {
+        // Set form action to correct JSP
+        document.getElementById("productForm").action = pageMap[accType];
         document.getElementById("productForm").submit();  // now submit
         showToast('Loading application form...', 'success');
     } else {
-        showToast('No page found for Account Type: ' + accType + ' and Product Code: ' + prodCode, 'error');
+        showToast('No page found for Account Type: ' + accType, 'error');
     }
 }
 
