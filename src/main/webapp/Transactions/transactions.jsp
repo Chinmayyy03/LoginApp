@@ -322,6 +322,7 @@ function checkForm(event) {
     event.preventDefault(); // stop default submit
 
     let transType = document.querySelector("input[name='transactionType']").value.trim();
+    let transDesc = document.querySelector("input[name='transDescription']").value.trim();
 
     // Validate field is filled
     if (!transType) {
@@ -329,20 +330,26 @@ function checkForm(event) {
         return;
     }
 
-    // 🔥 MAPPING: transactionType → JSP page
+    // 🔥 UPDATED MAPPING: All transaction types now go to unified form
     const pageMap = {
-        "DEP": "deposit.jsp",
-        "CSW": "withdrawal.jsp",
-        "TR": "transfer.jsp",
+        "CSD": "transactionForm.jsp",      // Deposit → unified form
+        "CSW": "transactionForm.jsp",      // Withdrawal → unified form
+        "TR": "transactionForm.jsp",       // Transfer → unified form (if you want)
         // Add more mappings as needed
     };
 
     console.log("Transaction Type =", transType);
 
     if (pageMap[transType]) {
-        // set form action to correct JSP
-        document.getElementById("transactionForm").action = pageMap[transType];
-        document.getElementById("transactionForm").submit();  // now submit
+        // Create a form to submit with both transactionType and transDescription
+        let form = document.getElementById("transactionForm");
+        form.action = pageMap[transType];
+        
+        // Make sure both values are included
+        document.getElementById("transactionType").value = transType;
+        document.getElementById("transDescription").value = transDesc;
+        
+        form.submit();  // submit to iframe
         showToast('Loading transaction form...', 'success');
     } else {
         showToast('No page found for Transaction Type: ' + transType, 'error');
