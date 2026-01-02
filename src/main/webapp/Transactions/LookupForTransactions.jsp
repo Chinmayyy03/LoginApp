@@ -11,6 +11,7 @@
     String branchCode = (String) sess.getAttribute("branchCode");
 
     String type = request.getParameter("type");
+    String accType = request.getParameter("accType");
     String query = "";
 
     if ("transaction".equals(type)) {
@@ -18,6 +19,9 @@
     } 
     else if ("accountType".equals(type)) {
         query = "SELECT ACCOUNT_TYPE, NAME FROM HEADOFFICE.ACCOUNTTYPE ORDER BY ACCOUNT_TYPE";
+    }
+    else if ("product".equals(type)) {
+        query = "SELECT PRODUCT_CODE, DESCRIPTION FROM HEADOFFICE.PRODUCT WHERE ACCOUNT_TYPE = ? ORDER BY PRODUCT_CODE";
     }
 
     Connection con = null;
@@ -27,6 +31,12 @@
     try {
         con = DBConnection.getConnection();
         ps = con.prepareStatement(query);
+        
+        // Set parameter for product lookup
+        if ("product".equals(type)) {
+            ps.setString(1, accType);
+        }
+        
         rs = ps.executeQuery();
 %>
 
@@ -58,7 +68,8 @@ tr:hover {
 </style>
 
 <div class="lookup-title">
-    Select <%= ("transaction".equals(type) ? "Transaction Type" : "Account Type") %>
+    Select <%= ("transaction".equals(type) ? "Transaction Type" : 
+                 "accountType".equals(type) ? "Account Type" : "Product Code") %>
 </div>
 
 <table>

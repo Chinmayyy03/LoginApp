@@ -130,6 +130,11 @@
             background-color: #3D316F;
         }
 
+        .icon-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
         /* ---------------- Responsive CSS Added ---------------- */
 
         @media (max-width: 768px) {
@@ -258,6 +263,24 @@
                     </div>
 
                 </div>
+
+                <div class="row">
+
+                    <!-- Product Code -->
+                    <div>
+                        <div class="label">Product Code</div>
+                        <div class="input-box">
+                            <input type="text" name="productCode" id="productCode" placeholder="Enter code" readonly>
+                            <button type="button" class="icon-btn" id="productLookupBtn" onclick="openLookup('product', document.getElementById('accountType').value)" disabled>…</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">Product Description</div>
+                        <input type="text" name="productDescription" id="productDescription" placeholder="Product Description" style="width: 230px;" readonly>
+                    </div>
+
+                </div>
             </fieldset>
 
             <button class="submit-btn">Submit</button>
@@ -340,6 +363,8 @@ function checkForm(event) {
     let transDesc = document.querySelector("input[name='transDescription']").value.trim();
     let accountType = document.querySelector("input[name='accountType']").value.trim();
     let accountTypeName = document.querySelector("input[name='accountTypeName']").value.trim();
+    let productCode = document.querySelector("input[name='productCode']").value.trim();
+    let productDesc = document.querySelector("input[name='productDescription']").value.trim();
 
     // Validate fields are filled
     if (!transType) {
@@ -349,6 +374,11 @@ function checkForm(event) {
     
     if (!accountType) {
         showToast('Please select an Account Type', 'warning');
+        return;
+    }
+
+    if (!productCode) {
+        showToast('Please select a Product Code', 'warning');
         return;
     }
 
@@ -362,6 +392,7 @@ function checkForm(event) {
 
     console.log("Transaction Type =", transType);
     console.log("Account Type =", accountType);
+    console.log("Product Code =", productCode);
 
     if (pageMap[transType]) {
         // Create a form to submit with all values
@@ -373,6 +404,8 @@ function checkForm(event) {
         document.getElementById("transDescription").value = transDesc;
         document.getElementById("accountType").value = accountType;
         document.getElementById("accountTypeName").value = accountTypeName;
+        document.getElementById("productCode").value = productCode;
+        document.getElementById("productDescription").value = productDesc;
         
         form.submit();  // submit to iframe
         showToast('Loading transaction form...', 'success');
@@ -382,8 +415,18 @@ function checkForm(event) {
 }
 
 // ========== UNIFIED LOOKUP FUNCTION ==========
-function openLookup(type) {
+function openLookup(type, accType = "") {
+    // Validate if product lookup requires account type
+    if (type === 'product' && !accType) {
+        showToast('Please select an Account Type first', 'warning');
+        return;
+    }
+
     let url = "LookupForTransactions.jsp?type=" + type;
+    
+    if (type === 'product' && accType) {
+        url += "&accType=" + accType;
+    }
 
     // Load JSP content into modal using fetch()
     fetch(url)
@@ -412,10 +455,15 @@ function setValueFromLookup(code, desc, type) {
         document.getElementById("transactionType").value = code;
         document.getElementById("transDescription").value = desc;
         
-        // Clear account type fields and IFrame when new transaction type selected
+        // Clear account type, product fields and IFrame when new transaction type selected
         document.getElementById("accountType").value = "";
         document.getElementById("accountTypeName").value = "";
+        document.getElementById("productCode").value = "";
+        document.getElementById("productDescription").value = "";
         document.getElementById("resultFrame").src = "";
+        
+        // Disable product lookup button
+        document.getElementById("productLookupBtn").disabled = true;
         
         showToast('Transaction Type selected successfully', 'success');
     }
@@ -423,9 +471,24 @@ function setValueFromLookup(code, desc, type) {
     if (type === "accountType") {
         document.getElementById("accountType").value = code;
         document.getElementById("accountTypeName").value = desc;
+        
+        // Clear product fields and IFrame when new account type selected
+        document.getElementById("productCode").value = "";
+        document.getElementById("productDescription").value = "";
         document.getElementById("resultFrame").src = "";
         
+        // Enable product lookup button
+        document.getElementById("productLookupBtn").disabled = false;
+        
         showToast('Account Type selected successfully', 'success');
+    }
+
+    if (type === "product") {
+        document.getElementById("productCode").value = code;
+        document.getElementById("productDescription").value = desc;
+        document.getElementById("resultFrame").src = "";
+        
+        showToast('Product Code selected successfully', 'success');
     }
 
     closeLookup();
