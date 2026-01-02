@@ -8,10 +8,11 @@
         response.sendRedirect("login.jsp");
         return;
     }
- // Fetch working date for this branch
+    
+    // Fetch working date for this branch
     String workingDateStr = "";
     try (Connection connWorkDate = DBConnection.getConnection()) {
-        String bankCode = "0100"; // Default bank code
+        String bankCode = "0100";
         CallableStatement cstmtWorkDate = connWorkDate.prepareCall("{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}");
         cstmtWorkDate.registerOutParameter(1, Types.DATE);
         cstmtWorkDate.setString(2, bankCode);
@@ -25,16 +26,48 @@
         cstmtWorkDate.close();
     } catch (Exception e) {
         e.printStackTrace();
-        // Fallback to current date if error
         workingDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
     }
     
-    // ✅ FIX: Capture productCode from request parameter
+    // ✅ GET PRODUCT CODE FROM REQUEST
     String productCode = request.getParameter("productCode");
     if (productCode == null) {
         productCode = "";
     }
-    System.out.println("📌 savingAcc.jsp - Product Code received: " + productCode);
+    
+    // ✅ FETCH PRODUCT FLAGS FROM DATABASE
+    boolean showNominee = false;
+    boolean showJointHolder = false;
+    
+    if (!productCode.isEmpty()) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT IS_NOMINEE_REQUIRED, IS_JOINT_HOLDER_REQUIRED " +
+                        "FROM HEADOFFICE.PRODUCT " +
+                        "WHERE PRODUCT_CODE = ?";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, productCode);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                String nomineeFlag = rs.getString("IS_NOMINEE_REQUIRED");
+                String jointFlag = rs.getString("IS_JOINT_HOLDER_REQUIRED");
+                
+                showNominee = "Y".equalsIgnoreCase(nomineeFlag);
+                showJointHolder = "Y".equalsIgnoreCase(jointFlag);
+                
+                System.out.println("📌 Product Code: " + productCode);
+                System.out.println("   Nominee Required: " + nomineeFlag + " (Show: " + showNominee + ")");
+                System.out.println("   Joint Holder Required: " + jointFlag + " (Show: " + showJointHolder + ")");
+            }
+            
+            rs.close();
+            ps.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("❌ Error fetching product flags: " + e.getMessage());
+        }
+    }
 %>
 
 <!DOCTYPE html>
@@ -49,14 +82,15 @@
 <body>
 
 <form action="SaveApplicationServlet" method="post" onsubmit="return validateForm()">
-  <!-- ✅ FIX: Use JSP variable to set the value -->
   <input type="hidden" id="hiddenProductCode" name="productCode" value="<%= productCode %>">
 
+  <!-- ========================================== -->
+  <!-- APPLICATION FIELDSET (ALWAYS SHOWN) -->
+  <!-- ========================================== -->
   <fieldset>
     <legend>Application</legend>
     <div class="form-grid">
       
-      <!-- ✅ ADD: Display Product Code for verification -->
       <div>
         <label>Product Code</label>
         <input type="text" value="<%= productCode %>" readonly style="background-color: #f0f0f0;">
@@ -81,26 +115,26 @@
       </div>
 
       <div>
-  		<label>Introduer A/c Code</label>
-  		<input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
-    	title="Introduer Account Code must be exactly 14 digits">
-	</div>
+        <label>Introducer A/c Code</label>
+        <input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
+               title="Introducer Account Code must be exactly 14 digits">
+      </div>
 
       <div>
-  		<label>Introducer A/c Name</label>
-  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
+        <label>Introducer A/c Name</label>
+        <input type="text" name="introducerAccName" required oninput="this.value = this.value
+               .replace(/[^A-Za-z ]/g, '')
+               .replace(/\s{2,}/g, ' ')
+               .replace(/^\s+/g, '')
+               .toLowerCase()
+               .replace(/\b\w/g, c => c.toUpperCase());">
+      </div>
 
       <div>
-    <label>Date Of Application</label>
-    <input type="date" name="dateOfApplication" value="<%= workingDateStr %>" readonly 
-           style="background-color: #f0f0f0; cursor: not-allowed;" required>
-</div>
+        <label>Date Of Application</label>
+        <input type="date" name="dateOfApplication" value="<%= workingDateStr %>" readonly 
+               style="background-color: #f0f0f0; cursor: not-allowed;" required>
+      </div>
 
       <div>
         <label>Account Operation Capacity</label>
@@ -131,33 +165,33 @@
       </div>
 
       <div>
-  <label>Min Balance</label>
-  <select name="minBalanceID" required>
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psMinBal = null;
-      ResultSet rsMinBal = null;
-      try (Connection connMinBal = DBConnection.getConnection()) {
-        String sql = "SELECT MINBALANCE_ID, MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE ORDER BY MINBALANCE_ID";
-        psMinBal = connMinBal.prepareStatement(sql);
-        rsMinBal = psMinBal.executeQuery();
+        <label>Min Balance</label>
+        <select name="minBalanceID" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psMinBal = null;
+            ResultSet rsMinBal = null;
+            try (Connection connMinBal = DBConnection.getConnection()) {
+              String sql = "SELECT MINBALANCE_ID, MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE ORDER BY MINBALANCE_ID";
+              psMinBal = connMinBal.prepareStatement(sql);
+              rsMinBal = psMinBal.executeQuery();
 
-        while (rsMinBal.next()) {
-          String id = rsMinBal.getString("MINBALANCE_ID");      // ID to store
-          String value = rsMinBal.getString("MINBALANCE");      // Value to show
-    %>
-          <option value="<%= id %>"><%= value %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Min Balance</option>");
-      } finally {
-        if (rsMinBal != null) rsMinBal.close();
-        if (psMinBal != null) psMinBal.close();
-      }
-    %>
-  </select>
-</div>
+              while (rsMinBal.next()) {
+                String id = rsMinBal.getString("MINBALANCE_ID");
+                String value = rsMinBal.getString("MINBALANCE");
+          %>
+                <option value="<%= id %>"><%= value %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Min Balance</option>");
+            } finally {
+              if (rsMinBal != null) rsMinBal.close();
+              if (psMinBal != null) psMinBal.close();
+            }
+          %>
+        </select>
+      </div>
       
       <div>
         <label>Risk Category</label>
@@ -166,7 +200,10 @@
     </div>
   </fieldset>
 
-  <!-- Nominee Section -->
+  <!-- ========================================== -->
+  <!-- NOMINEE FIELDSET (CONDITIONAL) -->
+  <!-- ========================================== -->
+  <% if (showNominee) { %>
   <fieldset id="nomineeFieldset">
     <legend>
       Nominee
@@ -185,67 +222,64 @@
         Nominee <span class="nominee-serial">1</span>
       </div>
       
-<div class="inline-fields">
-
-    <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
+      <div class="inline-fields">
+        <div>
+          <label>Has Customer ID ?</label>
+          <div style="flex-direction: row;" class="radio-group">
+            <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
+            <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
+          </div>
         </div>
-    </div>
 
-    <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
+        <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
+          <label>Customer ID</label>
+          <div class="input-icon-box">
+            <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
+            <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
+          </div>
         </div>
-    </div>
-
-</div>
+      </div>
 
       <br>
 
       <div class="personal-grid">
-<div>
-    <label>Salutation Code</label>
-    <select name="nomineeSalutation[]" required>  <!-- ✅ Changed from salutationCode1 -->
-        <option value="">-- Select --</option>
-        <%
-            PreparedStatement psnomineeSalutation = null;
-            ResultSet rsnomineeSalutation = null;
-            try (Connection conn1 = DBConnection.getConnection()) {
+        <div>
+          <label>Salutation Code</label>
+          <select name="nomineeSalutation[]" required>
+            <option value="">-- Select --</option>
+            <%
+              PreparedStatement psnomineeSalutation = null;
+              ResultSet rsnomineeSalutation = null;
+              try (Connection conn1 = DBConnection.getConnection()) {
                 String sql1 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
                 psnomineeSalutation = conn1.prepareStatement(sql1);
                 rsnomineeSalutation = psnomineeSalutation.executeQuery();
                 while (rsnomineeSalutation.next()) {
-                    String nomineeSalutation = rsnomineeSalutation.getString("SALUTATION_CODE");
-        %>
-                    <option value="<%= nomineeSalutation %>"><%= nomineeSalutation %></option>
-        <%
+                  String nomineeSalutation = rsnomineeSalutation.getString("SALUTATION_CODE");
+            %>
+                  <option value="<%= nomineeSalutation %>"><%= nomineeSalutation %></option>
+            <%
                 }
-            } catch (Exception e) {
+              } catch (Exception e) {
                 out.println("<option disabled>Error loading Salutation Code</option>");
                 e.printStackTrace();
-            } finally {
+              } finally {
                 if (rsnomineeSalutation != null) rsnomineeSalutation.close();
                 if (psnomineeSalutation != null) psnomineeSalutation.close();
-            }
-        %>
-    </select>
-</div>
+              }
+            %>
+          </select>
+        </div>
 
-	<div>
-  		<label>Nominee Name</label>
-  		<input type="text" name="nomineeName[]" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
-
+        <div>
+          <label>Nominee Name</label>
+          <input type="text" name="nomineeName[]" required oninput="this.value = this.value
+                 .replace(/[^A-Za-z ]/g, '')
+                 .replace(/\s{2,}/g, ' ')
+                 .replace(/^\s+/g, '')
+                 .toLowerCase()
+                 .replace(/\b\w/g, c => c.toUpperCase());">
+        </div>
 
         <div>
           <label>Address 1</label>
@@ -349,10 +383,10 @@
         </div>
 
         <div>
-  			<label>Zip</label>
-  			<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
-  			<small class="zipError"></small>
-		</div>
+          <label>Zip</label>
+          <input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+          <small class="zipError"></small>
+        </div>
 
         <div>
           <label>Relation with Guardian</label>
@@ -384,8 +418,15 @@
       </div>
     </div>
   </fieldset>
+  <% } else { %>
+  <!-- Hidden input to indicate no nominee required -->
+  <input type="hidden" name="nomineeNotRequired" value="true">
+  <% } %>
 
-  <!-- Joint Holder Section -->
+  <!-- ========================================== -->
+  <!-- JOINT HOLDER FIELDSET (CONDITIONAL) -->
+  <!-- ========================================== -->
+  <% if (showJointHolder) { %>
   <fieldset id="jointFieldset">
     <legend>
       Joint Holder
@@ -404,66 +445,64 @@
         Joint Holder <span class="joint-serial">1</span>
       </div>
       
- <div class="inline-fields">
-      
-    <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="yes" onchange="toggleJointCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="no" onchange="toggleJointCustomerID(this)" checked> No</label>
+      <div class="inline-fields">
+        <div>
+          <label>Has Customer ID ?</label>
+          <div style="flex-direction: row;" class="radio-group">
+            <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="yes" onchange="toggleJointCustomerID(this)"> Yes</label>
+            <label><input type="radio" name="jointHasCustomerID_1" class="jointHasCustomerRadio" value="no" onchange="toggleJointCustomerID(this)" checked> No</label>
+          </div>
         </div>
-    </div>
 
-    <div class="jointCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="jointCustomerIDInput" name="jointCustomerID[]" onclick="openJointCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openJointCustomerLookup(this)" title="Search Customer">🔍</button>
+        <div class="jointCustomerIDContainer" style="display:none; margin-top:10px;">
+          <label>Customer ID</label>
+          <div class="input-icon-box">
+            <input type="text" class="jointCustomerIDInput" name="jointCustomerID[]" onclick="openJointCustomerLookup(this)" readonly>
+            <button type="button" class="inside-icon-btn" onclick="openJointCustomerLookup(this)" title="Search Customer">🔍</button>
+          </div>
         </div>
-    </div>
-
-</div>
+      </div>
 
       <br>
 
       <div class="address-grid">
-<div>
-    <label>Salutation Code</label>
-    <select name="jointSalutation[]" required>  <!-- ✅ Changed from salutationCode2 -->
-        <option value="">-- Select --</option>
-        <%
-            PreparedStatement psSalutation2 = null;
-            ResultSet rsSalutation2 = null;
-            try (Connection conn2 = DBConnection.getConnection()) {
+        <div>
+          <label>Salutation Code</label>
+          <select name="jointSalutation[]" required>
+            <option value="">-- Select --</option>
+            <%
+              PreparedStatement psSalutation2 = null;
+              ResultSet rsSalutation2 = null;
+              try (Connection conn2 = DBConnection.getConnection()) {
                 String sql2 = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
                 psSalutation2 = conn2.prepareStatement(sql2);
                 rsSalutation2 = psSalutation2.executeQuery();
                 while (rsSalutation2.next()) {
-                    String salutationCode2 = rsSalutation2.getString("SALUTATION_CODE");
-        %>
-                    <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
-        <%
+                  String salutationCode2 = rsSalutation2.getString("SALUTATION_CODE");
+            %>
+                  <option value="<%= salutationCode2 %>"><%= salutationCode2 %></option>
+            <%
                 }
-            } catch (Exception e) {
+              } catch (Exception e) {
                 out.println("<option disabled>Error loading Salutation Code</option>");
                 e.printStackTrace();
-            } finally {
+              } finally {
                 if (rsSalutation2 != null) rsSalutation2.close();
                 if (psSalutation2 != null) psSalutation2.close();
-            }
-        %>
-    </select>
-</div>
+              }
+            %>
+          </select>
+        </div>
 
         <div>
           <label>Joint Holder Name</label>
           <input type="text" name="jointName[]" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
+                 .replace(/[^A-Za-z ]/g, '')
+                 .replace(/\s{2,}/g, ' ')
+                 .replace(/^\s+/g, '')
+                 .toLowerCase()
+                 .replace(/\b\w/g, c => c.toUpperCase());">
+        </div>
 
         <div>
           <label>Address 1</label>
@@ -567,32 +606,37 @@
         </div>
 
         <div>
-  			<label>Zip</label>
-  			<input type="text" name="jointZip[]" class="zip-input" maxlength="6">
-  			<small class="zipError"></small>
-		</div>
+          <label>Zip</label>
+          <input type="text" name="jointZip[]" class="zip-input" maxlength="6">
+          <small class="zipError"></small>
+        </div>
+      </div>
     </div>
   </fieldset>
+  <% } else { %>
+  <!-- Hidden input to indicate no joint holder required -->
+  <input type="hidden" name="jointHolderNotRequired" value="true">
+  <% } %>
 
+  <!-- ========================================== -->
+  <!-- FORM BUTTONS -->
+  <!-- ========================================== -->
   <div class="form-buttons">
     <button type="submit">Save</button>
     <button type="reset">Reset</button>
   </div>
 </form>
 
-<!-- Customer Lookup Modal -->
+<!-- Customer Lookup Modal (same as original) -->
 <div id="customerLookupModal" class="customer-modal">
   <div class="customer-modal-content">
     <span class="customer-close" onclick="closeCustomerLookup()">&times;</span>
-    <div id="customerLookupContent">
-      <!-- Content will be loaded here -->
-    </div>
+    <div id="customerLookupContent"></div>
   </div>
 </div>
 
 <script src="js/savingAcc.js"></script>
 <script>
-// Validation function
 function validateForm() {
     const customerId = document.getElementById('customerId').value.trim();
     
@@ -632,7 +676,6 @@ window.addEventListener('DOMContentLoaded', function() {
             stopOnFocus: true
         }).showToast();
         
-        // Clear URL parameters after showing toast
         setTimeout(function() {
             const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
             window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
@@ -658,35 +701,12 @@ window.addEventListener('DOMContentLoaded', function() {
             stopOnFocus: true
         }).showToast();
         
-        // Clear URL parameters after showing toast
         setTimeout(function() {
             const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
             window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
         }, 100);
     }
 });
-
-//✅ Monitor Application Customer ID changes
-document.addEventListener('DOMContentLoaded', function() {
-    const customerIdField = document.getElementById('customerId');
-    if (customerIdField) {
-        // Store initial value
-        let previousValue = customerIdField.value;
-        
-        // Watch for changes (in case of manual clear/reset)
-        customerIdField.addEventListener('change', function() {
-            const newValue = this.value.trim();
-            if (previousValue && !newValue) {
-                // Customer ID was cleared
-                console.log('Application customer cleared');
-            }
-            previousValue = newValue;
-        });
-    }
-});
-
 </script>
 </body>
 </html>
-
-
