@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%
-    // ✅ Get branch code from session
+    // Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("../login.jsp");
@@ -234,7 +234,7 @@
                         <div class="label">Transaction Type</div>
                         <div class="input-box">
                             <input type="text" name="transactionType" id="transactionType" placeholder="Enter code" readonly>
-                            <button type="button" class="icon-btn" onclick="openLookup()">…</button>
+                            <button type="button" class="icon-btn" onclick="openLookup('transaction')">…</button>
                         </div>
                     </div>
 
@@ -248,7 +248,7 @@
                         <div class="label">Account Type</div>
                         <div class="input-box">
                             <input type="text" name="accountType" id="accountType" placeholder="Enter code" readonly>
-                            <button type="button" class="icon-btn" onclick="openAccountTypeLookup()">…</button>
+                            <button type="button" class="icon-btn" onclick="openLookup('accountType')">…</button>
                         </div>
                     </div>
 
@@ -265,14 +265,14 @@
         </div>
     </form>
 
-    <!-- 🔽 IFRAME for loading dynamic pages -->
+    <!-- IFRAME for loading dynamic pages -->
     <iframe id="resultFrame" name="resultFrame"
             style="width:100%; height:800px; border:1px solid #ccc; margin-top:20px;">
     </iframe>
 
 </div>
 
-<!-- LOOKUP MODAL FOR TRANSACTION TYPE -->
+<!-- SINGLE LOOKUP MODAL -->
 <div id="lookupModal" style="
     display:none; 
     position:fixed; 
@@ -285,22 +285,6 @@
     <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
         <button onclick="closeLookup()" style="float:right; cursor:pointer;">✖</button>
         <div id="lookupContent"></div>
-    </div>
-</div>
-
-<!-- LOOKUP MODAL FOR ACCOUNT TYPE -->
-<div id="accountTypeLookupModal" style="
-    display:none; 
-    position:fixed; 
-    top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.5); 
-    justify-content:center; 
-    align-items:center;
-    z-index:9999;
-">
-    <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
-        <button onclick="closeAccountTypeLookup()" style="float:right; cursor:pointer;">✖</button>
-        <div id="accountTypeLookupContent"></div>
     </div>
 </div>
 
@@ -368,11 +352,11 @@ function checkForm(event) {
         return;
     }
 
-    // 🔥 UPDATED MAPPING: All transaction types now go to unified form
+    // UPDATED MAPPING: All transaction types now go to unified form
     const pageMap = {
         "CSD": "transactionForm.jsp",      // Deposit → unified form
         "CSW": "transactionForm.jsp",      // Withdrawal → unified form
-        "TR": "transactionForm.jsp",       // Transfer → unified form (if you want)
+        "TR": "transactionForm.jsp",       // Transfer → unified form
         // Add more mappings as needed
     };
 
@@ -397,9 +381,9 @@ function checkForm(event) {
     }
 }
 
-// ========== TRANSACTION TYPE LOOKUP FUNCTIONS ==========
-function openLookup() {
-    let url = "LookupForTransactions.jsp";
+// ========== UNIFIED LOOKUP FUNCTION ==========
+function openLookup(type) {
+    let url = "LookupForTransactions.jsp?type=" + type;
 
     // Load JSP content into modal using fetch()
     fetch(url)
@@ -418,48 +402,33 @@ function closeLookup() {
     document.getElementById("lookupModal").style.display = "none";
 }
 
-function sendBack(code, desc) {
-    setValueFromLookup(code, desc);
+function sendBack(code, desc, type) {
+    setValueFromLookup(code, desc, type);
 }
 
 // This is called by lookup.jsp when a row is clicked
-function setValueFromLookup(code, desc) {
-    document.getElementById("transactionType").value = code;
-    document.getElementById("transDescription").value = desc;
-    document.getElementById("resultFrame").src = "";
-    
-    showToast('Transaction Type selected successfully', 'success');
+function setValueFromLookup(code, desc, type) {
+    if (type === "transaction") {
+        document.getElementById("transactionType").value = code;
+        document.getElementById("transDescription").value = desc;
+        
+        // Clear account type fields and IFrame when new transaction type selected
+        document.getElementById("accountType").value = "";
+        document.getElementById("accountTypeName").value = "";
+        document.getElementById("resultFrame").src = "";
+        
+        showToast('Transaction Type selected successfully', 'success');
+    }
+
+    if (type === "accountType") {
+        document.getElementById("accountType").value = code;
+        document.getElementById("accountTypeName").value = desc;
+        document.getElementById("resultFrame").src = "";
+        
+        showToast('Account Type selected successfully', 'success');
+    }
+
     closeLookup();
-}
-
-// ========== ACCOUNT TYPE LOOKUP FUNCTIONS ==========
-function openAccountTypeLookup() {
-    let url = "LookupForAccountType.jsp";
-
-    // Load JSP content into modal using fetch()
-    fetch(url)
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById("accountTypeLookupContent").innerHTML = html;
-            document.getElementById("accountTypeLookupModal").style.display = "flex";
-        })
-        .catch(error => {
-            showToast('Failed to load account type lookup. Please try again.', 'error');
-            console.error('Account Type Lookup error:', error);
-        });
-}
-
-function closeAccountTypeLookup() {
-    document.getElementById("accountTypeLookupModal").style.display = "none";
-}
-
-// Make this function globally accessible for the loaded lookup content
-window.sendBackAccountType = function(code, name) {
-    document.getElementById("accountType").value = code;
-    document.getElementById("accountTypeName").value = name;
-    
-    showToast('Account Type selected successfully', 'success');
-    closeAccountTypeLookup();
 }
 </script>
 </body>

@@ -1,7 +1,7 @@
 <%@ page import="java.sql.*, db.DBConnection" %> 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    // ✅ Get branch code from session
+    // Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("login.jsp");
@@ -10,11 +10,24 @@
 
     String branchCode = (String) sess.getAttribute("branchCode");
 
-    String query = "SELECT CODE_TYPE, DESCRIPTION FROM HEADOFFICE.TRANSACTIONS_TYPE ORDER BY CODE_TYPE";
+    String type = request.getParameter("type");
+    String query = "";
 
-    Connection con = DBConnection.getConnection();
-    PreparedStatement ps = con.prepareStatement(query);
-    ResultSet rs = ps.executeQuery();
+    if ("transaction".equals(type)) {
+        query = "SELECT CODE_TYPE, DESCRIPTION FROM HEADOFFICE.TRANSACTIONS_TYPE ORDER BY CODE_TYPE";
+    } 
+    else if ("accountType".equals(type)) {
+        query = "SELECT ACCOUNT_TYPE, NAME FROM HEADOFFICE.ACCOUNTTYPE ORDER BY ACCOUNT_TYPE";
+    }
+
+    Connection con = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    
+    try {
+        con = DBConnection.getConnection();
+        ps = con.prepareStatement(query);
+        rs = ps.executeQuery();
 %>
 
 <style>
@@ -42,40 +55,38 @@ tr:hover {
     font-weight: bold;
     color: #373279;
 }
-tbody tr {
-    transition: background-color 0.2s;
-}
-tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
 </style>
 
 <div class="lookup-title">
-    Select Transaction Type
+    Select <%= ("transaction".equals(type) ? "Transaction Type" : "Account Type") %>
 </div>
 
 <table>
-    <thead>
-        <tr>
-            <th>Code Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
+    <tr>
+        <th>Code</th>
+        <th>Description</th>
+    </tr>
+
 <%
-    while (rs.next()) {
-        String codeType = rs.getString(1);
-        String description = rs.getString(2);
+        while (rs.next()) {
+            String code = rs.getString(1);
+            String desc = rs.getString(2);
 %>
-        <tr onclick="sendBack('<%=codeType%>', '<%=description%>')">
-            <td><%=codeType%></td>
-            <td><%=description%></td>
-        </tr>
+
+    <tr onclick="sendBack('<%=code%>', '<%=desc%>', '<%=type%>')">
+        <td><%=code%></td>
+        <td><%=desc%></td>
+    </tr>
+
 <% 
-    } 
-    rs.close();
-    ps.close();
-    con.close(); 
+        }
+    } catch (SQLException e) {
+        out.println("<tr><td colspan='2' style='color: red; text-align: center;'>Error loading data: " + e.getMessage() + "</td></tr>");
+        e.printStackTrace();
+    } finally {
+        if (rs != null) try { rs.close(); } catch(SQLException e) {}
+        if (ps != null) try { ps.close(); } catch(SQLException e) {}
+        if (con != null) try { con.close(); } catch(SQLException e) {}
+    }
 %>
-    </tbody>
 </table>
