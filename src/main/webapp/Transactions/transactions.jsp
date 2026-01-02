@@ -243,6 +243,20 @@
                         <input type="text" name="transDescription" id="transDescription" placeholder="Description" style="width: 230px;" readonly>
                     </div>
 
+                    <!-- Account Type -->
+                    <div>
+                        <div class="label">Account Type</div>
+                        <div class="input-box">
+                            <input type="text" name="accountType" id="accountType" placeholder="Enter code" readonly>
+                            <button type="button" class="icon-btn" onclick="openAccountTypeLookup()">…</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">Account Type Name</div>
+                        <input type="text" name="accountTypeName" id="accountTypeName" placeholder="Account Type Name" style="width: 230px;" readonly>
+                    </div>
+
                 </div>
             </fieldset>
 
@@ -258,7 +272,7 @@
 
 </div>
 
-<!-- LOOKUP MODAL -->
+<!-- LOOKUP MODAL FOR TRANSACTION TYPE -->
 <div id="lookupModal" style="
     display:none; 
     position:fixed; 
@@ -266,10 +280,27 @@
     background:rgba(0,0,0,0.5); 
     justify-content:center; 
     align-items:center;
+    z-index:9999;
 ">
     <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
-        <button onclick="closeLookup()" style="float:right;  cursor:pointer;">✖</button>
+        <button onclick="closeLookup()" style="float:right; cursor:pointer;">✖</button>
         <div id="lookupContent"></div>
+    </div>
+</div>
+
+<!-- LOOKUP MODAL FOR ACCOUNT TYPE -->
+<div id="accountTypeLookupModal" style="
+    display:none; 
+    position:fixed; 
+    top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); 
+    justify-content:center; 
+    align-items:center;
+    z-index:9999;
+">
+    <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
+        <button onclick="closeAccountTypeLookup()" style="float:right; cursor:pointer;">✖</button>
+        <div id="accountTypeLookupContent"></div>
     </div>
 </div>
 
@@ -323,10 +354,17 @@ function checkForm(event) {
 
     let transType = document.querySelector("input[name='transactionType']").value.trim();
     let transDesc = document.querySelector("input[name='transDescription']").value.trim();
+    let accountType = document.querySelector("input[name='accountType']").value.trim();
+    let accountTypeName = document.querySelector("input[name='accountTypeName']").value.trim();
 
-    // Validate field is filled
+    // Validate fields are filled
     if (!transType) {
         showToast('Please select a Transaction Type', 'warning');
+        return;
+    }
+    
+    if (!accountType) {
+        showToast('Please select an Account Type', 'warning');
         return;
     }
 
@@ -339,15 +377,18 @@ function checkForm(event) {
     };
 
     console.log("Transaction Type =", transType);
+    console.log("Account Type =", accountType);
 
     if (pageMap[transType]) {
-        // Create a form to submit with both transactionType and transDescription
+        // Create a form to submit with all values
         let form = document.getElementById("transactionForm");
         form.action = pageMap[transType];
         
-        // Make sure both values are included
+        // Make sure all values are included
         document.getElementById("transactionType").value = transType;
         document.getElementById("transDescription").value = transDesc;
+        document.getElementById("accountType").value = accountType;
+        document.getElementById("accountTypeName").value = accountTypeName;
         
         form.submit();  // submit to iframe
         showToast('Loading transaction form...', 'success');
@@ -356,6 +397,7 @@ function checkForm(event) {
     }
 }
 
+// ========== TRANSACTION TYPE LOOKUP FUNCTIONS ==========
 function openLookup() {
     let url = "LookupForTransactions.jsp";
 
@@ -388,6 +430,36 @@ function setValueFromLookup(code, desc) {
     
     showToast('Transaction Type selected successfully', 'success');
     closeLookup();
+}
+
+// ========== ACCOUNT TYPE LOOKUP FUNCTIONS ==========
+function openAccountTypeLookup() {
+    let url = "LookupForAccountType.jsp";
+
+    // Load JSP content into modal using fetch()
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("accountTypeLookupContent").innerHTML = html;
+            document.getElementById("accountTypeLookupModal").style.display = "flex";
+        })
+        .catch(error => {
+            showToast('Failed to load account type lookup. Please try again.', 'error');
+            console.error('Account Type Lookup error:', error);
+        });
+}
+
+function closeAccountTypeLookup() {
+    document.getElementById("accountTypeLookupModal").style.display = "none";
+}
+
+// Make this function globally accessible for the loaded lookup content
+window.sendBackAccountType = function(code, name) {
+    document.getElementById("accountType").value = code;
+    document.getElementById("accountTypeName").value = name;
+    
+    showToast('Account Type selected successfully', 'success');
+    closeAccountTypeLookup();
 }
 </script>
 </body>
