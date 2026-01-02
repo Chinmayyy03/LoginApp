@@ -21,7 +21,6 @@
     Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
-    CallableStatement cstmt = null;
     
     try {
         conn = DBConnection.getConnection();
@@ -45,15 +44,14 @@
                     String functionName = rs.getString("FUNCATION_NAME");
                     String parameters = rs.getString("PARAMITAR");
                     String tableName = rs.getString("TABLE_NAME");
-                    String description = rs.getString("DESCRIPTION");
                     
                     if (functionName != null && !functionName.trim().isEmpty()) {
-                        value = executeCardFunction(conn, functionName, parameters, tableName, branchCode, description);
+                        value = executeCardFunction(conn, functionName, parameters, tableName, branchCode);
                     } else {
-                        value = "N/A";  // No function configured, but valid card
+                        value = "N/A";
                     }
                 } else {
-                    value = "N/A";  // Card not found in database
+                    value = "N/A";
                 }
                 break;
                 
@@ -74,13 +72,12 @@
                         if (rs.next()) {
                             value = String.valueOf(rs.getInt("TOTAL"));
                         } else {
-                            value = "0";  // Query executed but no results
+                            value = "0";
                         }
                     } else {
-                        value = "N/A";  // Working date not available
+                        value = "N/A";
                     }
                 }
-                // Add more view cards here as needed
                 break;
                 
             case "auth":
@@ -96,7 +93,7 @@
                     if (rs.next()) {
                         value = String.valueOf(rs.getInt(1));
                     } else {
-                        value = "0";  // Query executed but no results
+                        value = "0";
                     }
                     
                 } else if ("pending_applications".equals(cardId)) {
@@ -113,10 +110,10 @@
                         if (rs.next()) {
                             value = String.valueOf(rs.getInt(1));
                         } else {
-                            value = "0";  // Query executed but no results
+                            value = "0";
                         }
                     } else {
-                        value = "N/A";  // Working date not available
+                        value = "N/A";
                     }
                 }
                 break;
@@ -135,19 +132,18 @@
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ex) {}
         try { if (ps != null) ps.close(); } catch (Exception ex) {}
-        try { if (cstmt != null) cstmt.close(); } catch (Exception ex) {}
         try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
 %>
 
 <%!
-    // Helper method to execute dashboard card functions
+    // Helper method to execute dashboard card functions - Returns raw database value
     private String executeCardFunction(Connection conn, String functionName, String parameters, 
-                                      String tableName, String branchCode, String description) 
+                                      String tableName, String branchCode) 
                                       throws SQLException {
         
         if (functionName == null || functionName.trim().isEmpty()) {
-            return "N/A";  // No function configured
+            return "N/A";
         }
         
         // Parse parameters
@@ -198,12 +194,8 @@
             rs = ps.executeQuery();
             if (rs.next()) {
                 String result = rs.getString(1);
-                if (result == null) {
-                    return "0";
-                }
-                
-                // Format the result based on description
-                return formatCardValue(result, description, functionName);
+                // Return raw value from database as-is
+                return (result == null || result.trim().isEmpty()) ? "0" : result.trim();
             }
             
             return "0";
@@ -216,83 +208,5 @@
             try { if (rs != null) rs.close(); } catch (Exception ex) {}
             try { if (ps != null) ps.close(); } catch (Exception ex) {}
         }
-    }
-    
-    // Format card value based on type
-    private String formatCardValue(String fullResult, String description, String functionName) {
-        if (fullResult == null || fullResult.trim().isEmpty()) {
-            return "0";
-        }
-        
-        // Parse the result - format might be like "5  1212"
-        String[] parts = fullResult.trim().split("\\s+");
-        
-        if (parts.length >= 2) {
-            // We have both parts - separate with dash
-            String firstPart = parts[0].trim();
-            String secondPart = parts[1].trim();
-            
-            try {
-                double value = Double.parseDouble(firstPart);
-                
-                String descUpper = description.toUpperCase();
-                String funcUpper = functionName.toUpperCase();
-                
-                // Format based on type
-                String formattedFirst = "";
-                
-                // Check if it's a count
-                if (descUpper.contains("CUSTOMER") || descUpper.contains("MEMBER") || 
-                    descUpper.contains("COUNT") || descUpper.contains("TYPE") ||
-                    descUpper.contains("LOAN") ||
-                    funcUpper.contains("CUSTOMER") || funcUpper.contains("LOAN")) {
-                    formattedFirst = String.format("%d", (int) value);
-                } 
-                // Check if it's a percentage
-                else if (descUpper.contains("%") || descUpper.contains("PERCENT") ||
-                         funcUpper.contains("PERCENTAGE")) {
-                    formattedFirst = String.format("%.2f%%", value);
-                } 
-                // Default: currency
-                else {
-                    formattedFirst = String.format("₹%,.2f", value);
-                }
-                
-                // Return both parts separated by dash
-                return formattedFirst + " - " + secondPart;
-                
-            } catch (NumberFormatException e) {
-                return fullResult;
-            }
-        } else if (parts.length == 1) {
-            // Only one part returned
-            try {
-                double value = Double.parseDouble(parts[0]);
-                
-                String descUpper = description.toUpperCase();
-                String funcUpper = functionName.toUpperCase();
-                
-                // Check if it's a count
-                if (descUpper.contains("CUSTOMER") || descUpper.contains("MEMBER") || 
-                    descUpper.contains("COUNT") || descUpper.contains("TYPE") ||
-                    descUpper.contains("LOAN") ||
-                    funcUpper.contains("CUSTOMER") || funcUpper.contains("LOAN")) {
-                    return String.format("%d", (int) value);
-                } 
-                // Check if it's a percentage
-                else if (descUpper.contains("%") || descUpper.contains("PERCENT") ||
-                         funcUpper.contains("PERCENTAGE")) {
-                    return String.format("%.2f%%", value);
-                } 
-                // Default: currency
-                else {
-                    return String.format("₹%,.2f", value);
-                }
-            } catch (NumberFormatException e) {
-                return fullResult;
-            }
-        }
-        
-        return "0";
     }
 %>

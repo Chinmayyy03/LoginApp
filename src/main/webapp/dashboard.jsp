@@ -1,4 +1,4 @@
-<%@ page import="java.sql.*, db.DBConnection, servlet.DashboardService, servlet.DashboardCard, java.util.List" %>
+<%@ page import="java.sql.*, db.DBConnection" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
@@ -9,14 +9,42 @@
         return;
     }
 
-    // Only load card structure (fast - no function calls)
-    DashboardService dashboardService = new DashboardService();
-    List<DashboardCard> cards = null;
-
+    // Load card structure from database
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    
+    java.util.List<java.util.Map<String, String>> cards = new java.util.ArrayList<>();
+    
     try {
-        cards = dashboardService.getDashboardCards();
+        conn = DBConnection.getConnection();
+        ps = conn.prepareStatement(
+            "SELECT SR_NUMBER, DESCRIPTION, PAGE_LINK " +
+            "FROM GLOBALCONFIG.DASHBOARD " +
+            "WHERE DESCRIPTION IS NOT NULL " +
+            "ORDER BY SR_NUMBER"
+        );
+        rs = ps.executeQuery();
+        
+        while (rs.next()) {
+            java.util.Map<String, String> card = new java.util.HashMap<>();
+            card.put("srNumber", String.valueOf(rs.getInt("SR_NUMBER")));
+            card.put("description", rs.getString("DESCRIPTION"));
+            
+            String pageLink = rs.getString("PAGE_LINK");
+            if (pageLink == null || pageLink.trim().isEmpty()) {
+                pageLink = "dashboard.jsp";
+            }
+            card.put("pageLink", pageLink);
+            
+            cards.add(card);
+        }
     } catch (Exception e) {
         e.printStackTrace();
+    } finally {
+        try { if (rs != null) rs.close(); } catch (Exception ex) {}
+        try { if (ps != null) ps.close(); } catch (Exception ex) {}
+        try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
 %>
 
@@ -276,19 +304,16 @@
     <div class="cards-wrapper">
         <%
             if (cards != null && !cards.isEmpty()) {
-                for (DashboardCard card : cards) {
-                    if (card.getDescription() == null) continue;
-
-                    String pageLink = card.getPageLink();
-                    if (pageLink == null || pageLink.trim().isEmpty()) {
-                        pageLink = "dashboard.jsp";
-                    }
+                for (java.util.Map<String, String> card : cards) {
+                    String srNumber = card.get("srNumber");
+                    String description = card.get("description");
+                    String pageLink = card.get("pageLink");
         %>
 
-        <div class="card" id="card-<%= card.getSrNumber() %>"
-             onclick="openInParentFrame('<%= pageLink %>', 'Dashboard > <%= card.getDescription() %>')">
-            <h3><%= card.getDescription() %></h3>
-            <p class="loading" id="value-<%= card.getSrNumber() %>">Loading...</p>
+        <div class="card" id="card-<%= srNumber %>"
+             onclick="openInParentFrame('<%= pageLink %>', 'Dashboard > <%= description %>')">
+            <h3><%= description %></h3>
+            <p class="loading" id="value-<%= srNumber %>">Loading...</p>
         </div>
 
         <%
@@ -311,18 +336,13 @@
 // Card data loaded from server
 const cardsData = [
     <%
-    if (cards != null) {
-        boolean first = true;
-        for (DashboardCard card : cards) {
-            if (card.getDescription() == null) continue;
-            if (!first) out.print(",");
-            first = false;
+    if (cards != null && !cards.isEmpty()) {
+        for (int i = 0; i < cards.size(); i++) {
+            java.util.Map<String, String> card = cards.get(i);
+            if (i > 0) out.print(",");
     %>
     {
-        srNumber: <%= card.getSrNumber() %>,
-        functionName: '<%= card.getFuncationName() != null ? card.getFuncationName() : "" %>',
-        paramitar: '<%= card.getParamitar() != null ? card.getParamitar() : "" %>',
-        tableName: '<%= card.getTableName() != null ? card.getTableName() : "" %>'
+        srNumber: '<%= card.get("srNumber") %>'
     }
     <%
         }
@@ -340,7 +360,7 @@ window.onload = function () {
 };
 
 async function loadCardValues() {
-    // Load each card value one by one
+    // Load each card value
     for (let card of cardsData) {
         loadSingleCard(card);
     }
@@ -348,12 +368,16 @@ async function loadCardValues() {
 
 async function loadSingleCard(card) {
     try {
-        const response = await fetch('getCardValue.jsp?sr=' + card.srNumber);
+        const response = await fetch('getCardValueUnified.jsp?type=dashboard&id=' + card.srNumber);
         const data = await response.json();
         
         const valueElement = document.getElementById('value-' + card.srNumber);
         if (valueElement) {
-            valueElement.textContent = data.value;
+            if (data.error) {
+                valueElement.textContent = 'Error';
+            } else {
+                valueElement.textContent = data.value;
+            }
             valueElement.classList.remove('loading');
             
             // Remove all size classes first
@@ -382,6 +406,7 @@ async function loadSingleCard(card) {
             valueElement.classList.add(sizeClass);
         }
     } catch (error) {
+        console.error('Error loading card:', error);
         const valueElement = document.getElementById('value-' + card.srNumber);
         if (valueElement) {
             valueElement.textContent = 'Error';
