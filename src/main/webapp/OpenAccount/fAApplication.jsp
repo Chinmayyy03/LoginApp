@@ -403,7 +403,7 @@ input[type=number] {
   </fieldset>
 
   <div class="form-buttons">
-    <button type="submit">Submit</button>
+    <button type="submit">Save</button>
     <button type="reset">Reset</button>
   </div>
 </form>
