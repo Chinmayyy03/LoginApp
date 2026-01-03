@@ -117,13 +117,13 @@
   <script>
   window.onload = function() {
 	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('Authorization Pending > Application List > View Details');
+	        window.parent.updateParentBreadcrumb('Authorization > Application List > View Details');
 	    }
 	};
 
 	function goBackToList() {
 	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('Authorization Pending > Application List');
+	        window.parent.updateParentBreadcrumb('Authorization > Application List');
 	    }
 	    window.location.href = 'authorizationPendingApplications.jsp';
 	}

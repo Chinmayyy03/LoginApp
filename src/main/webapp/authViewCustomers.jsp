@@ -147,13 +147,13 @@
 <script>
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List > View Details');
+        window.parent.updateParentBreadcrumb('Authorization > Customer List > View Details');
     }
 };
 
 function goBackToList() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List');
+        window.parent.updateParentBreadcrumb('Authorization > Customer List');
     }
     window.location.href = 'authorizationPendingCustomers.jsp';
 }

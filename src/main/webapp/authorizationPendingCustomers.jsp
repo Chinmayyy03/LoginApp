@@ -180,7 +180,7 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List');
+        window.parent.updateParentBreadcrumb('Authorization > Customer List');
     }
     
     // Check if returning from detail view and restore page
@@ -194,7 +194,7 @@ window.onload = function() {
 // View customer
 function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization Pending > Customer List > View Details');
+        window.parent.updateParentBreadcrumb('Authorization > Customer List > View Details');
     }
     window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
 }

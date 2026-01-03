@@ -186,12 +186,12 @@
 <body>
     <div class="dashboard-container">
         <div class="cards-wrapper">
-            <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization Pending > Customer List')">
+            <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization  > Customer List')">
                 <h3>Authorization Pending Customers</h3>
                 <p class="loading" id="pending-customers-value">Loading...</p>
             </div>
             
-            <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization Pending > Application List')">
+            <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization > Application List')">
                 <h3>Authorization Pending Application</h3>
                 <p class="loading" id="pending-applications-value">Loading...</p>
             </div>
@@ -201,7 +201,7 @@
     <script>
     window.onload = function() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Authorization Pending');
+            window.parent.updateParentBreadcrumb('Authorization ');
         }
         
         loadCardValues();

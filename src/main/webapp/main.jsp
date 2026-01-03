@@ -59,9 +59,9 @@
     </li>
     
     <li data-page="authorizationPending.jsp">
-        <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization Pending', 'Authorization Pending', this); return false;">
+        <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization', 'Authorization', this); return false;">
             <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Authorization Pending</span>
+            <span>Authorization</span>
         </a>
     </li>
     
@@ -188,7 +188,7 @@ const pageMap = {
 	    'Add Customer': 'addCustomer.jsp',
 	    'Total Customers': 'totalCustomers.jsp',
 	    'Total Customer': 'totalCustomers.jsp',
-	    'Authorization Pending': 'authorizationPending.jsp',
+	    'Authorization': 'authorizationPending.jsp',
 	    'Customer List': 'authorizationPendingCustomers.jsp',
 	    'Application List': 'authorizationPendingApplications.jsp',
 	    'Loan Details': 'loanDetails.jsp',
