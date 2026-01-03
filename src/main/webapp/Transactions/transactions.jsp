@@ -79,6 +79,7 @@
 	
 	        legend {
 	            font-size: 18px;
+	            font-weight: bold;
 	            padding: 0 10px;
 	            color: #3D316F;
 	        }
@@ -468,6 +469,18 @@
 	                            <label class="radio-label">
 	                                <input type="radio" name="accountCategory" value="investment">
 	                                <span>Investment</span>
+	                            </label>
+	                            <label class="radio-label">
+	                                <input type="radio" name="accountCategory" value="current">
+	                                <span>Current</span>
+	                            </label>
+	                            <label class="radio-label">
+	                                <input type="radio" name="accountCategory" value="cc">
+	                                <span>CC</span>
+	                            </label>
+	                            <label class="radio-label">
+	                                <input type="radio" name="accountCategory" value="other">
+	                                <span>Other</span>
 	                            </label>
 	                        </div>
 	                    </div>
