@@ -467,10 +467,6 @@
 	                                <span>Pigmy</span>
 	                            </label>
 	                            <label class="radio-label">
-	                                <input type="radio" name="accountCategory" value="investment">
-	                                <span>Investment</span>
-	                            </label>
-	                            <label class="radio-label">
 	                                <input type="radio" name="accountCategory" value="current">
 	                                <span>Current</span>
 	                            </label>
