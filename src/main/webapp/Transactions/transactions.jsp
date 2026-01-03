@@ -499,7 +499,7 @@
 	
 	                    <div>
 	                        <div class="label" id="accountNameLabel">Account Name</div>
-	                        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 230px;" readonly>
+	                        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 305px;" readonly>
 	                    </div>
 	                </div>
 	            </fieldset>
