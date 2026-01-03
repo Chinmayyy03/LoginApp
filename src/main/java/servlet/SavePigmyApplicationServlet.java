@@ -134,13 +134,13 @@ public class SavePigmyApplicationServlet extends HttpServlet {
         System.out.println("Product: " + productCode + ", Customer: " + customerId);
         
         if (productCode == null || productCode.isEmpty()) {
-            response.sendRedirect("APNJ.jsp?status=error&message=" + 
+            response.sendRedirect("pigmy.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode("Product Code required", "UTF-8"));
             return;
         }
         
         if (customerId == null || customerId.isEmpty()) {
-            response.sendRedirect("APNJ.jsp?status=error&message=" + 
+            response.sendRedirect("pigmy.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode("Customer ID required", "UTF-8") +
                 "&productCode=" + productCode);
             return;
@@ -402,7 +402,7 @@ public class SavePigmyApplicationServlet extends HttpServlet {
             conn.commit();
             System.out.println("✅ SUCCESS! Pigmy Application saved");
 
-            response.sendRedirect("APNJ.jsp?status=success&applicationNumber=" + 
+            response.sendRedirect("pigmy.jsp?status=success&applicationNumber=" + 
                                  applicationNumber + "&productCode=" + productCode);
 
         } catch (Exception e) {
@@ -415,7 +415,7 @@ public class SavePigmyApplicationServlet extends HttpServlet {
             
             System.out.println("ERROR: " + e.getMessage());
             e.printStackTrace();
-            response.sendRedirect("APNJ.jsp?status=error&message=" + 
+            response.sendRedirect("pigmy.jsp?status=error&message=" + 
                 java.net.URLEncoder.encode(e.getMessage(), "UTF-8") + 
                 "&productCode=" + (productCode != null ? productCode : ""));
         } finally {

@@ -121,13 +121,13 @@ public class ADNJhServlet extends HttpServlet {
         String customerId = trimSafe(request.getParameter("customerId"));
 
         if (productCode == null || productCode.isEmpty()) {
-            response.sendRedirect("ADNJh.jsp?status=error&message=" +
+            response.sendRedirect("deposit.jsp?status=error&message=" +
                 java.net.URLEncoder.encode("Product Code required", "UTF-8"));
             return;
         }
 
         if (customerId == null || customerId.isEmpty()) {
-            response.sendRedirect("ADNJh.jsp?status=error&message=" +
+            response.sendRedirect("deposit.jsp?status=error&message=" +
                 java.net.URLEncoder.encode("Customer ID required", "UTF-8") +
                 "&productCode=" + productCode);
             return;
@@ -446,7 +446,7 @@ public class ADNJhServlet extends HttpServlet {
             }
 
             conn.commit();
-            response.sendRedirect("ADNJh.jsp?status=success&applicationNumber=" +
+            response.sendRedirect("deposit.jsp?status=success&applicationNumber=" +
                                   applicationNumber + "&productCode=" + productCode);
 
         } catch (Exception e) {
@@ -454,7 +454,7 @@ public class ADNJhServlet extends HttpServlet {
                 try { conn.rollback(); } catch (Exception ignored) {}
             }
             e.printStackTrace();
-            response.sendRedirect("ADNJh.jsp?status=error&message=" +
+            response.sendRedirect("deposit.jsp?status=error&message=" +
                 java.net.URLEncoder.encode(e.getMessage(), "UTF-8") +
                 "&productCode=" + (productCode != null ? productCode : ""));
         } finally {

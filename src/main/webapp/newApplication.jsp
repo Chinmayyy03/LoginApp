@@ -182,30 +182,6 @@
             }
         }
 
-
-        .submit-btn {
-            display: block;
-            margin: 35px auto 0;
-            background: #2b0d73;
-            border: none;
-            padding: 12px 35px;
-            border-radius: 30px;
-            font-size: 18px;
-            color: white;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0px 6px 15px rgba(46,204,113,0.4);
-        }
-        
-        .submit-btn:hover {
-            background-color: #2b0d73;
-            transform: scale(1.05);
-        }
-
-        .submit-btn:active {
-            transform: scale(0.97);
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -235,7 +211,7 @@
 <div class="container">
     <h1>LIST OF PRODUCT</h1>
 
-    <form id="productForm" method="post" target="resultFrame" onsubmit="checkForm(event)">
+    <form id="productForm" method="post" target="resultFrame">
         <div class="card">
 
             <fieldset>
@@ -273,8 +249,6 @@
 
                 </div>
             </fieldset>
-
-            <button class="submit-btn">Submit</button>
 
         </div>
     </form>
@@ -347,49 +321,6 @@ function showToast(message, type = 'error') {
     }).showToast();
 }
 
-function checkForm(event) {
-    event.preventDefault(); // stop default submit
-
-    let accType = document.querySelector("input[name='accountType']").value.trim();
-    let prodCode = document.querySelector("input[name='productCode']").value.trim();
-
-    // Validate fields are filled
-    if (!accType) {
-        showToast('Please select an Account Type', 'warning');
-        return;
-    }
-    
-    if (!prodCode) {
-        showToast('Please select a Product Code', 'warning');
-        return;
-    }
-
-    // 🔥 NEW SIMPLIFIED MAPPING: Based on Account Type only
-    const pageMap = {
-        "SB": "OpenAccount/savingAcc.jsp",
-        "CA": "OpenAccount/savingAcc.jsp",
-        "TD": "OpenAccount/deposit.jsp",
-        "CC": "OpenAccount/loan.jsp",
-        "TL": "OpenAccount/loan.jsp",
-        "PG": "OpenAccount/pigmy.jsp",
-        "SH": "OpenAccount/shares.jsp",
-        "FA": "OpenAccount/fAApplication.jsp"
-    };
-
-    console.log("Account Type =", accType);
-
-    // Check if mapping exists for this account type
-    if (pageMap[accType]) {
-        // Set form action to correct JSP
-        document.getElementById("productForm").action = pageMap[accType];
-        document.getElementById("productForm").submit();  // now submit
-        showToast('Loading application form...', 'success');
-    } else {
-        showToast('No page found for Account Type: ' + accType, 'error');
-    }
-}
-
-
 function openLookup(type, accType = "") {
     let url = "LookupForNewAppCode.jsp?type=" + type;
 
@@ -435,12 +366,55 @@ function setValueFromLookup(code, desc, type) {
     if (type === "product") {
         document.getElementById("productCode").value = code;
         document.getElementById("prodDescription").value = desc;
-        document.getElementById("resultFrame").src = "";
         
         showToast('Product Code selected successfully', 'success');
+        
+        // 🔥 AUTO SUBMIT FORM when product is selected
+        autoSubmitForm();
     }
 
     closeLookup();
+}
+
+// 🔥 NEW FUNCTION: Auto submit form after product selection
+function autoSubmitForm() {
+    let accType = document.getElementById("accountType").value.trim();
+    let prodCode = document.getElementById("productCode").value.trim();
+
+    // Validate fields are filled
+    if (!accType) {
+        showToast('Please select an Account Type first', 'warning');
+        return;
+    }
+    
+    if (!prodCode) {
+        showToast('Please select a Product Code', 'warning');
+        return;
+    }
+
+    // Mapping based on Account Type
+    const pageMap = {
+        "SB": "OpenAccount/savingAcc.jsp",
+        "CA": "OpenAccount/savingAcc.jsp",
+        "TD": "OpenAccount/deposit.jsp",
+        "CC": "OpenAccount/loan.jsp",
+        "TL": "OpenAccount/loan.jsp",
+        "PG": "OpenAccount/pigmy.jsp",
+        "SH": "OpenAccount/shares.jsp",
+        "FA": "OpenAccount/fAApplication.jsp"
+    };
+
+    console.log("Account Type =", accType);
+
+    // Check if mapping exists for this account type
+    if (pageMap[accType]) {
+        // Set form action to correct JSP
+        document.getElementById("productForm").action = pageMap[accType];
+        document.getElementById("productForm").submit();
+        showToast('Loading application form...', 'success');
+    } else {
+        showToast('No page found for Account Type: ' + accType, 'error');
+    }
 }
 </script>
 </body>
