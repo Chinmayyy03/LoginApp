@@ -242,7 +242,7 @@
 
       <div>
         <label>Interest Rate</label>
-        <input type="number" step="0.01" name="interestRate">
+        <input type="number" step="0.01" name="interestRate" required>
       </div>
 
       <div>

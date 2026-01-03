@@ -887,7 +887,7 @@ if (zipField) {
 
 <!-- Submit & Reset Buttons -->
   <div class="form-buttons">
-  <button type="submit">Submit</button>
+  <button type="submit">Save</button>
   <button type="reset" onclick="resetFormWithUploads()">Reset</button>
 </div>
   
