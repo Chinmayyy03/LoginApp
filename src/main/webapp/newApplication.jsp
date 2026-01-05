@@ -585,7 +585,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     validateAccountType(e.target.value);
     
-    // ✅ ADD THIS - Fetch immediately when 2 characters entered
+    // Clear product code and iframe when account type changes
+    document.getElementById('productCode').value = '';
+    document.getElementById('prodDescription').value = '';
+    document.getElementById('resultFrame').src = '';
+    
+    // Fetch immediately when 2 characters entered
     if (e.target.value.length === 2) {
         fetchAccountTypeDescription(e.target.value);
     } else if (e.target.value.length < 2) {
@@ -621,7 +626,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         validateProductCode(e.target.value);
         
-     // ✅ Fetch only when 3 digits are entered
+        // ✅ ADD THIS - Clear iframe when product code changes or is removed
+        document.getElementById('resultFrame').src = '';
+        
+        // Fetch only when 3 digits are entered
         const accountType = document.getElementById('accountType').value.trim();
 
         if (e.target.value.length === 3) {
