@@ -1,2479 +1,2699 @@
-<%@ page import="java.sql.*, db.DBConnection" %>
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-
-<%
-    String branchCode = (String) session.getAttribute("branchCode");
-    if (branchCode == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    
-    // Fetch working date for this branch
-    String workingDateStr = "";
-    try (Connection connWorkDate = DBConnection.getConnection()) {
-        String bankCode = "0100";
-        CallableStatement cstmtWorkDate = connWorkDate.prepareCall("{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}");
-        cstmtWorkDate.registerOutParameter(1, Types.DATE);
-        cstmtWorkDate.setString(2, bankCode);
-        cstmtWorkDate.setString(3, branchCode);
-        cstmtWorkDate.execute();
-        
-        Date workingDate = cstmtWorkDate.getDate(1);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        workingDateStr = sdf.format(workingDate);
-        
-        cstmtWorkDate.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-        workingDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-    }
-    
-    // Get product code from request
-    String productCode = request.getParameter("productCode");
-    if (productCode == null) {
-        productCode = "";
-    }
-    System.out.println("📌 loan.jsp - Product Code received: " + productCode);
-    
-    // Fetch product parameters to determine which fieldsets to show
-    boolean showNominee = false;
-    boolean showJointHolder = false;
-    boolean showGuarantor = false;
-    boolean showLandBuilding = false;
-    boolean showDeposit = false;
-    boolean showGold = false;
-    
-    if (!productCode.isEmpty()) {
-        PreparedStatement psProduct = null;
-        ResultSet rsProduct = null;
-        try (Connection connProduct = DBConnection.getConnection()) {
-            String sql = "SELECT " +
-                        "PPL.IS_NOMINEE_REQUIRED, " +
-                        "PPL.IS_JOINT_HOLDER_REQUIRED, " +
-                        "PPL.IS_GUARANTOR_REQUIRED, " +
-                        "PPL.IS_LAND_N_BUILDING_DETAILS_REQ, " +
-                        "PPL.IS_DEPOSIT_DETAILS_REQUIRED, " +
-                        "PPL.IS_GOLD_DETAILS_REQUIRED " +
-                        "FROM HEADOFFICE.PRODUCT P " +
-                        "JOIN HEADOFFICE.PRODUCTPARAMETERLOAN PPL ON P.PRODUCT_CODE = PPL.PRODUCT_CODE " +
-                        "WHERE P.PRODUCT_CODE = ?";
-            
-            psProduct = connProduct.prepareStatement(sql);
-            psProduct.setString(1, productCode);
-            rsProduct = psProduct.executeQuery();
-            
-            if (rsProduct.next()) {
-                showNominee = "Y".equalsIgnoreCase(rsProduct.getString("IS_NOMINEE_REQUIRED"));
-                showJointHolder = "Y".equalsIgnoreCase(rsProduct.getString("IS_JOINT_HOLDER_REQUIRED"));
-                showGuarantor = "Y".equalsIgnoreCase(rsProduct.getString("IS_GUARANTOR_REQUIRED"));
-                showLandBuilding = "Y".equalsIgnoreCase(rsProduct.getString("IS_LAND_N_BUILDING_DETAILS_REQ"));
-                showDeposit = "Y".equalsIgnoreCase(rsProduct.getString("IS_DEPOSIT_DETAILS_REQUIRED"));
-                showGold = "Y".equalsIgnoreCase(rsProduct.getString("IS_GOLD_DETAILS_REQUIRED"));
-                
-                System.out.println("🔍 Product Parameters for " + productCode + ":");
-                System.out.println("   - Nominee: " + showNominee);
-                System.out.println("   - Joint Holder (Co-Borrower): " + showJointHolder);
-                System.out.println("   - Guarantor: " + showGuarantor);
-                System.out.println("   - Land & Building: " + showLandBuilding);
-                System.out.println("   - Deposit: " + showDeposit);
-                System.out.println("   - Gold: " + showGold);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("❌ Error fetching product parameters: " + e.getMessage());
-        } finally {
-            if (rsProduct != null) rsProduct.close();
-            if (psProduct != null) psProduct.close();
-        }
-    }
-%>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Loan Account Application</title>
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<style>
-body {
-      background-color: #e8e4fc;
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-    }
-
-    fieldset {
-      background: #e8e4fc;
-      border: 2px solid #aaa;
-      margin: 32px 0;
-      padding: 15px 20px;
-      min-width: 320px;
-      border-radius: 9px;
-    }
-
-    legend {
-      font-weight: bold;
-      letter-spacing: 1px;
-      font-size: 1.18em;
-      padding: 0 10px;
-      color: #373279;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px 20px;
-    }
-
-    .form-grid div {
-      flex-direction: column;
-    }
-
-    label {
-      min-width: 10px;
-      font-size: 13px;
-      margin-bottom: 3px;
-      font-weight: bold;
-      color: #373279;
-    }
-
-    input[type="text"],
-    input[type="date"],
-    input[type="email"],
-    input[type="number"],
-    select {
-      padding: 4px 6px;
-      font-size: 13px;
-      width: 90%;
-      box-sizing: border-box;
-    }
-
-    input[readonly] {
-      background-color: #f0f0f0;
-      cursor: not-allowed;
-    }
-
-.input-icon-box {
-  position: relative;
-  width: 90%;
-}
-
-.input-icon-box input {
-  width: 100%;
-  padding-right: 40px;   /* space for icon */
-  height: 30px;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.input-icon-box .inside-icon-btn {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #373279;
-}
-
-    .customer-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .customer-modal-content {
-      background: white;
-      width: 85%;
-      max-width: 1000px;
-      max-height: 85vh;
-      overflow: auto;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      position: relative;
-    }
-
-    .customer-close {
-      position: absolute;
-      right: 20px;
-      top: 15px;
-      font-size: 32px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #666;
-      transition: color 0.3s;
-    }
-
-    .customer-close:hover {
-      color: #373279;
-    }
-
-    .lookup-title {
-      font-size: 24px;
-      margin-bottom: 20px;
-      font-weight: bold;
-      color: #373279;
-      text-align: center;
-    }
-
-    .search-box {
-      margin-bottom: 20px;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 12px 15px;
-      font-size: 15px;
-      border: 2px solid #9c8ed8;
-      border-radius: 8px;
-      background-color: #f5f3ff;
-      box-sizing: border-box;
-    }
-
-    .search-box input:focus {
-      outline: none;
-      border-color: #373279;
-      background-color: #fff;
-    }
-
-    .table-container {
-      max-height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: white;
-    }
-
-    .customer-modal-content table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .customer-modal-content th,
-    .customer-modal-content td {
-      border: 1px solid #ddd;
-      padding: 12px 15px;
-      text-align: left;
-    }
-
-    .customer-modal-content th {
-      background-color: #373279;
-      color: white;
-      font-weight: bold;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .customer-modal-content tbody tr {
-      transition: all 0.2s;
-    }
-
-    .customer-modal-content tbody tr:hover {
-      background-color: #e8e4fc;
-      cursor: pointer;
-      transform: scale(1.01);
-    }
-
-    .customer-modal-content tbody tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    .customer-count {
-      text-align: right;
-      margin-bottom: 10px;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .personal-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px 25px;
-      align-items: start;
-    }
-
-    .personal-grid div {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .address-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px 25px;
-      align-items: start;
-    }
-
-    .address-grid div {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .nominee-card {
-      background: #e8e4fc;
-      border: 1px solid #d0d0d0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 15px;
-      box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
-    }
-
-    .nominee-remove {
-      float: right;
-      background: #c62828;
-      border: none;
-      color: white;
-      padding: 3px 8px;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .form-buttons {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 25px 0;
-      gap: 20px;
-    }
-
-    .form-buttons button {
-      background-color: #373279;
-      color: white;
-      border: none;
-      padding: 10px 25px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    .form-buttons button:hover {
-      background-color: #2b0d73;
-      transform: scale(1.05);
-    }
-
-    @media (max-width: 1024px) {
-      .form-grid, .personal-grid, .address-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .form-grid, .personal-grid, .address-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .inline-fields {
-    display: flex;
-    align-items: center;
-    gap: 20px;   /* space between the two blocks */
-}
-
-.lb-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px 20px;
-  align-items: start;
-}
-
-.lb-grid div {
-  display: flex;
-  flex-direction: column;
-}
-
-@media (max-width: 1024px) {
-  .lb-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .lb-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* Gold/Silver responsive grid - same as application fieldset */
-.goldsilver-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 20px;
-}
-
-.goldsilver-grid div {
-  flex-direction: column;
-}
-
-/* Full-width note field */
-.goldsilver-note-field {
-  grid-column: span 3;
-}
-
-/* Media queries for responsive behavior */
-@media (max-width: 1024px) {
-  .goldsilver-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .goldsilver-note-field {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 600px) {
-  .goldsilver-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .goldsilver-note-field {
-    grid-column: span 1;
-  }
-} 
-    
-</style>
-</head>
-<body>
-<form action="LoanServlet" method="post">
-  <input type="hidden" name="productCode" value="<%= productCode %>">
-
-  <!-- Application Fieldset - Always Show -->
-  <fieldset>
-    <legend>Application</legend>
-    <div class="form-grid">
-      
-      <!-- ✅ ADD: Display Product Code for verification -->
-      <div>
-        <label>Product Code</label>
-        <input type="text" value="<%= productCode %>" readonly style="background-color: #f0f0f0;">
-      </div>
-      
-      <div>
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" id="customerId" name="customerId" onclick="openCustomerLookup()" readonly required>
-          <button type="button" class="inside-icon-btn" onclick="openCustomerLookup()" title="Search Customer">🔍</button>
-        </div>
-      </div>
-
-      <div>
-        <label>Customer Name</label>
-        <input type="text" id="customerName" name="customerName" readonly>
-      </div>
-     
-      <div>
-        <label>Category Code</label>
-        <input type="text" id="categoryCode" name="categoryCode" readonly>
-      </div>
-
-      <div>
-  		<label>Introduer A/c Code</label>
-  		<input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
-    	title="Introduer Account Code must be exactly 14 digits">
-	</div>
-
-      <div>
-  		<label>Introducer A/c Name</label>
-  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
-
-      <div>
-    	<label>Date Of Application</label>
-    	<input type="date" name="dateOfApplication" value="<%= workingDateStr %>" readonly 
-           style="background-color: #f0f0f0; cursor: not-allowed;" required>
-	</div>
-
-      <div>
-        <label>Account Operation Capacity</label>
-        <select name="accountOperationCapacity" required>
-          <option value="">-- Select --</option>
-          <%
-            PreparedStatement psAccOpCap = null;
-            ResultSet rsAccOpCap = null;
-            try (Connection connAccOp = DBConnection.getConnection()) {
-              String sql = "SELECT ACCOUNTOPERATIONCAPACITY_ID, DESCRIPTION FROM GLOBALCONFIG.ACCOUNTOPERATIONCAPACITY ORDER BY ACCOUNTOPERATIONCAPACITY_ID";
-              psAccOpCap = connAccOp.prepareStatement(sql);
-              rsAccOpCap = psAccOpCap.executeQuery();
-              while (rsAccOpCap.next()) {
-                String capacityId = rsAccOpCap.getString("ACCOUNTOPERATIONCAPACITY_ID");
-                String description = rsAccOpCap.getString("DESCRIPTION");
-          %>
-                <option value="<%= capacityId %>"><%= description %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading capacities</option>");
-            } finally {
-              if (rsAccOpCap != null) rsAccOpCap.close();
-              if (psAccOpCap != null) psAccOpCap.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <div>
-  <label>Min Balance</label>
-  <select name="minBalanceID" required>
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psMinBal = null;
-      ResultSet rsMinBal = null;
-      try (Connection connMinBal = DBConnection.getConnection()) {
-        String sql = "SELECT MINBALANCE_ID, MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE ORDER BY MINBALANCE_ID";
-        psMinBal = connMinBal.prepareStatement(sql);
-        rsMinBal = psMinBal.executeQuery();
-
-        while (rsMinBal.next()) {
-          String id = rsMinBal.getString("MINBALANCE_ID");      // ID to store
-          String value = rsMinBal.getString("MINBALANCE");      // Value to show
-    %>
-          <option value="<%= id %>"><%= value %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Min Balance</option>");
-      } finally {
-        if (rsMinBal != null) rsMinBal.close();
-        if (psMinBal != null) psMinBal.close();
-      }
-    %>
-  </select>
-</div>
-<div>
-  <label>Risk Category</label>
-  <input type="text" id="riskCategory" name="riskCategory" readonly>
-</div>
-      
-    </div>
-  </fieldset>
-
-
-  <!-- Loan Details Fieldset - Always Show -->
-<fieldset id="loanFieldset">
-  <legend>Loan Details</legend>
-  <div class="form-grid">
-  
-    <div>
-    	<label>Submission Date</label>
-    	<input type="date" name="submissionDate" id="submissionDate" value="<%= workingDateStr %>">
-	</div>
-
-    <div>
-      <label>Resolution No</label>
-      <input type="text" name="resolutionNo">
-    </div>
-
-	<div>
-  		<label>Registration Date</label>
-  		<input type="date" name="registrationDate" id="registrationDate">
-	</div>
-
-    <div>
-      <label>Register Amount</label>
-      <input type="number" step="0.01" name="registerAmount" >
-    </div>
-
-	<div>
-  		<label>Limit Amount</label>
-  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" >
-	</div>
-
-	<div>
-	  <label>Drawing Power</label>
-	  <input type="number" step="0.01" name="drawingPower" id="drawingPower" >
-	</div>
-
-    <div>
-		<label for="sanctionDate">Sanction Date</label>
-		<input type="date" id="sanctionDate" name="sanctionDate">  
-	</div>
-
-	<div>
-	  <label>Sanction Amount</label>
-	  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" >
-	</div>
-
-    <div>
-		<label for="loanPeriod">Period of Loan (months)</label>
-  		<input type="number" id="loanPeriod" name="loanPeriod" min="1">
-    </div>
-
-    <div>
-      <label for="reviewDate">A/c Review Date</label>
- 	  <input type="date" id="reviewDate" name="reviewDate" readonly>
-    </div>
-
-
-	<div>
-    		<label for="installmentTypeId">Installment Type Id</label>
-    	<div class="input-icon-box">
-        	<input type="text" id="installmentTypeId" name="installmentTypeId" 
-               onclick="openInstallmentLookup()" readonly required>
-        	<button type="button" class="inside-icon-btn" 
-                onclick="openInstallmentLookup()" title="Search Installment Type">🔍</button>
-    	</div>
-	</div>
-
-
-    <div>
-      <label for="installmentType">Installment Type</label>
-	  <input type="text" name="installmentType" id="installmentType" readonly>
-    </div>
-
-    <div>
-      <label>Repayment Freq.</label>
-      <select name="repaymentFreq">
-        <option value="">-- Select --</option>
-        <option value="M">Monthly</option>
-        <option value="Q">Quarterly</option>
-        <option value="H">Half-Yearly</option>
-        <option value="Y">Yearly</option>
-        <option value="O">On Maturity</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Int. Calculation Method</label>
-      <select name="intCalcMethod">
-        <option value="">-- Select --</option>
-        <option value="S">Simple</option>
-        <option value="R">Reducing</option>
-        <option value="F">Flat</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Interest Rate</label>
-      <input type="number" step="0.01" name="interestRate">
-    </div>
-
-    <div>
-      <label>Penal Int. Rate</label>
-      <input type="number" step="0.01" name="penalIntRate" value="0">
-    </div>
-
-    <div>
-      <label>Mor. Int. Rate</label>
-      <input type="number" step="0.01" name="morIntRate" value="0">
-    </div>
-
-    <div>
-      <label>Overdue Int. Rate</label>
-      <input type="number" step="0.01" name="overdueIntRate" value="0">
-    </div>
-
-    <div>
-      <label>Mor. Period Month</label>
-      <input type="number" name="morPeriodMonth" value="0">
-    </div>
-
-    <div>
-  		<label>Inst. Amount</label>
-  		<input type="number" step="0.01" name="instAmount" id="instAmount" value="0" readonly 
-         style="background-color: #f0f0f0; cursor: not-allowed;">
-	</div>
-
-    <div>
-      <label>Consortium Loan</label>
-      <div>
-        <label><input type="radio" name="consortiumLoan" value="Y"> Yes</label>
-        <label><input type="radio" name="consortiumLoan" value="N" checked> No</label>
-      </div>
-    </div>
-
-<div>
-  <label>Area Code</label>
-  <div class="input-icon-box">
-    <input type="text" id="areaCode" name="areaCode" 
-           onclick="openAreaLookup()" readonly>
-    <button type="button" class="inside-icon-btn" 
-            onclick="openAreaLookup()" title="Search Area">🔍</button>
-  </div>
-</div>
-
-<div>
-  <label>Area Name</label>
-  <input type="text" id="areaName" name="areaName" readonly>
-</div>
-    
-       <div>
-  <label>Social Section Id</label>
-  <select name="socialSectionId" required>
-    <option value="">-- Select --</option>
-
-    <%
-      PreparedStatement psSocial = null;
-      ResultSet rsSocial = null;
-      try (Connection connSocial = DBConnection.getConnection()) {
-        String sql = "SELECT SOCIALSECTION_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTION ORDER BY SOCIALSECTION_ID";
-        psSocial = connSocial.prepareStatement(sql);
-        rsSocial = psSocial.executeQuery();
-
-        while (rsSocial.next()) {
-          String id = rsSocial.getString("SOCIALSECTION_ID");   // ID to store
-          String desc = rsSocial.getString("DESCRIPTION");      // Text to show
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Social Section</option>");
-      } finally {
-        if (rsSocial != null) rsSocial.close();
-        if (psSocial != null) psSocial.close();
-      }
-    %>
-
-  </select>
-</div>
-
-
-<div>
-  <label>Sub Area Code</label>
-  <div class="input-icon-box">
-    <input type="text" id="subAreaCode" name="subAreaCode" 
-           onclick="openSubAreaLookup()" readonly>
-    <button type="button" class="inside-icon-btn" 
-            onclick="openSubAreaLookup()" title="Search Sub Area">🔍</button>
-  </div>
-</div>
-
-<div>
-  <label>Sub Area Name</label>
-  <input type="text" id="subAreaName" name="subAreaName" readonly>
-</div>
-    
-    <div>
-  <label>LBR Code</label>
-  <select name="lbrCode">
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psMIS = null;
-      ResultSet rsMIS = null;
-
-      try (Connection conMIS = DBConnection.getConnection()) {
-        String sql = "SELECT MIS_ID, DESCRIPTION FROM HEADOFFICE.MIS ORDER BY DESCRIPTION";
-        psMIS = conMIS.prepareStatement(sql);
-        rsMIS = psMIS.executeQuery();
-
-        while (rsMIS.next()) {
-          String id = rsMIS.getString("MIS_ID");
-          String desc = rsMIS.getString("DESCRIPTION");
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading LBR Code</option>");
-      } finally {
-        if (rsMIS != null) rsMIS.close();
-        if (psMIS != null) psMIS.close();
-      }
-    %>
-  </select>
-</div>
-
-    
-    <div>
-  <label>Social Sector Id</label>
-  <div class="input-icon-box">
-    <input type="text" id="socialSectorId" name="socialSectorId" 
-           onclick="openSocialSectorLookup()" readonly required>
-    <button type="button" class="inside-icon-btn" 
-            onclick="openSocialSectorLookup()" title="Search Social Sector">🔍</button>
-  </div>
-</div>
-
-<div>
-  <label>Social Sector Description</label>
-  <input type="text" id="socialSectorDesc" name="socialSectorDesc" readonly>
-</div>
-
-    <div>
-  <label>Purpose Id</label>
-  <select name="purposeId" required>
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psPurpose = null;
-      ResultSet rsPurpose = null;
-      try (Connection connPurpose = DBConnection.getConnection()) {
-
-        String sql = "SELECT PURPOSE_ID, DESCRIPTION FROM HEADOFFICE.PURPOSE ORDER BY DESCRIPTION";
-        psPurpose = connPurpose.prepareStatement(sql);
-        rsPurpose = psPurpose.executeQuery();
-
-        while (rsPurpose.next()) {
-          String id = rsPurpose.getString("PURPOSE_ID");        // value to store
-          String desc = rsPurpose.getString("DESCRIPTION");     // text to display
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Purpose</option>");
-      } finally {
-        if (rsPurpose != null) rsPurpose.close();
-        if (psPurpose != null) psPurpose.close();
-      }
-    %>
-  </select>
-</div>
-
-    
-    <div>
-  <label>Social SubSector Id</label>
-  <div class="input-icon-box">
-    <input type="text" id="socialSubSectorId" name="socialSubSectorId" 
-           onclick="openSocialSubSectorLookup()" readonly required>
-    <button type="button" class="inside-icon-btn" 
-            onclick="openSocialSubSectorLookup()" title="Search Social SubSector">🔍</button>
-  </div>
-</div>
-
-<div>
-  <label>Social SubSector Description</label>
-  <input type="text" id="socialSubSectorDesc" name="socialSubSectorDesc" readonly>
-</div>
-
-    <div>
-  <label>Classification Id</label>
-  <select name="classificationId">
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psClass = null;
-      ResultSet rsClass = null;
-
-      try (Connection connClass = DBConnection.getConnection()) {
-
-        String sql = "SELECT CLASSIFICATION_ID, DESCRIPTION FROM HEADOFFICE.CLASSIFICATION ORDER BY DESCRIPTION";
-        psClass = connClass.prepareStatement(sql);
-        rsClass = psClass.executeQuery();
-
-        while (rsClass.next()) {
-          String id = rsClass.getString("CLASSIFICATION_ID");     // value to store
-          String desc = rsClass.getString("DESCRIPTION");         // visible text
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Classification</option>");
-      } finally {
-        if (rsClass != null) rsClass.close();
-        if (psClass != null) psClass.close();
-      }
-    %>
-  </select>
-</div>
-
-    <div>
-  <label>Mode Of San. Id</label>
-  <select name="modeOfSanId">
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psMOS = null;
-      ResultSet rsMOS = null;
-
-      try (Connection conMOS = DBConnection.getConnection()) {
-        String sql = "SELECT MODEOFSANCTION_ID, DESCRIPTION FROM HEADOFFICE.MODEOFSANCTION ORDER BY DESCRIPTION";
-        psMOS = conMOS.prepareStatement(sql);
-        rsMOS = psMOS.executeQuery();
-
-        while (rsMOS.next()) {
-          String id = rsMOS.getString("MODEOFSANCTION_ID");
-          String desc = rsMOS.getString("DESCRIPTION");
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Mode of Sanction</option>");
-      } finally {
-        if (rsMOS != null) rsMOS.close();
-        if (psMOS != null) psMOS.close();
-      }
-    %>
-  </select>
-</div>
-
-
-    <div>
-  <label>Sanction Authority Id</label>
-  <select name="sanctionAuthorityId">
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psSA = null;
-      ResultSet rsSA = null;
-
-      try (Connection conSA = DBConnection.getConnection()) {
-        String sql = "SELECT SANCTIONAUTHORITY_ID, DESCRIPTION FROM HEADOFFICE.SANCTIONAUTHORITY ORDER BY DESCRIPTION";
-        psSA = conSA.prepareStatement(sql);
-        rsSA = psSA.executeQuery();
-
-        while (rsSA.next()) {
-          String id = rsSA.getString("SANCTIONAUTHORITY_ID");
-          String desc = rsSA.getString("DESCRIPTION");
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Sanction Authority</option>");
-      } finally {
-        if (rsSA != null) rsSA.close();
-        if (psSA != null) psSA.close();
-      }
-    %>
-  </select>
-</div>
-
-
-    <div>
-  <label>Industry Id</label>
-  <select name="industryId">
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psInd = null;
-      ResultSet rsInd = null;
-
-      try (Connection conInd = DBConnection.getConnection()) {
-        String sql = "SELECT INDUSTRY_ID, DESCRIPTION FROM HEADOFFICE.INDUSTRY ORDER BY DESCRIPTION";
-        psInd = conInd.prepareStatement(sql);
-        rsInd = psInd.executeQuery();
-
-        while (rsInd.next()) {
-          String id = rsInd.getString("INDUSTRY_ID");
-          String desc = rsInd.getString("DESCRIPTION");
-    %>
-          <option value="<%= id %>"><%= desc %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Industry</option>");
-      } finally {
-        if (rsInd != null) rsInd.close();
-        if (psInd != null) psInd.close();
-      }
-    %>
-  </select>
-</div>
-
-
-    <div>
-  <label>Is Director Related</label>
-  <div>
-    <label><input type="radio" name="isDirectorRelated" value="Y" onclick="toggleDirectorFields()"> Yes</label>
-    <label><input type="radio" name="isDirectorRelated" value="N" checked onclick="toggleDirectorFields()"> No</label>
-  </div>
-</div>
-
-<div>
-  <label>Director Id</label>
-  <input type="text" name="directorId" id="directorId">
-</div>
-
-<div>
-  <label>Director Name</label>
-  <input type="text" name="directorName" id="directorName">
-</div>
-
-  </div> <!-- end .form-grid -->
-</fieldset>
-
-
-  <!-- Nominee Fieldset - Conditional -->
-  <% if (showNominee) { %>
-<fieldset id="nomineeFieldset">
-  <legend>
-    Nominee
-    <button type="button" onclick="addNominee()" 
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card nominee-block">
-    <button type="button" class="nominee-remove" onclick="removeNominee(this)">✖</button>
-
-    <div class="nominee-title" 
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Nominee <span class="nominee-serial">1</span>
-    </div>
-    
-    <div class="inline-fields">
-      <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
-        </div>
-      </div>
-
-      <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
-        </div>
-      </div>
-    </div>
-
-    <br>
-
-    <div class="personal-grid">
-      <div>
-        <label>Salutation Code</label>
-        <select name="nomineeSalutation[]" required>
-          <option value="">-- Select --</option>
-          <%
-            PreparedStatement psNomineeSal = null;
-            ResultSet rsNomineeSal = null;
-            try (Connection connNomineeSal = DBConnection.getConnection()) {
-              String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-              psNomineeSal = connNomineeSal.prepareStatement(sql);
-              rsNomineeSal = psNomineeSal.executeQuery();
-              while (rsNomineeSal.next()) {
-                String salCode = rsNomineeSal.getString("SALUTATION_CODE");
-          %>
-                <option value="<%= salCode %>"><%= salCode %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Salutation Code</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsNomineeSal != null) rsNomineeSal.close();
-              if (psNomineeSal != null) psNomineeSal.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <div>
-        <label>Nominee Name</label>
-        <input type="text" name="nomineeName[]" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
-
-      <div>
-        <label>Address 1</label>
-        <input type="text" name="nomineeAddress1[]">
-      </div>
-
-      <div>
-        <label>Address 2</label>
-        <input type="text" name="nomineeAddress2[]">
-      </div>
-
-      <div>
-        <label>Address 3</label>
-        <input type="text" name="nomineeAddress3[]">
-      </div>
-
-      <div>
-        <label>Country</label>
-        <select name="nomineeCountry[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCountryNominee = null;
-            ResultSet rsCountryNominee = null;
-            try (Connection connCountryN = DBConnection.getConnection()) {
-              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-              psCountryNominee = connCountryN.prepareStatement(sql);
-              rsCountryNominee = psCountryNominee.executeQuery();
-              while (rsCountryNominee.next()) {
-                String countryCode = rsCountryNominee.getString("COUNTRY_CODE");
-                String countryName = rsCountryNominee.getString("NAME");
-          %>
-                <option value="<%= countryCode %>"><%= countryName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading countries</option>");
-            } finally {
-              if (rsCountryNominee != null) rsCountryNominee.close();
-              if (psCountryNominee != null) psCountryNominee.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <div>
-        <label>State</label>
-        <select name="nomineeState[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psStateNominee = null;
-            ResultSet rsStateNominee = null;
-            try (Connection connStateN = DBConnection.getConnection()) {
-              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-              psStateNominee = connStateN.prepareStatement(sql);
-              rsStateNominee = psStateNominee.executeQuery();
-              while (rsStateNominee.next()) {
-                String stateCode = rsStateNominee.getString("STATE_CODE");
-                String stateName = rsStateNominee.getString("NAME");
-          %>
-                <option value="<%= stateCode %>"><%= stateName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading states</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsStateNominee != null) rsStateNominee.close();
-              if (psStateNominee != null) psStateNominee.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <div>
-        <label>City</label>
-        <select name="nomineeCity[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCityNominee = null;
-            ResultSet rsCityNominee = null;
-            try (Connection connCityN = DBConnection.getConnection()) {
-              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-              psCityNominee = connCityN.prepareStatement(sql);
-              rsCityNominee = psCityNominee.executeQuery();
-              while (rsCityNominee.next()) {
-                String cityCode = rsCityNominee.getString("CITY_CODE");
-                String cityName = rsCityNominee.getString("NAME");
-          %>
-                <option value="<%= cityCode %>"><%= cityName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading cities</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsCityNominee != null) rsCityNominee.close();
-              if (psCityNominee != null) psCityNominee.close();
-            }
-          %>
-        </select>
-      </div>
-
-	<div>
-  		<label>Zip</label>
-  		<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
-  		<small class="zipError"></small>
-	</div>
-
-      <div>
-        <label>Relation with Guardian</label>
-        <select name="nomineeRelation[]" required>
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psRelation = null;
-            ResultSet rsRelation = null;
-            try (Connection conn9 = DBConnection.getConnection()) {
-              String sql = "SELECT RELATION_ID, DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
-              psRelation = conn9.prepareStatement(sql);
-              rsRelation = psRelation.executeQuery();
-              while (rsRelation.next()) {
-                String relationId = rsRelation.getString("RELATION_ID");
-                String description = rsRelation.getString("DESCRIPTION");
-          %>
-                <option value="<%= relationId %>"><%= description %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading relation</option>");
-            } finally {
-              if (rsRelation != null) rsRelation.close();
-              if (psRelation != null) psRelation.close();
-            }
-          %>
-        </select>
-      </div>
-    </div>
-  </div>
-</fieldset>
-  <% } %>
-
-  <!-- Co-Borrower/Joint Holder Fieldset - Conditional -->
-  <% if (showJointHolder) { %>
-<fieldset id="coBorrowerFieldset">
-  <legend>
-    Co-Borrower
-    <button type="button" onclick="addCoBorrower()" 
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card coBorrower-block">
-    <button type="button" class="nominee-remove" onclick="removeCoBorrower(this)">✖</button>
-
-    <div class="nominee-title" 
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Co-Borrower <span class="coBorrower-serial">1</span>
-    </div>
-    
-    <div class="inline-fields">
-      <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="coBorrowerHasCustomerID_1" class="coBorrowerHasCustomerRadio" value="yes" onchange="toggleCoBorrowerCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="coBorrowerHasCustomerID_1" class="coBorrowerHasCustomerRadio" value="no" onchange="toggleCoBorrowerCustomerID(this)" checked> No</label>
-        </div>
-      </div>
-
-      <div class="coBorrowerCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="coBorrowerCustomerIDInput" name="coBorrowerCustomerID[]" onclick="openCoBorrowerCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openCoBorrowerCustomerLookup(this)" title="Search Customer">🔍</button>
-        </div>
-      </div>
-    </div>
-
-    <br>
-
-    <div class="personal-grid">
-      <!-- ✅ FIXED: Changed from nomineeSalutation[] to coBorrowerSalutation[] -->
-      <div>
-        <label>Salutation Code</label>
-        <select name="coBorrowerSalutation[]" required>
-          <option value="">-- Select --</option>
-          <%
-              PreparedStatement psCoBorrowerSal = null;
-              ResultSet rsCoBorrowerSal = null;
-              try (Connection connCoBorrowerSal = DBConnection.getConnection()) {
-                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                  psCoBorrowerSal = connCoBorrowerSal.prepareStatement(sql);
-                  rsCoBorrowerSal = psCoBorrowerSal.executeQuery();
-                  while (rsCoBorrowerSal.next()) {
-                      String salCode = rsCoBorrowerSal.getString("SALUTATION_CODE");
-          %>
-                      <option value="<%= salCode %>"><%= salCode %></option>
-          <%
-                  }
-              } catch (Exception e) {
-                  out.println("<option disabled>Error loading Salutation Code</option>");
-                  e.printStackTrace();
-              } finally {
-                  if (rsCoBorrowerSal != null) rsCoBorrowerSal.close();
-                  if (psCoBorrowerSal != null) psCoBorrowerSal.close();
-              }
-          %>
-        </select>
-      </div>
-
-      <!-- ✅ FIXED: Changed from nomineeName[] to coBorrowerName[] -->
-      <div>
-        <label>Co-Borrower Name</label>
-        <input type="text" name="coBorrowerName[]" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
-
-      <div>
-        <label>Address 1</label>
-        <input type="text" name="coBorrowerAddress1[]">
-      </div>
-
-      <div>
-        <label>Address 2</label>
-        <input type="text" name="coBorrowerAddress2[]">
-      </div>
-
-      <div>
-        <label>Address 3</label>
-        <input type="text" name="coBorrowerAddress3[]">
-      </div>
-
-      <!-- ✅ FIXED: Changed from countryCode to coBorrowerCountry[] -->
-      <div>
-        <label>Country</label>
-        <select name="coBorrowerCountry[]" required>
-          <option value="">-- Select --</option>
-          <%
-            PreparedStatement psCountryCoBorrower = null;
-            ResultSet rsCountryCoBorrower = null;
-            try (Connection connCountryCB = DBConnection.getConnection()) {
-                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-                psCountryCoBorrower = connCountryCB.prepareStatement(sql);
-                rsCountryCoBorrower = psCountryCoBorrower.executeQuery();
-                while (rsCountryCoBorrower.next()) {
-                    String code = rsCountryCoBorrower.getString("COUNTRY_CODE");
-                    String name = rsCountryCoBorrower.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <%
-                }
-            } catch (Exception e) {
-                out.println("<option disabled>Error loading countries</option>");
-            } finally {
-                if (rsCountryCoBorrower != null) rsCountryCoBorrower.close();
-                if (psCountryCoBorrower != null) psCountryCoBorrower.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <!-- ✅ FIXED: Changed from stateCode to coBorrowerState[] -->
-      <div>
-        <label>State</label>
-        <select name="coBorrowerState[]" required>
-          <option value="">-- Select --</option>
-          <%
-            PreparedStatement psStateCoBorrower = null;
-            ResultSet rsStateCoBorrower = null;
-            try (Connection connStateCB = DBConnection.getConnection()) {
-                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-                psStateCoBorrower = connStateCB.prepareStatement(sql);
-                rsStateCoBorrower = psStateCoBorrower.executeQuery();
-                while (rsStateCoBorrower.next()) {
-                    String code = rsStateCoBorrower.getString("STATE_CODE");
-                    String name = rsStateCoBorrower.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <%
-                }
-            } catch (Exception e) {
-                out.println("<option disabled>Error loading states</option>");
-            } finally {
-                if (rsStateCoBorrower != null) rsStateCoBorrower.close();
-                if (psStateCoBorrower != null) psStateCoBorrower.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <!-- ✅ FIXED: Changed from cityCode to coBorrowerCity[] -->
-      <div>
-        <label>City</label>
-        <select name="coBorrowerCity[]" required>
-          <option value="">-- Select --</option>
-          <%
-            PreparedStatement psCityCoBorrower = null;
-            ResultSet rsCityCoBorrower = null;
-            try (Connection connCityCB = DBConnection.getConnection()) {
-                String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-                psCityCoBorrower = connCityCB.prepareStatement(sql);
-                rsCityCoBorrower = psCityCoBorrower.executeQuery();
-                while (rsCityCoBorrower.next()) {
-                    String code = rsCityCoBorrower.getString("CITY_CODE");
-                    String name = rsCityCoBorrower.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <%
-                }
-            } catch (Exception e) {
-                out.println("<option disabled>Error loading cities</option>");
-            } finally {
-                if (rsCityCoBorrower != null) rsCityCoBorrower.close();
-                if (psCityCoBorrower != null) psCityCoBorrower.close();
-            }
-          %>
-        </select>
-      </div>
-
-	<div>
-  		<label>Zip</label>
-  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6">
-  		<small class="zipError"></small>
-	</div>
-    </div>
-  </div>
-</fieldset>
-  <% } %>
-
-  <!-- Guarantor Fieldset - Conditional -->
-  <% if (showGuarantor) { %>
-  <fieldset id="guarantorFieldset">
-  <legend>
-    Guarantor
-    <button type="button" onclick="addGuarantor()"
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card guarantor-block">
-    <button type="button" class="nominee-remove" onclick="removeGuarantor(this)">✖</button>
-
-    <div class="nominee-title"
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Guarantor <span class="guarantor-serial">1</span>
-    </div>
-    
-    <div class="inline-fields">
-      <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="guarantorHasCustomerID_1" class="guarantorHasCustomerRadio" value="yes" onchange="toggleGuarantorCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="guarantorHasCustomerID_1" class="guarantorHasCustomerRadio" value="no" onchange="toggleGuarantorCustomerID(this)" checked> No</label>
-        </div>
-      </div>
-
-      <div class="guarantorCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="guarantorCustomerIDInput" name="guarantorCustomerID[]" onclick="openGuarantorCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openGuarantorCustomerLookup(this)" title="Search Customer">🔍</button>
-        </div>
-      </div>
-    </div>
-
-    <br>
-
-    <div class="address-grid">
-      <!-- ✅ FIXED: Changed from guarantorsalutation[] to guarantorSalutation[] -->
-      <div>
-        <label>Salutation Code</label>
-        <select name="guarantorSalutation[]" required>
-          <option value="">-- Select --</option>
-          <%
-              PreparedStatement psGuarantorSal = null;
-              ResultSet rsGuarantorSal = null;
-              try (Connection connGuarantorSal = DBConnection.getConnection()) {
-                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
-                  psGuarantorSal = connGuarantorSal.prepareStatement(sql);
-                  rsGuarantorSal = psGuarantorSal.executeQuery();
-                  while (rsGuarantorSal.next()) {
-                      String salCode = rsGuarantorSal.getString("SALUTATION_CODE");
-          %>
-                      <option value="<%= salCode %>"><%= salCode %></option>
-          <%
-                  }
-              } catch (Exception e) {
-                  out.println("<option disabled>Error loading Salutation Code</option>");
-                  e.printStackTrace();
-              } finally {
-                  if (rsGuarantorSal != null) rsGuarantorSal.close();
-                  if (psGuarantorSal != null) psGuarantorSal.close();
-              }
-          %>
-        </select>
-      </div>
-
-      <div>
-        <label>Guarantor Name</label>
-        <input type="text" name="guarantorName[]" required oninput="this.value = this.value
-        .replace(/[^A-Za-z ]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/^\s+/g, '')
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());">
-	</div>
-
-      <div>
-        <label>Address 1</label>
-        <input type="text" name="guarantorAddress1[]">
-      </div>
-
-      <div>
-        <label>Address 2</label>
-        <input type="text" name="guarantorAddress2[]">
-      </div>
-
-      <div>
-        <label>Address 3</label>
-        <input type="text" name="guarantorAddress3[]">
-      </div>
-
-      <!-- ✅ FIXED: Changed from jointCountry[] to guarantorCountry[] -->
-      <div>
-        <label>Country</label>
-        <select name="guarantorCountry[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCountryGuarantor = null;
-            ResultSet rsCountryGuarantor = null;
-            try (Connection connCountryG = DBConnection.getConnection()) {
-              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-              psCountryGuarantor = connCountryG.prepareStatement(sql);
-              rsCountryGuarantor = psCountryGuarantor.executeQuery();
-              while (rsCountryGuarantor.next()) {
-                String countryCode = rsCountryGuarantor.getString("COUNTRY_CODE");
-                String countryName = rsCountryGuarantor.getString("NAME");
-          %>
-                <option value="<%= countryCode %>"><%= countryName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading countries</option>");
-            } finally {
-              if (rsCountryGuarantor != null) rsCountryGuarantor.close();
-              if (psCountryGuarantor != null) psCountryGuarantor.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <!-- ✅ FIXED: Changed from jointState[] to guarantorState[] -->
-      <div>
-        <label>State</label>
-        <select name="guarantorState[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psStateGuarantor = null;
-            ResultSet rsStateGuarantor = null;
-            try (Connection connStateG = DBConnection.getConnection()) {
-              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-              psStateGuarantor = connStateG.prepareStatement(sql);
-              rsStateGuarantor = psStateGuarantor.executeQuery();
-              while (rsStateGuarantor.next()) {
-                String stateCode = rsStateGuarantor.getString("STATE_CODE");
-                String stateName = rsStateGuarantor.getString("NAME");
-          %>
-                <option value="<%= stateCode %>"><%= stateName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading states</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsStateGuarantor != null) rsStateGuarantor.close();
-              if (psStateGuarantor != null) psStateGuarantor.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <!-- ✅ FIXED: Changed from jointCity[] to guarantorCity[] -->
-      <div>
-        <label>City</label>
-        <select name="guarantorCity[]">
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCityGuarantor = null;
-            ResultSet rsCityGuarantor = null;
-            try (Connection connCityG = DBConnection.getConnection()) {
-              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-              psCityGuarantor = connCityG.prepareStatement(sql);
-              rsCityGuarantor = psCityGuarantor.executeQuery();
-              while (rsCityGuarantor.next()) {
-                String cityCode = rsCityGuarantor.getString("CITY_CODE");
-                String cityName = rsCityGuarantor.getString("NAME");
-          %>
-                <option value="<%= cityCode %>"><%= cityName %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading cities</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsCityGuarantor != null) rsCityGuarantor.close();
-              if (psCityGuarantor != null) psCityGuarantor.close();
-            }
-          %>
-        </select>
-      </div>
-
-	<div>
-  		<label>Zip</label>
-  		<input type="text" name="guarantorZip[]" class="zip-input" maxlength="6">
-  		<small class="zipError"></small>
-	</div>
-
-      <div>
-        <label>Member No</label>
-        <input type="text" name="guarantorMemberNo[]" maxlength="2"
-      	oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
-	</div>
-
-      <div>
-        <label>Employee Id</label>
-        <input type="number" name="guarantorEmployeeId[]">
-      </div>
-
-      <div>
-        <label>Birth Date</label>
-        <input type="date" name="guarantorBirthDate[]">
-      </div>
-
-      <div>
-        <label>Phone No</label>
-        <input type="text" name="guarantorPhoneNo[]" maxlength="10"
-   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-      </div>
-
-      <div>
-        <label>Mobile No</label>
-        <input type="text" name="guarantorMobileNo[]" maxlength="10"
-   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-      </div>
-    </div>
-  </div>
-</fieldset>
-  <% } %>
-
-  <!-- Land & Building Fieldset - Conditional -->
-  <% if (showLandBuilding) { %>
-<fieldset id="landBuildingFieldset">
-  <legend>
-    Land & Building
-    <button type="button" onclick="addLandBuilding()"
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card lb-block">
-    <button type="button" class="nominee-remove" onclick="removeLandBuilding(this)">✖</button>
-
-    <div class="nominee-title"
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Land & Building <span class="lb-serial">1</span>
-    </div>
-
-    <div class="lb-grid">
-      <div>
-  <label>Security Type Code</label>
-  <select name="securityTypeCode[]" required>
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psSecType = null;
-      ResultSet rsSecType = null;
-      try (Connection connSecType = DBConnection.getConnection()) {
-        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-        psSecType = connSecType.prepareStatement(sql);
-        rsSecType = psSecType.executeQuery();
-        
-        while (rsSecType.next()) {
-          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-    %>
-          <option value="<%= securityType %>"><%= securityType %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Security Types</option>");
-        e.printStackTrace();
-      } finally {
-        if (rsSecType != null) rsSecType.close();
-        if (psSecType != null) psSecType.close();
-      }
-    %>
-  </select>
-</div>
-
-      <div>
-        <label>Submi. Date</label>
-        <input type="date" name="lbSubmiDate[]">
-      </div>
-
-      <div>
-        <label>Amt. Valued</label>
-        <input type="number" step="0.01" name="lbAmtValued[]" value="0">
-      </div>
-
-      <div>
-        <label>Margin %</label>
-        <input type="number" step="0.01" name="lbMargin[]" value="0">
-      </div>
-
-      <div>
-        <label>Area</label>
-        <input type="number" step="0.01" name="lbArea[]" value="0">
-      </div>
-
-      <div>
-        <label>Unit Of Area</label>
-        <input type="text" name="lbUnitOfArea[]">
-      </div>
-
-      <div>
-        <label>Location</label>
-        <input type="text" name="lbLocation[]">
-      </div>
-
-      <div>
-        <label>Security Value</label>
-        <input type="number" step="0.01" name="lbSecurityValue[]" value="0">
-      </div>
-
-      <div>
-        <label>Remark</label>
-        <input type="text" name="lbRemark[]">
-      </div>
-      
-      <div style="grid-column: span 2;">
-        <label>Particular</label>
-        <textarea name="lbParticular[]" rows="3" style="width: 95%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
-      </div>
-    </div>
-  </div>
-</fieldset>
-
-  <% } %>
-
-  <!-- Deposit Details Fieldset - Conditional -->
-  <% if (showDeposit) { %>
-<fieldset id="depositDetailsFieldset">
-  <legend>
-    Deposit Details
-    <button type="button" onclick="addDepositDetails()"
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card deposit-block">
-    <button type="button" class="nominee-remove" onclick="removeDepositDetails(this)">✖</button>
-
-    <div class="nominee-title"
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Deposit Details <span class="deposit-serial">1</span>
-    </div>
-
-    <div class="form-grid">
-
-      <div>
-  <label>Security Type Code</label>
-  <select name="securityTypeCode[]" required>
-    <option value="">-- Select --</option>
-    <%
-      PreparedStatement psSecType = null;
-      ResultSet rsSecType = null;
-      try (Connection connSecType = DBConnection.getConnection()) {
-        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-        psSecType = connSecType.prepareStatement(sql);
-        rsSecType = psSecType.executeQuery();
-        
-        while (rsSecType.next()) {
-          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-    %>
-          <option value="<%= securityType %>"><%= securityType %></option>
-    <%
-        }
-      } catch (Exception e) {
-        out.println("<option disabled>Error loading Security Types</option>");
-        e.printStackTrace();
-      } finally {
-        if (rsSecType != null) rsSecType.close();
-        if (psSecType != null) psSecType.close();
-      }
-    %>
-  </select>
-</div>
-
-      <div>
-        <label>Submission Date</label>
-        <input type="date" name="submissionDate[]">
-      </div>
-
-      <div>
-  		<label>Margin %</label>
-  		<input type="number" name="marginPercent[]" step="0.01" min="0" max="100" required>
-</div>
-
-      <div>
-  		<label>Deposit A/c Code</label>
-  		<input type="text" name="depositAccCode[]" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" minlength="14" required
-         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,14);"
-         title="Enter exactly 14 digits">
-</div>
-
-      <div>
-        <label>Maturity Date</label>
-        <input type="date" name="maturityDate[]">
-      </div>
-
-      <div>
-        <label>Security Value</label>
-        <input type="number" step="0.01" name="securityValue[]">
-      </div>
-
-      <div>
-        <label>TD Value</label>
-        <input type="number" step="0.01" name="tdValue[]" value="0" readonly style="background-color: #f0f0f0;">
-      </div>
-
-      <div>
-  		<label>Particular</label>
-  		<input type="text" name="particular[]" maxlength="50" required>
-	  </div>
-    </div>
-  </div>
-</fieldset>
-
-  <% } %>
-
-  <!-- Gold Details Fieldset - Conditional -->
-  <% if (showGold) { %>
-<fieldset id="goldSilverFieldset">
-  <legend>
-    Gold/Silver
-    <button type="button" onclick="addGoldSilver()"
-      style="border:none;background:#373279;color:white;padding:2px 10px;
-        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-      ➕
-    </button>
-  </legend>
-
-  <div class="nominee-card goldsilver-block">
-    <button type="button" class="nominee-remove" onclick="removeGoldSilver(this)">✖</button>
-
-    <div class="nominee-title"
-         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-      Gold/Silver <span class="goldsilver-serial">1</span>
-    </div>
-
-    <div class="goldsilver-grid">
-      <div>
-        <label>Security Type Code</label>
-        <select name="gsSecurityType[]" required>
-          <option value="">-- Select Security Type --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              
-              while (rsSecType.next()) {
-                String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= securityType %>"><%= securityType %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-              e.printStackTrace();
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
-        </select>
-      </div>
-
-      <div>
-        <label>Submission Date</label>
-        <input type="date" name="gsSubmissionDate[]">
-      </div>
-
-      <!-- ✅ FIXED: Changed from number to text for GOLDBAGNO (VARCHAR2) -->
-      <div>
-        <label>Gold Bag No.</label>
-        <input type="text" name="gsGoldBagNo[]" maxlength="10">
-      </div>
-
-      <div>
-        <label>Total Wt.In Grm</label>
-        <input type="number" step="0.001" name="gsTotalWeight[]" 
-               title="Weight in total grams (up to 3 decimal places)">
-      </div>
-
-      <div>
-        <label>Margin %</label>
-        <input type="number" step="0.01" name="gsMargin[]">
-      </div>
-
-      <div>
-        <label>Rate/Grams</label>
-        <input type="number" step="0.01" name="gsRatePerGram[]">
-      </div>
-
-      <div>
-        <label>Total Value</label>
-        <input type="number" step="0.01" name="gsTotalValue[]"
-               onchange="calculateSecurityValue(this)">
-      </div>
-
-      <div>
-        <label>Security Value</label>
-        <input type="number" step="0.01" name="gsSecurityValue[]" readonly 
-               style="background-color: #f0f0f0;">
-      </div>
-
-      <div>
-        <label>Particular</label>
-        <input type="text" name="gsParticular[]" maxlength="100">
-      </div>
-
-      <div class="goldsilver-note-field">
-        <label>Note</label>
-        <textarea name="gsNote[]" rows="2" maxlength="300" style="width: 97%; padding: 8px; 
-                  border: 1px solid #ccc; border-radius: 4px; font-size: 13px;
-                  font-family: Arial, sans-serif;"></textarea>
-      </div>
-    </div>
-  </div>
-</fieldset>
-  <% } %>
-
-  <div class="form-buttons">
-    <button type="submit">Save</button>
-    <button type="reset">Reset</button>
-  </div>
-</form>
-
-<!-- Customer Lookup Modal -->
-<div id="customerLookupModal" class="customer-modal">
-  <div class="customer-modal-content">
-    <span class="customer-close" onclick="closeCustomerLookup()">&times;</span>
-    <div id="customerLookupContent">
-      <!-- Content will be loaded here -->
-    </div>
-  </div>
-</div>
-
-<!-- INSTALLMENT TYPE LOOKUP MODAL -->
-<div id="installmentLookupModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <span class="customer-close" onclick="closeInstallmentLookup()">&times;</span>
-        <div id="installmentLookupContent"></div>
-    </div>
-</div>
-<!-- SOCIAL SECTOR LOOKUP MODAL -->
-<div id="socialSectorLookupModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <span class="customer-close" onclick="closeSocialSectorLookup()">&times;</span>
-        <div id="socialSectorLookupContent"></div>
-    </div>
-</div>
-
-<!-- SOCIAL SUBSECTOR LOOKUP MODAL -->
-<div id="socialSubSectorLookupModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <span class="customer-close" onclick="closeSocialSubSectorLookup()">&times;</span>
-        <div id="socialSubSectorLookupContent"></div>
-    </div>
-</div>
-<!-- AREA LOOKUP MODAL -->
-<div id="areaLookupModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <span class="customer-close" onclick="closeAreaLookup()">&times;</span>
-        <div id="areaLookupContent"></div>
-    </div>
-</div>
-
-<!-- SUB AREA LOOKUP MODAL -->
-<div id="subAreaLookupModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <span class="customer-close" onclick="closeSubAreaLookup()">&times;</span>
-        <div id="subAreaLookupContent"></div>
-    </div>
-</div>
-<script src="js/application.js"></script>
-<script src="js/savingAcc.js"></script>
-<script>
-// Validation function
-function validateForm() {
-    const customerId = document.getElementById('customerId').value.trim();
-    
-    if (!customerId) {
-        showToast('❌ Please select a customer before submitting');
-        return false;
-    }
-    
-    return true;
-}
-
-// Check URL parameters for success/error messages
-window.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
-    const applicationNumber = urlParams.get('applicationNumber');
-    const message = urlParams.get('message');
-    
-    if (status === 'success' && applicationNumber) {
-        Toastify({
-            text: "✅ Application saved successfully!\nApplication Number: " + applicationNumber,
-            duration: 6000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px",
-                whiteSpace: "pre-line"
-            },
-            stopOnFocus: true
-        }).showToast();
-        
-        // Clear URL parameters after showing toast
-        setTimeout(function() {
-            const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
-            window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
-        }, 100);
-        
-    } else if (status === 'error') {
-        Toastify({
-            text: "❌ Error: " + (message || "Failed to save application"),
-            duration: 6000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #f44336",
-                marginTop: "20px"
-            },
-            stopOnFocus: true
-        }).showToast();
-        
-        // Clear URL parameters after showing toast
-        setTimeout(function() {
-            const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
-            window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
-        }, 100);
-    }
-});
-//==================== CUSTOMER LOOKUP FUNCTIONS ====================
-
-//Helper function to set select value with multiple matching strategies
-function setSelectValue(selectElement, value, fieldName) {
-  if (!selectElement) {
-      console.warn('⚠️ Select element not found for:', fieldName);
-      return false;
-  }
-  
-  if (!value || value.trim() === '') {
-      console.log('⚠️ Empty value for:', fieldName);
-      return false;
-  }
-  
-  const trimmedValue = value.trim().toUpperCase();
-  console.log(`🔧 Setting ${fieldName} to: "${trimmedValue}"`);
-  
-  let found = false;
-  
-  // Strategy 1: Try exact match on value (case-insensitive)
-  for (let i = 0; i < selectElement.options.length; i++) {
-      const optionValue = selectElement.options[i].value.trim().toUpperCase();
-      if (optionValue === trimmedValue) {
-          selectElement.selectedIndex = i;
-          found = true;
-          console.log(`✅ ${fieldName} set successfully (exact match) to: "${trimmedValue}"`);
-          return true;
-      }
-  }
-  
-  // Strategy 2: Try matching on text content
-  for (let i = 0; i < selectElement.options.length; i++) {
-      const optionText = selectElement.options[i].text.trim().toUpperCase();
-      if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
-          selectElement.selectedIndex = i;
-          found = true;
-          console.log(`✅ ${fieldName} set successfully (text match) to: "${selectElement.options[i].value}"`);
-          return true;
-      }
-  }
-  
-  // Strategy 3: Try partial match on value
-  for (let i = 0; i < selectElement.options.length; i++) {
-      const optionValue = selectElement.options[i].value.trim().toUpperCase();
-      if (optionValue.includes(trimmedValue) || trimmedValue.includes(optionValue)) {
-          selectElement.selectedIndex = i;
-          found = true;
-          console.log(`✅ ${fieldName} set successfully (partial match) to: "${selectElement.options[i].value}"`);
-          return true;
-      }
-  }
-  
-  if (!found) {
-      console.warn(`⚠️ Value "${trimmedValue}" not found in ${fieldName} dropdown`);
-  }
-  
-  return found;
-}
-
-//Close modal when clicking outside
-window.onclick = function(event) {
-    const customerModal = document.getElementById('customerLookupModal');
-    const installmentModal = document.getElementById('installmentLookupModal');
-    const socialSectorModal = document.getElementById('socialSectorLookupModal');
-    const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
-    const areaModal = document.getElementById('areaLookupModal');
-    const subAreaModal = document.getElementById('subAreaLookupModal');
-    
-    if (event.target === customerModal) closeCustomerLookup();
-    if (event.target === installmentModal) closeInstallmentLookup();
-    if (event.target === socialSectorModal) closeSocialSectorLookup();
-    if (event.target === socialSubSectorModal) closeSocialSubSectorLookup();
-    if (event.target === areaModal) closeAreaLookup();
-    if (event.target === subAreaModal) closeSubAreaLookup();
-}
-
-//Close modal on Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeCustomerLookup();
-        closeInstallmentLookup();
-        closeSocialSectorLookup();
-        closeSocialSubSectorLookup();
-        closeAreaLookup();
-        closeSubAreaLookup();
-    }
-});
-//==================== NOMINEE FUNCTIONS ====================
-
-//==================== CO-BORROWER FUNCTIONS ====================
-
-//==================== GUARANTOR FUNCTIONS ====================
-
-//==================== LAND & BUILDING FUNCTIONS ====================
-
-function addLandBuilding() {
-  let fieldset = document.getElementById("landBuildingFieldset");
-  let original = fieldset.querySelector(".lb-block");
-  let clone = original.cloneNode(true);
-
-  // Clear all inputs in cloned block
-  clone.querySelectorAll("input, select, textarea").forEach(el => {
-      if (el.tagName === 'SELECT') {
-          el.selectedIndex = 0;
-      } else if (['lbAmtValued[]', 'lbMargin[]', 'lbArea[]', 'lbSecurityValue[]'].includes(el.name)) {
-          el.value = '0';
-      } else {
-          el.value = "";
-      }
-  });
-
-  clone.querySelector(".nominee-remove").onclick = function() {
-      removeLandBuilding(this);
-  };
-
-  fieldset.appendChild(clone);
-  updateLBSerials();
-}
-
-function removeLandBuilding(btn) {
-  let blocks = document.querySelectorAll(".lb-block");
-  if (blocks.length <= 1) {
-	    showToast("⚠️ At least one Land & Building entry is required.", "warning");
-	    return;
-	}
-  btn.parentNode.remove();
-  updateLBSerials();
-}
-
-function updateLBSerials() {
-  let blocks = document.querySelectorAll(".lb-block");
-  blocks.forEach((block, index) => {
-      let serial = block.querySelector(".lb-serial");
-      if (serial) {
-          serial.textContent = (index + 1);
-      }
-  });
-}
-
-//==================== UTILITY FUNCTIONS ====================
-
-function showToast(message) {
-  if (typeof Toastify !== 'undefined') {
-      Toastify({
-          text: message,
-          duration: 5000,
-          close: true,
-          gravity: "top",
-          position: "center",
-          style: {
-              background: "#fff",
-              color: "#333",
-              borderRadius: "8px",
-              fontSize: "14px",
-              padding: "16px 24px",
-              boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-              borderLeft: "5px solid #4caf50",
-              marginTop: "20px"
-          }
-      }).showToast();
-  }
-}
-
-//For able and disable Director Related fields
-function toggleDirectorFields() {
-  const isRelated = document.querySelector('input[name="isDirectorRelated"]:checked').value;
-  
-  const idField = document.getElementById('directorId');
-  const nameField = document.getElementById('directorName');
-
-  if (isRelated === 'Y') {
-      idField.disabled = false;
-      nameField.disabled = false;
-  } else {
-      idField.disabled = true;
-      nameField.disabled = true;
-      idField.value = "0";
-      nameField.value = "";
-  }
-}
-
-//Call once on page load to apply initial state
-document.addEventListener('DOMContentLoaded', function() {
-  if (document.querySelector('input[name="isDirectorRelated"]')) {
-      toggleDirectorFields();
-  }
-});
-
-function calcReviewDate() {
-    const sanctionVal = document.getElementById('sanctionDate').value;
-    const months = parseInt(document.getElementById('loanPeriod').value, 10);
-
-    // Need both fields
-    if (!sanctionVal || isNaN(months) || months <= 0) {
-      document.getElementById('reviewDate').value = '';
-      return;
-    }
-
-    // Start from selected sanction date
-    const d = new Date(sanctionVal);   // sanctionVal is "YYYY-MM-DD"
-    d.setMonth(d.getMonth() + months); // add months
-
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const reviewStr = yyyy + '-' + mm + '-' + dd;
-
-    document.getElementById('reviewDate').value = reviewStr;
-  }
-
-  // Recalculate whenever sanction date or loan period changes
-  window.onload = function () {
-    document.getElementById('sanctionDate').addEventListener('change', calcReviewDate);
-    document.getElementById('loanPeriod').addEventListener('input', calcReviewDate);
-  };
-  
-  
-//✅ Monitor Application Customer ID changes
-  document.addEventListener('DOMContentLoaded', function() {
-      const customerIdField = document.getElementById('customerId');
-      if (customerIdField) {
-          // Store initial value
-          let previousValue = customerIdField.value;
-          
-          // Watch for changes (in case of manual clear/reset)
-          customerIdField.addEventListener('change', function() {
-              const newValue = this.value.trim();
-              if (previousValue && !newValue) {
-                  // Customer ID was cleared
-                  console.log('Application customer cleared');
-              }
-              previousValue = newValue;
-          });
-      }
-  });
-
-//==================== GOLD/SILVER SECURITY FUNCTIONS ====================
-
-  function addGoldSilver() {
-    let fieldset = document.getElementById("goldSilverFieldset");
-    let original = fieldset.querySelector(".goldsilver-block");
-    let clone = original.cloneNode(true);
-
-    // Clear all input fields
-    clone.querySelectorAll("input, select, textarea").forEach(el => {
-      if (el.tagName === 'SELECT') {
-        el.selectedIndex = 0;
-      } else if (el.name === 'gsSerialNo[]') {
-        // Keep readonly, will be updated by updateGoldSilverSerials
-      } else if (el.name === 'gsTotalWeight[]' || el.name === 'gsMargin[]' || 
-                 el.name === 'gsRatePerGram[]' || el.name === 'gsTotalValue[]' || 
-                 el.name === 'gsSecurityValue[]' || el.name === 'gsGoldBagNo[]') {
-        el.value = '0';
-      } else {
-        el.value = "";
-      }
-    });
-
-    clone.querySelector(".nominee-remove").onclick = function() {
-      removeGoldSilver(this);
-    };
-
-    fieldset.appendChild(clone);
-    updateGoldSilverSerials();
-  }
-
-  function removeGoldSilver(btn) {
-    let blocks = document.querySelectorAll(".goldsilver-block");
-    if (blocks.length <= 1) {
-  	    showToast("⚠️ At least one gold/silver entry is required.", "warning");
-  	    return;
-  	}
-    btn.parentNode.remove();
-    updateGoldSilverSerials();
-  }
-
-  function updateGoldSilverSerials() {
-    let blocks = document.querySelectorAll(".goldsilver-block");
-    blocks.forEach((block, index) => {
-      let serial = block.querySelector(".goldsilver-serial");
-      if (serial) {
-        serial.textContent = (index + 1);
-      }
-      
-      // Update Sr No input
-      let srNoInput = block.querySelector('input[name="gsSerialNo[]"]');
-      if (srNoInput) {
-        srNoInput.value = (index + 1);
-      }
-    });
-  }
-
-  // Calculate Security Value based on Total Value and Margin
-  function calculateSecurityValue(totalValueInput) {
-    const block = totalValueInput.closest('.goldsilver-block');
-    const totalValue = parseFloat(totalValueInput.value) || 0;
-    const marginInput = block.querySelector('input[name="gsMargin[]"]');
-    const securityValueInput = block.querySelector('input[name="gsSecurityValue[]"]');
-    
-    const margin = parseFloat(marginInput.value) || 0;
-    
-    // Security Value = Total Value - (Total Value * Margin / 100)
-    const securityValue = totalValue - (totalValue * margin / 100);
-    
-    securityValueInput.value = securityValue.toFixed(2);
-  }
-
-  // Auto-calculate when margin changes
-  document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('input', function(e) {
-      if (e.target.name === 'gsMargin[]') {
-        const block = e.target.closest('.goldsilver-block');
-        const totalValueInput = block.querySelector('input[name="gsTotalValue[]"]');
-        if (totalValueInput) {
-          calculateSecurityValue(totalValueInput);
-        }
-      }
-    });
-  });
-  
-  function addDepositDetails() {
-	  let fieldset = document.getElementById("depositDetailsFieldset");
-	  let original = fieldset.querySelector(".deposit-block");
-	  let clone = original.cloneNode(true);
-
-	  // Clear all inputs in the cloned block
-	  clone.querySelectorAll("input, select").forEach(el => {
-	    if (el.tagName === 'SELECT') {
-	      el.selectedIndex = 0;
-	    } else if (el.name === 'depositSrNo[]') {
-	      // Sr No will be updated by updateDepositSerials()
-	      el.value = '';
-	    } else if (el.name === 'marginPercent[]' || el.name === 'securityValue[]' || el.name === 'tdValue[]') {
-	      el.value = '0';
-	    } else {
-	      el.value = '';
+	<%@ page import="java.sql.*, db.DBConnection" %>
+	<%@ page contentType="text/html; charset=UTF-8" %>
+	<%@ page import="java.text.SimpleDateFormat" %>
+	
+	<%
+	    String branchCode = (String) session.getAttribute("branchCode");
+	    if (branchCode == null) {
+	        response.sendRedirect("login.jsp");
+	        return;
 	    }
-	  });
-
-	  // Update remove button onclick
-	  clone.querySelector(".nominee-remove").onclick = function() {
-	    removeDepositDetails(this);
-	  };
-
-	  fieldset.appendChild(clone);
-	  updateDepositSerials();
-	  
-	  // Auto-calculate TD Value for new block
-	  setupTDValueCalculation(clone);
+	    
+	    // Fetch working date for this branch
+	    String workingDateStr = "";
+	    try (Connection connWorkDate = DBConnection.getConnection()) {
+	        String bankCode = "0100";
+	        CallableStatement cstmtWorkDate = connWorkDate.prepareCall("{? = call SYSTEM.FN_GET_WORKINGDATE(?, ?)}");
+	        cstmtWorkDate.registerOutParameter(1, Types.DATE);
+	        cstmtWorkDate.setString(2, bankCode);
+	        cstmtWorkDate.setString(3, branchCode);
+	        cstmtWorkDate.execute();
+	        
+	        Date workingDate = cstmtWorkDate.getDate(1);
+	        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	        workingDateStr = sdf.format(workingDate);
+	        
+	        cstmtWorkDate.close();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        workingDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+	    }
+	    
+	    // Get product code from request
+	    String productCode = request.getParameter("productCode");
+	    if (productCode == null) {
+	        productCode = "";
+	    }
+	    System.out.println("📌 loan.jsp - Product Code received: " + productCode);
+	    
+	    // Fetch product parameters to determine which fieldsets to show
+	    boolean showNominee = false;
+	    boolean showJointHolder = false;
+	    boolean showGuarantor = false;
+	    boolean showLandBuilding = false;
+	    boolean showDeposit = false;
+	    boolean showGold = false;
+	    boolean showSharesHolder = false;
+	    boolean showPlantMachinery = false;
+	    boolean showVehicle = false;
+	    boolean showMarketShares = false;
+	    boolean showStockStatement = false;
+	    boolean showFurnitureFixture = false;
+	    boolean showStockPledge = false;
+	    boolean showBookDebts = false;
+	    boolean showSalary = false;
+	    boolean showOffice = false;
+	    
+	    if (!productCode.isEmpty()) {
+	        PreparedStatement psProduct = null;
+	        ResultSet rsProduct = null;
+	        try (Connection connProduct = DBConnection.getConnection()) {
+	        	String sql = "SELECT " +
+	                    "PPL.IS_NOMINEE_REQUIRED, " +
+	                    "PPL.IS_JOINT_HOLDER_REQUIRED, " +
+	                    "PPL.IS_GUARANTOR_REQUIRED, " +
+	                    "PPL.IS_LAND_N_BUILDING_DETAILS_REQ, " +
+	                    "PPL.IS_DEPOSIT_DETAILS_REQUIRED, " +
+	                    "PPL.IS_GOLD_DETAILS_REQUIRED, " +
+	                    "PPL.IS_SHARES_HOLDER_REQUIRED, " +
+	                    "PPL.IS_PLANT_N_MACHINORY_DET_REQ, " +
+	                    "PPL.IS_VEHICLE_DETAILS_REQUIRED, " +
+	                    "PPL.IS_MARKET_SHARES_DETAILS_REQ, " +
+	                    "PPL.IS_STOCK_STATEMENT_DETAILS_REQ, " +
+	                    "PPL.IS_FURNITURE_N_FIXTURE_DET_REQ, " +
+	                    "PPL.IS_STOCK_PLEDGE_DETAILS_REQ, " +
+	                    "PPL.IS_BOOK_DEBTS_DETAILS_REQUIRED, " +
+	                    "PPL.IS_SALARY_DETAILS_REQUIRED, " +
+	                    "PPL.IS_OFFICE_DETAILS_REQUIRED " +
+	                    "FROM HEADOFFICE.PRODUCT P " +
+	                    "JOIN HEADOFFICE.PRODUCTPARAMETERLOAN PPL ON P.PRODUCT_CODE = PPL.PRODUCT_CODE " +
+	                    "WHERE P.PRODUCT_CODE = ?";
+	            
+	            psProduct = connProduct.prepareStatement(sql);
+	            psProduct.setString(1, productCode);
+	            rsProduct = psProduct.executeQuery();
+	            
+	            if (rsProduct.next()) {
+	                showNominee = "Y".equalsIgnoreCase(rsProduct.getString("IS_NOMINEE_REQUIRED"));
+	                showJointHolder = "Y".equalsIgnoreCase(rsProduct.getString("IS_JOINT_HOLDER_REQUIRED"));
+	                showGuarantor = "Y".equalsIgnoreCase(rsProduct.getString("IS_GUARANTOR_REQUIRED"));
+	                showLandBuilding = "Y".equalsIgnoreCase(rsProduct.getString("IS_LAND_N_BUILDING_DETAILS_REQ"));
+	                showDeposit = "Y".equalsIgnoreCase(rsProduct.getString("IS_DEPOSIT_DETAILS_REQUIRED"));
+	                showGold = "Y".equalsIgnoreCase(rsProduct.getString("IS_GOLD_DETAILS_REQUIRED"));
+	                showSharesHolder = "Y".equalsIgnoreCase(rsProduct.getString("IS_SHARES_HOLDER_REQUIRED"));
+	                showPlantMachinery = "Y".equalsIgnoreCase(rsProduct.getString("IS_PLANT_N_MACHINORY_DET_REQ"));
+	                showVehicle = "Y".equalsIgnoreCase(rsProduct.getString("IS_VEHICLE_DETAILS_REQUIRED"));
+	                showMarketShares = "Y".equalsIgnoreCase(rsProduct.getString("IS_MARKET_SHARES_DETAILS_REQ"));
+	                showStockStatement = "Y".equalsIgnoreCase(rsProduct.getString("IS_STOCK_STATEMENT_DETAILS_REQ"));
+	                showFurnitureFixture = "Y".equalsIgnoreCase(rsProduct.getString("IS_FURNITURE_N_FIXTURE_DET_REQ"));
+	                showStockPledge = "Y".equalsIgnoreCase(rsProduct.getString("IS_STOCK_PLEDGE_DETAILS_REQ"));
+	                showBookDebts = "Y".equalsIgnoreCase(rsProduct.getString("IS_BOOK_DEBTS_DETAILS_REQUIRED"));
+	                showSalary = "Y".equalsIgnoreCase(rsProduct.getString("IS_SALARY_DETAILS_REQUIRED"));
+	                showOffice = "Y".equalsIgnoreCase(rsProduct.getString("IS_OFFICE_DETAILS_REQUIRED"));
+	                
+	                System.out.println("🔍 Product Parameters for " + productCode + ":");
+	                System.out.println("   - Nominee: " + showNominee);
+	                System.out.println("   - Joint Holder (Co-Borrower): " + showJointHolder);
+	                System.out.println("   - Guarantor: " + showGuarantor);
+	                System.out.println("   - Land & Building: " + showLandBuilding);
+	                System.out.println("   - Deposit: " + showDeposit);
+	                System.out.println("   - Gold: " + showGold);
+	                System.out.println("   - Shares Holder: " + showSharesHolder);
+	                System.out.println("   - Plant & Machinery: " + showPlantMachinery);
+	                System.out.println("   - Vehicle: " + showVehicle);
+	                System.out.println("   - Market Shares: " + showMarketShares);
+	                System.out.println("   - Stock Statement: " + showStockStatement);
+	                System.out.println("   - Furniture & Fixture: " + showFurnitureFixture);
+	                System.out.println("   - Stock Pledge: " + showStockPledge);
+	                System.out.println("   - Book Debts: " + showBookDebts);
+	                System.out.println("   - Salary: " + showSalary);
+	                System.out.println("   - Office: " + showOffice);
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            System.out.println("❌ Error fetching product parameters: " + e.getMessage());
+	        } finally {
+	            if (rsProduct != null) rsProduct.close();
+	            if (psProduct != null) psProduct.close();
+	        }
+	    }
+	%>
+	
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="UTF-8">
+	  <title>Loan Account Application</title>
+	  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+	  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+	<style>
+	body {
+	      background-color: #e8e4fc;
+	      font-family: Arial, sans-serif;
+	      margin: 20px;
+	      padding: 0;
+	    }
+	
+	    fieldset {
+	      background: #e8e4fc;
+	      border: 2px solid #aaa;
+	      margin: 32px 0;
+	      padding: 15px 20px;
+	      min-width: 320px;
+	      border-radius: 9px;
+	    }
+	
+	    legend {
+	      font-weight: bold;
+	      letter-spacing: 1px;
+	      font-size: 1.18em;
+	      padding: 0 10px;
+	      color: #373279;
+	    }
+	
+	    .form-grid {
+	      display: grid;
+	      grid-template-columns: repeat(3, 1fr);
+	      gap: 10px 20px;
+	    }
+	
+	    .form-grid div {
+	      flex-direction: column;
+	    }
+	
+	    label {
+	      min-width: 10px;
+	      font-size: 13px;
+	      margin-bottom: 3px;
+	      font-weight: bold;
+	      color: #373279;
+	    }
+	
+	    input[type="text"],
+	    input[type="date"],
+	    input[type="email"],
+	    input[type="number"],
+	    select {
+	      padding: 4px 6px;
+	      font-size: 13px;
+	      width: 90%;
+	      box-sizing: border-box;
+	    }
+	
+	    input[readonly] {
+	      background-color: #f0f0f0;
+	      cursor: not-allowed;
+	    }
+	
+	.input-icon-box {
+	  position: relative;
+	  width: 90%;
 	}
-
-	function removeDepositDetails(btn) {
-	  let blocks = document.querySelectorAll(".deposit-block");
+	
+	.input-icon-box input {
+	  width: 100%;
+	  padding-right: 40px;   /* space for icon */
+	  height: 30px;
+	  cursor: pointer;
+	  box-sizing: border-box;
+	}
+	
+	.input-icon-box .inside-icon-btn {
+	  position: absolute;
+	  right: 5px;
+	  top: 50%;
+	  transform: translateY(-50%);
+	  background: none;
+	  border: none;
+	  font-size: 20px;
+	  cursor: pointer;
+	  color: #373279;
+	}
+	
+	    .customer-modal {
+	      display: none;
+	      position: fixed;
+	      top: 0;
+	      left: 0;
+	      width: 100%;
+	      height: 100%;
+	      background: rgba(0, 0, 0, 0.6);
+	      z-index: 9999;
+	      justify-content: center;
+	      align-items: center;
+	    }
+	
+	    .customer-modal-content {
+	      background: white;
+	      width: 85%;
+	      max-width: 1000px;
+	      max-height: 85vh;
+	      overflow: auto;
+	      padding: 25px;
+	      border-radius: 12px;
+	      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+	      position: relative;
+	    }
+	
+	    .customer-close {
+	      position: absolute;
+	      right: 20px;
+	      top: 15px;
+	      font-size: 32px;
+	      font-weight: bold;
+	      cursor: pointer;
+	      color: #666;
+	      transition: color 0.3s;
+	    }
+	
+	    .customer-close:hover {
+	      color: #373279;
+	    }
+	
+	    .lookup-title {
+	      font-size: 24px;
+	      margin-bottom: 20px;
+	      font-weight: bold;
+	      color: #373279;
+	      text-align: center;
+	    }
+	
+	    .search-box {
+	      margin-bottom: 20px;
+	    }
+	
+	    .search-box input {
+	      width: 100%;
+	      padding: 12px 15px;
+	      font-size: 15px;
+	      border: 2px solid #9c8ed8;
+	      border-radius: 8px;
+	      background-color: #f5f3ff;
+	      box-sizing: border-box;
+	    }
+	
+	    .search-box input:focus {
+	      outline: none;
+	      border-color: #373279;
+	      background-color: #fff;
+	    }
+	
+	    .table-container {
+	      max-height: 400px;
+	      overflow-y: auto;
+	      border: 1px solid #ddd;
+	      border-radius: 8px;
+	      background: white;
+	    }
+	
+	    .customer-modal-content table {
+	      width: 100%;
+	      border-collapse: collapse;
+	    }
+	
+	    .customer-modal-content th,
+	    .customer-modal-content td {
+	      border: 1px solid #ddd;
+	      padding: 12px 15px;
+	      text-align: left;
+	    }
+	
+	    .customer-modal-content th {
+	      background-color: #373279;
+	      color: white;
+	      font-weight: bold;
+	      position: sticky;
+	      top: 0;
+	      z-index: 10;
+	    }
+	
+	    .customer-modal-content tbody tr {
+	      transition: all 0.2s;
+	    }
+	
+	    .customer-modal-content tbody tr:hover {
+	      background-color: #e8e4fc;
+	      cursor: pointer;
+	      transform: scale(1.01);
+	    }
+	
+	    .customer-modal-content tbody tr:nth-child(even) {
+	      background-color: #f9f9f9;
+	    }
+	
+	    .customer-count {
+	      text-align: right;
+	      margin-bottom: 10px;
+	      color: #666;
+	      font-size: 14px;
+	    }
+	
+	    .personal-grid {
+	      display: grid;
+	      grid-template-columns: repeat(3, 1fr);
+	      gap: 12px 25px;
+	      align-items: start;
+	    }
+	
+	    .personal-grid div {
+	      display: flex;
+	      flex-direction: column;
+	    }
+	
+	    .address-grid {
+	      display: grid;
+	      grid-template-columns: repeat(3, 1fr);
+	      gap: 12px 25px;
+	      align-items: start;
+	    }
+	
+	    .address-grid div {
+	      display: flex;
+	      flex-direction: column;
+	    }
+	
+	    .nominee-card {
+	      background: #e8e4fc;
+	      border: 1px solid #d0d0d0;
+	      border-radius: 10px;
+	      padding: 15px;
+	      margin-top: 15px;
+	      box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
+	    }
+	
+	    .nominee-remove {
+	      float: right;
+	      background: #c62828;
+	      border: none;
+	      color: white;
+	      padding: 3px 8px;
+	      font-size: 12px;
+	      border-radius: 4px;
+	      cursor: pointer;
+	    }
+	
+	    .form-buttons {
+	      display: flex;
+	      justify-content: center;
+	      align-items: center;
+	      margin: 25px 0;
+	      gap: 20px;
+	    }
+	
+	    .form-buttons button {
+	      background-color: #373279;
+	      color: white;
+	      border: none;
+	      padding: 10px 25px;
+	      border-radius: 6px;
+	      font-size: 14px;
+	      font-weight: bold;
+	      cursor: pointer;
+	      transition: background-color 0.3s ease, transform 0.2s ease;
+	    }
+	
+	    .form-buttons button:hover {
+	      background-color: #2b0d73;
+	      transform: scale(1.05);
+	    }
+	
+	    @media (max-width: 1024px) {
+	      .form-grid, .personal-grid, .address-grid {
+	        grid-template-columns: repeat(2, 1fr);
+	      }
+	    }
+	
+	    @media (max-width: 600px) {
+	      .form-grid, .personal-grid, .address-grid {
+	        grid-template-columns: 1fr;
+	      }
+	    }
+	    
+	    .inline-fields {
+	    display: flex;
+	    align-items: center;
+	    gap: 20px;   /* space between the two blocks */
+	}
+	
+	.lb-grid {
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  gap: 12px 20px;
+	  align-items: start;
+	}
+	
+	.lb-grid div {
+	  display: flex;
+	  flex-direction: column;
+	}
+	
+	@media (max-width: 1024px) {
+	  .lb-grid {
+	    grid-template-columns: repeat(2, 1fr);
+	  }
+	}
+	
+	@media (max-width: 600px) {
+	  .lb-grid {
+	    grid-template-columns: 1fr;
+	  }
+	}
+	/* Gold/Silver responsive grid - same as application fieldset */
+	.goldsilver-grid {
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  gap: 10px 20px;
+	}
+	
+	.goldsilver-grid div {
+	  flex-direction: column;
+	}
+	
+	/* Full-width note field */
+	.goldsilver-note-field {
+	  grid-column: span 3;
+	}
+	
+	/* Media queries for responsive behavior */
+	@media (max-width: 1024px) {
+	  .goldsilver-grid {
+	    grid-template-columns: repeat(2, 1fr);
+	  }
+	  
+	  .goldsilver-note-field {
+	    grid-column: span 2;
+	  }
+	}
+	
+	@media (max-width: 600px) {
+	  .goldsilver-grid {
+	    grid-template-columns: 1fr;
+	  }
+	  
+	  .goldsilver-note-field {
+	    grid-column: span 1;
+	  }
+	} 
+	    
+	</style>
+	</head>
+	<body>
+	<form action="LoanServlet" method="post">
+	  <input type="hidden" name="productCode" value="<%= productCode %>">
+	
+	  <!-- Application Fieldset - Always Show -->
+	  <fieldset>
+	    <legend>Application</legend>
+	    <div class="form-grid">
+	      
+	      <!-- ✅ ADD: Display Product Code for verification -->
+	      <div>
+	        <label>Product Code</label>
+	        <input type="text" value="<%= productCode %>" readonly style="background-color: #f0f0f0;">
+	      </div>
+	      
+	      <div>
+	        <label>Customer ID</label>
+	        <div class="input-icon-box">
+	          <input type="text" id="customerId" name="customerId" onclick="openCustomerLookup()" readonly required>
+	          <button type="button" class="inside-icon-btn" onclick="openCustomerLookup()" title="Search Customer">🔍</button>
+	        </div>
+	      </div>
+	
+	      <div>
+	        <label>Customer Name</label>
+	        <input type="text" id="customerName" name="customerName" readonly>
+	      </div>
+	     
+	      <div>
+	        <label>Category Code</label>
+	        <input type="text" id="categoryCode" name="categoryCode" readonly>
+	      </div>
+	
+	      <div>
+	  		<label>Introduer A/c Code</label>
+	  		<input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
+	    	title="Introduer Account Code must be exactly 14 digits">
+		</div>
+	
+	      <div>
+	  		<label>Introducer A/c Name</label>
+	  		<input type="text" name="introducerAccName" required oninput="this.value = this.value
+	        .replace(/[^A-Za-z ]/g, '')
+	        .replace(/\s{2,}/g, ' ')
+	        .replace(/^\s+/g, '')
+	        .toLowerCase()
+	        .replace(/\b\w/g, c => c.toUpperCase());">
+		</div>
+	
+	      <div>
+	    	<label>Date Of Application</label>
+	    	<input type="date" name="dateOfApplication" value="<%= workingDateStr %>" readonly 
+	           style="background-color: #f0f0f0; cursor: not-allowed;" required>
+		</div>
+	
+	      <div>
+	        <label>Account Operation Capacity</label>
+	        <select name="accountOperationCapacity" required>
+	          <option value="">-- Select --</option>
+	          <%
+	            PreparedStatement psAccOpCap = null;
+	            ResultSet rsAccOpCap = null;
+	            try (Connection connAccOp = DBConnection.getConnection()) {
+	              String sql = "SELECT ACCOUNTOPERATIONCAPACITY_ID, DESCRIPTION FROM GLOBALCONFIG.ACCOUNTOPERATIONCAPACITY ORDER BY ACCOUNTOPERATIONCAPACITY_ID";
+	              psAccOpCap = connAccOp.prepareStatement(sql);
+	              rsAccOpCap = psAccOpCap.executeQuery();
+	              while (rsAccOpCap.next()) {
+	                String capacityId = rsAccOpCap.getString("ACCOUNTOPERATIONCAPACITY_ID");
+	                String description = rsAccOpCap.getString("DESCRIPTION");
+	          %>
+	                <option value="<%= capacityId %>"><%= description %></option>
+	          <%
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading capacities</option>");
+	            } finally {
+	              if (rsAccOpCap != null) rsAccOpCap.close();
+	              if (psAccOpCap != null) psAccOpCap.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	  <label>Min Balance</label>
+	  <select name="minBalanceID" required>
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psMinBal = null;
+	      ResultSet rsMinBal = null;
+	      try (Connection connMinBal = DBConnection.getConnection()) {
+	        String sql = "SELECT MINBALANCE_ID, MINBALANCE FROM HEADOFFICE.ACCOUNTMINBALANCE ORDER BY MINBALANCE_ID";
+	        psMinBal = connMinBal.prepareStatement(sql);
+	        rsMinBal = psMinBal.executeQuery();
+	
+	        while (rsMinBal.next()) {
+	          String id = rsMinBal.getString("MINBALANCE_ID");      // ID to store
+	          String value = rsMinBal.getString("MINBALANCE");      // Value to show
+	    %>
+	          <option value="<%= id %>"><%= value %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Min Balance</option>");
+	      } finally {
+	        if (rsMinBal != null) rsMinBal.close();
+	        if (psMinBal != null) psMinBal.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	<div>
+	  <label>Risk Category</label>
+	  <input type="text" id="riskCategory" name="riskCategory" readonly>
+	</div>
+	      
+	    </div>
+	  </fieldset>
+	
+	
+	  <!-- Loan Details Fieldset - Always Show -->
+	<fieldset id="loanFieldset">
+	  <legend>Loan Details</legend>
+	  <div class="form-grid">
+	  
+	    <div>
+	    	<label>Submission Date</label>
+	    	<input type="date" name="submissionDate" id="submissionDate" value="<%= workingDateStr %>">
+		</div>
+	
+	    <div>
+	      <label>Resolution No</label>
+	      <input type="text" name="resolutionNo">
+	    </div>
+	
+		<div>
+	  		<label>Registration Date</label>
+	  		<input type="date" name="registrationDate" id="registrationDate">
+		</div>
+	
+	    <div>
+	      <label>Register Amount</label>
+	      <input type="number" step="0.01" name="registerAmount" >
+	    </div>
+	
+		<div>
+	  		<label>Limit Amount</label>
+	  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" >
+		</div>
+	
+		<div>
+		  <label>Drawing Power</label>
+		  <input type="number" step="0.01" name="drawingPower" id="drawingPower" >
+		</div>
+	
+	    <div>
+			<label for="sanctionDate">Sanction Date</label>
+			<input type="date" id="sanctionDate" name="sanctionDate">  
+		</div>
+	
+		<div>
+		  <label>Sanction Amount</label>
+		  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" >
+		</div>
+	
+	    <div>
+			<label for="loanPeriod">Period of Loan (months)</label>
+	  		<input type="number" id="loanPeriod" name="loanPeriod" min="1">
+	    </div>
+	
+	    <div>
+	      <label for="reviewDate">A/c Review Date</label>
+	 	  <input type="date" id="reviewDate" name="reviewDate" readonly>
+	    </div>
+	
+	
+		<div>
+	    		<label for="installmentTypeId">Installment Type Id</label>
+	    	<div class="input-icon-box">
+	        	<input type="text" id="installmentTypeId" name="installmentTypeId" 
+	               onclick="openInstallmentLookup()" readonly required>
+	        	<button type="button" class="inside-icon-btn" 
+	                onclick="openInstallmentLookup()" title="Search Installment Type">🔍</button>
+	    	</div>
+		</div>
+	
+	
+	    <div>
+	      <label for="installmentType">Installment Type</label>
+		  <input type="text" name="installmentType" id="installmentType" readonly>
+	    </div>
+	
+	    <div>
+	      <label>Repayment Freq.</label>
+	      <select name="repaymentFreq">
+	        <option value="">-- Select --</option>
+	        <option value="M">Monthly</option>
+	        <option value="Q">Quarterly</option>
+	        <option value="H">Half-Yearly</option>
+	        <option value="Y">Yearly</option>
+	        <option value="O">On Maturity</option>
+	      </select>
+	    </div>
+	
+	    <div>
+	      <label>Int. Calculation Method</label>
+	      <select name="intCalcMethod">
+	        <option value="">-- Select --</option>
+	        <option value="S">Simple</option>
+	        <option value="R">Reducing</option>
+	        <option value="F">Flat</option>
+	      </select>
+	    </div>
+	
+	    <div>
+	      <label>Interest Rate</label>
+	      <input type="number" step="0.01" name="interestRate">
+	    </div>
+	
+	    <div>
+	      <label>Penal Int. Rate</label>
+	      <input type="number" step="0.01" name="penalIntRate" value="0">
+	    </div>
+	
+	    <div>
+	      <label>Mor. Int. Rate</label>
+	      <input type="number" step="0.01" name="morIntRate" value="0">
+	    </div>
+	
+	    <div>
+	      <label>Overdue Int. Rate</label>
+	      <input type="number" step="0.01" name="overdueIntRate" value="0">
+	    </div>
+	
+	    <div>
+	      <label>Mor. Period Month</label>
+	      <input type="number" name="morPeriodMonth" value="0">
+	    </div>
+	
+	    <div>
+	  		<label>Inst. Amount</label>
+	  		<input type="number" step="0.01" name="instAmount" id="instAmount" value="0" readonly 
+	         style="background-color: #f0f0f0; cursor: not-allowed;">
+		</div>
+	
+	    <div>
+	      <label>Consortium Loan</label>
+	      <div>
+	        <label><input type="radio" name="consortiumLoan" value="Y"> Yes</label>
+	        <label><input type="radio" name="consortiumLoan" value="N" checked> No</label>
+	      </div>
+	    </div>
+	
+	<div>
+	  <label>Area Code</label>
+	  <div class="input-icon-box">
+	    <input type="text" id="areaCode" name="areaCode" 
+	           onclick="openAreaLookup()" readonly>
+	    <button type="button" class="inside-icon-btn" 
+	            onclick="openAreaLookup()" title="Search Area">🔍</button>
+	  </div>
+	</div>
+	
+	<div>
+	  <label>Area Name</label>
+	  <input type="text" id="areaName" name="areaName" readonly>
+	</div>
+	    
+	       <div>
+	  <label>Social Section Id</label>
+	  <select name="socialSectionId" required>
+	    <option value="">-- Select --</option>
+	
+	    <%
+	      PreparedStatement psSocial = null;
+	      ResultSet rsSocial = null;
+	      try (Connection connSocial = DBConnection.getConnection()) {
+	        String sql = "SELECT SOCIALSECTION_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTION ORDER BY SOCIALSECTION_ID";
+	        psSocial = connSocial.prepareStatement(sql);
+	        rsSocial = psSocial.executeQuery();
+	
+	        while (rsSocial.next()) {
+	          String id = rsSocial.getString("SOCIALSECTION_ID");   // ID to store
+	          String desc = rsSocial.getString("DESCRIPTION");      // Text to show
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Social Section</option>");
+	      } finally {
+	        if (rsSocial != null) rsSocial.close();
+	        if (psSocial != null) psSocial.close();
+	      }
+	    %>
+	
+	  </select>
+	</div>
+	
+	
+	<div>
+	  <label>Sub Area Code</label>
+	  <div class="input-icon-box">
+	    <input type="text" id="subAreaCode" name="subAreaCode" 
+	           onclick="openSubAreaLookup()" readonly>
+	    <button type="button" class="inside-icon-btn" 
+	            onclick="openSubAreaLookup()" title="Search Sub Area">🔍</button>
+	  </div>
+	</div>
+	
+	<div>
+	  <label>Sub Area Name</label>
+	  <input type="text" id="subAreaName" name="subAreaName" readonly>
+	</div>
+	    
+	    <div>
+	  <label>LBR Code</label>
+	  <select name="lbrCode">
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psMIS = null;
+	      ResultSet rsMIS = null;
+	
+	      try (Connection conMIS = DBConnection.getConnection()) {
+	        String sql = "SELECT MIS_ID, DESCRIPTION FROM HEADOFFICE.MIS ORDER BY DESCRIPTION";
+	        psMIS = conMIS.prepareStatement(sql);
+	        rsMIS = psMIS.executeQuery();
+	
+	        while (rsMIS.next()) {
+	          String id = rsMIS.getString("MIS_ID");
+	          String desc = rsMIS.getString("DESCRIPTION");
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading LBR Code</option>");
+	      } finally {
+	        if (rsMIS != null) rsMIS.close();
+	        if (psMIS != null) psMIS.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	    
+	    <div>
+	  <label>Social Sector Id</label>
+	  <div class="input-icon-box">
+	    <input type="text" id="socialSectorId" name="socialSectorId" 
+	           onclick="openSocialSectorLookup()" readonly required>
+	    <button type="button" class="inside-icon-btn" 
+	            onclick="openSocialSectorLookup()" title="Search Social Sector">🔍</button>
+	  </div>
+	</div>
+	
+	<div>
+	  <label>Social Sector Description</label>
+	  <input type="text" id="socialSectorDesc" name="socialSectorDesc" readonly>
+	</div>
+	
+	    <div>
+	  <label>Purpose Id</label>
+	  <select name="purposeId" required>
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psPurpose = null;
+	      ResultSet rsPurpose = null;
+	      try (Connection connPurpose = DBConnection.getConnection()) {
+	
+	        String sql = "SELECT PURPOSE_ID, DESCRIPTION FROM HEADOFFICE.PURPOSE ORDER BY DESCRIPTION";
+	        psPurpose = connPurpose.prepareStatement(sql);
+	        rsPurpose = psPurpose.executeQuery();
+	
+	        while (rsPurpose.next()) {
+	          String id = rsPurpose.getString("PURPOSE_ID");        // value to store
+	          String desc = rsPurpose.getString("DESCRIPTION");     // text to display
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Purpose</option>");
+	      } finally {
+	        if (rsPurpose != null) rsPurpose.close();
+	        if (psPurpose != null) psPurpose.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	    
+	    <div>
+	  <label>Social SubSector Id</label>
+	  <div class="input-icon-box">
+	    <input type="text" id="socialSubSectorId" name="socialSubSectorId" 
+	           onclick="openSocialSubSectorLookup()" readonly required>
+	    <button type="button" class="inside-icon-btn" 
+	            onclick="openSocialSubSectorLookup()" title="Search Social SubSector">🔍</button>
+	  </div>
+	</div>
+	
+	<div>
+	  <label>Social SubSector Description</label>
+	  <input type="text" id="socialSubSectorDesc" name="socialSubSectorDesc" readonly>
+	</div>
+	
+	    <div>
+	  <label>Classification Id</label>
+	  <select name="classificationId">
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psClass = null;
+	      ResultSet rsClass = null;
+	
+	      try (Connection connClass = DBConnection.getConnection()) {
+	
+	        String sql = "SELECT CLASSIFICATION_ID, DESCRIPTION FROM HEADOFFICE.CLASSIFICATION ORDER BY DESCRIPTION";
+	        psClass = connClass.prepareStatement(sql);
+	        rsClass = psClass.executeQuery();
+	
+	        while (rsClass.next()) {
+	          String id = rsClass.getString("CLASSIFICATION_ID");     // value to store
+	          String desc = rsClass.getString("DESCRIPTION");         // visible text
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Classification</option>");
+	      } finally {
+	        if (rsClass != null) rsClass.close();
+	        if (psClass != null) psClass.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	    <div>
+	  <label>Mode Of San. Id</label>
+	  <select name="modeOfSanId">
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psMOS = null;
+	      ResultSet rsMOS = null;
+	
+	      try (Connection conMOS = DBConnection.getConnection()) {
+	        String sql = "SELECT MODEOFSANCTION_ID, DESCRIPTION FROM HEADOFFICE.MODEOFSANCTION ORDER BY DESCRIPTION";
+	        psMOS = conMOS.prepareStatement(sql);
+	        rsMOS = psMOS.executeQuery();
+	
+	        while (rsMOS.next()) {
+	          String id = rsMOS.getString("MODEOFSANCTION_ID");
+	          String desc = rsMOS.getString("DESCRIPTION");
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Mode of Sanction</option>");
+	      } finally {
+	        if (rsMOS != null) rsMOS.close();
+	        if (psMOS != null) psMOS.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	
+	    <div>
+	  <label>Sanction Authority Id</label>
+	  <select name="sanctionAuthorityId">
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psSA = null;
+	      ResultSet rsSA = null;
+	
+	      try (Connection conSA = DBConnection.getConnection()) {
+	        String sql = "SELECT SANCTIONAUTHORITY_ID, DESCRIPTION FROM HEADOFFICE.SANCTIONAUTHORITY ORDER BY DESCRIPTION";
+	        psSA = conSA.prepareStatement(sql);
+	        rsSA = psSA.executeQuery();
+	
+	        while (rsSA.next()) {
+	          String id = rsSA.getString("SANCTIONAUTHORITY_ID");
+	          String desc = rsSA.getString("DESCRIPTION");
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Sanction Authority</option>");
+	      } finally {
+	        if (rsSA != null) rsSA.close();
+	        if (psSA != null) psSA.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	
+	    <div>
+	  <label>Industry Id</label>
+	  <select name="industryId">
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psInd = null;
+	      ResultSet rsInd = null;
+	
+	      try (Connection conInd = DBConnection.getConnection()) {
+	        String sql = "SELECT INDUSTRY_ID, DESCRIPTION FROM HEADOFFICE.INDUSTRY ORDER BY DESCRIPTION";
+	        psInd = conInd.prepareStatement(sql);
+	        rsInd = psInd.executeQuery();
+	
+	        while (rsInd.next()) {
+	          String id = rsInd.getString("INDUSTRY_ID");
+	          String desc = rsInd.getString("DESCRIPTION");
+	    %>
+	          <option value="<%= id %>"><%= desc %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Industry</option>");
+	      } finally {
+	        if (rsInd != null) rsInd.close();
+	        if (psInd != null) psInd.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	
+	    <div>
+	  <label>Is Director Related</label>
+	  <div>
+	    <label><input type="radio" name="isDirectorRelated" value="Y" onclick="toggleDirectorFields()"> Yes</label>
+	    <label><input type="radio" name="isDirectorRelated" value="N" checked onclick="toggleDirectorFields()"> No</label>
+	  </div>
+	</div>
+	
+	<div>
+	  <label>Director Id</label>
+	  <input type="text" name="directorId" id="directorId">
+	</div>
+	
+	<div>
+	  <label>Director Name</label>
+	  <input type="text" name="directorName" id="directorName">
+	</div>
+	
+	  </div> <!-- end .form-grid -->
+	</fieldset>
+	
+	
+	  <!-- Nominee Fieldset - Conditional -->
+	  <% if (showNominee) { %>
+	<fieldset id="nomineeFieldset">
+	  <legend>
+	    Nominee
+	    <button type="button" onclick="addNominee()" 
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card nominee-block">
+	    <button type="button" class="nominee-remove" onclick="removeNominee(this)">✖</button>
+	
+	    <div class="nominee-title" 
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Nominee <span class="nominee-serial">1</span>
+	    </div>
+	    
+	    <div class="inline-fields">
+	      <div>
+	        <label>Has Customer ID ?</label>
+	        <div style="flex-direction: row;" class="radio-group">
+	          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
+	          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
+	        </div>
+	      </div>
+	
+	      <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
+	        <label>Customer ID</label>
+	        <div class="input-icon-box">
+	          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
+	          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
+	        </div>
+	      </div>
+	    </div>
+	
+	    <br>
+	
+	    <div class="personal-grid">
+	      <div>
+	        <label>Salutation Code</label>
+	        <select name="nomineeSalutation[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	            PreparedStatement psNomineeSal = null;
+	            ResultSet rsNomineeSal = null;
+	            try (Connection connNomineeSal = DBConnection.getConnection()) {
+	              String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+	              psNomineeSal = connNomineeSal.prepareStatement(sql);
+	              rsNomineeSal = psNomineeSal.executeQuery();
+	              while (rsNomineeSal.next()) {
+	                String salCode = rsNomineeSal.getString("SALUTATION_CODE");
+	          %>
+	                <option value="<%= salCode %>"><%= salCode %></option>
+	          <%
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading Salutation Code</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsNomineeSal != null) rsNomineeSal.close();
+	              if (psNomineeSal != null) psNomineeSal.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label>Nominee Name</label>
+	        <input type="text" name="nomineeName[]" required oninput="this.value = this.value
+	        .replace(/[^A-Za-z ]/g, '')
+	        .replace(/\s{2,}/g, ' ')
+	        .replace(/^\s+/g, '')
+	        .toLowerCase()
+	        .replace(/\b\w/g, c => c.toUpperCase());">
+		</div>
+	
+	      <div>
+	        <label>Address 1</label>
+	        <input type="text" name="nomineeAddress1[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 2</label>
+	        <input type="text" name="nomineeAddress2[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 3</label>
+	        <input type="text" name="nomineeAddress3[]">
+	      </div>
+	
+	      <div>
+	        <label>Country</label>
+	        <select name="nomineeCountry[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psCountryNominee = null;
+	            ResultSet rsCountryNominee = null;
+	            try (Connection connCountryN = DBConnection.getConnection()) {
+	              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+	              psCountryNominee = connCountryN.prepareStatement(sql);
+	              rsCountryNominee = psCountryNominee.executeQuery();
+	              while (rsCountryNominee.next()) {
+	                String countryCode = rsCountryNominee.getString("COUNTRY_CODE");
+	                String countryName = rsCountryNominee.getString("NAME");
+	          %>
+	                <option value="<%= countryCode %>"><%= countryName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading countries</option>");
+	            } finally {
+	              if (rsCountryNominee != null) rsCountryNominee.close();
+	              if (psCountryNominee != null) psCountryNominee.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label>State</label>
+	        <select name="nomineeState[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psStateNominee = null;
+	            ResultSet rsStateNominee = null;
+	            try (Connection connStateN = DBConnection.getConnection()) {
+	              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+	              psStateNominee = connStateN.prepareStatement(sql);
+	              rsStateNominee = psStateNominee.executeQuery();
+	              while (rsStateNominee.next()) {
+	                String stateCode = rsStateNominee.getString("STATE_CODE");
+	                String stateName = rsStateNominee.getString("NAME");
+	          %>
+	                <option value="<%= stateCode %>"><%= stateName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading states</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsStateNominee != null) rsStateNominee.close();
+	              if (psStateNominee != null) psStateNominee.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label>City</label>
+	        <select name="nomineeCity[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psCityNominee = null;
+	            ResultSet rsCityNominee = null;
+	            try (Connection connCityN = DBConnection.getConnection()) {
+	              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+	              psCityNominee = connCityN.prepareStatement(sql);
+	              rsCityNominee = psCityNominee.executeQuery();
+	              while (rsCityNominee.next()) {
+	                String cityCode = rsCityNominee.getString("CITY_CODE");
+	                String cityName = rsCityNominee.getString("NAME");
+	          %>
+	                <option value="<%= cityCode %>"><%= cityName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading cities</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsCityNominee != null) rsCityNominee.close();
+	              if (psCityNominee != null) psCityNominee.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+		<div>
+	  		<label>Zip</label>
+	  		<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+	  		<small class="zipError"></small>
+		</div>
+	
+	      <div>
+	        <label>Relation with Guardian</label>
+	        <select name="nomineeRelation[]" required>
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psRelation = null;
+	            ResultSet rsRelation = null;
+	            try (Connection conn9 = DBConnection.getConnection()) {
+	              String sql = "SELECT RELATION_ID, DESCRIPTION FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID";
+	              psRelation = conn9.prepareStatement(sql);
+	              rsRelation = psRelation.executeQuery();
+	              while (rsRelation.next()) {
+	                String relationId = rsRelation.getString("RELATION_ID");
+	                String description = rsRelation.getString("DESCRIPTION");
+	          %>
+	                <option value="<%= relationId %>"><%= description %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading relation</option>");
+	            } finally {
+	              if (rsRelation != null) rsRelation.close();
+	              if (psRelation != null) psRelation.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	    </div>
+	  </div>
+	</fieldset>
+	  <% } %>
+	
+	  <!-- Co-Borrower/Joint Holder Fieldset - Conditional -->
+	  <% if (showJointHolder) { %>
+	<fieldset id="coBorrowerFieldset">
+	  <legend>
+	    Co-Borrower
+	    <button type="button" onclick="addCoBorrower()" 
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card coBorrower-block">
+	    <button type="button" class="nominee-remove" onclick="removeCoBorrower(this)">✖</button>
+	
+	    <div class="nominee-title" 
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Co-Borrower <span class="coBorrower-serial">1</span>
+	    </div>
+	    
+	    <div class="inline-fields">
+	      <div>
+	        <label>Has Customer ID ?</label>
+	        <div style="flex-direction: row;" class="radio-group">
+	          <label><input type="radio" name="coBorrowerHasCustomerID_1" class="coBorrowerHasCustomerRadio" value="yes" onchange="toggleCoBorrowerCustomerID(this)"> Yes</label>
+	          <label><input type="radio" name="coBorrowerHasCustomerID_1" class="coBorrowerHasCustomerRadio" value="no" onchange="toggleCoBorrowerCustomerID(this)" checked> No</label>
+	        </div>
+	      </div>
+	
+	      <div class="coBorrowerCustomerIDContainer" style="display:none; margin-top:10px;">
+	        <label>Customer ID</label>
+	        <div class="input-icon-box">
+	          <input type="text" class="coBorrowerCustomerIDInput" name="coBorrowerCustomerID[]" onclick="openCoBorrowerCustomerLookup(this)" readonly>
+	          <button type="button" class="inside-icon-btn" onclick="openCoBorrowerCustomerLookup(this)" title="Search Customer">🔍</button>
+	        </div>
+	      </div>
+	    </div>
+	
+	    <br>
+	
+	    <div class="personal-grid">
+	      <!-- ✅ FIXED: Changed from nomineeSalutation[] to coBorrowerSalutation[] -->
+	      <div>
+	        <label>Salutation Code</label>
+	        <select name="coBorrowerSalutation[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	              PreparedStatement psCoBorrowerSal = null;
+	              ResultSet rsCoBorrowerSal = null;
+	              try (Connection connCoBorrowerSal = DBConnection.getConnection()) {
+	                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+	                  psCoBorrowerSal = connCoBorrowerSal.prepareStatement(sql);
+	                  rsCoBorrowerSal = psCoBorrowerSal.executeQuery();
+	                  while (rsCoBorrowerSal.next()) {
+	                      String salCode = rsCoBorrowerSal.getString("SALUTATION_CODE");
+	          %>
+	                      <option value="<%= salCode %>"><%= salCode %></option>
+	          <%
+	                  }
+	              } catch (Exception e) {
+	                  out.println("<option disabled>Error loading Salutation Code</option>");
+	                  e.printStackTrace();
+	              } finally {
+	                  if (rsCoBorrowerSal != null) rsCoBorrowerSal.close();
+	                  if (psCoBorrowerSal != null) psCoBorrowerSal.close();
+	              }
+	          %>
+	        </select>
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from nomineeName[] to coBorrowerName[] -->
+	      <div>
+	        <label>Co-Borrower Name</label>
+	        <input type="text" name="coBorrowerName[]" required oninput="this.value = this.value
+	        .replace(/[^A-Za-z ]/g, '')
+	        .replace(/\s{2,}/g, ' ')
+	        .replace(/^\s+/g, '')
+	        .toLowerCase()
+	        .replace(/\b\w/g, c => c.toUpperCase());">
+		</div>
+	
+	      <div>
+	        <label>Address 1</label>
+	        <input type="text" name="coBorrowerAddress1[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 2</label>
+	        <input type="text" name="coBorrowerAddress2[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 3</label>
+	        <input type="text" name="coBorrowerAddress3[]">
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from countryCode to coBorrowerCountry[] -->
+	      <div>
+	        <label>Country</label>
+	        <select name="coBorrowerCountry[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	            PreparedStatement psCountryCoBorrower = null;
+	            ResultSet rsCountryCoBorrower = null;
+	            try (Connection connCountryCB = DBConnection.getConnection()) {
+	                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+	                psCountryCoBorrower = connCountryCB.prepareStatement(sql);
+	                rsCountryCoBorrower = psCountryCoBorrower.executeQuery();
+	                while (rsCountryCoBorrower.next()) {
+	                    String code = rsCountryCoBorrower.getString("COUNTRY_CODE");
+	                    String name = rsCountryCoBorrower.getString("NAME");
+	          %>
+	                <option value="<%= code %>"><%= name %></option>
+	          <%
+	                }
+	            } catch (Exception e) {
+	                out.println("<option disabled>Error loading countries</option>");
+	            } finally {
+	                if (rsCountryCoBorrower != null) rsCountryCoBorrower.close();
+	                if (psCountryCoBorrower != null) psCountryCoBorrower.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from stateCode to coBorrowerState[] -->
+	      <div>
+	        <label>State</label>
+	        <select name="coBorrowerState[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	            PreparedStatement psStateCoBorrower = null;
+	            ResultSet rsStateCoBorrower = null;
+	            try (Connection connStateCB = DBConnection.getConnection()) {
+	                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+	                psStateCoBorrower = connStateCB.prepareStatement(sql);
+	                rsStateCoBorrower = psStateCoBorrower.executeQuery();
+	                while (rsStateCoBorrower.next()) {
+	                    String code = rsStateCoBorrower.getString("STATE_CODE");
+	                    String name = rsStateCoBorrower.getString("NAME");
+	          %>
+	                <option value="<%= code %>"><%= name %></option>
+	          <%
+	                }
+	            } catch (Exception e) {
+	                out.println("<option disabled>Error loading states</option>");
+	            } finally {
+	                if (rsStateCoBorrower != null) rsStateCoBorrower.close();
+	                if (psStateCoBorrower != null) psStateCoBorrower.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from cityCode to coBorrowerCity[] -->
+	      <div>
+	        <label>City</label>
+	        <select name="coBorrowerCity[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	            PreparedStatement psCityCoBorrower = null;
+	            ResultSet rsCityCoBorrower = null;
+	            try (Connection connCityCB = DBConnection.getConnection()) {
+	                String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+	                psCityCoBorrower = connCityCB.prepareStatement(sql);
+	                rsCityCoBorrower = psCityCoBorrower.executeQuery();
+	                while (rsCityCoBorrower.next()) {
+	                    String code = rsCityCoBorrower.getString("CITY_CODE");
+	                    String name = rsCityCoBorrower.getString("NAME");
+	          %>
+	                <option value="<%= code %>"><%= name %></option>
+	          <%
+	                }
+	            } catch (Exception e) {
+	                out.println("<option disabled>Error loading cities</option>");
+	            } finally {
+	                if (rsCityCoBorrower != null) rsCityCoBorrower.close();
+	                if (psCityCoBorrower != null) psCityCoBorrower.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+		<div>
+	  		<label>Zip</label>
+	  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6">
+	  		<small class="zipError"></small>
+		</div>
+	    </div>
+	  </div>
+	</fieldset>
+	  <% } %>
+	
+	  <!-- Guarantor Fieldset - Conditional -->
+	  <% if (showGuarantor) { %>
+	  <fieldset id="guarantorFieldset">
+	  <legend>
+	    Guarantor
+	    <button type="button" onclick="addGuarantor()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card guarantor-block">
+	    <button type="button" class="nominee-remove" onclick="removeGuarantor(this)">✖</button>
+	
+	    <div class="nominee-title"
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Guarantor <span class="guarantor-serial">1</span>
+	    </div>
+	    
+	    <div class="inline-fields">
+	      <div>
+	        <label>Has Customer ID ?</label>
+	        <div style="flex-direction: row;" class="radio-group">
+	          <label><input type="radio" name="guarantorHasCustomerID_1" class="guarantorHasCustomerRadio" value="yes" onchange="toggleGuarantorCustomerID(this)"> Yes</label>
+	          <label><input type="radio" name="guarantorHasCustomerID_1" class="guarantorHasCustomerRadio" value="no" onchange="toggleGuarantorCustomerID(this)" checked> No</label>
+	        </div>
+	      </div>
+	
+	      <div class="guarantorCustomerIDContainer" style="display:none; margin-top:10px;">
+	        <label>Customer ID</label>
+	        <div class="input-icon-box">
+	          <input type="text" class="guarantorCustomerIDInput" name="guarantorCustomerID[]" onclick="openGuarantorCustomerLookup(this)" readonly>
+	          <button type="button" class="inside-icon-btn" onclick="openGuarantorCustomerLookup(this)" title="Search Customer">🔍</button>
+	        </div>
+	      </div>
+	    </div>
+	
+	    <br>
+	
+	    <div class="address-grid">
+	      <!-- ✅ FIXED: Changed from guarantorsalutation[] to guarantorSalutation[] -->
+	      <div>
+	        <label>Salutation Code</label>
+	        <select name="guarantorSalutation[]" required>
+	          <option value="">-- Select --</option>
+	          <%
+	              PreparedStatement psGuarantorSal = null;
+	              ResultSet rsGuarantorSal = null;
+	              try (Connection connGuarantorSal = DBConnection.getConnection()) {
+	                  String sql = "SELECT SALUTATION_CODE FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE";
+	                  psGuarantorSal = connGuarantorSal.prepareStatement(sql);
+	                  rsGuarantorSal = psGuarantorSal.executeQuery();
+	                  while (rsGuarantorSal.next()) {
+	                      String salCode = rsGuarantorSal.getString("SALUTATION_CODE");
+	          %>
+	                      <option value="<%= salCode %>"><%= salCode %></option>
+	          <%
+	                  }
+	              } catch (Exception e) {
+	                  out.println("<option disabled>Error loading Salutation Code</option>");
+	                  e.printStackTrace();
+	              } finally {
+	                  if (rsGuarantorSal != null) rsGuarantorSal.close();
+	                  if (psGuarantorSal != null) psGuarantorSal.close();
+	              }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label>Guarantor Name</label>
+	        <input type="text" name="guarantorName[]" required oninput="this.value = this.value
+	        .replace(/[^A-Za-z ]/g, '')
+	        .replace(/\s{2,}/g, ' ')
+	        .replace(/^\s+/g, '')
+	        .toLowerCase()
+	        .replace(/\b\w/g, c => c.toUpperCase());">
+		</div>
+	
+	      <div>
+	        <label>Address 1</label>
+	        <input type="text" name="guarantorAddress1[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 2</label>
+	        <input type="text" name="guarantorAddress2[]">
+	      </div>
+	
+	      <div>
+	        <label>Address 3</label>
+	        <input type="text" name="guarantorAddress3[]">
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from jointCountry[] to guarantorCountry[] -->
+	      <div>
+	        <label>Country</label>
+	        <select name="guarantorCountry[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psCountryGuarantor = null;
+	            ResultSet rsCountryGuarantor = null;
+	            try (Connection connCountryG = DBConnection.getConnection()) {
+	              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+	              psCountryGuarantor = connCountryG.prepareStatement(sql);
+	              rsCountryGuarantor = psCountryGuarantor.executeQuery();
+	              while (rsCountryGuarantor.next()) {
+	                String countryCode = rsCountryGuarantor.getString("COUNTRY_CODE");
+	                String countryName = rsCountryGuarantor.getString("NAME");
+	          %>
+	                <option value="<%= countryCode %>"><%= countryName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading countries</option>");
+	            } finally {
+	              if (rsCountryGuarantor != null) rsCountryGuarantor.close();
+	              if (psCountryGuarantor != null) psCountryGuarantor.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from jointState[] to guarantorState[] -->
+	      <div>
+	        <label>State</label>
+	        <select name="guarantorState[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psStateGuarantor = null;
+	            ResultSet rsStateGuarantor = null;
+	            try (Connection connStateG = DBConnection.getConnection()) {
+	              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+	              psStateGuarantor = connStateG.prepareStatement(sql);
+	              rsStateGuarantor = psStateGuarantor.executeQuery();
+	              while (rsStateGuarantor.next()) {
+	                String stateCode = rsStateGuarantor.getString("STATE_CODE");
+	                String stateName = rsStateGuarantor.getString("NAME");
+	          %>
+	                <option value="<%= stateCode %>"><%= stateName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading states</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsStateGuarantor != null) rsStateGuarantor.close();
+	              if (psStateGuarantor != null) psStateGuarantor.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from jointCity[] to guarantorCity[] -->
+	      <div>
+	        <label>City</label>
+	        <select name="guarantorCity[]">
+	          <option value="">-- Select --</option>
+	          <% 
+	            PreparedStatement psCityGuarantor = null;
+	            ResultSet rsCityGuarantor = null;
+	            try (Connection connCityG = DBConnection.getConnection()) {
+	              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+	              psCityGuarantor = connCityG.prepareStatement(sql);
+	              rsCityGuarantor = psCityGuarantor.executeQuery();
+	              while (rsCityGuarantor.next()) {
+	                String cityCode = rsCityGuarantor.getString("CITY_CODE");
+	                String cityName = rsCityGuarantor.getString("NAME");
+	          %>
+	                <option value="<%= cityCode %>"><%= cityName %></option>
+	          <% 
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading cities</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsCityGuarantor != null) rsCityGuarantor.close();
+	              if (psCityGuarantor != null) psCityGuarantor.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+		<div>
+	  		<label>Zip</label>
+	  		<input type="text" name="guarantorZip[]" class="zip-input" maxlength="6">
+	  		<small class="zipError"></small>
+		</div>
+	
+	      <div>
+	        <label>Member No</label>
+	        <input type="text" name="guarantorMemberNo[]" maxlength="2"
+	      	oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+		</div>
+	
+	      <div>
+	        <label>Employee Id</label>
+	        <input type="number" name="guarantorEmployeeId[]">
+	      </div>
+	
+	      <div>
+	        <label>Birth Date</label>
+	        <input type="date" name="guarantorBirthDate[]">
+	      </div>
+	
+	      <div>
+	        <label>Phone No</label>
+	        <input type="text" name="guarantorPhoneNo[]" maxlength="10"
+	   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+	      </div>
+	
+	      <div>
+	        <label>Mobile No</label>
+	        <input type="text" name="guarantorMobileNo[]" maxlength="10"
+	   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+	      </div>
+	    </div>
+	  </div>
+	</fieldset>
+	  <% } %>
+	
+	  <!-- Land & Building Fieldset - Conditional -->
+	  <% if (showLandBuilding) { %>
+	<fieldset id="landBuildingFieldset">
+	  <legend>
+	    Land & Building
+	    <button type="button" onclick="addLandBuilding()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card lb-block">
+	    <button type="button" class="nominee-remove" onclick="removeLandBuilding(this)">✖</button>
+	
+	    <div class="nominee-title"
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Land & Building <span class="lb-serial">1</span>
+	    </div>
+	
+	    <div class="lb-grid">
+	      <div>
+	  <label>Security Type Code</label>
+	  <select name="securityTypeCode[]" required>
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psSecType = null;
+	      ResultSet rsSecType = null;
+	      try (Connection connSecType = DBConnection.getConnection()) {
+	        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+	        psSecType = connSecType.prepareStatement(sql);
+	        rsSecType = psSecType.executeQuery();
+	        
+	        while (rsSecType.next()) {
+	          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
+	    %>
+	          <option value="<%= securityType %>"><%= securityType %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Security Types</option>");
+	        e.printStackTrace();
+	      } finally {
+	        if (rsSecType != null) rsSecType.close();
+	        if (psSecType != null) psSecType.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	      <div>
+	        <label>Submi. Date</label>
+	        <input type="date" name="lbSubmiDate[]">
+	      </div>
+	
+	      <div>
+	        <label>Amt. Valued</label>
+	        <input type="number" step="0.01" name="lbAmtValued[]" value="0">
+	      </div>
+	
+	      <div>
+	        <label>Margin %</label>
+	        <input type="number" step="0.01" name="lbMargin[]" value="0">
+	      </div>
+	
+	      <div>
+	        <label>Area</label>
+	        <input type="number" step="0.01" name="lbArea[]" value="0">
+	      </div>
+	
+	      <div>
+	        <label>Unit Of Area</label>
+	        <input type="text" name="lbUnitOfArea[]">
+	      </div>
+	
+	      <div>
+	        <label>Location</label>
+	        <input type="text" name="lbLocation[]">
+	      </div>
+	
+	      <div>
+	        <label>Security Value</label>
+	        <input type="number" step="0.01" name="lbSecurityValue[]" value="0">
+	      </div>
+	
+	      <div>
+	        <label>Remark</label>
+	        <input type="text" name="lbRemark[]">
+	      </div>
+	      
+	      <div style="grid-column: span 2;">
+	        <label>Particular</label>
+	        <textarea name="lbParticular[]" rows="3" style="width: 95%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+	      </div>
+	    </div>
+	  </div>
+	</fieldset>
+	
+	  <% } %>
+	
+	  <!-- Deposit Details Fieldset - Conditional -->
+	  <% if (showDeposit) { %>
+	<fieldset id="depositDetailsFieldset">
+	  <legend>
+	    Deposit Details
+	    <button type="button" onclick="addDepositDetails()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card deposit-block">
+	    <button type="button" class="nominee-remove" onclick="removeDepositDetails(this)">✖</button>
+	
+	    <div class="nominee-title"
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Deposit Details <span class="deposit-serial">1</span>
+	    </div>
+	
+	    <div class="form-grid">
+	
+	      <div>
+	  <label>Security Type Code</label>
+	  <select name="securityTypeCode[]" required>
+	    <option value="">-- Select --</option>
+	    <%
+	      PreparedStatement psSecType = null;
+	      ResultSet rsSecType = null;
+	      try (Connection connSecType = DBConnection.getConnection()) {
+	        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+	        psSecType = connSecType.prepareStatement(sql);
+	        rsSecType = psSecType.executeQuery();
+	        
+	        while (rsSecType.next()) {
+	          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
+	    %>
+	          <option value="<%= securityType %>"><%= securityType %></option>
+	    <%
+	        }
+	      } catch (Exception e) {
+	        out.println("<option disabled>Error loading Security Types</option>");
+	        e.printStackTrace();
+	      } finally {
+	        if (rsSecType != null) rsSecType.close();
+	        if (psSecType != null) psSecType.close();
+	      }
+	    %>
+	  </select>
+	</div>
+	
+	      <div>
+	        <label>Submission Date</label>
+	        <input type="date" name="submissionDate[]">
+	      </div>
+	
+	      <div>
+	  		<label>Margin %</label>
+	  		<input type="number" name="marginPercent[]" step="0.01" min="0" max="100" required>
+	</div>
+	
+	      <div>
+	  		<label>Deposit A/c Code</label>
+	  		<input type="text" name="depositAccCode[]" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" minlength="14" required
+	         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,14);"
+	         title="Enter exactly 14 digits">
+	</div>
+	
+	      <div>
+	        <label>Maturity Date</label>
+	        <input type="date" name="maturityDate[]">
+	      </div>
+	
+	      <div>
+	        <label>Security Value</label>
+	        <input type="number" step="0.01" name="securityValue[]">
+	      </div>
+	
+	      <div>
+	        <label>TD Value</label>
+	        <input type="number" step="0.01" name="tdValue[]" value="0" readonly style="background-color: #f0f0f0;">
+	      </div>
+	
+	      <div>
+	  		<label>Particular</label>
+	  		<input type="text" name="particular[]" maxlength="50" required>
+		  </div>
+	    </div>
+	  </div>
+	</fieldset>
+	
+	  <% } %>
+	
+	  <!-- Gold Details Fieldset - Conditional -->
+	  <% if (showGold) { %>
+	<fieldset id="goldSilverFieldset">
+	  <legend>
+	    Gold/Silver
+	    <button type="button" onclick="addGoldSilver()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	
+	  <div class="nominee-card goldsilver-block">
+	    <button type="button" class="nominee-remove" onclick="removeGoldSilver(this)">✖</button>
+	
+	    <div class="nominee-title"
+	         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+	      Gold/Silver <span class="goldsilver-serial">1</span>
+	    </div>
+	
+	    <div class="goldsilver-grid">
+	      <div>
+	        <label>Security Type Code</label>
+	        <select name="gsSecurityType[]" required>
+	          <option value="">-- Select Security Type --</option>
+	          <%
+	            PreparedStatement psSecType = null;
+	            ResultSet rsSecType = null;
+	            try (Connection connSecType = DBConnection.getConnection()) {
+	              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+	              psSecType = connSecType.prepareStatement(sql);
+	              rsSecType = psSecType.executeQuery();
+	              
+	              while (rsSecType.next()) {
+	                String securityType = rsSecType.getString("SECURITYTYPE_CODE");
+	          %>
+	                <option value="<%= securityType %>"><%= securityType %></option>
+	          <%
+	              }
+	            } catch (Exception e) {
+	              out.println("<option disabled>Error loading Security Types</option>");
+	              e.printStackTrace();
+	            } finally {
+	              if (rsSecType != null) rsSecType.close();
+	              if (psSecType != null) psSecType.close();
+	            }
+	          %>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label>Submission Date</label>
+	        <input type="date" name="gsSubmissionDate[]">
+	      </div>
+	
+	      <!-- ✅ FIXED: Changed from number to text for GOLDBAGNO (VARCHAR2) -->
+	      <div>
+	        <label>Gold Bag No.</label>
+	        <input type="text" name="gsGoldBagNo[]" maxlength="10">
+	      </div>
+	
+	      <div>
+	        <label>Total Wt.In Grm</label>
+	        <input type="number" step="0.001" name="gsTotalWeight[]" 
+	               title="Weight in total grams (up to 3 decimal places)">
+	      </div>
+	
+	      <div>
+	        <label>Margin %</label>
+	        <input type="number" step="0.01" name="gsMargin[]">
+	      </div>
+	
+	      <div>
+	        <label>Rate/Grams</label>
+	        <input type="number" step="0.01" name="gsRatePerGram[]">
+	      </div>
+	
+	      <div>
+	        <label>Total Value</label>
+	        <input type="number" step="0.01" name="gsTotalValue[]"
+	               onchange="calculateSecurityValue(this)">
+	      </div>
+	
+	      <div>
+	        <label>Security Value</label>
+	        <input type="number" step="0.01" name="gsSecurityValue[]" readonly 
+	               style="background-color: #f0f0f0;">
+	      </div>
+	
+	      <div>
+	        <label>Particular</label>
+	        <input type="text" name="gsParticular[]" maxlength="100">
+	      </div>
+	
+	      <div class="goldsilver-note-field">
+	        <label>Note</label>
+	        <textarea name="gsNote[]" rows="2" maxlength="300" style="width: 97%; padding: 8px; 
+	                  border: 1px solid #ccc; border-radius: 4px; font-size: 13px;
+	                  font-family: Arial, sans-serif;"></textarea>
+	      </div>
+	    </div>
+	  </div>
+	</fieldset>
+	  <% } %>
+	  
+	  <!-- Shares Holder Fieldset - Conditional -->
+	<% if (showSharesHolder) { %>
+	<fieldset id="sharesHolderFieldset">
+	  <legend>
+	    Shares Holder Details
+	    <button type="button" onclick="addSharesHolder()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Plant & Machinery Fieldset - Conditional -->
+	<% if (showPlantMachinery) { %>
+	<fieldset id="plantMachineryFieldset">
+	  <legend>
+	    Plant & Machinery Details
+	    <button type="button" onclick="addPlantMachinery()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Vehicle Fieldset - Conditional -->
+	<% if (showVehicle) { %>
+	<fieldset id="vehicleFieldset">
+	  <legend>
+	    Vehicle Details
+	    <button type="button" onclick="addVehicle()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Market Shares Fieldset - Conditional -->
+	<% if (showMarketShares) { %>
+	<fieldset id="marketSharesFieldset">
+	  <legend>
+	    Market Shares Details
+	    <button type="button" onclick="addMarketShares()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Stock Statement Fieldset - Conditional -->
+	<% if (showStockStatement) { %>
+	<fieldset id="stockStatementFieldset">
+	  <legend>
+	    Stock Statement Details
+	    <button type="button" onclick="addStockStatement()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Furniture & Fixture Fieldset - Conditional -->
+	<% if (showFurnitureFixture) { %>
+	<fieldset id="furnitureFixtureFieldset">
+	  <legend>
+	    Furniture & Fixture Details
+	    <button type="button" onclick="addFurnitureFixture()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Stock Pledge Fieldset - Conditional -->
+	<% if (showStockPledge) { %>
+	<fieldset id="stockPledgeFieldset">
+	  <legend>
+	    Stock Pledge Details
+	    <button type="button" onclick="addStockPledge()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Book Debts Fieldset - Conditional -->
+	<% if (showBookDebts) { %>
+	<fieldset id="bookDebtsFieldset">
+	  <legend>
+	    Book Debts Details
+	    <button type="button" onclick="addBookDebts()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Salary Fieldset - Conditional -->
+	<% if (showSalary) { %>
+	<fieldset id="salaryFieldset">
+	  <legend>
+	    Salary Details
+	    <button type="button" onclick="addSalary()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	<!-- Office Fieldset - Conditional -->
+	<% if (showOffice) { %>
+	<fieldset id="officeFieldset">
+	  <legend>
+	    Office Details
+	    <button type="button" onclick="addOffice()"
+	      style="border:none;background:#373279;color:white;padding:2px 10px;
+	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+	      ➕
+	    </button>
+	  </legend>
+	  
+	  <!-- Add your fields here -->
+	  
+	</fieldset>
+	<% } %>
+	
+	  <div class="form-buttons">
+	    <button type="submit">Save</button>
+	    <button type="reset">Reset</button>
+	  </div>
+	</form>
+	
+	<!-- Customer Lookup Modal -->
+	<div id="customerLookupModal" class="customer-modal">
+	  <div class="customer-modal-content">
+	    <span class="customer-close" onclick="closeCustomerLookup()">&times;</span>
+	    <div id="customerLookupContent">
+	      <!-- Content will be loaded here -->
+	    </div>
+	  </div>
+	</div>
+	
+	<!-- INSTALLMENT TYPE LOOKUP MODAL -->
+	<div id="installmentLookupModal" class="customer-modal">
+	    <div class="customer-modal-content">
+	        <span class="customer-close" onclick="closeInstallmentLookup()">&times;</span>
+	        <div id="installmentLookupContent"></div>
+	    </div>
+	</div>
+	<!-- SOCIAL SECTOR LOOKUP MODAL -->
+	<div id="socialSectorLookupModal" class="customer-modal">
+	    <div class="customer-modal-content">
+	        <span class="customer-close" onclick="closeSocialSectorLookup()">&times;</span>
+	        <div id="socialSectorLookupContent"></div>
+	    </div>
+	</div>
+	
+	<!-- SOCIAL SUBSECTOR LOOKUP MODAL -->
+	<div id="socialSubSectorLookupModal" class="customer-modal">
+	    <div class="customer-modal-content">
+	        <span class="customer-close" onclick="closeSocialSubSectorLookup()">&times;</span>
+	        <div id="socialSubSectorLookupContent"></div>
+	    </div>
+	</div>
+	<!-- AREA LOOKUP MODAL -->
+	<div id="areaLookupModal" class="customer-modal">
+	    <div class="customer-modal-content">
+	        <span class="customer-close" onclick="closeAreaLookup()">&times;</span>
+	        <div id="areaLookupContent"></div>
+	    </div>
+	</div>
+	
+	<!-- SUB AREA LOOKUP MODAL -->
+	<div id="subAreaLookupModal" class="customer-modal">
+	    <div class="customer-modal-content">
+	        <span class="customer-close" onclick="closeSubAreaLookup()">&times;</span>
+	        <div id="subAreaLookupContent"></div>
+	    </div>
+	</div>
+	<script src="js/application.js"></script>
+	<script src="js/savingAcc.js"></script>
+	<script>
+	// Validation function
+	function validateForm() {
+	    const customerId = document.getElementById('customerId').value.trim();
+	    
+	    if (!customerId) {
+	        showToast('❌ Please select a customer before submitting');
+	        return false;
+	    }
+	    
+	    return true;
+	}
+	
+	// Check URL parameters for success/error messages
+	window.addEventListener('DOMContentLoaded', function() {
+	    const urlParams = new URLSearchParams(window.location.search);
+	    const status = urlParams.get('status');
+	    const applicationNumber = urlParams.get('applicationNumber');
+	    const message = urlParams.get('message');
+	    
+	    if (status === 'success' && applicationNumber) {
+	        Toastify({
+	            text: "✅ Application saved successfully!\nApplication Number: " + applicationNumber,
+	            duration: 6000,
+	            close: true,
+	            gravity: "top",
+	            position: "center",
+	            style: {
+	                background: "#fff",
+	                color: "#333",
+	                borderRadius: "8px",
+	                fontSize: "14px",
+	                padding: "16px 24px",
+	                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+	                borderLeft: "5px solid #4caf50",
+	                marginTop: "20px",
+	                whiteSpace: "pre-line"
+	            },
+	            stopOnFocus: true
+	        }).showToast();
+	        
+	        // Clear URL parameters after showing toast
+	        setTimeout(function() {
+	            const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
+	            window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
+	        }, 100);
+	        
+	    } else if (status === 'error') {
+	        Toastify({
+	            text: "❌ Error: " + (message || "Failed to save application"),
+	            duration: 6000,
+	            close: true,
+	            gravity: "top",
+	            position: "center",
+	            style: {
+	                background: "#fff",
+	                color: "#333",
+	                borderRadius: "8px",
+	                fontSize: "14px",
+	                padding: "16px 24px",
+	                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+	                borderLeft: "5px solid #f44336",
+	                marginTop: "20px"
+	            },
+	            stopOnFocus: true
+	        }).showToast();
+	        
+	        // Clear URL parameters after showing toast
+	        setTimeout(function() {
+	            const cleanUrl = window.location.pathname + window.location.search.replace(/[?&](status|applicationNumber|message)=[^&]*/g, '').replace(/^&/, '?').replace(/\?$/, '');
+	            window.history.replaceState({}, document.title, cleanUrl || window.location.pathname);
+	        }, 100);
+	    }
+	});
+	//==================== CUSTOMER LOOKUP FUNCTIONS ====================
+	
+	//Helper function to set select value with multiple matching strategies
+	function setSelectValue(selectElement, value, fieldName) {
+	  if (!selectElement) {
+	      console.warn('⚠️ Select element not found for:', fieldName);
+	      return false;
+	  }
+	  
+	  if (!value || value.trim() === '') {
+	      console.log('⚠️ Empty value for:', fieldName);
+	      return false;
+	  }
+	  
+	  const trimmedValue = value.trim().toUpperCase();
+	  console.log(`🔧 Setting ${fieldName} to: "${trimmedValue}"`);
+	  
+	  let found = false;
+	  
+	  // Strategy 1: Try exact match on value (case-insensitive)
+	  for (let i = 0; i < selectElement.options.length; i++) {
+	      const optionValue = selectElement.options[i].value.trim().toUpperCase();
+	      if (optionValue === trimmedValue) {
+	          selectElement.selectedIndex = i;
+	          found = true;
+	          console.log(`✅ ${fieldName} set successfully (exact match) to: "${trimmedValue}"`);
+	          return true;
+	      }
+	  }
+	  
+	  // Strategy 2: Try matching on text content
+	  for (let i = 0; i < selectElement.options.length; i++) {
+	      const optionText = selectElement.options[i].text.trim().toUpperCase();
+	      if (optionText.includes(trimmedValue) || trimmedValue.includes(optionText)) {
+	          selectElement.selectedIndex = i;
+	          found = true;
+	          console.log(`✅ ${fieldName} set successfully (text match) to: "${selectElement.options[i].value}"`);
+	          return true;
+	      }
+	  }
+	  
+	  // Strategy 3: Try partial match on value
+	  for (let i = 0; i < selectElement.options.length; i++) {
+	      const optionValue = selectElement.options[i].value.trim().toUpperCase();
+	      if (optionValue.includes(trimmedValue) || trimmedValue.includes(optionValue)) {
+	          selectElement.selectedIndex = i;
+	          found = true;
+	          console.log(`✅ ${fieldName} set successfully (partial match) to: "${selectElement.options[i].value}"`);
+	          return true;
+	      }
+	  }
+	  
+	  if (!found) {
+	      console.warn(`⚠️ Value "${trimmedValue}" not found in ${fieldName} dropdown`);
+	  }
+	  
+	  return found;
+	}
+	
+	//Close modal when clicking outside
+	window.onclick = function(event) {
+	    const customerModal = document.getElementById('customerLookupModal');
+	    const installmentModal = document.getElementById('installmentLookupModal');
+	    const socialSectorModal = document.getElementById('socialSectorLookupModal');
+	    const socialSubSectorModal = document.getElementById('socialSubSectorLookupModal');
+	    const areaModal = document.getElementById('areaLookupModal');
+	    const subAreaModal = document.getElementById('subAreaLookupModal');
+	    
+	    if (event.target === customerModal) closeCustomerLookup();
+	    if (event.target === installmentModal) closeInstallmentLookup();
+	    if (event.target === socialSectorModal) closeSocialSectorLookup();
+	    if (event.target === socialSubSectorModal) closeSocialSubSectorLookup();
+	    if (event.target === areaModal) closeAreaLookup();
+	    if (event.target === subAreaModal) closeSubAreaLookup();
+	}
+	
+	//Close modal on Escape key
+	document.addEventListener('keydown', function(event) {
+	    if (event.key === 'Escape') {
+	        closeCustomerLookup();
+	        closeInstallmentLookup();
+	        closeSocialSectorLookup();
+	        closeSocialSubSectorLookup();
+	        closeAreaLookup();
+	        closeSubAreaLookup();
+	    }
+	});
+	//==================== NOMINEE FUNCTIONS ====================
+	
+	//==================== CO-BORROWER FUNCTIONS ====================
+	
+	//==================== GUARANTOR FUNCTIONS ====================
+	
+	//==================== LAND & BUILDING FUNCTIONS ====================
+	
+	function addLandBuilding() {
+	  let fieldset = document.getElementById("landBuildingFieldset");
+	  let original = fieldset.querySelector(".lb-block");
+	  let clone = original.cloneNode(true);
+	
+	  // Clear all inputs in cloned block
+	  clone.querySelectorAll("input, select, textarea").forEach(el => {
+	      if (el.tagName === 'SELECT') {
+	          el.selectedIndex = 0;
+	      } else if (['lbAmtValued[]', 'lbMargin[]', 'lbArea[]', 'lbSecurityValue[]'].includes(el.name)) {
+	          el.value = '0';
+	      } else {
+	          el.value = "";
+	      }
+	  });
+	
+	  clone.querySelector(".nominee-remove").onclick = function() {
+	      removeLandBuilding(this);
+	  };
+	
+	  fieldset.appendChild(clone);
+	  updateLBSerials();
+	}
+	
+	function removeLandBuilding(btn) {
+	  let blocks = document.querySelectorAll(".lb-block");
 	  if (blocks.length <= 1) {
-		    showToast("⚠️ At least one deposit detail is required.", "warning");
+		    showToast("⚠️ At least one Land & Building entry is required.", "warning");
 		    return;
 		}
 	  btn.parentNode.remove();
-	  updateDepositSerials();
+	  updateLBSerials();
 	}
-
-	function updateDepositSerials() {
-	  let blocks = document.querySelectorAll(".deposit-block");
+	
+	function updateLBSerials() {
+	  let blocks = document.querySelectorAll(".lb-block");
 	  blocks.forEach((block, index) => {
-	    let serial = block.querySelector(".deposit-serial");
-	    if (serial) {
-	      serial.textContent = (index + 1);
-	    }
-	    
-	    // Update Sr No input
-	    let srNoInput = block.querySelector('input[name="depositSrNo[]"]');
-	    if (srNoInput) {
-	      srNoInput.value = (index + 1);
-	    }
+	      let serial = block.querySelector(".lb-serial");
+	      if (serial) {
+	          serial.textContent = (index + 1);
+	      }
 	  });
 	}
-
-	// Auto-calculate TD Value based on Security Value and Margin %
-	function calculateTDValue(block) {
-	  const securityValue = parseFloat(block.querySelector('input[name="securityValue[]"]').value) || 0;
-	  const marginPercent = parseFloat(block.querySelector('input[name="marginPercent[]"]').value) || 0;
-	  const tdValueInput = block.querySelector('input[name="tdValue[]"]');
-	  
-	  // TD Value = Security Value × (Margin % / 100)
-	  const tdValue = securityValue * (marginPercent / 100);
-	  tdValueInput.value = tdValue.toFixed(2);
+	
+	//==================== UTILITY FUNCTIONS ====================
+	
+	function showToast(message) {
+	  if (typeof Toastify !== 'undefined') {
+	      Toastify({
+	          text: message,
+	          duration: 5000,
+	          close: true,
+	          gravity: "top",
+	          position: "center",
+	          style: {
+	              background: "#fff",
+	              color: "#333",
+	              borderRadius: "8px",
+	              fontSize: "14px",
+	              padding: "16px 24px",
+	              boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+	              borderLeft: "5px solid #4caf50",
+	              marginTop: "20px"
+	          }
+	      }).showToast();
+	  }
 	}
-
-	function setupTDValueCalculation(block) {
-	  const securityValueInput = block.querySelector('input[name="securityValue[]"]');
-	  const marginPercentInput = block.querySelector('input[name="marginPercent[]"]');
+	
+	//For able and disable Director Related fields
+	function toggleDirectorFields() {
+	  const isRelated = document.querySelector('input[name="isDirectorRelated"]:checked').value;
 	  
-	  securityValueInput.addEventListener('input', () => calculateTDValue(block));
-	  marginPercentInput.addEventListener('input', () => calculateTDValue(block));
+	  const idField = document.getElementById('directorId');
+	  const nameField = document.getElementById('directorName');
+	
+	  if (isRelated === 'Y') {
+	      idField.disabled = false;
+	      nameField.disabled = false;
+	  } else {
+	      idField.disabled = true;
+	      nameField.disabled = true;
+	      idField.value = "0";
+	      nameField.value = "";
+	  }
 	}
-
-	// Initialize TD Value calculation for the first deposit block on page load
+	
+	//Call once on page load to apply initial state
 	document.addEventListener('DOMContentLoaded', function() {
-	  const firstDepositBlock = document.querySelector('.deposit-block');
-	  if (firstDepositBlock) {
-	    setupTDValueCalculation(firstDepositBlock);
+	  if (document.querySelector('input[name="isDirectorRelated"]')) {
+	      toggleDirectorFields();
 	  }
 	});
-
-  
-console.log('Product Code: <%= productCode %>');
-console.log('Show Nominee: <%= showNominee %>');
-console.log('Show Joint Holder: <%= showJointHolder %>');
-console.log('Show Guarantor: <%= showGuarantor %>');
-console.log('Show Land & Building: <%= showLandBuilding %>');
-console.log('Show Deposit: <%= showDeposit %>');
-console.log('Show Gold: <%= showGold %>');
-</script>
-
-</body>
-</html>
+	
+	function calcReviewDate() {
+	    const sanctionVal = document.getElementById('sanctionDate').value;
+	    const months = parseInt(document.getElementById('loanPeriod').value, 10);
+	
+	    // Need both fields
+	    if (!sanctionVal || isNaN(months) || months <= 0) {
+	      document.getElementById('reviewDate').value = '';
+	      return;
+	    }
+	
+	    // Start from selected sanction date
+	    const d = new Date(sanctionVal);   // sanctionVal is "YYYY-MM-DD"
+	    d.setMonth(d.getMonth() + months); // add months
+	
+	    const yyyy = d.getFullYear();
+	    const mm = String(d.getMonth() + 1).padStart(2, '0');
+	    const dd = String(d.getDate()).padStart(2, '0');
+	    const reviewStr = yyyy + '-' + mm + '-' + dd;
+	
+	    document.getElementById('reviewDate').value = reviewStr;
+	  }
+	
+	  // Recalculate whenever sanction date or loan period changes
+	  window.onload = function () {
+	    document.getElementById('sanctionDate').addEventListener('change', calcReviewDate);
+	    document.getElementById('loanPeriod').addEventListener('input', calcReviewDate);
+	  };
+	  
+	  
+	//✅ Monitor Application Customer ID changes
+	  document.addEventListener('DOMContentLoaded', function() {
+	      const customerIdField = document.getElementById('customerId');
+	      if (customerIdField) {
+	          // Store initial value
+	          let previousValue = customerIdField.value;
+	          
+	          // Watch for changes (in case of manual clear/reset)
+	          customerIdField.addEventListener('change', function() {
+	              const newValue = this.value.trim();
+	              if (previousValue && !newValue) {
+	                  // Customer ID was cleared
+	                  console.log('Application customer cleared');
+	              }
+	              previousValue = newValue;
+	          });
+	      }
+	  });
+	
+	//==================== GOLD/SILVER SECURITY FUNCTIONS ====================
+	
+	  function addGoldSilver() {
+	    let fieldset = document.getElementById("goldSilverFieldset");
+	    let original = fieldset.querySelector(".goldsilver-block");
+	    let clone = original.cloneNode(true);
+	
+	    // Clear all input fields
+	    clone.querySelectorAll("input, select, textarea").forEach(el => {
+	      if (el.tagName === 'SELECT') {
+	        el.selectedIndex = 0;
+	      } else if (el.name === 'gsSerialNo[]') {
+	        // Keep readonly, will be updated by updateGoldSilverSerials
+	      } else if (el.name === 'gsTotalWeight[]' || el.name === 'gsMargin[]' || 
+	                 el.name === 'gsRatePerGram[]' || el.name === 'gsTotalValue[]' || 
+	                 el.name === 'gsSecurityValue[]' || el.name === 'gsGoldBagNo[]') {
+	        el.value = '0';
+	      } else {
+	        el.value = "";
+	      }
+	    });
+	
+	    clone.querySelector(".nominee-remove").onclick = function() {
+	      removeGoldSilver(this);
+	    };
+	
+	    fieldset.appendChild(clone);
+	    updateGoldSilverSerials();
+	  }
+	
+	  function removeGoldSilver(btn) {
+	    let blocks = document.querySelectorAll(".goldsilver-block");
+	    if (blocks.length <= 1) {
+	  	    showToast("⚠️ At least one gold/silver entry is required.", "warning");
+	  	    return;
+	  	}
+	    btn.parentNode.remove();
+	    updateGoldSilverSerials();
+	  }
+	
+	  function updateGoldSilverSerials() {
+	    let blocks = document.querySelectorAll(".goldsilver-block");
+	    blocks.forEach((block, index) => {
+	      let serial = block.querySelector(".goldsilver-serial");
+	      if (serial) {
+	        serial.textContent = (index + 1);
+	      }
+	      
+	      // Update Sr No input
+	      let srNoInput = block.querySelector('input[name="gsSerialNo[]"]');
+	      if (srNoInput) {
+	        srNoInput.value = (index + 1);
+	      }
+	    });
+	  }
+	
+	  // Calculate Security Value based on Total Value and Margin
+	  function calculateSecurityValue(totalValueInput) {
+	    const block = totalValueInput.closest('.goldsilver-block');
+	    const totalValue = parseFloat(totalValueInput.value) || 0;
+	    const marginInput = block.querySelector('input[name="gsMargin[]"]');
+	    const securityValueInput = block.querySelector('input[name="gsSecurityValue[]"]');
+	    
+	    const margin = parseFloat(marginInput.value) || 0;
+	    
+	    // Security Value = Total Value - (Total Value * Margin / 100)
+	    const securityValue = totalValue - (totalValue * margin / 100);
+	    
+	    securityValueInput.value = securityValue.toFixed(2);
+	  }
+	
+	  // Auto-calculate when margin changes
+	  document.addEventListener('DOMContentLoaded', function() {
+	    document.addEventListener('input', function(e) {
+	      if (e.target.name === 'gsMargin[]') {
+	        const block = e.target.closest('.goldsilver-block');
+	        const totalValueInput = block.querySelector('input[name="gsTotalValue[]"]');
+	        if (totalValueInput) {
+	          calculateSecurityValue(totalValueInput);
+	        }
+	      }
+	    });
+	  });
+	  
+	  function addDepositDetails() {
+		  let fieldset = document.getElementById("depositDetailsFieldset");
+		  let original = fieldset.querySelector(".deposit-block");
+		  let clone = original.cloneNode(true);
+	
+		  // Clear all inputs in the cloned block
+		  clone.querySelectorAll("input, select").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (el.name === 'depositSrNo[]') {
+		      // Sr No will be updated by updateDepositSerials()
+		      el.value = '';
+		    } else if (el.name === 'marginPercent[]' || el.name === 'securityValue[]' || el.name === 'tdValue[]') {
+		      el.value = '0';
+		    } else {
+		      el.value = '';
+		    }
+		  });
+	
+		  // Update remove button onclick
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeDepositDetails(this);
+		  };
+	
+		  fieldset.appendChild(clone);
+		  updateDepositSerials();
+		  
+		  // Auto-calculate TD Value for new block
+		  setupTDValueCalculation(clone);
+		}
+	
+		function removeDepositDetails(btn) {
+		  let blocks = document.querySelectorAll(".deposit-block");
+		  if (blocks.length <= 1) {
+			    showToast("⚠️ At least one deposit detail is required.", "warning");
+			    return;
+			}
+		  btn.parentNode.remove();
+		  updateDepositSerials();
+		}
+	
+		function updateDepositSerials() {
+		  let blocks = document.querySelectorAll(".deposit-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".deposit-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		    
+		    // Update Sr No input
+		    let srNoInput = block.querySelector('input[name="depositSrNo[]"]');
+		    if (srNoInput) {
+		      srNoInput.value = (index + 1);
+		    }
+		  });
+		}
+	
+		// Auto-calculate TD Value based on Security Value and Margin %
+		function calculateTDValue(block) {
+		  const securityValue = parseFloat(block.querySelector('input[name="securityValue[]"]').value) || 0;
+		  const marginPercent = parseFloat(block.querySelector('input[name="marginPercent[]"]').value) || 0;
+		  const tdValueInput = block.querySelector('input[name="tdValue[]"]');
+		  
+		  // TD Value = Security Value × (Margin % / 100)
+		  const tdValue = securityValue * (marginPercent / 100);
+		  tdValueInput.value = tdValue.toFixed(2);
+		}
+	
+		function setupTDValueCalculation(block) {
+		  const securityValueInput = block.querySelector('input[name="securityValue[]"]');
+		  const marginPercentInput = block.querySelector('input[name="marginPercent[]"]');
+		  
+		  securityValueInput.addEventListener('input', () => calculateTDValue(block));
+		  marginPercentInput.addEventListener('input', () => calculateTDValue(block));
+		}
+	
+		// Initialize TD Value calculation for the first deposit block on page load
+		document.addEventListener('DOMContentLoaded', function() {
+		  const firstDepositBlock = document.querySelector('.deposit-block');
+		  if (firstDepositBlock) {
+		    setupTDValueCalculation(firstDepositBlock);
+		  }
+		});
+	
+	  
+	console.log('Product Code: <%= productCode %>');
+	console.log('Show Nominee: <%= showNominee %>');
+	console.log('Show Joint Holder: <%= showJointHolder %>');
+	console.log('Show Guarantor: <%= showGuarantor %>');
+	console.log('Show Land & Building: <%= showLandBuilding %>');
+	console.log('Show Deposit: <%= showDeposit %>');
+	console.log('Show Gold: <%= showGold %>');
+	console.log('Show Shares Holder: <%= showSharesHolder %>');
+	console.log('Show Plant & Machinery: <%= showPlantMachinery %>');
+	console.log('Show Vehicle: <%= showVehicle %>');
+	console.log('Show Market Shares: <%= showMarketShares %>');
+	console.log('Show Stock Statement: <%= showStockStatement %>');
+	console.log('Show Furniture & Fixture: <%= showFurnitureFixture %>');
+	console.log('Show Stock Pledge: <%= showStockPledge %>');
+	console.log('Show Book Debts: <%= showBookDebts %>');
+	console.log('Show Salary: <%= showSalary %>');
+	console.log('Show Office: <%= showOffice %>');
+	</script>
+	
+	</body>
+	</html>
