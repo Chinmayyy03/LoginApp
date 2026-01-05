@@ -55,7 +55,7 @@
             query = "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND (SUBSTR(ACCOUNT_CODE, 5, 1) = '5' OR SUBSTR(ACCOUNT_CODE, 5, 1) = '7') " +
-                    "AND ACCOUNT_STATUS = 'L'" +
+                    "AND ACCOUNT_STATUS = 'L'"+
                     "ORDER BY ACCOUNT_CODE";
         } else {
             query = "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
