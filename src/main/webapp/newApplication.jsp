@@ -516,7 +516,7 @@ function fetchAccountTypeDescription(accountType) {
             } else {
                 descField.value = 'No account type found';
                 descField.classList.add('error');
-                showToast('Account Type not found in database', 'error');
+                showToast('Account Type not found', 'error');
             }
         })
         .catch(error => {
@@ -555,7 +555,7 @@ function fetchProductCodeDescription(productCode, accountType) {
             } else {
                 descField.value = 'No product code found';
                 descField.classList.add('error');
-                showToast('Product Code not found in database', 'error');
+                showToast('Product Code not found', 'error');
             }
         })
         .catch(error => {
@@ -573,28 +573,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Account Type input validation and fetch
     accountTypeInput.addEventListener('input', function(e) {
-        let value = e.target.value.toUpperCase();
-        e.target.value = value;
-        
-        // Remove non-alphabetic characters
-        if (!/^[A-Z]*$/.test(value)) {
-            e.target.value = value.replace(/[^A-Z]/g, '');
-            showToast('Only alphabetic characters allowed', 'warning');
-            return;
-        }
-        
-        validateAccountType(e.target.value);
-    });
+    let value = e.target.value.toUpperCase();
+    e.target.value = value;
     
-    accountTypeInput.addEventListener('blur', function(e) {
-        const value = e.target.value.trim();
-        if (value.length === 2) {
-            fetchAccountTypeDescription(value);
-        } else if (value.length > 0) {
-            showToast('Account Type must be exactly 2 characters', 'warning');
-            document.getElementById('accDescription').value = '';
-        }
-    });
+    // Remove non-alphabetic characters
+    if (!/^[A-Z]*$/.test(value)) {
+        e.target.value = value.replace(/[^A-Z]/g, '');
+        showToast('Only alphabetic characters allowed', 'warning');
+        return;
+    }
+    
+    validateAccountType(e.target.value);
+    
+    // ✅ ADD THIS - Fetch immediately when 2 characters entered
+    if (e.target.value.length === 2) {
+        fetchAccountTypeDescription(e.target.value);
+    } else if (e.target.value.length < 2) {
+        document.getElementById('accDescription').value = '';
+    }
+});
+    
+    
     
     // Product Code input validation and fetch
     productCodeInput.addEventListener('input', function(e) {
@@ -608,18 +607,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         validateProductCode(e.target.value);
-    });
-    
-    productCodeInput.addEventListener('blur', function(e) {
-        const value = e.target.value.trim();
-        const accountType = document.getElementById('accountType').value.trim();
         
-        if (value.length > 0) {
-            if (accountType.length !== 2) {
-                showToast('Please enter a valid Account Type first', 'warning');
-                document.getElementById('prodDescription').value = '';
-            } else {
-                fetchProductCodeDescription(value, accountType);
+     // ✅ Fetch only when 3 digits are entered
+        const accountType = document.getElementById('accountType').value.trim();
+
+        if (e.target.value.length === 3) {
+            if (accountType.length === 2) {
+                fetchProductCodeDescription(e.target.value, accountType);
+            }
+        } else if (e.target.value.length === 0) {
+            document.getElementById('prodDescription').value = '';
+        } else {
+            // Clear any previous error messages while typing
+            const descField = document.getElementById('prodDescription');
+            if (descField.value === 'No product code found' || descField.value === 'Error fetching data') {
+                descField.value = '';
+                descField.classList.remove('error');
             }
         }
     });
