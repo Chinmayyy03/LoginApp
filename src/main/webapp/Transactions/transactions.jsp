@@ -571,6 +571,62 @@ function showToast(message, type = 'error') {
     }).showToast();
 }
 
+// ========== FILTER TABLE FUNCTION FOR LOOKUP ==========
+function filterTable() {
+    const searchBox = document.getElementById('searchBox');
+    if (!searchBox) return;
+    
+    const searchValue = searchBox.value.toLowerCase().trim();
+    const table = document.getElementById('lookupTable');
+    if (!table) return;
+    
+    const rows = table.getElementsByClassName('data-row');
+    let noResultsRow = document.getElementById('noResultsRow');
+    
+    // If search value is less than 2 characters, show all rows
+    if (searchValue.length < 2) {
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].style.display = '';
+        }
+        if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Filter rows based on search value (2+ characters)
+    let visibleCount = 0;
+    
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        if (cells.length < 2) continue;
+        
+        const code = cells[0].textContent.toLowerCase();
+        const name = cells[1].textContent.toLowerCase();
+        
+        if (code.includes(searchValue) || name.includes(searchValue)) {
+            rows[i].style.display = '';
+            visibleCount++;
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+    
+    // Show "no results" message if no rows are visible
+    if (visibleCount === 0) {
+        if (!noResultsRow) {
+            noResultsRow = table.insertRow(-1);
+            noResultsRow.id = 'noResultsRow';
+            noResultsRow.innerHTML = '<td colspan="2" class="no-results">No accounts found matching your search</td>';
+        }
+        noResultsRow.style.display = '';
+    } else {
+        if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    }
+}
+
 // ========== UPDATE LABELS BASED ON OPERATION TYPE ==========
 function updateLabelsBasedOnOperation() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
@@ -631,6 +687,14 @@ function openLookup(type) {
         .then(html => {
             document.getElementById("lookupContent").innerHTML = html;
             document.getElementById("lookupModal").style.display = "flex";
+            
+            // Auto-focus search box after content loads
+            setTimeout(() => {
+                const searchBox = document.getElementById('searchBox');
+                if (searchBox) {
+                    searchBox.focus();
+                }
+            }, 100);
         })
         .catch(error => {
             showToast('Failed to load lookup data. Please try again.', 'error');

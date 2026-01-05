@@ -56,12 +56,13 @@
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND (SUBSTR(ACCOUNT_CODE, 5, 1) = '5' OR SUBSTR(ACCOUNT_CODE, 5, 1) = '7') " +
                     "AND ACCOUNT_STATUS = 'L'"+
+                    "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE";
         } else {
             query = "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) = ? "+ 
-                    "AND ACCOUNT_STATUS = 'L'" +
+                    "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE";
         }
     }
@@ -171,7 +172,7 @@ tr:hover {
     <input type="text" 
            id="searchBox" 
            class="search-box" 
-           placeholder="🔍 Search by Account Code or Name..." 
+           placeholder="🔍 Search by Account Code or Name (min 2 characters)..." 
            onkeyup="filterTable()">
 <% } %>
 
@@ -216,49 +217,3 @@ tr:hover {
     }
 %>
 </table>
-
-<% if ("account".equals(type)) { %>
-<script>
-function filterTable() {
-    const searchValue = document.getElementById('searchBox').value.toLowerCase();
-    const table = document.getElementById('lookupTable');
-    const rows = table.getElementsByClassName('data-row');
-    let visibleCount = 0;
-    
-    for (let i = 0; i < rows.length; i++) {
-        const code = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
-        const name = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
-        
-        if (code.includes(searchValue) || name.includes(searchValue)) {
-            rows[i].style.display = '';
-            visibleCount++;
-        } else {
-            rows[i].style.display = 'none';
-        }
-    }
-    
-    // Show "no results" message if no rows are visible
-    let noResultsRow = document.getElementById('noResultsRow');
-    if (visibleCount === 0) {
-        if (!noResultsRow) {
-            noResultsRow = table.insertRow(-1);
-            noResultsRow.id = 'noResultsRow';
-            noResultsRow.innerHTML = '<td colspan="2" class="no-results">No accounts found matching your search</td>';
-        }
-        noResultsRow.style.display = '';
-    } else {
-        if (noResultsRow) {
-            noResultsRow.style.display = 'none';
-        }
-    }
-}
-
-// Auto-focus search box when modal opens
-window.addEventListener('load', function() {
-    const searchBox = document.getElementById('searchBox');
-    if (searchBox) {
-        searchBox.focus();
-    }
-});
-</script>
-<% } %>
