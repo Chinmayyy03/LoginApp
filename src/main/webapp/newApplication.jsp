@@ -1,8 +1,112 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-
+<%@ page import="java.sql.*, db.DBConnection" %>
 
 <%
-    // ✅ Get branch code from session
+    // ✅ Handle AJAX requests for fetching data
+    String action = request.getParameter("action");
+    
+    if ("fetchAccountType".equals(action)) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        String accountType = request.getParameter("accountType");
+        StringBuilder json = new StringBuilder();
+        
+        if (accountType == null || accountType.trim().isEmpty()) {
+            json.append("{\"success\":false,\"message\":\"Account Type is required\"}");
+        } else {
+            accountType = accountType.trim().toUpperCase();
+            
+            if (!accountType.matches("^[A-Z]{2}$")) {
+                json.append("{\"success\":false,\"message\":\"Invalid Account Type format\"}");
+            } else {
+                Connection conn = null;
+                PreparedStatement ps = null;
+                ResultSet rs = null;
+                
+                try {
+                    conn = DBConnection.getConnection();
+                    String query = "SELECT NAME FROM HEADOFFICE.ACCOUNTTYPE WHERE ACCOUNT_TYPE = ?";
+                    ps = conn.prepareStatement(query);
+                    ps.setString(1, accountType);
+                    rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        String name = rs.getString("NAME").replace("\"", "\\\"");
+                        json.append("{\"success\":true,\"name\":\"").append(name).append("\"}");
+                    } else {
+                        json.append("{\"success\":false,\"message\":\"Account Type not found\"}");
+                    }
+                } catch (SQLException e) {
+                    json.append("{\"success\":false,\"message\":\"Database error\"}");
+                    e.printStackTrace();
+                } finally {
+                    try { if (rs != null) rs.close(); } catch (Exception e) { }
+                    try { if (ps != null) ps.close(); } catch (Exception e) { }
+                    try { if (conn != null) conn.close(); } catch (Exception e) { }
+                }
+            }
+        }
+        
+        out.print(json.toString());
+        return;
+    }
+    
+    if ("fetchProductCode".equals(action)) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        String productCode = request.getParameter("productCode");
+        String accountType = request.getParameter("accountType");
+        StringBuilder json = new StringBuilder();
+        
+        if (productCode == null || productCode.trim().isEmpty()) {
+            json.append("{\"success\":false,\"message\":\"Product Code is required\"}");
+        } else if (accountType == null || accountType.trim().isEmpty()) {
+            json.append("{\"success\":false,\"message\":\"Account Type is required\"}");
+        } else {
+            productCode = productCode.trim();
+            accountType = accountType.trim().toUpperCase();
+            
+            if (!productCode.matches("^\\d{1,3}$")) {
+                json.append("{\"success\":false,\"message\":\"Invalid Product Code format\"}");
+            } else if (!accountType.matches("^[A-Z]{2}$")) {
+                json.append("{\"success\":false,\"message\":\"Invalid Account Type format\"}");
+            } else {
+                Connection conn = null;
+                PreparedStatement ps = null;
+                ResultSet rs = null;
+                
+                try {
+                    conn = DBConnection.getConnection();
+                    String query = "SELECT DESCRIPTION FROM HEADOFFICE.PRODUCT WHERE PRODUCT_CODE = ? AND ACCOUNT_TYPE = ?";
+                    ps = conn.prepareStatement(query);
+                    ps.setString(1, productCode);
+                    ps.setString(2, accountType);
+                    rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        String description = rs.getString("DESCRIPTION").replace("\"", "\\\"");
+                        json.append("{\"success\":true,\"description\":\"").append(description).append("\"}");
+                    } else {
+                        json.append("{\"success\":false,\"message\":\"Product Code not found\"}");
+                    }
+                } catch (SQLException e) {
+                    json.append("{\"success\":false,\"message\":\"Database error\"}");
+                    e.printStackTrace();
+                } finally {
+                    try { if (rs != null) rs.close(); } catch (Exception e) { }
+                    try { if (ps != null) ps.close(); } catch (Exception e) { }
+                    try { if (conn != null) conn.close(); } catch (Exception e) { }
+                }
+            }
+        }
+        
+        out.print(json.toString());
+        return;
+    }
+    
+    // ✅ Get branch code from session for normal page load
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("login.jsp");
@@ -11,7 +115,6 @@
 
     String branchCode = (String) sess.getAttribute("branchCode");
 %>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -115,6 +218,15 @@
 
         input:focus {
             border-color: #8066E8;
+        }
+        
+        input.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        
+        input.editable {
+            background-color: #fff;
         }
 
         .icon-btn {
@@ -223,28 +335,49 @@
                     <div>
                         <div class="label">Account Type</div>
                         <div class="input-box">
-                            <input type="text" name="accountType" id="accountType" placeholder="Enter code" readonly>
+                            <input type="text" 
+                                   name="accountType" 
+                                   id="accountType" 
+                                   placeholder="Enter code" 
+                                   maxlength="2"
+                                   class="editable"
+                                   style="text-transform: uppercase;">
                             <button type="button" class="icon-btn" onclick="openLookup('account')">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="accDescription" id="accDescription" placeholder="Description" style="width: 230px;" readonly>
+                        <input type="text" 
+                               name="accDescription" 
+                               id="accDescription" 
+                               placeholder="Description" 
+                               style="width: 230px;" 
+                               readonly>
                     </div>
 
                     <!-- Product Code -->
                     <div>
                         <div class="label">Product Code</div>
                         <div class="input-box">
-                            <input type="text" name="productCode" id="productCode" placeholder="Enter code" readonly>
+                            <input type="text" 
+                                   name="productCode" 
+                                   id="productCode" 
+                                   placeholder="Enter code" 
+                                   maxlength="3"
+                                   class="editable">
                             <button type="button" class="icon-btn" onclick="openLookup('product', document.getElementById('accountType').value)">…</button>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Description</div>
-                        <input type="text" name="prodDescription" id="prodDescription" placeholder="Description" style="width: 230px;" readonly>
+                        <input type="text" 
+                               name="prodDescription" 
+                               id="prodDescription" 
+                               placeholder="Description" 
+                               style="width: 230px;" 
+                               readonly>
                     </div>
 
                 </div>
@@ -274,7 +407,6 @@
         <div id="lookupContent"></div>
     </div>
 </div>
-
 
 <script>
 // ========== TOAST UTILITY FUNCTION ==========
@@ -321,6 +453,180 @@ function showToast(message, type = 'error') {
     }).showToast();
 }
 
+// ========== VALIDATION FUNCTIONS ==========
+
+/**
+ * Validate Account Type: 2 alphabetic characters only
+ */
+function validateAccountType(value) {
+    const input = document.getElementById('accountType');
+    const regex = /^[A-Za-z]{0,2}$/;
+    
+    if (!regex.test(value)) {
+        input.classList.add('error');
+        return false;
+    }
+    
+    input.classList.remove('error');
+    return true;
+}
+
+/**
+ * Validate Product Code: up to 3 digits only
+ */
+function validateProductCode(value) {
+    const input = document.getElementById('productCode');
+    const regex = /^\d{0,3}$/;
+    
+    if (!regex.test(value)) {
+        input.classList.add('error');
+        return false;
+    }
+    
+    input.classList.remove('error');
+    return true;
+}
+
+/**
+ * Fetch Account Type description from database
+ */
+function fetchAccountTypeDescription(accountType) {
+    if (!accountType || accountType.length !== 2) {
+        document.getElementById('accDescription').value = '';
+        // Clear product fields when account type changes
+        document.getElementById('productCode').value = '';
+        document.getElementById('prodDescription').value = '';
+        document.getElementById('resultFrame').src = '';
+        return;
+    }
+    
+    fetch('newApplication.jsp?action=fetchAccountType&accountType=' + encodeURIComponent(accountType))
+        .then(response => response.json())
+        .then(data => {
+            const descField = document.getElementById('accDescription');
+            
+            if (data.success) {
+                descField.value = data.name;
+                descField.classList.remove('error');
+                
+                // Clear product fields when account type changes
+                document.getElementById('productCode').value = '';
+                document.getElementById('prodDescription').value = '';
+                document.getElementById('resultFrame').src = '';
+            } else {
+                descField.value = 'No account type found';
+                descField.classList.add('error');
+                showToast('Account Type not found in database', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching account type:', error);
+            document.getElementById('accDescription').value = 'Error fetching data';
+            showToast('Error connecting to database', 'error');
+        });
+}
+
+/**
+ * Fetch Product Code description from database
+ */
+function fetchProductCodeDescription(productCode, accountType) {
+    if (!productCode || productCode.length === 0) {
+        document.getElementById('prodDescription').value = '';
+        return;
+    }
+    
+    if (!accountType || accountType.length !== 2) {
+        showToast('Please enter a valid Account Type first', 'warning');
+        return;
+    }
+    
+    fetch('newApplication.jsp?action=fetchProductCode&productCode=' + encodeURIComponent(productCode) + 
+          '&accountType=' + encodeURIComponent(accountType))
+        .then(response => response.json())
+        .then(data => {
+            const descField = document.getElementById('prodDescription');
+            
+            if (data.success) {
+                descField.value = data.description;
+                descField.classList.remove('error');
+                
+                // Auto submit form when valid product is selected
+                autoSubmitForm();
+            } else {
+                descField.value = 'No product code found';
+                descField.classList.add('error');
+                showToast('Product Code not found in database', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching product code:', error);
+            document.getElementById('prodDescription').value = 'Error fetching data';
+            showToast('Error connecting to database', 'error');
+        });
+}
+
+// ========== EVENT LISTENERS ==========
+
+document.addEventListener('DOMContentLoaded', function() {
+    const accountTypeInput = document.getElementById('accountType');
+    const productCodeInput = document.getElementById('productCode');
+    
+    // Account Type input validation and fetch
+    accountTypeInput.addEventListener('input', function(e) {
+        let value = e.target.value.toUpperCase();
+        e.target.value = value;
+        
+        // Remove non-alphabetic characters
+        if (!/^[A-Z]*$/.test(value)) {
+            e.target.value = value.replace(/[^A-Z]/g, '');
+            showToast('Only alphabetic characters allowed', 'warning');
+            return;
+        }
+        
+        validateAccountType(e.target.value);
+    });
+    
+    accountTypeInput.addEventListener('blur', function(e) {
+        const value = e.target.value.trim();
+        if (value.length === 2) {
+            fetchAccountTypeDescription(value);
+        } else if (value.length > 0) {
+            showToast('Account Type must be exactly 2 characters', 'warning');
+            document.getElementById('accDescription').value = '';
+        }
+    });
+    
+    // Product Code input validation and fetch
+    productCodeInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        
+        // Remove non-numeric characters
+        if (!/^\d*$/.test(value)) {
+            e.target.value = value.replace(/\D/g, '');
+            showToast('Only numeric digits allowed', 'warning');
+            return;
+        }
+        
+        validateProductCode(e.target.value);
+    });
+    
+    productCodeInput.addEventListener('blur', function(e) {
+        const value = e.target.value.trim();
+        const accountType = document.getElementById('accountType').value.trim();
+        
+        if (value.length > 0) {
+            if (accountType.length !== 2) {
+                showToast('Please enter a valid Account Type first', 'warning');
+                document.getElementById('prodDescription').value = '';
+            } else {
+                fetchProductCodeDescription(value, accountType);
+            }
+        }
+    });
+});
+
+// ========== LOOKUP FUNCTIONS ==========
+
 function openLookup(type, accType = "") {
     let url = "LookupForNewAppCode.jsp?type=" + type;
 
@@ -328,7 +634,6 @@ function openLookup(type, accType = "") {
         url += "&accType=" + accType;
     }
 
-    // Load JSP content into modal using fetch()
     fetch(url)
         .then(response => response.text())
         .then(html => {
@@ -349,13 +654,12 @@ function sendBack(code, desc, type) {
     setValueFromLookup(code, desc, type);
 }
 
-// This is called by lookup.jsp when a row is clicked
 function setValueFromLookup(code, desc, type) {
     if (type === "account") {
         document.getElementById("accountType").value = code;
         document.getElementById("accDescription").value = desc;
         
-        // 👉 Clear product fields and IFrame when new account type selected
+        // Clear product fields and IFrame when new account type selected
         document.getElementById("productCode").value = "";
         document.getElementById("prodDescription").value = "";
         document.getElementById("resultFrame").src = "";
@@ -369,46 +673,46 @@ function setValueFromLookup(code, desc, type) {
         
         showToast('Product Code selected successfully', 'success');
         
-        // 🔥 AUTO SUBMIT FORM when product is selected
+        // Auto submit form when product is selected
         autoSubmitForm();
     }
 
     closeLookup();
 }
 
-// 🔥 NEW FUNCTION: Auto submit form after product selection
+// ========== FORM SUBMISSION ==========
+
 function autoSubmitForm() {
     let accType = document.getElementById("accountType").value.trim();
     let prodCode = document.getElementById("productCode").value.trim();
 
     // Validate fields are filled
-    if (!accType) {
-        showToast('Please select an Account Type first', 'warning');
+    if (!accType || accType.length !== 2) {
+        showToast('Please enter a valid Account Type (2 alphabetic characters)', 'warning');
         return;
     }
     
     if (!prodCode) {
-        showToast('Please select a Product Code', 'warning');
+        showToast('Please enter a Product Code', 'warning');
         return;
     }
 
     // Mapping based on Account Type
     const pageMap = {
-        "SB": "OpenAccount/savingAcc.jsp",
-        "CA": "OpenAccount/savingAcc.jsp",
-        "TD": "OpenAccount/deposit.jsp",
-        "CC": "OpenAccount/loan.jsp",
-        "TL": "OpenAccount/loan.jsp",
-        "PG": "OpenAccount/pigmy.jsp",
-        "SH": "OpenAccount/shares.jsp",
-        "FA": "OpenAccount/fAApplication.jsp"
-    };
+    "SB": "OpenAccount/savingAcc.jsp",
+    "CA": "OpenAccount/savingAcc.jsp",
+    "TD": "OpenAccount/deposit.jsp",
+    "CC": "OpenAccount/loan.jsp",
+    "TL": "OpenAccount/loan.jsp",
+    "PG": "OpenAccount/pigmy.jsp",
+    "SH": "OpenAccount/shares.jsp",
+    "FA": "OpenAccount/fAApplication.jsp"
+};
 
     console.log("Account Type =", accType);
 
     // Check if mapping exists for this account type
     if (pageMap[accType]) {
-        // Set form action to correct JSP
         document.getElementById("productForm").action = pageMap[accType];
         document.getElementById("productForm").submit();
         showToast('Loading application form...', 'success');
