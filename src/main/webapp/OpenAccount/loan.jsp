@@ -53,31 +53,35 @@
 	    boolean showBookDebts = false;
 	    boolean showSalary = false;
 	    boolean showOffice = false;
+	    boolean showLIC = false;          
+	    boolean showFirePolicy = false;
 	    
 	    if (!productCode.isEmpty()) {
 	        PreparedStatement psProduct = null;
 	        ResultSet rsProduct = null;
 	        try (Connection connProduct = DBConnection.getConnection()) {
 	        	String sql = "SELECT " +
-	                    "PPL.IS_NOMINEE_REQUIRED, " +
-	                    "PPL.IS_JOINT_HOLDER_REQUIRED, " +
-	                    "PPL.IS_GUARANTOR_REQUIRED, " +
-	                    "PPL.IS_LAND_N_BUILDING_DETAILS_REQ, " +
-	                    "PPL.IS_DEPOSIT_DETAILS_REQUIRED, " +
-	                    "PPL.IS_GOLD_DETAILS_REQUIRED, " +
-	                    "PPL.IS_SHARES_HOLDER_REQUIRED, " +
-	                    "PPL.IS_PLANT_N_MACHINORY_DET_REQ, " +
-	                    "PPL.IS_VEHICLE_DETAILS_REQUIRED, " +
-	                    "PPL.IS_MARKET_SHARES_DETAILS_REQ, " +
-	                    "PPL.IS_STOCK_STATEMENT_DETAILS_REQ, " +
-	                    "PPL.IS_FURNITURE_N_FIXTURE_DET_REQ, " +
-	                    "PPL.IS_STOCK_PLEDGE_DETAILS_REQ, " +
-	                    "PPL.IS_BOOK_DEBTS_DETAILS_REQUIRED, " +
-	                    "PPL.IS_SALARY_DETAILS_REQUIRED, " +
-	                    "PPL.IS_OFFICE_DETAILS_REQUIRED " +
-	                    "FROM HEADOFFICE.PRODUCT P " +
-	                    "JOIN HEADOFFICE.PRODUCTPARAMETERLOAN PPL ON P.PRODUCT_CODE = PPL.PRODUCT_CODE " +
-	                    "WHERE P.PRODUCT_CODE = ?";
+	        		    "PPL.IS_NOMINEE_REQUIRED, " +
+	        		    "PPL.IS_JOINT_HOLDER_REQUIRED, " +
+	        		    "PPL.IS_GUARANTOR_REQUIRED, " +
+	        		    "PPL.IS_LAND_N_BUILDING_DETAILS_REQ, " +
+	        		    "PPL.IS_DEPOSIT_DETAILS_REQUIRED, " +
+	        		    "PPL.IS_GOLD_DETAILS_REQUIRED, " +
+	        		    "PPL.IS_SHARES_HOLDER_REQUIRED, " +
+	        		    "PPL.IS_PLANT_N_MACHINORY_DET_REQ, " +
+	        		    "PPL.IS_VEHICLE_DETAILS_REQUIRED, " +
+	        		    "PPL.IS_MARKET_SHARES_DETAILS_REQ, " +
+	        		    "PPL.IS_STOCK_STATEMENT_DETAILS_REQ, " +
+	        		    "PPL.IS_FURNITURE_N_FIXTURE_DET_REQ, " +
+	        		    "PPL.IS_STOCK_PLEDGE_DETAILS_REQ, " +
+	        		    "PPL.IS_BOOK_DEBTS_DETAILS_REQUIRED, " +
+	        		    "PPL.IS_SALARY_DETAILS_REQUIRED, " +
+	        		    "PPL.IS_LIC_DETAILS_REQUIRED, " +        // ✅ ADD THIS LINE
+	        		    "PPL.IS_FIRE_POLICY_DETAILS_REQ, " +    // ✅ ADD THIS LINE
+	        		    "PPL.IS_OFFICE_DETAILS_REQUIRED " +
+	        		    "FROM HEADOFFICE.PRODUCT P " +
+	        		    "JOIN HEADOFFICE.PRODUCTPARAMETERLOAN PPL ON P.PRODUCT_CODE = PPL.PRODUCT_CODE " +
+	        		    "WHERE P.PRODUCT_CODE = ?";
 	            
 	            psProduct = connProduct.prepareStatement(sql);
 	            psProduct.setString(1, productCode);
@@ -99,6 +103,8 @@
 	                showStockPledge = "Y".equalsIgnoreCase(rsProduct.getString("IS_STOCK_PLEDGE_DETAILS_REQ"));
 	                showBookDebts = "Y".equalsIgnoreCase(rsProduct.getString("IS_BOOK_DEBTS_DETAILS_REQUIRED"));
 	                showSalary = "Y".equalsIgnoreCase(rsProduct.getString("IS_SALARY_DETAILS_REQUIRED"));
+	                showLIC = "Y".equalsIgnoreCase(rsProduct.getString("IS_LIC_DETAILS_REQUIRED"));                 
+	                showFirePolicy = "Y".equalsIgnoreCase(rsProduct.getString("IS_FIRE_POLICY_DETAILS_REQ"));      
 	                showOffice = "Y".equalsIgnoreCase(rsProduct.getString("IS_OFFICE_DETAILS_REQUIRED"));
 	                
 	                System.out.println("🔍 Product Parameters for " + productCode + ":");
@@ -117,6 +123,8 @@
 	                System.out.println("   - Stock Pledge: " + showStockPledge);
 	                System.out.println("   - Book Debts: " + showBookDebts);
 	                System.out.println("   - Salary: " + showSalary);
+	                System.out.println("   - LIC: " + showLIC);                    
+	                System.out.println("   - Fire Policy: " + showFirePolicy);     
 	                System.out.println("   - Office: " + showOffice);
 	            }
 	        } catch (Exception e) {
@@ -2125,6 +2133,41 @@
 	</fieldset>
 	<% } %>
 	
+	<!-- LIC Details Fieldset - Conditional -->
+<% if (showLIC) { %>
+<fieldset id="licFieldset">
+  <legend>
+    LIC Details
+    <button type="button" onclick="addLIC()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <!-- Add your fields here -->
+  
+</fieldset>
+<% } %>
+
+<!-- Fire Policy Fieldset - Conditional -->
+<% if (showFirePolicy) { %>
+<fieldset id="firePolicyFieldset">
+  <legend>
+    Fire Policy Details
+    <button type="button" onclick="addFirePolicy()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <!-- Add your fields here -->
+  
+</fieldset>
+<% } %>
+
+
 	<!-- Office Fieldset - Conditional -->
 	<% if (showOffice) { %>
 	<fieldset id="officeFieldset">
@@ -2141,6 +2184,8 @@
 	  
 	</fieldset>
 	<% } %>
+	
+	
 	
 	  <div class="form-buttons">
 	    <button type="submit">Save</button>
@@ -2692,6 +2737,8 @@
 	console.log('Show Stock Pledge: <%= showStockPledge %>');
 	console.log('Show Book Debts: <%= showBookDebts %>');
 	console.log('Show Salary: <%= showSalary %>');
+	console.log('Show LIC: <%= showLIC %>');                    
+	console.log('Show Fire Policy: <%= showFirePolicy %>');     
 	console.log('Show Office: <%= showOffice %>');
 	</script>
 	
