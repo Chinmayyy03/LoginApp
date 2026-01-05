@@ -593,6 +593,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
     
+ // ✅ ADD THIS - Handle Enter/Tab key press
+    accountTypeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            const value = e.target.value.trim();
+            const descField = document.getElementById('accDescription');
+            
+            // Only move focus if account type is valid and description is fetched
+            if (value.length === 2 && descField.value && descField.value !== 'No account type found' && descField.value !== 'Error fetching data') {
+                e.preventDefault(); // Prevent default tab/enter behavior
+                document.getElementById('productCode').focus();
+            }
+        }
+    });
     
     
     // Product Code input validation and fetch
