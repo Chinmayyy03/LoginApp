@@ -336,11 +336,11 @@ header {
 }
 
 .branch-name {
-    font-size: 15px; /* Fixed size instead of clamp */
+    font-size: 20px; /* Fixed size instead of clamp */
     font-weight: 700;
     letter-spacing: 0.5px;
     white-space: nowrap;
-    color: #FF6F3C;
+    color:#FFD700;
 }
 .branch-name::before {
     content: "BRANCH:";
@@ -434,7 +434,7 @@ header {
 
 /* Working Date - Responsive */
 #workingDate {
-    color: #FF6F3C;
+    color: #FFD700;
     font-size: 14px; /* Fixed size instead of clamp */
     font-weight: 500;
     padding: 3px 10px;
