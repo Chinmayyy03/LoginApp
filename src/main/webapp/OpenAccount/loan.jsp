@@ -55,6 +55,10 @@
 	    boolean showOffice = false;
 	    boolean showLIC = false;          
 	    boolean showFirePolicy = false;
+	    boolean showPrinodv = false;
+	    boolean showMotorInsurance = false;
+	    boolean showNonMotorInsurance = false;
+	    boolean showGovSecurity = false;
 	    
 	    if (!productCode.isEmpty()) {
 	        PreparedStatement psProduct = null;
@@ -76,8 +80,12 @@
 	        		    "PPL.IS_STOCK_PLEDGE_DETAILS_REQ, " +
 	        		    "PPL.IS_BOOK_DEBTS_DETAILS_REQUIRED, " +
 	        		    "PPL.IS_SALARY_DETAILS_REQUIRED, " +
-	        		    "PPL.IS_LIC_DETAILS_REQUIRED, " +        // ✅ ADD THIS LINE
-	        		    "PPL.IS_FIRE_POLICY_DETAILS_REQ, " +    // ✅ ADD THIS LINE
+	        		    "PPL.IS_LIC_DETAILS_REQUIRED, " +        
+	        		    "PPL.IS_FIRE_POLICY_DETAILS_REQ, " +
+	        		    "PPL.IS_PRINOVD_REQUIRED, " +
+	        		    "PPL.IS_MOTOR_INS_DET_REQUIRED, " +
+	        		    "PPL.IS_NONMOTOR_INS_DET_REQUIRED, " +
+	        		    "PPL.IS_GOV_CERTI_DET_REQUIRED, " +
 	        		    "PPL.IS_OFFICE_DETAILS_REQUIRED " +
 	        		    "FROM HEADOFFICE.PRODUCT P " +
 	        		    "JOIN HEADOFFICE.PRODUCTPARAMETERLOAN PPL ON P.PRODUCT_CODE = PPL.PRODUCT_CODE " +
@@ -106,6 +114,10 @@
 	                showLIC = "Y".equalsIgnoreCase(rsProduct.getString("IS_LIC_DETAILS_REQUIRED"));                 
 	                showFirePolicy = "Y".equalsIgnoreCase(rsProduct.getString("IS_FIRE_POLICY_DETAILS_REQ"));      
 	                showOffice = "Y".equalsIgnoreCase(rsProduct.getString("IS_OFFICE_DETAILS_REQUIRED"));
+	                showPrinodv = "Y".equalsIgnoreCase(rsProduct.getString("IS_PRINOVD_REQUIRED"));
+	                showMotorInsurance = "Y".equalsIgnoreCase(rsProduct.getString("IS_MOTOR_INS_DET_REQUIRED"));
+	                showNonMotorInsurance = "Y".equalsIgnoreCase(rsProduct.getString("IS_NONMOTOR_INS_DET_REQUIRED"));
+	                showGovSecurity = "Y".equalsIgnoreCase(rsProduct.getString("IS_GOV_CERTI_DET_REQUIRED"));
 	                
 	                System.out.println("🔍 Product Parameters for " + productCode + ":");
 	                System.out.println("   - Nominee: " + showNominee);
@@ -1772,7 +1784,7 @@
 	        <input type="text" name="lbRemark[]">
 	      </div>
 	      
-	      <div style="grid-column: span 2;">
+	      <div>
 	        <label>Particular</label>
 	        <textarea name="lbParticular[]" rows="3" style="width: 95%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
 	      </div>
@@ -1981,38 +1993,211 @@
 	  <% } %>
 	  
 	  <!-- Shares Holder Fieldset - Conditional -->
-	<% if (showSharesHolder) { %>
-	<fieldset id="sharesHolderFieldset">
-	  <legend>
-	    Shares Holder Details
-	    <button type="button" onclick="addSharesHolder()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
+<% if (showSharesHolder) { %>
+<fieldset id="sharesHolderFieldset">
+  <legend>
+    Shares Holder Details
+    <button type="button" onclick="addSharesHolder()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card shareholder-block">
+    <button type="button" class="nominee-remove" onclick="removeSharesHolder(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Shares Holder <span class="shareholder-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="sharesHolderSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Holder Name</label>
+        <input type="text" name="sharesHolderName[]" required>
+      </div>
+
+      <div>
+        <label>No. of Shares</label>
+        <input type="number" name="sharesHolderNoShares[]" value="0">
+      </div>
+
+      <div>
+        <label>Share Certificate No</label>
+        <input type="text" name="sharesHolderCertNo[]">
+      </div>
+
+      <div>
+        <label>Issue Date</label>
+        <input type="date" name="sharesHolderIssueDate[]">
+      </div>
+
+      <div>
+        <label>Face Value</label>
+        <input type="number" step="0.01" name="sharesHolderFaceValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Margin%</label>
+        <input type="number" step="0.01" name="sharesHolderMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="sharesHolderSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="sharesHolderParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
 	
-	<!-- Plant & Machinery Fieldset - Conditional -->
-	<% if (showPlantMachinery) { %>
-	<fieldset id="plantMachineryFieldset">
-	  <legend>
-	    Plant & Machinery Details
-	    <button type="button" onclick="addPlantMachinery()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
+<!-- Plant & Machinery Fieldset - Conditional -->
+<% if (showPlantMachinery) { %>
+<fieldset id="plantMachineryFieldset">
+  <legend>
+    Plant & Machinery Details
+    <button type="button" onclick="addPlantMachinery()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card plant-block">
+    <button type="button" class="nominee-remove" onclick="removePlantMachinery(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Plant & Machinery <span class="plant-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="plantSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>IsNewEquip(Y/N)</label>
+        <select name="plantIsNewEquip[]">
+          <option value="N" selected>N</option>
+          <option value="Y">Y</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Machine Type</label>
+        <input type="text" name="plantMachineType[]">
+      </div>
+
+      <div>
+        <label>Machine Name</label>
+        <input type="text" name="plantMachineName[]">
+      </div>
+
+      <div>
+        <label>Distinctive No.</label>
+        <input type="text" name="plantDistinctiveNo[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Submission Date</label>
+        <input type="date" name="plantSubmissionDate[]">
+      </div>
+
+      <div>
+        <label>Specification</label>
+        <input type="text" name="plantSpecification[]">
+      </div>
+
+      <div>
+        <label>Aquisition Date</label>
+        <input type="date" name="plantAquisitionDate[]">
+      </div>
+
+      <div>
+        <label>Supplier Name</label>
+        <input type="text" name="plantSupplierName[]">
+      </div>
+
+      <div>
+        <label>Purchase Price</label>
+        <input type="number" step="0.01" name="plantPurchasePrice[]" value="0">
+      </div>
+
+      <div>
+        <label>Margin%</label>
+        <input type="number" step="0.01" name="plantMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="plantSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="plantParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
 	
 	<!-- Vehicle Fieldset - Conditional -->
 	<% if (showVehicle) { %>
@@ -2031,39 +2216,184 @@
 	</fieldset>
 	<% } %>
 	
-	<!-- Market Shares Fieldset - Conditional -->
-	<% if (showMarketShares) { %>
-	<fieldset id="marketSharesFieldset">
-	  <legend>
-	    Market Shares Details
-	    <button type="button" onclick="addMarketShares()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
+<!-- Market Shares Fieldset - Conditional -->
+<% if (showMarketShares) { %>
+<fieldset id="marketSharesFieldset">
+  <legend>
+    Market Shares Details
+    <button type="button" onclick="addMarketShares()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card marketshares-block">
+    <button type="button" class="nominee-remove" onclick="removeMarketShares(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Market Shares <span class="marketshares-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="marketSharesSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Company Name</label>
+        <input type="text" name="marketSharesCompanyName[]" required>
+      </div>
+
+      <div>
+        <label>Margin%</label>
+        <input type="number" step="0.01" name="marketSharesMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Submission Date</label>
+        <input type="date" name="marketSharesSubmissionDate[]">
+      </div>
+
+      <div>
+        <label>Issue Date</label>
+        <input type="date" name="marketSharesIssueDate[]">
+      </div>
+
+      <div>
+        <label>Market Value</label>
+        <input type="number" step="0.01" name="marketSharesMarketValue[]" value="0">
+      </div>
+
+      <div>
+        <label>No.of Shares</label>
+        <input type="number" name="marketSharesNoOfShares[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="marketSharesSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="marketSharesParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
 	
-	<!-- Stock Statement Fieldset - Conditional -->
-	<% if (showStockStatement) { %>
-	<fieldset id="stockStatementFieldset">
-	  <legend>
-	    Stock Statement Details
-	    <button type="button" onclick="addStockStatement()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
+<!-- Stock Statement Fieldset - Conditional -->
+<% if (showStockStatement) { %>
+<fieldset id="stockStatementFieldset">
+  <legend>
+    Stock Statement Details
+    <button type="button" onclick="addStockStatement()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card stock-block">
+    <button type="button" class="nominee-remove" onclick="removeStockStatement(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Stock Statement <span class="stock-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="stockSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Submission Date</label>
+        <input type="date" name="stockSubmissionDate[]">
+      </div>
+
+      <div>
+        <label>Statement Date</label>
+        <input type="date" name="stockStatementDate[]">
+      </div>
+
+      <div>
+        <label>Raw Mat.Mar.%</label>
+        <input type="number" step="0.01" name="stockRawMatMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>WorkInPro.Mar.%</label>
+        <input type="number" step="0.01" name="stockWorkInProMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Fini.Goods.Mar.%</label>
+        <input type="number" step="0.01" name="stockFiniGoodsMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="stockSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="stockParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
 	
 	<!-- Furniture & Fixture Fieldset - Conditional -->
 	<% if (showFurnitureFixture) { %>
@@ -2116,39 +2446,215 @@
 	</fieldset>
 	<% } %>
 	
-	<!-- Salary Fieldset - Conditional -->
-	<% if (showSalary) { %>
-	<fieldset id="salaryFieldset">
-	  <legend>
-	    Salary Details
-	    <button type="button" onclick="addSalary()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
-	
-	<!-- LIC Details Fieldset - Conditional -->
-<% if (showLIC) { %>
-<fieldset id="licFieldset">
+<!-- Salary Fieldset - Conditional -->
+<% if (showSalary) { %>
+<fieldset id="salaryFieldset">
   <legend>
-    LIC Details
-    <button type="button" onclick="addLIC()"
+    Salary Details
+    <button type="button" onclick="addSalary()"
       style="border:none;background:#373279;color:white;padding:2px 10px;
         border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
       ➕
     </button>
   </legend>
   
-  <!-- Add your fields here -->
-  
+  <div class="nominee-card salary-block">
+    <button type="button" class="nominee-remove" onclick="removeSalary(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Salary Details <span class="salary-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="salarySecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Country Code</label>
+        <select name="salaryCountry[]">
+          <option value="">-- Select --</option>
+          <% 
+            PreparedStatement psCountrySal = null;
+            ResultSet rsCountrySal = null;
+            try (Connection connCountrySal = DBConnection.getConnection()) {
+              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
+              psCountrySal = connCountrySal.prepareStatement(sql);
+              rsCountrySal = psCountrySal.executeQuery();
+              while (rsCountrySal.next()) {
+                String code = rsCountrySal.getString("COUNTRY_CODE");
+                String name = rsCountrySal.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <% 
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading countries</option>");
+            } finally {
+              if (rsCountrySal != null) rsCountrySal.close();
+              if (psCountrySal != null) psCountrySal.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Employee Name</label>
+        <input type="text" name="salaryEmployeeName[]">
+      </div>
+
+      <div>
+        <label>State Code</label>
+        <select name="salaryState[]">
+          <option value="">-- Select --</option>
+          <% 
+            PreparedStatement psStateSal = null;
+            ResultSet rsStateSal = null;
+            try (Connection connStateSal = DBConnection.getConnection()) {
+              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
+              psStateSal = connStateSal.prepareStatement(sql);
+              rsStateSal = psStateSal.executeQuery();
+              while (rsStateSal.next()) {
+                String code = rsStateSal.getString("STATE_CODE");
+                String name = rsStateSal.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <% 
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading states</option>");
+            } finally {
+              if (rsStateSal != null) rsStateSal.close();
+              if (psStateSal != null) psStateSal.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Address1</label>
+        <input type="text" name="salaryAddress1[]">
+      </div>
+
+      <div>
+        <label>City Code</label>
+        <select name="salaryCity[]">
+          <option value="">-- Select --</option>
+          <% 
+            PreparedStatement psCitySal = null;
+            ResultSet rsCitySal = null;
+            try (Connection connCitySal = DBConnection.getConnection()) {
+              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+              psCitySal = connCitySal.prepareStatement(sql);
+              rsCitySal = psCitySal.executeQuery();
+              while (rsCitySal.next()) {
+                String code = rsCitySal.getString("CITY_CODE");
+                String name = rsCitySal.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <% 
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading cities</option>");
+            } finally {
+              if (rsCitySal != null) rsCitySal.close();
+              if (psCitySal != null) psCitySal.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Address2</label>
+        <input type="text" name="salaryAddress2[]">
+      </div>
+
+      <div>
+        <label>Zip Number</label>
+        <input type="text" name="salaryZip[]" maxlength="6" pattern="[0-9]{6}">
+      </div>
+
+      <div>
+        <label>Address3</label>
+        <input type="text" name="salaryAddress3[]">
+      </div>
+
+      <div>
+        <label>Gross Salary</label>
+        <input type="number" step="0.01" name="salaryGross[]" value="0">
+      </div>
+
+      <div>
+        <label>Phone Number</label>
+        <input type="text" name="salaryPhone[]" maxlength="10" pattern="[0-9]{10}">
+      </div>
+
+      <div>
+        <label>Mobile Number</label>
+        <input type="text" name="salaryMobile[]" maxlength="10" pattern="[0-9]{10}">
+      </div>
+
+      <div>
+        <label>Net Salary</label>
+        <input type="number" step="0.01" name="salaryNet[]" value="0">
+      </div>
+
+      <div>
+        <label>Pan Number</label>
+        <input type="text" name="salaryPan[]" maxlength="10" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
+      </div>
+
+      <div>
+        <label>PF Account Number</label>
+        <input type="text" name="salaryPFAccount[]">
+      </div>
+
+      <div>
+        <label>IS Incomer Tax Payee</label>
+        <div style="display: flex; gap: 15px;">
+          <label><input type="radio" name="salaryIsTaxPayer_1" value="Yes"> Yes</label>
+          <label><input type="radio" name="salaryIsTaxPayer_1" value="No" checked> No</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Department</label>
+        <input type="text" name="salaryDepartment[]">
+      </div>
+
+      <div>
+        <label>Perticular</label>
+        <textarea name="salaryParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
 </fieldset>
 <% } %>
+
 
 <!-- Fire Policy Fieldset - Conditional -->
 <% if (showFirePolicy) { %>
@@ -2168,22 +2674,633 @@
 <% } %>
 
 
-	<!-- Office Fieldset - Conditional -->
-	<% if (showOffice) { %>
-	<fieldset id="officeFieldset">
-	  <legend>
-	    Office Details
-	    <button type="button" onclick="addOffice()"
-	      style="border:none;background:#373279;color:white;padding:2px 10px;
-	        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
-	      ➕
-	    </button>
-	  </legend>
-	  
-	  <!-- Add your fields here -->
-	  
-	</fieldset>
-	<% } %>
+
+<!-- Office Fieldset - Conditional -->
+<% if (showOffice) { %>
+<fieldset id="officeFieldset">
+  <legend>
+    Office Details
+    <button type="button" onclick="addOffice()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card office-block">
+    <button type="button" class="nominee-remove" onclick="removeOffice(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Office Details <span class="office-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="officeSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>IsNewArticle(Y/N)</label>
+        <select name="officeIsNewArticle[]">
+          <option value="N" selected>N</option>
+          <option value="Y">Y</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Make serial</label>
+        <input type="text" name="officeMakeSerial[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Make Model</label>
+        <input type="text" name="officeMakeModel[]">
+      </div>
+
+      <div>
+        <label>Submission Date</label>
+        <input type="date" name="officeSubmissionDate[]">
+      </div>
+
+      <div>
+        <label>Date Of Acquisition</label>
+        <input type="date" name="officeAcquisitionDate[]">
+      </div>
+
+      <div>
+        <label>Warrenty Card Number</label>
+        <input type="text" name="officeWarrentyCard[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Purchase Price</label>
+        <input type="number" step="0.01" name="officePurchasePrice[]" value="0">
+      </div>
+
+      <div>
+        <label>Margin%</label>
+        <input type="number" step="0.01" name="officeMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Name Of Article</label>
+        <input type="text" name="officeArticleName[]">
+      </div>
+
+      <div>
+        <label>Warrenty In Months</label>
+        <input type="number" name="officeWarrentyMonths[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="officeSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Supplier Name</label>
+        <input type="text" name="officeSupplierName[]">
+      </div>
+
+      <div>
+        <label>Perticular</label>
+        <textarea name="officeParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
+	
+	<!-- LIC Details Fieldset - Already exists but add fields -->
+<% if (showLIC) { %>
+<fieldset id="licFieldset">
+  <legend>
+    Insurance
+    <button type="button" onclick="addInsurance()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card insurance-block">
+    <button type="button" class="nominee-remove" onclick="removeInsurance(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Insurance <span class="insurance-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Security Type Code</label>
+        <select name="insSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Insurance Name</label>
+        <input type="text" name="insName[]" required>
+      </div>
+
+      <div>
+        <label>Policy No</label>
+        <input type="text" name="insPolicyNo[]" maxlength="20" required>
+      </div>
+
+      <div>
+        <label>Policy Amount</label>
+        <input type="number" step="0.01" name="insPolicyAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Premium Period</label>
+        <select name="insPremiumPeriod[]">
+          <option value="">-- Select --</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+          <option value="Half-Yearly">Half-Yearly</option>
+          <option value="Yearly">Yearly</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Premium Amount</label>
+        <input type="number" step="0.01" name="insPremiumAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Assured Amount</label>
+        <input type="number" step="0.01" name="insAssuredAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Security Value</label>
+        <input type="number" step="0.01" name="insSecurityValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="insParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
+
+<!-- Motor Insurance Fieldset -->
+<% if (showMotorInsurance) { %>
+<fieldset id="motorInsuranceFieldset">
+  <legend>
+    Motor Insurance
+    <button type="button" onclick="addMotorInsurance()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card motor-block">
+    <button type="button" class="nominee-remove" onclick="removeMotorInsurance(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Motor Insurance <span class="motor-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Type Of Vehicle</label>
+        <select name="motorVehicleType[]">
+          <option value="">-- Select --</option>
+          <option value="NOT APPLICABLE">NOT APPLICABLE</option>
+          <option value="TWO WHEELER">TWO WHEELER</option>
+          <option value="FOUR WHEELER">FOUR WHEELER</option>
+          <option value="COMMERCIAL">COMMERCIAL</option>
+          <option value="HEAVY VEHICLE">HEAVY VEHICLE</option>
+        </select>
+      </div>
+
+      <div>
+        <label>RTO Location</label>
+        <input type="text" name="motorRTOLocation[]">
+      </div>
+
+      <div>
+        <label>Security Type Code</label>
+        <select name="motorSecurityType[]" required>
+          <option value="">-- Select --</option>
+          <%
+            PreparedStatement psSecType = null;
+            ResultSet rsSecType = null;
+            try (Connection connSecType = DBConnection.getConnection()) {
+              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
+              psSecType = connSecType.prepareStatement(sql);
+              rsSecType = psSecType.executeQuery();
+              while (rsSecType.next()) {
+                String code = rsSecType.getString("SECURITYTYPE_CODE");
+          %>
+                <option value="<%= code %>"><%= code %></option>
+          <%
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading Security Types</option>");
+            } finally {
+              if (rsSecType != null) rsSecType.close();
+              if (psSecType != null) psSecType.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Is New Vehicle(Y/N)</label>
+        <select name="motorIsNewVehicle[]">
+          <option value="Y">Y</option>
+          <option value="N" selected>N</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Is Vehicle Insp(Y/N)</label>
+        <select name="motorIsVehicleInsp[]">
+          <option value="Y">Y</option>
+          <option value="N" selected>N</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Make Model</label>
+        <input type="text" name="motorMakeModel[]" maxlength="50">
+      </div>
+
+      <div>
+        <label>Model Year</label>
+        <input type="text" name="motorModelYear[]" maxlength="4" pattern="[0-9]{4}">
+      </div>
+
+      <div>
+        <label>CC</label>
+        <input type="number" name="motorCC[]" value="0">
+      </div>
+
+      <div>
+        <label>Submission Date</label>
+        <input type="date" name="motorSubmissionDate[]">
+      </div>
+
+      <div>
+        <label>Manufacture Date</label>
+        <input type="date" name="motorManufactureDate[]">
+      </div>
+
+      <div>
+        <label>Acquisition Date</label>
+        <input type="date" name="motorAcquisitionDate[]">
+      </div>
+
+      <div>
+        <label>Registration Date</label>
+        <input type="date" name="motorRegistrationDate[]">
+      </div>
+
+      <div>
+        <label>Registration Number</label>
+        <input type="text" name="motorRegistrationNo[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Chasis No.</label>
+        <input type="text" name="motorChasisNo[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Margin%</label>
+        <input type="number" step="0.01" name="motorMargin[]" value="0">
+      </div>
+
+      <div>
+        <label>Purchase Price</label>
+        <input type="number" step="0.01" name="motorPurchasePrice[]" value="0">
+      </div>
+
+      <div>
+        <label>Supplier Name</label>
+        <input type="text" name="motorSupplierName[]">
+      </div>
+
+      <div>
+        <label>Seating Capacity</label>
+        <input type="number" name="motorSeatingCapacity[]" value="0">
+      </div>
+
+      <div>
+        <label>Carrying Capacity</label>
+        <input type="number" step="0.01" name="motorCarryingCapacity[]" value="0">
+      </div>
+
+      <div>
+        <label>Insurance Deelesed Value</label>
+        <input type="number" step="0.01" name="motorInsuranceValue[]" value="0">
+      </div>
+
+      <div>
+        <label>Insurance Name</label>
+        <input type="text" name="motorInsuranceName[]">
+      </div>
+
+      <div>
+        <label>No Claim BOU%</label>
+        <input type="number" step="0.01" name="motorNoClaimBOU[]" value="0">
+      </div>
+
+      <div>
+        <label>Policy Number</label>
+        <input type="text" name="motorPolicyNo[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Premium Amount</label>
+        <input type="number" step="0.01" name="motorPremiumAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Total Insured Amount</label>
+        <input type="number" step="0.01" name="motorTotalInsured[]" value="0">
+      </div>
+
+      <div>
+        <label>Premium Frequency</label>
+        <select name="motorPremiumFreq[]">
+          <option value="">-- Select --</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+          <option value="Half-Yearly">Half-Yearly</option>
+          <option value="Yearly">Yearly</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Policy Start Date</label>
+        <input type="date" name="motorPolicyStartDate[]">
+      </div>
+
+      <div>
+        <label>Policy End Date</label>
+        <input type="date" name="motorPolicyEndDate[]">
+      </div>
+
+      <div>
+        <label>Policy Type</label>
+        <input type="text" name="motorPolicyType[]">
+      </div>
+
+      <div>
+        <label>Particular</label>
+        <textarea name="motorParticular[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
+
+<!-- Non-Motor Insurance Fieldset -->
+<% if (showNonMotorInsurance) { %>
+<fieldset id="nonMotorInsuranceFieldset">
+  <legend>
+    Non-Motor Insurance
+    <button type="button" onclick="addNonMotorInsurance()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card nonmotor-block">
+    <button type="button" class="nominee-remove" onclick="removeNonMotorInsurance(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Non-Motor Insurance <span class="nonmotor-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Address Of Correspondance</label>
+        <textarea name="nonmotorAddress[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+
+      <div style="grid-column: span 2;">
+        <label>Risk Location</label>
+        <textarea name="nonmotorRiskLocation[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+
+      <div>
+        <label>Pin Code</label>
+        <input type="text" name="nonmotorPinCode[]" maxlength="6" pattern="[0-9]{6}">
+      </div>
+
+      <div>
+        <label>Landmark</label>
+        <textarea name="nonmotorLandmark[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+
+      <div>
+        <label>City</label>
+        <select name="nonmotorCity[]">
+          <option value="">-- Select --</option>
+          <% 
+            PreparedStatement psCityNM = null;
+            ResultSet rsCityNM = null;
+            try (Connection connCityNM = DBConnection.getConnection()) {
+              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
+              psCityNM = connCityNM.prepareStatement(sql);
+              rsCityNM = psCityNM.executeQuery();
+              while (rsCityNM.next()) {
+                String code = rsCityNM.getString("CITY_CODE");
+                String name = rsCityNM.getString("NAME");
+          %>
+                <option value="<%= code %>"><%= name %></option>
+          <% 
+              }
+            } catch (Exception e) {
+              out.println("<option disabled>Error loading cities</option>");
+            } finally {
+              if (rsCityNM != null) rsCityNM.close();
+              if (psCityNM != null) psCityNM.close();
+            }
+          %>
+        </select>
+      </div>
+
+      <div>
+        <label>Policy Start Date</label>
+        <input type="date" name="nonmotorPolicyStartDate[]">
+      </div>
+
+      <div>
+        <label>Policy End Date</label>
+        <input type="date" name="nonmotorPolicyEndDate[]">
+      </div>
+
+      <div>
+        <label>Village</label>
+        <input type="text" name="nonmotorVillage[]">
+      </div>
+
+      <div>
+        <label>Valuation of Property</label>
+        <input type="number" step="0.01" name="nonmotorPropertyValuation[]" value="0">
+      </div>
+
+      <div>
+        <label>Name of Insurance Company</label>
+        <input type="text" name="nonmotorInsuranceCompany[]">
+      </div>
+
+      <div>
+        <label>Existing Policy Start Date</label>
+        <input type="date" name="nonmotorExistingPolicyStart[]">
+      </div>
+
+      <div>
+        <label>Existing Policy End Date</label>
+        <input type="date" name="nonmotorExistingPolicyEnd[]">
+      </div>
+
+      <div>
+        <label>Type Of Mortagage</label>
+        <input type="text" name="nonmotorMortgageType[]">
+      </div>
+
+      <div style="grid-column: span 2;">
+        <label>Details of Mortagage</label>
+        <textarea name="nonmotorMortgageDetails[]" rows="2" style="width: 97%; resize: vertical; font-size: 13px; padding: 4px 6px;"></textarea>
+      </div>
+
+      <div>
+        <label>Premium Amount</label>
+        <input type="number" step="0.01" name="nonmotorPremiumAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Valuation Of Mortagage</label>
+        <input type="number" step="0.01" name="nonmotorMortgageValuation[]" value="0">
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
+
+<!-- Government Security Fieldset -->
+<% if (showGovSecurity) { %>
+<fieldset id="govSecurityFieldset">
+  <legend>
+    Government Security
+    <button type="button" onclick="addGovSecurity()"
+      style="border:none;background:#373279;color:white;padding:2px 10px;
+        border-radius:5px;cursor:pointer;font-size:12px;margin-left:10px;">
+      ➕
+    </button>
+  </legend>
+  
+  <div class="nominee-card govsec-block">
+    <button type="button" class="nominee-remove" onclick="removeGovSecurity(this)">✖</button>
+
+    <div class="nominee-title"
+         style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+      Government Security <span class="govsec-serial">1</span>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Terms</label>
+        <input type="text" name="govSecTerms[]">
+      </div>
+
+      <div>
+        <label>Certificate No</label>
+        <input type="text" name="govSecCertNo[]" maxlength="20">
+      </div>
+
+      <div>
+        <label>Certificate Date</label>
+        <input type="date" name="govSecCertDate[]">
+      </div>
+
+      <div>
+        <label>Maturity Date</label>
+        <input type="date" name="govSecMaturityDate[]">
+      </div>
+
+      <div>
+        <label>Maturity Amount</label>
+        <input type="number" step="0.01" name="govSecMaturityAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Certificate Amount</label>
+        <input type="number" step="0.01" name="govSecCertAmount[]" value="0">
+      </div>
+
+      <div>
+        <label>Nominee</label>
+        <input type="text" name="govSecNominee[]">
+      </div>
+
+      <div>
+        <label>Transferable/Encashable</label>
+        <input type="checkbox" name="govSecTransferable[]" value="Y" style="width: auto; height: 20px;">
+      </div>
+    </div>
+  </div>
+</fieldset>
+<% } %>
 	
 	
 	
@@ -2403,11 +3520,7 @@
 	        closeSubAreaLookup();
 	    }
 	});
-	//==================== NOMINEE FUNCTIONS ====================
-	
-	//==================== CO-BORROWER FUNCTIONS ====================
-	
-	//==================== GUARANTOR FUNCTIONS ====================
+
 	
 	//==================== LAND & BUILDING FUNCTIONS ====================
 	
@@ -2719,6 +3832,458 @@
 		    setupTDValueCalculation(firstDepositBlock);
 		  }
 		});
+		
+		//==================== INSURANCE FUNCTIONS ====================
+		function addInsurance() {
+		  let fieldset = document.getElementById("licFieldset");
+		  let original = fieldset.querySelector(".insurance-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['insPolicyAmount[]', 'insPremiumAmount[]', 'insAssuredAmount[]', 'insSecurityValue[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeInsurance(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateInsuranceSerials();
+		}
+
+		function removeInsurance(btn) {
+		  let blocks = document.querySelectorAll(".insurance-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one insurance entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateInsuranceSerials();
+		}
+
+		function updateInsuranceSerials() {
+		  let blocks = document.querySelectorAll(".insurance-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".insurance-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== MOTOR INSURANCE FUNCTIONS ====================
+		function addMotorInsurance() {
+		  let fieldset = document.getElementById("motorInsuranceFieldset");
+		  let original = fieldset.querySelector(".motor-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['motorCC[]', 'motorMargin[]', 'motorPurchasePrice[]', 'motorSeatingCapacity[]', 
+		                'motorCarryingCapacity[]', 'motorInsuranceValue[]', 'motorNoClaimBOU[]', 
+		                'motorPremiumAmount[]', 'motorTotalInsured[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeMotorInsurance(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateMotorSerials();
+		}
+
+		function removeMotorInsurance(btn) {
+		  let blocks = document.querySelectorAll(".motor-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one motor insurance entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateMotorSerials();
+		}
+
+		function updateMotorSerials() {
+		  let blocks = document.querySelectorAll(".motor-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".motor-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== NON-MOTOR INSURANCE FUNCTIONS ====================
+		function addNonMotorInsurance() {
+		  let fieldset = document.getElementById("nonMotorInsuranceFieldset");
+		  let original = fieldset.querySelector(".nonmotor-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['nonmotorPropertyValuation[]', 'nonmotorPremiumAmount[]', 'nonmotorMortgageValuation[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeNonMotorInsurance(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateNonMotorSerials();
+		}
+
+		function removeNonMotorInsurance(btn) {
+		  let blocks = document.querySelectorAll(".nonmotor-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one non-motor insurance entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateNonMotorSerials();
+		}
+
+		function updateNonMotorSerials() {
+		  let blocks = document.querySelectorAll(".nonmotor-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".nonmotor-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== GOVERNMENT SECURITY FUNCTIONS ====================
+		function addGovSecurity() {
+		  let fieldset = document.getElementById("govSecurityFieldset");
+		  let original = fieldset.querySelector(".govsec-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.type === 'checkbox') {
+		      el.checked = false;
+		    } else if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['govSecMaturityAmount[]', 'govSecCertAmount[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeGovSecurity(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateGovSecSerials();
+		}
+
+		function removeGovSecurity(btn) {
+		  let blocks = document.querySelectorAll(".govsec-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one government security entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateGovSecSerials();
+		}
+
+		function updateGovSecSerials() {
+		  let blocks = document.querySelectorAll(".govsec-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".govsec-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+		
+		
+		//==================== OFFICE DETAILS FUNCTIONS ====================
+		function addOffice() {
+		  let fieldset = document.getElementById("officeFieldset");
+		  let original = fieldset.querySelector(".office-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['officePurchasePrice[]', 'officeMargin[]', 'officeSecurityValue[]', 'officeWarrentyMonths[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeOffice(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateOfficeSerials();
+		}
+
+		function removeOffice(btn) {
+		  let blocks = document.querySelectorAll(".office-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one office detail is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateOfficeSerials();
+		}
+
+		function updateOfficeSerials() {
+		  let blocks = document.querySelectorAll(".office-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".office-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== PLANT & MACHINERY FUNCTIONS ====================
+		function addPlantMachinery() {
+		  let fieldset = document.getElementById("plantMachineryFieldset");
+		  let original = fieldset.querySelector(".plant-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['plantPurchasePrice[]', 'plantMargin[]', 'plantSecurityValue[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removePlantMachinery(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updatePlantSerials();
+		}
+
+		function removePlantMachinery(btn) {
+		  let blocks = document.querySelectorAll(".plant-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one plant & machinery entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updatePlantSerials();
+		}
+
+		function updatePlantSerials() {
+		  let blocks = document.querySelectorAll(".plant-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".plant-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== SALARY FUNCTIONS ====================
+		function addSalary() {
+		  let fieldset = document.getElementById("salaryFieldset");
+		  let original = fieldset.querySelector(".salary-block");
+		  let clone = original.cloneNode(true);
+
+		  // Get the current count to create unique radio button names
+		  let blockCount = document.querySelectorAll(".salary-block").length + 1;
+		  
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.type === 'radio') {
+		      // Update radio button name to be unique for this block
+		      el.name = 'salaryIsTaxPayer_' + blockCount;
+		      el.checked = el.value === 'No';
+		    } else if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['salaryGross[]', 'salaryNet[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeSalary(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateSalarySerials();
+		}
+
+		function removeSalary(btn) {
+		  let blocks = document.querySelectorAll(".salary-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one salary detail is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateSalarySerials();
+		}
+
+		function updateSalarySerials() {
+		  let blocks = document.querySelectorAll(".salary-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".salary-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== SHARES HOLDER FUNCTIONS ====================
+		function addSharesHolder() {
+		  let fieldset = document.getElementById("sharesHolderFieldset");
+		  let original = fieldset.querySelector(".shareholder-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['sharesHolderNoShares[]', 'sharesHolderFaceValue[]', 'sharesHolderMargin[]', 'sharesHolderSecurityValue[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeSharesHolder(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateSharesHolderSerials();
+		}
+
+		function removeSharesHolder(btn) {
+		  let blocks = document.querySelectorAll(".shareholder-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one shares holder entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateSharesHolderSerials();
+		}
+
+		function updateSharesHolderSerials() {
+		  let blocks = document.querySelectorAll(".shareholder-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".shareholder-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+
+		//==================== MARKET SHARES FUNCTIONS ====================
+		function addMarketShares() {
+		  let fieldset = document.getElementById("marketSharesFieldset");
+		  let original = fieldset.querySelector(".marketshares-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['marketSharesMargin[]', 'marketSharesMarketValue[]', 'marketSharesNoOfShares[]', 'marketSharesSecurityValue[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeMarketShares(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateMarketSharesSerials();
+		}
+
+		function removeMarketShares(btn) {
+		  let blocks = document.querySelectorAll(".marketshares-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one market shares entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateMarketSharesSerials();
+		}
+
+		function updateMarketSharesSerials() {
+		  let blocks = document.querySelectorAll(".marketshares-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".marketshares-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
+		
+		//==================== STOCK STATEMENT FUNCTIONS ====================
+		function addStockStatement() {
+		  let fieldset = document.getElementById("stockStatementFieldset");
+		  let original = fieldset.querySelector(".stock-block");
+		  let clone = original.cloneNode(true);
+
+		  clone.querySelectorAll("input, select, textarea").forEach(el => {
+		    if (el.tagName === 'SELECT') {
+		      el.selectedIndex = 0;
+		    } else if (['stockRawMatMargin[]', 'stockWorkInProMargin[]', 'stockFiniGoodsMargin[]', 'stockSecurityValue[]'].includes(el.name)) {
+		      el.value = '0';
+		    } else {
+		      el.value = "";
+		    }
+		  });
+
+		  clone.querySelector(".nominee-remove").onclick = function() {
+		    removeStockStatement(this);
+		  };
+
+		  fieldset.appendChild(clone);
+		  updateStockSerials();
+		}
+
+		function removeStockStatement(btn) {
+		  let blocks = document.querySelectorAll(".stock-block");
+		  if (blocks.length <= 1) {
+		    showToast("⚠️ At least one stock statement entry is required.", "warning");
+		    return;
+		  }
+		  btn.parentNode.remove();
+		  updateStockSerials();
+		}
+
+		function updateStockSerials() {
+		  let blocks = document.querySelectorAll(".stock-block");
+		  blocks.forEach((block, index) => {
+		    let serial = block.querySelector(".stock-serial");
+		    if (serial) {
+		      serial.textContent = (index + 1);
+		    }
+		  });
+		}
 	
 	  
 	console.log('Product Code: <%= productCode %>');
@@ -2740,6 +4305,10 @@
 	console.log('Show LIC: <%= showLIC %>');                    
 	console.log('Show Fire Policy: <%= showFirePolicy %>');     
 	console.log('Show Office: <%= showOffice %>');
+	console.log('Show Prinodv: <%= showPrinodv %>');
+	console.log('Show Motor Insurance: <%= showMotorInsurance %>');
+	console.log('Show Non-Motor Insurance: <%= showNonMotorInsurance %>');
+	console.log('Show Gov Security: <%= showGovSecurity %>');
 	</script>
 	
 	</body>
