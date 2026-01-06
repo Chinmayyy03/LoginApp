@@ -1,26 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-
 <%
-    // Get branch code from session
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
+    
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("../login.jsp");
         return;
     }
-
     String branchCode = (String) sess.getAttribute("branchCode");
 %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Transaction Type Selection</title>
-    
-    <!-- Add Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    
-    <!-- Add Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     
     <style>
@@ -201,6 +197,139 @@
             flex: 1;
             min-width: 200px;
         }
+        
+        /* ========== LIVE SEARCH DROPDOWN STYLES ========== */
+input[type="text"]:read-only {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.search-dropdown {
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.search-results {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    width: max-content;
+    overflow-y: auto;
+    background: white;
+    border: 2px solid #8066E8;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: #e8e4fc;
+    transform: translateX(5px);
+}
+
+.result-code {
+    font-weight: bold;
+    color: #3D316F;
+    font-size: 14px;
+    min-width: 140px;
+}
+
+.result-name {
+    color: #555;
+    font-size: 13px;
+    flex: 1;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.search-info {
+    padding: 12px 15px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.search-loading {
+    padding: 15px;
+    text-align: center;
+    color: #8066E8;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #8066E8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.no-results {
+    padding: 15px;
+    text-align: center;
+    color: #f44336;
+    font-size: 13px;
+}
+
+.search-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.highlight {
+    background-color: #ffeb3b;
+    font-weight: bold;
+    padding: 1px 2px;
+}
+
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: #8066E8;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: #6B52CC;
+}
 
         /* ---------------- Responsive CSS Added ---------------- */
 
@@ -478,14 +607,20 @@
 
                 <!-- Account Code and Name Row -->
                 <div class="row">
-                    <!-- Account Code -->
-                    <div>
-                        <div class="label" id="accountCodeLabel">Account Code</div>
-                        <div class="input-box">
-                            <input type="text" name="accountCode" id="accountCode" placeholder="Enter account code" readonly>
-                            <button type="button" class="icon-btn" id="accountLookupBtn" onclick="openLookup('account')">…</button>
-                        </div>
-                    </div>
+				<!-- Account Code -->
+				<div>
+				    <div class="label" id="accountCodeLabel">Account Code</div>
+				    <div class="input-box">
+				        <input type="text" name="accountCode" id="accountCode" placeholder="Enter account code" maxlength="14" autocomplete="off">
+				        <button type="button" class="icon-btn" id="accountLookupBtn" onclick="openLookup('account')">…</button>
+				    </div>
+				    <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
+				    
+				    <!-- LIVE SEARCH DROPDOWN -->
+				    <div class="search-dropdown">
+				        <div class="search-results" id="searchResults"></div>
+				    </div>
+				</div>
 
                     <div>
                         <div class="label" id="accountNameLabel">Account Name</div>
@@ -521,29 +656,21 @@
 </div>
 
 <script>
-// ========== TOAST UTILITY FUNCTION ==========
+// ========== CONFIGURATION ==========
+const MIN_SEARCH_LENGTH = 3;
+const SEARCH_DELAY = 300;
+let searchTimeout;
+let currentCategory = 'saving';
+
+// ========== TOAST UTILITY ==========
 function showToast(message, type = 'error') {
     const styles = {
-        success: {
-            borderColor: '#4caf50',
-            icon: '✅'
-        },
-        error: {
-            borderColor: '#f44336',
-            icon: '❌'
-        },
-        warning: {
-            borderColor: '#ff9800',
-            icon: '⚠️'
-        },
-        info: {
-            borderColor: '#2196F3',
-            icon: 'ℹ️'
-        }
+        success: { borderColor: '#4caf50', icon: '✅' },
+        error: { borderColor: '#f44336', icon: '❌' },
+        warning: { borderColor: '#ff9800', icon: '⚠️' },
+        info: { borderColor: '#2196F3', icon: 'ℹ️' }
     };
-    
     const style = styles[type] || styles.error;
-    
     Toastify({
         text: style.icon + ' ' + message,
         duration: 5000,
@@ -557,47 +684,149 @@ function showToast(message, type = 'error') {
             fontSize: "14px",
             padding: "16px 24px",
             boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-            borderLeft: `5px solid ${style.borderColor}`,
-            marginTop: "20px",
-            whiteSpace: "pre-line"
-        },
-        stopOnFocus: true
+            borderLeft: "5px solid " + style.borderColor,
+            marginTop: "20px"
+        }
     }).showToast();
+}
+
+// ========== ACCOUNT CODE INPUT - DIGITS ONLY ==========
+const accountCodeInput = document.getElementById('accountCode');
+
+accountCodeInput.addEventListener('input', function(e) {
+    this.value = this.value.replace(/\D/g, '');
+    handleLiveSearch(this.value);
+});
+
+accountCodeInput.addEventListener('keydown', function(e) {
+    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true) ||
+        (e.keyCode >= 35 && e.keyCode <= 39)) {
+        return;
+    }
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+    }
+});
+
+// ========== HANDLE LIVE SEARCH ==========
+function handleLiveSearch(value) {
+    clearTimeout(searchTimeout);
+    const searchResults = document.getElementById('searchResults');
+    
+    if (value.length === 0) {
+        searchResults.classList.remove('active');
+        return;
+    }
+    
+    let searchNumber = value;
+    if (value.length > 7) {
+        searchNumber = value.slice(-7);
+    }
+    
+    if (searchNumber.length < MIN_SEARCH_LENGTH) {
+        searchResults.innerHTML = '<div class="search-info">Type at least ' + MIN_SEARCH_LENGTH + ' digits to search...</div>';
+        searchResults.classList.add('active');
+        return;
+    }
+    
+    searchResults.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div><div style="margin-top: 8px;">Searching...</div></div>';
+    searchResults.classList.add('active');
+    
+    searchTimeout = setTimeout(function() {
+        performSearch(searchNumber);
+    }, SEARCH_DELAY);
+}
+
+// ========== PERFORM SEARCH ==========
+function performSearch(searchNumber) {
+    const searchResults = document.getElementById('searchResults');
+    currentCategory = document.querySelector('input[name="accountCategory"]:checked').value;
+    
+    fetch('SearchAccounts.jsp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'searchNumber=' + encodeURIComponent(searchNumber) + '&category=' + encodeURIComponent(currentCategory)
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.error) {
+            searchResults.innerHTML = '<div class="no-results">' + data.error + '</div>';
+            return;
+        }
+        if (data.accounts && data.accounts.length > 0) {
+            displaySearchResults(data.accounts, searchNumber);
+        } else {
+            searchResults.innerHTML = '<div class="no-results">No accounts found matching "' + searchNumber + '"</div>';
+        }
+    })
+    .catch(function(error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="no-results">Error loading accounts. Please try again.</div>';
+        showToast('Search failed. Please try again.', 'error');
+    });
+}
+
+// ========== DISPLAY SEARCH RESULTS ==========
+function displaySearchResults(accounts, searchNumber) {
+    const searchResults = document.getElementById('searchResults');
+    if (accounts.length === 0) {
+        searchResults.innerHTML = '<div class="no-results">No accounts found</div>';
+        return;
+    }
+    let html = '';
+    accounts.forEach(function(account) {
+        const highlightedCode = highlightMatch(account.code, searchNumber);
+        const escapedName = account.name.replace(/'/g, "\\'");
+        html += '<div class="search-result-item" onclick="selectAccountFromSearch(\'' + account.code + '\', \'' + escapedName + '\')"><div class="result-code">' + highlightedCode + '</div><div class="result-name">' + account.name + '</div></div>';
+    });
+    searchResults.innerHTML = html;
+}
+
+// ========== HIGHLIGHT MATCHING TEXT ==========
+function highlightMatch(text, search) {
+    const index = text.indexOf(search);
+    if (index === -1) return text;
+    return text.substring(0, index) + '<span class="highlight">' + search + '</span>' + text.substring(index + search.length);
+}
+
+// ========== SELECT ACCOUNT FROM DROPDOWN ==========
+function selectAccountFromSearch(code, name) {
+    document.getElementById('accountCode').value = code;
+    document.getElementById('accountName').value = name;
+    document.getElementById('searchResults').classList.remove('active');
+    showToast('Account selected: ' + code, 'success');
+    setTimeout(function() { submitTransactionForm(); }, 500);
 }
 
 // ========== FILTER TABLE FUNCTION FOR LOOKUP ==========
 function filterTable() {
     const searchBox = document.getElementById('searchBox');
     if (!searchBox) return;
-    
     const searchValue = searchBox.value.toLowerCase().trim();
     const table = document.getElementById('lookupTable');
     if (!table) return;
-    
     const rows = table.getElementsByClassName('data-row');
     let noResultsRow = document.getElementById('noResultsRow');
-    
-    // If search value is less than 2 characters, show all rows
     if (searchValue.length < 2) {
         for (let i = 0; i < rows.length; i++) {
             rows[i].style.display = '';
         }
-        if (noResultsRow) {
-            noResultsRow.style.display = 'none';
-        }
+        if (noResultsRow) noResultsRow.style.display = 'none';
         return;
     }
-    
-    // Filter rows based on search value (2+ characters)
     let visibleCount = 0;
-    
     for (let i = 0; i < rows.length; i++) {
         const cells = rows[i].getElementsByTagName('td');
         if (cells.length < 2) continue;
-        
         const code = cells[0].textContent.toLowerCase();
         const name = cells[1].textContent.toLowerCase();
-        
         if (code.includes(searchValue) || name.includes(searchValue)) {
             rows[i].style.display = '';
             visibleCount++;
@@ -605,19 +834,15 @@ function filterTable() {
             rows[i].style.display = 'none';
         }
     }
-    
-    // Show "no results" message if no rows are visible
     if (visibleCount === 0) {
         if (!noResultsRow) {
             noResultsRow = table.insertRow(-1);
             noResultsRow.id = 'noResultsRow';
-            noResultsRow.innerHTML = '<td colspan="2" class="no-results">No accounts found matching your search</td>';
+            noResultsRow.innerHTML = '<td colspan="2" class="no-results">No accounts found</td>';
         }
         noResultsRow.style.display = '';
     } else {
-        if (noResultsRow) {
-            noResultsRow.style.display = 'none';
-        }
+        if (noResultsRow) noResultsRow.style.display = 'none';
     }
 }
 
@@ -628,7 +853,6 @@ function updateLabelsBasedOnOperation() {
     const accountNameLabel = document.getElementById("accountNameLabel");
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
-    
     if (operationType === "transfer") {
         accountCodeLabel.textContent = "Debit Account Code";
         accountNameLabel.textContent = "Debit Account Name";
@@ -642,56 +866,44 @@ function updateLabelsBasedOnOperation() {
     }
 }
 
-// Add event listeners to operation type radio buttons
+// ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
     const operationRadios = document.querySelectorAll("input[name='operationType']");
-    operationRadios.forEach(radio => {
+    operationRadios.forEach(function(radio) {
         radio.addEventListener('change', updateLabelsBasedOnOperation);
     });
-    
-    // Also listen for account category changes to clear account fields
     const categoryRadios = document.querySelectorAll("input[name='accountCategory']");
-    categoryRadios.forEach(radio => {
+    categoryRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
-            // Clear account fields when category changes
             document.getElementById("accountCode").value = '';
             document.getElementById("accountName").value = '';
+            document.getElementById('searchResults').classList.remove('active');
+            currentCategory = this.value;
             showToast('Account Type ' + this.value.toUpperCase() + ' is selected', 'info');
         });
     });
-    
-    // Initialize on page load
     updateLabelsBasedOnOperation();
 });
 
-// Function to open lookup modal
+// ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
-    // Get account category from radio button
     let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
-    
     let url = "LookupForTransactions.jsp?type=" + type;
-    
     if (type === 'account') {
         url += "&accountCategory=" + accountCategory;
     }
-
-    // Load JSP content into modal using fetch()
     fetch(url)
-        .then(response => response.text())
-        .then(html => {
+        .then(function(response) { return response.text(); })
+        .then(function(html) {
             document.getElementById("lookupContent").innerHTML = html;
             document.getElementById("lookupModal").style.display = "flex";
-            
-            // Auto-focus search box after content loads
-            setTimeout(() => {
+            setTimeout(function() {
                 const searchBox = document.getElementById('searchBox');
-                if (searchBox) {
-                    searchBox.focus();
-                }
+                if (searchBox) searchBox.focus();
             }, 100);
         })
-        .catch(error => {
-            showToast('Failed to load lookup data. Please try again.', 'error');
+        .catch(function(error) {
+            showToast('Failed to load lookup data.', 'error');
             console.error('Lookup error:', error);
         });
 }
@@ -704,63 +916,50 @@ function sendBack(code, desc, type) {
     setValueFromLookup(code, desc, type);
 }
 
-// This is called by lookup.jsp when a row is clicked
 function setValueFromLookup(code, desc, type) {
     if (type === "account") {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
-        
         showToast('Account selected successfully', 'success');
-        
         closeLookup();
-        
-        // Automatically submit the form after account selection
-        setTimeout(() => {
-            submitTransactionForm();
-        }, 500);
+        setTimeout(function() { submitTransactionForm(); }, 500);
     }
 }
 
-// Function to submit transaction form
+// ========== SUBMIT TRANSACTION FORM ==========
 function submitTransactionForm() {
-    // Get radio button values
     let transTypeRadio = document.querySelector("input[name='transactionTypeRadio']:checked").value;
     let operationType = document.querySelector("input[name='operationType']:checked").value;
     let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
-
     let accountCode = document.querySelector("input[name='accountCode']").value.trim();
     let accountName = document.querySelector("input[name='accountName']").value.trim();
-
-    console.log("Auto-submitting form with values:");
-    console.log("Transaction Type Radio:", transTypeRadio);
-    console.log("Operation Type:", operationType);
-    console.log("Account Category:", accountCategory);
-    console.log("Account Code:", accountCode);
-    console.log("Account Name:", accountName);
-
-    // UPDATED MAPPING: Based on operation type, route to appropriate form
+    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName);
     const pageMap = {
         "deposit": "transactionForm.jsp",
         "withdrawal": "transactionForm.jsp",
-        "transfer": "transactionForm.jsp",
+        "transfer": "transactionForm.jsp"
     };
-
     if (pageMap[operationType]) {
-        // Create a form to submit with all values
         let form = document.getElementById("transactionForm");
         form.action = pageMap[operationType];
-        
-        form.submit();  // submit to iframe
+        form.submit();
         showToast('Loading transaction form...', 'info');
     } else {
         showToast('No page found for Operation Type: ' + operationType, 'error');
     }
 }
 
-// Close modal on Escape key
+// ========== CLOSE DROPDOWN AND MODAL ==========
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.input-box') && !e.target.closest('.search-dropdown')) {
+        document.getElementById('searchResults').classList.remove('active');
+    }
+});
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeLookup();
+        document.getElementById('searchResults').classList.remove('active');
     }
 });
 </script>
