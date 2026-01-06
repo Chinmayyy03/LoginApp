@@ -1,6 +1,12 @@
 <%@ page import="java.sql.*, db.DBConnection, java.util.*, org.json.*" %>
 <%@ page contentType="application/json; charset=UTF-8" %>
 <%
+int searchNumber = 123;
+String input_acc = String.format("%07d", searchNumber);
+out.print(input_acc);
+%>
+
+<%
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
@@ -20,7 +26,12 @@
     String branchCode = (String) sess.getAttribute("branchCode");
     String searchNumber = request.getParameter("searchNumber");
     String category = request.getParameter("category");
-
+    String input_acc="";
+    
+    input_acc = String.format("%07d", searchNumber);
+    out.print(input_acc);
+  
+    
     if (searchNumber == null || searchNumber.trim().isEmpty() || 
         category == null || category.trim().isEmpty()) {
         out.print("{\"error\": \"Invalid parameters\", \"accounts\": []}");
@@ -44,18 +55,24 @@
     PreparedStatement ps = null;
     ResultSet rs = null;
     
+    PreparedStatement ps1 = null;
+    ResultSet rs1 = null;
+    
+    
     try {
         con = DBConnection.getConnection();
         
         String query = "";
         
+        
         if ("loan".equals(category)) {
+            // Search from the END of account code (last 10 digits starting from position 11)
             query = "SELECT * FROM (" +
                     "SELECT ACCOUNT_CODE, NAME " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) IN ('5','7')" +
-                    "AND SUBSTR(ACCOUNT_CODE, 11) LIKE ? " +
+                    "AND SUBSTR(ACCOUNT_CODE, 10) LIKE ? " +  // Changed: Search from end using negative index
                     "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE" +
                     ")";
@@ -73,12 +90,13 @@
                     return;
             }
             
+            // Search from the END of account code (last 10 digits starting from position 11)
             query = "SELECT * FROM (" +
                     "SELECT ACCOUNT_CODE, NAME " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) = ? " +
-                    "AND SUBSTR(ACCOUNT_CODE, 11) LIKE ? " +
+                    "AND lpad(SUBSTR(ACCOUNT_CODE,8, 7)) like ? " +  // Changed: Search from end using negative index
                     "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE" +
                     ")";
@@ -88,7 +106,8 @@
         ps.setString(1, branchCode);
         
         if ("loan".equals(category)) {
-            ps.setString(2, searchNumber + "%");
+            // Use % prefix to match anywhere in the last 10 digits
+            ps.setString(2, "%" + searchNumber + "%");
         } else {
             String productCodePattern = "";
             switch(category) {
@@ -99,7 +118,8 @@
                 case "cc": productCodePattern = "3"; break;
             }
             ps.setString(2, productCodePattern);
-            ps.setString(3, searchNumber + "%");
+            // Use % prefix to match anywhere in the last 10 digits 
+            ps.setString(3, "%" + input_acc + "%");
         }
         
         rs = ps.executeQuery();
