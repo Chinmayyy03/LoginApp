@@ -54,11 +54,13 @@
         
         if ("loan".equals(category)) {
             // Search from the END of account code (last 7 digits)
-            query = "SELECT ACCOUNT_CODE, NAME " +
+            // Also get product description using function
+            query = "SELECT ACCOUNT_CODE, NAME, " +
+                    "FN_GET_PRODUCT_DESC(SUBSTR(ACCOUNT_CODE, 5, 3)) AS PRODUCT_DESC " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) IN ('5','7') " +
-                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +  // Last 7 digits
+                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +
                     "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE";
         } else {
@@ -75,11 +77,13 @@
             }
             
             // Search from the END of account code (last 7 digits)
-            query = "SELECT ACCOUNT_CODE, NAME " +
+            // Also get product description using function
+            query = "SELECT ACCOUNT_CODE, NAME, " +
+                    "FN_GET_PRODUCT_DESC(SUBSTR(ACCOUNT_CODE, 5, 3)) AS PRODUCT_DESC " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) = ? " +
-                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +  // Last 7 digits
+                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +
                     "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE";
         }
@@ -116,6 +120,11 @@
             JSONObject account = new JSONObject();
             account.put("code", rs.getString("ACCOUNT_CODE"));
             account.put("name", rs.getString("NAME"));
+            
+            // Get product description (may be null or empty)
+            String productDesc = rs.getString("PRODUCT_DESC");
+            account.put("productDesc", productDesc != null ? productDesc : "");
+            
             accountsArray.put(account);
             count++;
         }
