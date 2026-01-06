@@ -199,12 +199,11 @@
         }
         
         .result-product-desc {
-		    color: #666;
+		    color: #a52323;
 		    font-size: 12px;
-		    font-weight: normal;
+		    font-weight: bold;
 		    font-style: italic;
 		    padding: 4px 12px;
-		    background-color: #f0f0f0;
 		    border-radius: 4px;
 		    white-space: nowrap;
 		    flex-shrink: 0;
