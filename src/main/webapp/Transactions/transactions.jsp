@@ -520,6 +520,34 @@ input[type="text"]:read-only {
             font-size: 22px;
             cursor: pointer;
         }
+        .operation-display-box {
+		    padding: 15px 25px;
+		    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		    border-radius: 12px;
+		    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    flex-direction: column;
+		    gap: 5px;
+		    min-width: 250px;
+		}
+		
+		.operation-display-box .display-label {
+		    color: #fff;
+		    font-size: 14px;
+		    font-weight: 500;
+		    letter-spacing: 0.5px;
+		    opacity: 0.9;
+		}
+		
+		.operation-display-box .display-value {
+		    color: #fff;
+		    font-size: 35px;
+		    font-weight: bold;
+		    text-transform: uppercase;
+		    letter-spacing: 2px;
+		}
     </style>
 </head>
 <body>
@@ -606,27 +634,33 @@ input[type="text"]:read-only {
                 </div>
 
                 <!-- Account Code and Name Row -->
-                <div class="row">
-				<!-- Account Code -->
-				<div>
-				    <div class="label" id="accountCodeLabel">Account Code</div>
-				    <div class="input-box">
-				        <input type="text" name="accountCode" id="accountCode" placeholder="Enter account code" maxlength="14" autocomplete="off">
-				        <button type="button" class="icon-btn" id="accountLookupBtn" onclick="openLookup('account')">…</button>
+				<div class="row">
+				    <!-- Account Code -->
+				    <div>
+				        <div class="label" id="accountCodeLabel">Account Code</div>
+				        <div class="input-box">
+				            <input type="text" name="accountCode" id="accountCode" placeholder="Enter account code" maxlength="14" autocomplete="off">
+				            <button type="button" class="icon-btn" id="accountLookupBtn" onclick="openLookup('account')">…</button>
+				        </div>
+				        <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
+				        
+				        <!-- LIVE SEARCH DROPDOWN -->
+				        <div class="search-dropdown">
+				            <div class="search-results" id="searchResults"></div>
+				        </div>
 				    </div>
-				    <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
-				    
-				    <!-- LIVE SEARCH DROPDOWN -->
-				    <div class="search-dropdown">
-				        <div class="search-results" id="searchResults"></div>
+				
+				    <div>
+				        <div class="label" id="accountNameLabel">Account Name</div>
+				        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 305px;" readonly>
+				    </div>
+
+				
+				    <!-- OPERATION DISPLAY BOX -->
+				    <div class="operation-display-box">
+				        <span class="display-value" id="operationDisplay">DEPOSIT</span>
 				    </div>
 				</div>
-
-                    <div>
-                        <div class="label" id="accountNameLabel">Account Name</div>
-                        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 305px;" readonly>
-                    </div>
-                </div>
             </fieldset>
 
         </div>
@@ -853,6 +887,11 @@ function updateLabelsBasedOnOperation() {
     const accountNameLabel = document.getElementById("accountNameLabel");
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
+    const operationDisplay = document.getElementById("operationDisplay");
+    
+    // Update the display box
+    operationDisplay.textContent = operationType.toUpperCase();
+    
     if (operationType === "transfer") {
         accountCodeLabel.textContent = "Debit Account Code";
         accountNameLabel.textContent = "Debit Account Name";
