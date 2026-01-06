@@ -200,9 +200,8 @@
         
         .result-product-desc {
 		    color: #a52323;
-		    font-size: 12px;
+		    font-size: 13px;
 		    font-weight: bold;
-		    font-style: italic;
 		    padding: 4px 12px;
 		    border-radius: 4px;
 		    white-space: nowrap;
