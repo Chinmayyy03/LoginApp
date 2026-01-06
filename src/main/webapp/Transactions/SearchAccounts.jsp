@@ -1,12 +1,6 @@
 <%@ page import="java.sql.*, db.DBConnection, java.util.*, org.json.*" %>
 <%@ page contentType="application/json; charset=UTF-8" %>
 <%
-int searchNumber = 123;
-String input_acc = String.format("%07d", searchNumber);
-out.print(input_acc);
-%>
-
-<%
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
@@ -26,11 +20,6 @@ out.print(input_acc);
     String branchCode = (String) sess.getAttribute("branchCode");
     String searchNumber = request.getParameter("searchNumber");
     String category = request.getParameter("category");
-    String input_acc="";
-    
-    input_acc = String.format("%07d", searchNumber);
-    out.print(input_acc);
-  
     
     if (searchNumber == null || searchNumber.trim().isEmpty() || 
         category == null || category.trim().isEmpty()) {
@@ -51,32 +40,27 @@ out.print(input_acc);
         return;
     }
 
+    // PAD THE SEARCH NUMBER WITH LEADING ZEROS TO MAKE IT 7 DIGITS
+    String paddedSearchNumber = String.format("%07d", Integer.parseInt(searchNumber));
+
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
-    
-    PreparedStatement ps1 = null;
-    ResultSet rs1 = null;
-    
     
     try {
         con = DBConnection.getConnection();
         
         String query = "";
         
-        
         if ("loan".equals(category)) {
-            // Search from the END of account code (last 10 digits starting from position 11)
-            query = "SELECT * FROM (" +
-                    "SELECT ACCOUNT_CODE, NAME " +
+            // Search from the END of account code (last 7 digits)
+            query = "SELECT ACCOUNT_CODE, NAME " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
-                    "AND SUBSTR(ACCOUNT_CODE, 5, 1) IN ('5','7')" +
-                    "AND SUBSTR(ACCOUNT_CODE, 10) LIKE ? " +  // Changed: Search from end using negative index
+                    "AND SUBSTR(ACCOUNT_CODE, 5, 1) IN ('5','7') " +
+                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +  // Last 7 digits
                     "AND ACCOUNT_STATUS = 'L' " +
-                    "ORDER BY ACCOUNT_CODE" +
-                    ")";
-                    		
+                    "ORDER BY ACCOUNT_CODE";
         } else {
             String productCodePattern = "";
             switch(category) {
@@ -90,24 +74,22 @@ out.print(input_acc);
                     return;
             }
             
-            // Search from the END of account code (last 10 digits starting from position 11)
-            query = "SELECT * FROM (" +
-                    "SELECT ACCOUNT_CODE, NAME " +
+            // Search from the END of account code (last 7 digits)
+            query = "SELECT ACCOUNT_CODE, NAME " +
                     "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) = ? " +
-                    "AND lpad(SUBSTR(ACCOUNT_CODE,8, 7)) like ? " +  // Changed: Search from end using negative index
+                    "AND SUBSTR(ACCOUNT_CODE, -7) LIKE ? " +  // Last 7 digits
                     "AND ACCOUNT_STATUS = 'L' " +
-                    "ORDER BY ACCOUNT_CODE" +
-                    ")";
+                    "ORDER BY ACCOUNT_CODE";
         }
         
         ps = con.prepareStatement(query);
         ps.setString(1, branchCode);
         
         if ("loan".equals(category)) {
-            // Use % prefix to match anywhere in the last 10 digits
-            ps.setString(2, "%" + searchNumber + "%");
+            // Use padded number with wildcards for pattern matching
+            ps.setString(2, "%" + paddedSearchNumber + "%");
         } else {
             String productCodePattern = "";
             switch(category) {
@@ -118,8 +100,8 @@ out.print(input_acc);
                 case "cc": productCodePattern = "3"; break;
             }
             ps.setString(2, productCodePattern);
-            // Use % prefix to match anywhere in the last 10 digits 
-            ps.setString(3, "%" + input_acc + "%");
+            // Use padded number with wildcards for pattern matching
+            ps.setString(3, "%" + paddedSearchNumber + "%");
         }
         
         rs = ps.executeQuery();
@@ -141,9 +123,17 @@ out.print(input_acc);
         jsonResponse.put("count", count);
         jsonResponse.put("accounts", accountsArray);
         jsonResponse.put("searchNumber", searchNumber);
+        jsonResponse.put("paddedSearchNumber", paddedSearchNumber);
         jsonResponse.put("category", category);
         
         out.print(jsonResponse.toString());
+        
+    } catch (NumberFormatException e) {
+        JSONObject errorResponse = new JSONObject();
+        errorResponse.put("success", false);
+        errorResponse.put("error", "Invalid number format");
+        errorResponse.put("accounts", new JSONArray());
+        out.print(errorResponse.toString());
         
     } catch (SQLException e) {
         e.printStackTrace();
