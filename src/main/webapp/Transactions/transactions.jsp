@@ -199,29 +199,29 @@
         }
         
         .result-product-desc {
-    color: #666;
-    font-size: 12px;
-    font-weight: normal;
-    font-style: italic;
-    margin-left: 8px;
-    padding: 2px 8px;
-    background-color: #f0f0f0;
-    border-radius: 4px;
-}
-
-.result-info-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    padding-left: 15px;
-}
-
-.result-name-row {
-    color: #0306fffc;
-    font-size: 13px;
-    font-weight: bold;
-}
+		    color: #666;
+		    font-size: 12px;
+		    font-weight: normal;
+		    font-style: italic;
+		    padding: 4px 12px;
+		    background-color: #f0f0f0;
+		    border-radius: 4px;
+		    white-space: nowrap;
+		    flex-shrink: 0;
+		}
+		
+		.result-name-row {
+		    color: #0306fffc;
+		    font-size: 13px;
+		    font-weight: bold;
+		    flex: 1;
+		    text-align: left;
+		}
+		
+		/* Remove this - no longer needed */
+		.result-info-wrapper {
+		    display: none;
+		}
         
         /* ========== LIVE SEARCH DROPDOWN STYLES ========== */
 input[type="text"]:read-only {
@@ -263,6 +263,7 @@ input[type="text"]:read-only {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 }
 
 .search-result-item:last-child {
@@ -864,15 +865,14 @@ function displaySearchResults(accounts, searchNumber) {
         html += '<div class="search-result-item" onclick="selectAccountFromSearch(\'' + 
                 account.code + '\', \'' + escapedName + '\')">' +
                 '<div class="result-code">' + highlightedCode + '</div>' +
-                '<div class="result-info-wrapper">' +
                 '<div class="result-name-row">' + account.name + '</div>';
         
-        // Add product description if available
+        // Add product description on the right side
         if (productDesc && productDesc.trim() !== '') {
             html += '<div class="result-product-desc">' + productDesc + '</div>';
         }
         
-        html += '</div></div>';
+        html += '</div>';
     });
     searchResults.innerHTML = html;
 }
