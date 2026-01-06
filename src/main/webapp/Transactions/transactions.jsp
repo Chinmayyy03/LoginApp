@@ -238,17 +238,11 @@
             }
 
             .row {
-                flex-direction: column;
                 gap: 15px;
-            }
-
-            input[type="text"] {
-                width: 100%;
             }
 
             .input-box {
                 width: 100%;
-                justify-content: space-between;
             }
 
             .radio-row {
