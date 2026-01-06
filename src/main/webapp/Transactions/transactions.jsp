@@ -257,8 +257,9 @@ input[type="text"]:read-only {
 }
 
 .result-name {
-    color: #555;
+    color: #0306fffc;
     font-size: 13px;
+    font-weight: bold;
     flex: 1;
     text-align: left;
     padding-left: 15px;
@@ -522,15 +523,30 @@ input[type="text"]:read-only {
         }
         .operation-display-box {
 		    padding: 15px 25px;
-		    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		    border-radius: 12px;
-		    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+		    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		    display: flex;
 		    align-items: center;
 		    justify-content: center;
 		    flex-direction: column;
 		    gap: 5px;
 		    min-width: 250px;
+		    transition: all 0.3s ease;
+		}
+		
+		/* Green for Deposit */
+		.operation-display-box.deposit {
+		    background: linear-gradient(135deg, #11998e 0%, #06c64f 100%);
+		}
+		
+		/* Red for Withdrawal */
+		.operation-display-box.withdrawal {
+		    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+		}
+		
+		/* Purple for Transfer */
+		.operation-display-box.transfer {
+		    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		}
 		
 		.operation-display-box .display-label {
@@ -657,9 +673,9 @@ input[type="text"]:read-only {
 
 				
 				    <!-- OPERATION DISPLAY BOX -->
-				    <div class="operation-display-box">
-				        <span class="display-value" id="operationDisplay">DEPOSIT</span>
-				    </div>
+					<div class="operation-display-box deposit" id="operationBox">
+					    <span class="display-value" id="operationDisplay">DEPOSIT</span>
+					</div>
 				</div>
             </fieldset>
 
@@ -880,7 +896,6 @@ function filterTable() {
     }
 }
 
-// ========== UPDATE LABELS BASED ON OPERATION TYPE ==========
 function updateLabelsBasedOnOperation() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
     const accountCodeLabel = document.getElementById("accountCodeLabel");
@@ -888,9 +903,13 @@ function updateLabelsBasedOnOperation() {
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
     const operationDisplay = document.getElementById("operationDisplay");
+    const operationBox = document.getElementById("operationBox");
     
-    // Update the display box
+    // Update the display box text
     operationDisplay.textContent = operationType.toUpperCase();
+    
+    // Update the display box color by changing classes
+    operationBox.className = 'operation-display-box ' + operationType;
     
     if (operationType === "transfer") {
         accountCodeLabel.textContent = "Debit Account Code";
