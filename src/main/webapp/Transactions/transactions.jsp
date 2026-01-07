@@ -943,6 +943,8 @@ function updateLabelsBasedOnOperation() {
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
     const operationDisplay = document.getElementById("operationDisplay");
+    const accountBalanceLabel = document.getElementById("accountbalanceLabel");
+    const accountBalanceInput = document.getElementById("accountbalance");
     const operationBox = document.getElementById("operationBox");
     
     // Update the display box text
@@ -954,13 +956,17 @@ function updateLabelsBasedOnOperation() {
     if (operationType === "transfer") {
         accountCodeLabel.textContent = "Debit Account Code";
         accountNameLabel.textContent = "Debit Account Name";
+        accountBalanceLabel.textContent = "Debit Account Balance";
         accountCodeInput.placeholder = "Enter debit account code";
         accountNameInput.placeholder = "Debit Account Name";
+        accountBalanceInput.placeholder = "Debit account balance";
     } else {
         accountCodeLabel.textContent = "Account Code";
         accountNameLabel.textContent = "Account Name";
+        accountBalanceLabel.textContent = "Account Balance";
         accountCodeInput.placeholder = "Enter account code";
         accountNameInput.placeholder = "Account Name";
+        accountBalanceInput.placeholder = "Account balance";
     }
 }
 
