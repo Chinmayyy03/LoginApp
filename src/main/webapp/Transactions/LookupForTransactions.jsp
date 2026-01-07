@@ -49,16 +49,20 @@
                 productCodePattern = "%";
         }
         
-        // Build query based on category
+        // Build query based on category - ADD PRODUCT DESCRIPTION
         if ("loan".equals(accountCategory)) {
             // Special case for loan (5 or 7)
-            query = "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
+            query = "SELECT ACCOUNT_CODE, NAME, " +
+                    "FN_GET_PRODUCT_DESC(SUBSTR(ACCOUNT_CODE, 5, 3)) AS PRODUCT_DESC " +
+                    "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND (SUBSTR(ACCOUNT_CODE, 5, 1) = '5' OR SUBSTR(ACCOUNT_CODE, 5, 1) = '7') " +
                     "AND ACCOUNT_STATUS = 'L' " +
                     "ORDER BY ACCOUNT_CODE";
         } else {
-            query = "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
+            query = "SELECT ACCOUNT_CODE, NAME, " +
+                    "FN_GET_PRODUCT_DESC(SUBSTR(ACCOUNT_CODE, 5, 3)) AS PRODUCT_DESC " +
+                    "FROM ACCOUNT.ACCOUNT " +
                     "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
                     "AND SUBSTR(ACCOUNT_CODE, 5, 1) = ? "+ 
                     "AND ACCOUNT_STATUS = 'L' " +
@@ -154,6 +158,15 @@ tr:hover {
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+    
+    .product-badge {
+	    font-size: 16px;
+	    padding: 4px 12px;
+	    border-radius: 4px;
+	    white-space: nowrap;
+	    display: inline-block;
+	}
+	
 </style>
 
 <div class="lookup-title">
@@ -178,6 +191,9 @@ tr:hover {
     <tr>
         <th>Code</th>
         <th><%= "account".equals(type) ? "Name" : "Description" %></th>
+        <% if ("account".equals(type)) { %>
+            <th>Product</th>
+        <% } %>
     </tr>
 
 <%
@@ -185,12 +201,23 @@ tr:hover {
         while (rs.next()) {
             String code = rs.getString(1);
             String desc = rs.getString(2);
+            String productDesc = "";
+            
+            // Get product description for account type
+            if ("account".equals(type)) {
+                productDesc = rs.getString(3);
+                if (productDesc == null) productDesc = "";
+            }
+            
             rowCount++;
 %>
 
     <tr class="data-row" onclick="sendBack('<%=code%>', '<%=desc%>', '<%=type%>')">
         <td><%=code%></td>
         <td><%=desc%></td>
+        <% if ("account".equals(type)) { %>
+            <td><span class="product-badge"><%=productDesc%></span></td>
+        <% } %>
     </tr>
 
 <% 
