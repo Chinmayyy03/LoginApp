@@ -705,6 +705,33 @@ input[type="text"]:read-only {
 					    <span class="display-value" id="operationDisplay">DEPOSIT</span>
 					</div>
 				</div>
+				
+				<!-- Credit Account Code and Name Row -->
+				<div class="row" id="creditAccountRow" style="display: none;">
+				    <!-- Credit Account Code -->
+				    <div>
+				        <div class="label" id="creditAccountCodeLabel">Credit Account Code</div>
+				        <div class="input-box">
+				            <input type="text" name="creditAccountCode" id="creditAccountCode" placeholder="Enter credit account code" maxlength="14" autocomplete="off">
+				            <button type="button" class="icon-btn" id="creditAccountLookupBtn" onclick="openLookup('creditAccount')">…</button>
+				        </div>
+				        <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
+				        
+				        <!-- LIVE SEARCH DROPDOWN FOR CREDIT ACCOUNT -->
+				        <div class="search-dropdown">
+				            <div class="search-results" id="creditSearchResults"></div>
+				        </div>
+				    </div>
+				
+				    <div>
+				        <div class="label" id="creditAccountNameLabel">Credit Account Name</div>
+				        <input type="text" name="creditAccountName" id="creditAccountName" placeholder="Account Name" style="width: 305px;" readonly>
+				    </div>
+				    <div>
+				        <div class="label" id="creditAccountBalanceLabel">Credit Account Balance</div>
+				        <input type="text" name="creditAccountBalance" id="creditAccountBalance" placeholder="Account balance" readonly>
+				    </div>
+				</div>
             </fieldset>
 
         </div>
@@ -879,6 +906,7 @@ function displaySearchResults(accounts, searchNumber) {
     searchResults.innerHTML = html;
 }
 
+
 // ========== HIGHLIGHT MATCHING TEXT ==========
 function highlightMatch(text, search) {
     const index = text.indexOf(search);
@@ -946,6 +974,7 @@ function updateLabelsBasedOnOperation() {
     const accountBalanceLabel = document.getElementById("accountbalanceLabel");
     const accountBalanceInput = document.getElementById("accountbalance");
     const operationBox = document.getElementById("operationBox");
+    const creditAccountRow = document.getElementById("creditAccountRow");
     
     // Update the display box text
     operationDisplay.textContent = operationType.toUpperCase();
@@ -960,6 +989,7 @@ function updateLabelsBasedOnOperation() {
         accountCodeInput.placeholder = "Enter debit account code";
         accountNameInput.placeholder = "Debit Account Name";
         accountBalanceInput.placeholder = "Debit account balance";
+        creditAccountRow.style.display = "flex";
     } else {
         accountCodeLabel.textContent = "Account Code";
         accountNameLabel.textContent = "Account Name";
@@ -967,6 +997,7 @@ function updateLabelsBasedOnOperation() {
         accountCodeInput.placeholder = "Enter account code";
         accountNameInput.placeholder = "Account Name";
         accountBalanceInput.placeholder = "Account balance";
+        creditAccountRow.style.display = "none";
     }
 }
 
@@ -976,6 +1007,30 @@ document.addEventListener('DOMContentLoaded', function() {
     operationRadios.forEach(function(radio) {
         radio.addEventListener('change', updateLabelsBasedOnOperation);
     });
+    
+ // Credit Account Code - digits only
+    const creditAccountCodeInput = document.getElementById('creditAccountCode');
+    if (creditAccountCodeInput) {
+        creditAccountCodeInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '');
+            handleLiveSearchCredit(this.value);
+        });
+
+        creditAccountCodeInput.addEventListener('keydown', function(e) {
+            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true) ||
+                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                return;
+            }
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+    }
+    
     const categoryRadios = document.querySelectorAll("input[name='accountCategory']");
     categoryRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -992,8 +1047,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
     let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
-    let url = "LookupForTransactions.jsp?type=" + type;
-    if (type === 'account') {
+    let url = "LookupForTransactions.jsp?type=" + (type === 'creditAccount' ? 'account' : type);
+    if (type === 'account' || type === 'creditAccount') {
         url += "&accountCategory=" + accountCategory;
     }
     fetch(url)
@@ -1001,6 +1056,8 @@ function openLookup(type) {
         .then(function(html) {
             document.getElementById("lookupContent").innerHTML = html;
             document.getElementById("lookupModal").style.display = "flex";
+            // Store which field we're looking up for
+            window.currentLookupType = type;
             setTimeout(function() {
                 const searchBox = document.getElementById('searchBox');
                 if (searchBox) searchBox.focus();
@@ -1021,7 +1078,12 @@ function sendBack(code, desc, type) {
 }
 
 function setValueFromLookup(code, desc, type) {
-    if (type === "account") {
+    if (window.currentLookupType === "creditAccount") {
+        document.getElementById("creditAccountCode").value = code;
+        document.getElementById("creditAccountName").value = desc;
+        showToast('Credit account selected successfully', 'success');
+        closeLookup();
+    } else if (type === "account") {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
         showToast('Account selected successfully', 'success');
@@ -1057,6 +1119,8 @@ function submitTransactionForm() {
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.input-box') && !e.target.closest('.search-dropdown')) {
         document.getElementById('searchResults').classList.remove('active');
+        const creditResults = document.getElementById('creditSearchResults');
+        if (creditResults) creditResults.classList.remove('active');
     }
 });
 
@@ -1066,6 +1130,99 @@ document.addEventListener('keydown', function(event) {
         document.getElementById('searchResults').classList.remove('active');
     }
 });
+
+//========== CREDIT ACCOUNT LIVE SEARCH ==========
+function handleLiveSearchCredit(value) {
+    clearTimeout(searchTimeout);
+    const searchResults = document.getElementById('creditSearchResults');
+    
+    if (value.length === 0) {
+        searchResults.classList.remove('active');
+        return;
+    }
+    
+    let searchNumber = value;
+    if (value.length > 7) {
+        searchNumber = value.slice(-7);
+    }
+    
+    if (searchNumber.length < MIN_SEARCH_LENGTH) {
+        searchResults.innerHTML = '<div class="search-info">Type at least ' + MIN_SEARCH_LENGTH + ' digits to search...</div>';
+        searchResults.classList.add('active');
+        return;
+    }
+    
+    searchResults.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div><div style="margin-top: 8px;">Searching...</div></div>';
+    searchResults.classList.add('active');
+    
+    searchTimeout = setTimeout(function() {
+        performSearchCredit(searchNumber);
+    }, SEARCH_DELAY);
+}
+
+function performSearchCredit(searchNumber) {
+    const searchResults = document.getElementById('creditSearchResults');
+    currentCategory = document.querySelector('input[name="accountCategory"]:checked').value;
+    
+    fetch('SearchAccounts.jsp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'searchNumber=' + encodeURIComponent(searchNumber) + '&category=' + encodeURIComponent(currentCategory)
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.error) {
+            searchResults.innerHTML = '<div class="no-results">' + data.error + '</div>';
+            return;
+        }
+        if (data.accounts && data.accounts.length > 0) {
+            displaySearchResultsCredit(data.accounts, searchNumber);
+        } else {
+            searchResults.innerHTML = '<div class="no-results">No accounts found matching "' + searchNumber + '"</div>';
+        }
+    })
+    .catch(function(error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="no-results">Error loading accounts. Please try again.</div>';
+        showToast('Search failed. Please try again.', 'error');
+    });
+}
+
+function displaySearchResultsCredit(accounts, searchNumber) {
+    const searchResults = document.getElementById('creditSearchResults');
+    if (accounts.length === 0) {
+        searchResults.innerHTML = '<div class="no-results">No accounts found</div>';
+        return;
+    }
+    let html = '';
+    accounts.forEach(function(account) {
+        const highlightedCode = highlightMatch(account.code, searchNumber);
+        const escapedName = account.name.replace(/'/g, "\\'");
+        const productDesc = account.productDesc || '';
+        
+        html += '<div class="search-result-item" onclick="selectCreditAccountFromSearch(\'' + 
+                account.code + '\', \'' + escapedName + '\')">' +
+                '<div class="result-code">' + highlightedCode + '</div>' +
+                '<div class="result-name-row">' + account.name + '</div>';
+        
+        if (productDesc && productDesc.trim() !== '') {
+            html += '<div class="result-product-desc">' + productDesc + '</div>';
+        }
+        
+        html += '</div>';
+    });
+    searchResults.innerHTML = html;
+}
+
+function selectCreditAccountFromSearch(code, name) {
+    document.getElementById('creditAccountCode').value = code;
+    document.getElementById('creditAccountName').value = name;
+    document.getElementById('creditSearchResults').classList.remove('active');
+    showToast('Credit account selected: ' + code, 'success');
+}
 </script>
 </body>
 </html>
