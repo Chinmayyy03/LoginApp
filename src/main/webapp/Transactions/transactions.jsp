@@ -694,6 +694,10 @@ input[type="text"]:read-only {
 				        <div class="label" id="accountNameLabel">Account Name</div>
 				        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 305px;" readonly>
 				    </div>
+				    <div>
+				        <div class="label" id="accountbalanceLabel">Account Balance</div>
+				        <input type="text" name="accountbalance" id="accountbalance" placeholder="Account Balance" readonly>
+				    </div>
 
 				
 				    <!-- OPERATION DISPLAY BOX -->
@@ -724,7 +728,7 @@ input[type="text"]:read-only {
     z-index:9999;
 ">
     <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
-        <button onclick="closeLookup()" style="float:right; cursor:pointer; background:#f44336; color:white; border:none; padding:8px 12px; border-radius:4px; font-size:16px;">✖ Close</button>
+        <button onclick="closeLookup()" style="float:right; cursor:pointer; background:#f44336; color:white; border:none; padding:8px 12px; border-radius:4px; font-size:16px;">✖</button>
         <div id="lookupContent"></div>
     </div>
 </div>

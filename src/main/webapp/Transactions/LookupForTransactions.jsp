@@ -126,20 +126,7 @@ tr:hover {
     font-weight: bold;
     color: #373279;
 }
-.search-box {
-    margin: 15px 0;
-    padding: 10px;
-    width: 100%;
-    border: 2px solid #C8B7F6;
-    border-radius: 8px;
-    background-color: #F4EDFF;
-    outline: none;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-.search-box:focus {
-    border-color: #8066E8;
-}
+
 .no-results {
     text-align: center;
     padding: 20px;
@@ -156,6 +143,18 @@ tr:hover {
     font-size: 12px;
     font-weight: bold;
 }
+
+.search-container {
+        text-align: center;
+        margin: 10px 0;
+    }
+    .search-container input {
+        width: 40%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 </style>
 
 <div class="lookup-title">
@@ -168,11 +167,12 @@ tr:hover {
 </div>
 
 <% if ("account".equals(type)) { %>
-    <input type="text" 
-           id="searchBox" 
+   <div class="search-container">
+   <input id="searchBox" 
            class="search-box" 
            placeholder="🔍 Search by Account Code or Name..." 
            onkeyup="filterTable()">
+           </div>
 <% } %>
 
 <table id="lookupTable">
