@@ -82,7 +82,7 @@
 
         .row {
             display: flex;
-            gap: 25px;
+            gap: 20px;
             margin-bottom: 20px;
         }
 
@@ -96,7 +96,7 @@
         .input-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
         }
 
         input[type="text"] {

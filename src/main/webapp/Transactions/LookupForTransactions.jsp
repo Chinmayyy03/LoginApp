@@ -146,7 +146,6 @@ tr:hover {
 
 .search-container {
         text-align: center;
-        margin: 10px 0;
     }
     .search-container input {
         width: 40%;
