@@ -548,7 +548,6 @@ input[type="text"]:read-only {
         .operation-display-box {
 		    padding: 15px 15px;
 		    border-radius: 12px;
-		    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		    display: flex;
 		    align-items: center;
 		    justify-content: center;
@@ -1294,6 +1293,28 @@ function selectCreditAccountFromSearch(code, name) {
 
 function handleSaveTransaction() {
     showToast('Save transaction functionality not yet implemented', 'warning');
+}
+
+//========== HIGHLIGHT MATCHING TEXT (LAST 7 DIGITS ONLY) ==========
+function highlightMatch(text, search) {
+    // Get the last 7 digits of the account code
+    const last7Digits = text.slice(-7);
+    
+    // Find the match position within the last 7 digits
+    const matchIndex = last7Digits.indexOf(search);
+    
+    // If no match found in last 7 digits, return original text
+    if (matchIndex === -1) return text;
+    
+    // Calculate the actual position in the full text
+    const actualIndex = text.length - 7 + matchIndex;
+    
+    // Build the highlighted string
+    return text.substring(0, actualIndex) + 
+           '<span class="highlight">' + 
+           search + 
+           '</span>' + 
+           text.substring(actualIndex + search.length);
 }
 </script>
 </body>
