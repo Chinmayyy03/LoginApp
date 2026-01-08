@@ -106,6 +106,7 @@
             border-radius: 8px;
             background-color: #F4EDFF;
             outline: none;
+            color: blue;
             font-size: 14px;
         }
 
@@ -717,7 +718,7 @@ input[type="text"]:read-only {
 				            <input type="text" name="accountCode" id="accountCode" placeholder="Enter account code" maxlength="14" autocomplete="off">
 				            <button type="button" class="icon-btn" id="accountLookupBtn" onclick="openLookup('account')">…</button>
 				        </div>
-				        <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
+				        <div class="search-hint">Type last 7 digits to search</div>
 				        
 				        <!-- LIVE SEARCH DROPDOWN -->
 				        <div class="search-dropdown">
@@ -731,7 +732,7 @@ input[type="text"]:read-only {
 				    </div>
 				    <div>
 				        <div class="label" id="transactionamountLabel">Transaction Amount</div>
-				        <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount" readonly>
+				        <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount">
 				    </div>
 				    <div class="save-button-container">
 					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
@@ -753,7 +754,7 @@ input[type="text"]:read-only {
 				            <input type="text" name="creditAccountCode" id="creditAccountCode" placeholder="Enter credit account code" maxlength="14" autocomplete="off">
 				            <button type="button" class="icon-btn" id="creditAccountLookupBtn" onclick="openLookup('creditAccount')">…</button>
 				        </div>
-				        <div class="search-hint">Type last 7 digits to search (e.g., 0024762)</div>
+				        <div class="search-hint">Type last 7 digits to search</div>
 				        
 				        <!-- LIVE SEARCH DROPDOWN FOR CREDIT ACCOUNT -->
 				        <div class="search-dropdown">
