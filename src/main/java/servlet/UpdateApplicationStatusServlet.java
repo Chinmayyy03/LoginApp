@@ -176,6 +176,9 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
                 // 3. Insert into ACCOUNT.ACCOUNT table
                 insertAccountData(conn, rsApp, accountCode, appNo, workingDate);
 
+                // 3.0.1 Insert initial balance record into BALANCE.ACCOUNT
+                insertInitialBalance(conn, accountCode, workingDate);
+
                 // 3.1 Update BRANCH2PRODUCT LASTACCOUNT_NUMBER
                 long sequenceNumber = Long.parseLong(accountCode.substring(7, 14));
                 updateBranchProductLastAccount(conn, branchCode, productCode, sequenceNumber);
@@ -1374,4 +1377,26 @@ public class UpdateApplicationStatusServlet extends HttpServlet {
             throw new Exception("Failed to update BRANCH2PRODUCT for Branch=" + branchCode + ", Product=" + productCode);
         }
     }
+    // ========== INSERT INITIAL BALANCE ==========
+    private void insertInitialBalance(Connection conn, String accountCode, Date workingDate) throws Exception {
+        String insertSQL = "INSERT INTO BALANCE.ACCOUNT (" +
+            "ACCOUNT_CODE, LEDGERBALANCE, AVAILABLEBALANCE, OPENINGBALANCE, " +
+            "MONTH_MINIMUMBALANCE, CREATED_DATE) " +
+            "VALUES (?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement psInsert = conn.prepareStatement(insertSQL);
+        
+        psInsert.setString(1, accountCode);
+        psInsert.setDouble(2, 0);  // LEDGERBALANCE = 0
+        psInsert.setDouble(3, 0);  // AVAILABLEBALANCE = 0
+        psInsert.setDouble(4, 0);  // OPENINGBALANCE = 0
+        psInsert.setDouble(5, 0);  // MONTH_MINIMUMBALANCE = 0
+        psInsert.setDate(6, workingDate);  // CREATED_DATE = working date from session
+        
+        psInsert.executeUpdate();
+        psInsert.close();
+        
+        System.out.println("✅ Inserted initial balance record into BALANCE.ACCOUNT for: " + accountCode);
+    }
     }  // This is the last closing brace of the class
+
