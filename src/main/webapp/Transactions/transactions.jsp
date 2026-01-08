@@ -82,7 +82,7 @@
 
         .row {
             display: flex;
-            gap: 20px;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
@@ -96,12 +96,12 @@
         .input-box {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
         }
 
         input[type="text"] {
             padding: 10px;
-            width: 180px;
+            width: 150px;
             border: 2px solid #C8B7F6;
             border-radius: 8px;
             background-color: #F4EDFF;
@@ -546,7 +546,7 @@ input[type="text"]:read-only {
             cursor: pointer;
         }
         .operation-display-box {
-		    padding: 15px 25px;
+		    padding: 15px 15px;
 		    border-radius: 12px;
 		    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		    display: flex;
@@ -692,11 +692,14 @@ input[type="text"]:read-only {
 				
 				    <div>
 				        <div class="label" id="accountNameLabel">Account Name</div>
-				        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 305px;" readonly>
+				        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 220px;" readonly>
 				    </div>
 				    <div>
-				        <div class="label" id="accountbalanceLabel">Account Balance</div>
-				        <input type="text" name="accountbalance" id="accountbalance" placeholder="Account Balance" readonly>
+				        <div class="label" id="transactionamountLabel">Transaction Amount</div>
+				        <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount" readonly>
+				    </div>
+				    <div>
+				    	<button>Save</button>
 				    </div>
 
 				
@@ -725,12 +728,9 @@ input[type="text"]:read-only {
 				
 				    <div>
 				        <div class="label" id="creditAccountNameLabel">Credit Account Name</div>
-				        <input type="text" name="creditAccountName" id="creditAccountName" placeholder="Account Name" style="width: 305px;" readonly>
+				        <input type="text" name="creditAccountName" id="creditAccountName" placeholder="Account Name" style="width: 220px;" readonly>
 				    </div>
-				    <div>
-				        <div class="label" id="creditAccountBalanceLabel">Credit Account Balance</div>
-				        <input type="text" name="creditAccountBalance" id="creditAccountBalance" placeholder="Account balance" readonly>
-				    </div>
+				  
 				</div>
             </fieldset>
 
@@ -971,8 +971,6 @@ function updateLabelsBasedOnOperation() {
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
     const operationDisplay = document.getElementById("operationDisplay");
-    const accountBalanceLabel = document.getElementById("accountbalanceLabel");
-    const accountBalanceInput = document.getElementById("accountbalance");
     const operationBox = document.getElementById("operationBox");
     const creditAccountRow = document.getElementById("creditAccountRow");
     
@@ -985,18 +983,14 @@ function updateLabelsBasedOnOperation() {
     if (operationType === "transfer") {
         accountCodeLabel.textContent = "Debit Account Code";
         accountNameLabel.textContent = "Debit Account Name";
-        accountBalanceLabel.textContent = "Debit Account Balance";
         accountCodeInput.placeholder = "Enter debit account code";
         accountNameInput.placeholder = "Debit Account Name";
-        accountBalanceInput.placeholder = "Debit account balance";
         creditAccountRow.style.display = "flex";
     } else {
         accountCodeLabel.textContent = "Account Code";
         accountNameLabel.textContent = "Account Name";
-        accountBalanceLabel.textContent = "Account Balance";
         accountCodeInput.placeholder = "Enter account code";
         accountNameInput.placeholder = "Account Name";
-        accountBalanceInput.placeholder = "Account balance";
         creditAccountRow.style.display = "none";
     }
 }
