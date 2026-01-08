@@ -955,7 +955,6 @@ function selectAccountFromSearch(code, name) {
     document.getElementById('accountCode').value = code;
     document.getElementById('accountName').value = name;
     document.getElementById('searchResults').classList.remove('active');
-    showToast('Account selected: ' + code, 'success');
     setTimeout(function() { submitTransactionForm(); }, 500);
 }
 
@@ -1068,7 +1067,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("accountName").value = '';
             document.getElementById('searchResults').classList.remove('active');
             currentCategory = this.value;
-            showToast('Account Type ' + this.value.toUpperCase() + ' is selected', 'info');
         });
     });
     updateLabelsBasedOnOperation();
@@ -1111,12 +1109,10 @@ function setValueFromLookup(code, desc, type) {
     if (window.currentLookupType === "creditAccount") {
         document.getElementById("creditAccountCode").value = code;
         document.getElementById("creditAccountName").value = desc;
-        showToast('Credit account selected successfully', 'success');
         closeLookup();
     } else if (type === "account") {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
-        showToast('Account selected successfully', 'success');
         closeLookup();
         setTimeout(function() { submitTransactionForm(); }, 500);
     }

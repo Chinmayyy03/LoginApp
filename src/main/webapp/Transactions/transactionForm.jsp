@@ -202,8 +202,7 @@ window.addEventListener('DOMContentLoaded', function() {
     
     if (accountCode && accountCode.trim() !== '' && operationType === 'deposit') {
         document.getElementById('accountInfoSection').classList.add('active');
-        showToast('Account selected: ' + accountCode, 'success');
-    }
+        }
 });
 </script>
 
