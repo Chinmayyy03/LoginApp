@@ -797,11 +797,13 @@ input[type="text"]:read-only {
 </div>
 
 <script>
-// ========== CONFIGURATION ==========
+//========== CONFIGURATION ==========
 const MIN_SEARCH_LENGTH = 3;
 const SEARCH_DELAY = 300;
 let searchTimeout;
 let currentCategory = 'saving';
+let previousAccountCode = '';
+let previousCreditAccountCode = '';
 
 // ========== TOAST UTILITY ==========
 function showToast(message, type = 'error') {
@@ -831,12 +833,28 @@ function showToast(message, type = 'error') {
     }).showToast();
 }
 
+// ========== CLEAR IFRAME CONTENT ==========
+function clearIframe() {
+    const iframe = document.getElementById('resultFrame');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+}
+
 // ========== ACCOUNT CODE INPUT - DIGITS ONLY ==========
 const accountCodeInput = document.getElementById('accountCode');
 
 accountCodeInput.addEventListener('input', function(e) {
-    this.value = this.value.replace(/\D/g, '');
-    handleLiveSearch(this.value);
+    const currentValue = this.value.replace(/\D/g, '');
+    this.value = currentValue;
+    
+    // Clear Account Name if Account Code changes
+    if (currentValue !== previousAccountCode) {
+        document.getElementById('accountName').value = '';
+        previousAccountCode = currentValue;
+    }
+    
+    handleLiveSearch(currentValue);
 });
 
 accountCodeInput.addEventListener('keydown', function(e) {
@@ -932,7 +950,6 @@ function displaySearchResults(accounts, searchNumber) {
                 '<div class="result-code">' + highlightedCode + '</div>' +
                 '<div class="result-name-row">' + account.name + '</div>';
         
-        // Add product description on the right side
         if (productDesc && productDesc.trim() !== '') {
             html += '<div class="result-product-desc">' + productDesc + '</div>';
         }
@@ -941,7 +958,6 @@ function displaySearchResults(accounts, searchNumber) {
     });
     searchResults.innerHTML = html;
 }
-
 
 // ========== HIGHLIGHT MATCHING TEXT ==========
 function highlightMatch(text, search) {
@@ -954,6 +970,7 @@ function highlightMatch(text, search) {
 function selectAccountFromSearch(code, name) {
     document.getElementById('accountCode').value = code;
     document.getElementById('accountName').value = name;
+    previousAccountCode = code;
     document.getElementById('searchResults').classList.remove('active');
     setTimeout(function() { submitTransactionForm(); }, 500);
 }
@@ -1009,6 +1026,15 @@ function updateLabelsBasedOnOperation() {
     const operationBox = document.getElementById("operationBox");
     const creditAccountRow = document.getElementById("creditAccountRow");
     
+    // Clear Account Code, Account Name and iframe when operation type changes
+    accountCodeInput.value = '';
+    accountNameInput.value = '';
+    document.getElementById('creditAccountCode').value = '';
+    document.getElementById('creditAccountName').value = '';
+    previousAccountCode = '';
+    previousCreditAccountCode = '';
+    clearIframe();
+    
     // Update the display box text
     operationDisplay.textContent = operationType.toUpperCase();
     
@@ -1037,12 +1063,20 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', updateLabelsBasedOnOperation);
     });
     
- // Credit Account Code - digits only
+    // Credit Account Code - digits only
     const creditAccountCodeInput = document.getElementById('creditAccountCode');
     if (creditAccountCodeInput) {
         creditAccountCodeInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/\D/g, '');
-            handleLiveSearchCredit(this.value);
+            const currentValue = this.value.replace(/\D/g, '');
+            this.value = currentValue;
+            
+            // Clear Credit Account Name if Credit Account Code changes
+            if (currentValue !== previousCreditAccountCode) {
+                document.getElementById('creditAccountName').value = '';
+                previousCreditAccountCode = currentValue;
+            }
+            
+            handleLiveSearchCredit(currentValue);
         });
 
         creditAccountCodeInput.addEventListener('keydown', function(e) {
@@ -1065,10 +1099,16 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             document.getElementById("accountCode").value = '';
             document.getElementById("accountName").value = '';
+            previousAccountCode = '';
             document.getElementById('searchResults').classList.remove('active');
             currentCategory = this.value;
         });
     });
+    
+    // Initialize previous values
+    previousAccountCode = document.getElementById('accountCode').value;
+    previousCreditAccountCode = document.getElementById('creditAccountCode').value;
+    
     updateLabelsBasedOnOperation();
 });
 
@@ -1084,7 +1124,6 @@ function openLookup(type) {
         .then(function(html) {
             document.getElementById("lookupContent").innerHTML = html;
             document.getElementById("lookupModal").style.display = "flex";
-            // Store which field we're looking up for
             window.currentLookupType = type;
             setTimeout(function() {
                 const searchBox = document.getElementById('searchBox');
@@ -1109,10 +1148,12 @@ function setValueFromLookup(code, desc, type) {
     if (window.currentLookupType === "creditAccount") {
         document.getElementById("creditAccountCode").value = code;
         document.getElementById("creditAccountName").value = desc;
+        previousCreditAccountCode = code;
         closeLookup();
     } else if (type === "account") {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
+        previousAccountCode = code;
         closeLookup();
         setTimeout(function() { submitTransactionForm(); }, 500);
     }
@@ -1157,7 +1198,7 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-//========== CREDIT ACCOUNT LIVE SEARCH ==========
+// ========== CREDIT ACCOUNT LIVE SEARCH ==========
 function handleLiveSearchCredit(value) {
     clearTimeout(searchTimeout);
     const searchResults = document.getElementById('creditSearchResults');
@@ -1246,8 +1287,13 @@ function displaySearchResultsCredit(accounts, searchNumber) {
 function selectCreditAccountFromSearch(code, name) {
     document.getElementById('creditAccountCode').value = code;
     document.getElementById('creditAccountName').value = name;
+    previousCreditAccountCode = code;
     document.getElementById('creditSearchResults').classList.remove('active');
     showToast('Credit account selected: ' + code, 'success');
+}
+
+function handleSaveTransaction() {
+    showToast('Save transaction functionality not yet implemented', 'warning');
 }
 </script>
 </body>
