@@ -82,7 +82,7 @@
 
         .row {
             display: flex;
-            gap: 10px;
+            gap: 20px;
             margin-bottom: 20px;
         }
 
@@ -96,7 +96,7 @@
         .input-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
         }
 
         input[type="text"] {
@@ -145,7 +145,6 @@
         .radio-group-inline {
             display: flex;
             align-items: center;
-            gap: 10px;
         }
 
         .radio-group-inline .label {
@@ -155,7 +154,7 @@
 
         .radio-buttons {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
 
         .radio-label {
@@ -588,6 +587,42 @@ input[type="text"]:read-only {
 		    text-transform: uppercase;
 		    letter-spacing: 2px;
 		}
+		
+		.save-button-container {
+		    display: flex;
+		    justify-content: center;
+		    align-items: center;
+		    margin: 15px 0;
+		}
+		
+		.save-btn {
+		    background-color: #373279;
+		    color: white;
+		    border: none;
+		    padding: 10px 25px;
+		    border-radius: 6px;
+		    font-size: 14px;
+		    font-weight: bold;
+		    cursor: pointer;
+		    transition: background-color 0.3s ease, transform 0.2s ease;
+		}
+		
+		.save-btn:hover {
+		    background-color: #2b0d73;
+		    transform: scale(1.05);
+		}
+		
+		.save-btn:active {
+		    transform: scale(0.97);
+		}
+		
+		/* Responsive adjustments */
+		@media (max-width: 600px) {
+		    .save-btn {
+		        width: 80%;
+		        padding: 10px;
+		    }
+		}
     </style>
 </head>
 <body>
@@ -639,7 +674,7 @@ input[type="text"]:read-only {
 
                     <!-- Account Category -->
                     <div class="radio-group-inline">
-                        <div class="label">Account Category:</div>
+                        <div class="label">Account Type:</div>
                         <div class="radio-buttons">
                             <label class="radio-label">
                                 <input type="radio" name="accountCategory" value="saving" checked>
@@ -698,9 +733,9 @@ input[type="text"]:read-only {
 				        <div class="label" id="transactionamountLabel">Transaction Amount</div>
 				        <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount" readonly>
 				    </div>
-				    <div>
-				    	<button>Save</button>
-				    </div>
+				    <div class="save-button-container">
+					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
+					</div>
 
 				
 				    <!-- OPERATION DISPLAY BOX -->
