@@ -687,15 +687,11 @@ function setValueFromLookup(code, desc, type) {
         document.getElementById("productCode").value = "";
         document.getElementById("prodDescription").value = "";
         document.getElementById("resultFrame").src = "";
-        
-        showToast('Account Type selected successfully', 'success');
     }
 
     if (type === "product") {
         document.getElementById("productCode").value = code;
         document.getElementById("prodDescription").value = desc;
-        
-        showToast('Product Code selected successfully', 'success');
         
         // Auto submit form when product is selected
         autoSubmitForm();
