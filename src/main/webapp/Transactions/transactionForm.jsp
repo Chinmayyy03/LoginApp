@@ -48,67 +48,67 @@
             
             <div>
                 <label>GL Account Code</label>
-                <input type="text" id="glAccountCode" name="glAccountCode" readonly>
+                <input type="text" id="glAccountCode" name="glAccountCode" >
             </div>
             
             <div>
                 <label>GL Account Name</label>
-                <input type="text" id="glAccountName" name="glAccountName" readonly>
+                <input type="text" id="glAccountName" name="glAccountName" >
             </div>
             
             <div>
                 <label>Ledger Balance</label>
-                <input type="text" id="ledgerBalance" name="ledgerBalance" readonly>
+                <input type="text" id="ledgerBalance" name="ledgerBalance" >
             </div>
             
             <div>
                 <label>Available Balance</label>
-                <input type="text" id="availableBalance" name="availableBalance" readonly>
+                <input type="text" id="availableBalance" name="availableBalance" >
             </div>
             
             <div>
                 <label>New Ledger Balance</label>
-                <input type="text" id="newLedgerBalance" name="newLedgerBalance" readonly>
+                <input type="text" id="newLedgerBalance" name="newLedgerBalance" >
             </div>
             
             <div>
                 <label>Limit Amount</label>
-                <input type="text" id="limitAmount" name="limitAmount" readonly>
+                <input type="text" id="limitAmount" name="limitAmount" >
             </div>
             
             <div>
                 <label>Drawing Power</label>
-                <input type="text" id="drawingPower" name="drawingPower" readonly>
+                <input type="text" id="drawingPower" name="drawingPower" >
             </div>
             
             <div>
                 <label>Unclear Balance</label>
-                <input type="text" id="unclearBalance" name="unclearBalance" readonly>
+                <input type="text" id="unclearBalance" name="unclearBalance" >
             </div>
             
             <div>
                 <label>Last Transaction Date</label>
-                <input type="date" id="lastTransactionDate" name="lastTransactionDate" readonly>
+                <input type="date" id="lastTransactionDate" name="lastTransactionDate" >
             </div>
             
             <div>
                 <label>Account Review Date</label>
-                <input type="date" id="accountReviewDate" name="accountReviewDate" readonly>
-            </div>
-            
-            <div>
-                <label>Pincode</label>
-                <input type="text" id="pincode" name="pincode" readonly>
+                <input type="date" id="accountReviewDate" name="accountReviewDate" >
             </div>
             
             <div>
                 <label>Last OD Date</label>
-                <input type="date" id="lastOdDate" name="lastOdDate" readonly>
+                <input type="date" id="lastOdDate" name="lastOdDate" >
             </div>
             
             <div>
+                <label>Pincode</label>
+                <input type="text" id="pincode" name="pincode" >
+            </div>            
+            
+            <div>
                 <label>OD Interest</label>
-                <input type="text" id="odInterest" name="odInterest" readonly>
+                <input type="text" id="odInterest" name="odInterest" >
             </div>
             
         </div>
