@@ -207,6 +207,7 @@ function checkAccountDetails() {
                 document.getElementById('glAccountName').value = data.glAccountName || '';
                	document.getElementById('customerId').value = data.customerId || '';
                	document.getElementById('aadharnumber').value = data.aadharNumber || '';
+               	document.getElementById('pannumber').value = data.panNumber || '';
                 
                 // Populate product name and balance fields
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
