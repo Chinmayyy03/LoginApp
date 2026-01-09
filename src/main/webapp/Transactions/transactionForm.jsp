@@ -48,82 +48,82 @@
             
             <div>
                 <label>GL Account Code</label>
-                <input type="text" id="glAccountCode" name="glAccountCode" >
+                <input type="text" id="glAccountCode" name="glAccountCode" readonly>
             </div>
             
             <div>
                 <label>GL Account Name</label>
-                <input type="text" id="glAccountName" name="glAccountName" >
+                <input type="text" id="glAccountName" name="glAccountName" readonly>
             </div>
             
             <div>
                 <label>Product Name</label>
-                <input type="text" id="ProductName" name="ProductName" >
+                <input type="text" id="ProductName" name="ProductName" readonly>
             </div>
             
             <div>
                 <label>Ledger Balance</label>
-                <input type="text" id="ledgerBalance" name="ledgerBalance" >
+                <input type="text" id="ledgerBalance" name="ledgerBalance" readonly>
             </div>
             
             <div>
                 <label>Available Balance</label>
-                <input type="text" id="availableBalance" name="availableBalance" >
+                <input type="text" id="availableBalance" name="availableBalance" readonly>
             </div>
             
             <div>
                 <label>New Ledger Balance</label>
-                <input type="text" id="newLedgerBalance" name="newLedgerBalance" >
+                <input type="text" id="newLedgerBalance" name="newLedgerBalance" readonly>
             </div>
             
             <div>
                 <label>Limit Amount</label>
-                <input type="text" id="limitAmount" name="limitAmount" >
+                <input type="text" id="limitAmount" name="limitAmount" readonly>
             </div>
             
             <div>
                 <label>Drawing Power</label>
-                <input type="text" id="drawingPower" name="drawingPower" >
+                <input type="text" id="drawingPower" name="drawingPower" readonly>
             </div>
             
             <div>
                 <label>Unclear Balance</label>
-                <input type="text" id="unclearBalance" name="unclearBalance" >
+                <input type="text" id="unclearBalance" name="unclearBalance" readonly>
             </div>
             
             <div>
                 <label>Last Transaction Date</label>
-                <input type="date" id="lastTransactionDate" name="lastTransactionDate" >
+                <input type="date" id="lastTransactionDate" name="lastTransactionDate" readonly>
             </div>
             
             <div>
                 <label>Account Review Date</label>
-                <input type="date" id="accountReviewDate" name="accountReviewDate" >
+                <input type="date" id="accountReviewDate" name="accountReviewDate" readonly>
             </div>
             
             <div>
                 <label>Last OD Date</label>
-                <input type="date" id="lastOdDate" name="lastOdDate" >
+                <input type="date" id="lastOdDate" name="lastOdDate" readonly>
             </div>
             
             <div>
                 <label>OD Interest</label>
-                <input type="text" id="odInterest" name="odInterest" >
+                <input type="text" id="odInterest" name="odInterest" readonly>
             </div>
                         
             <div>
                 <label>Aadhar Number</label>
-                <input type="text" id="aadharnumber" name="aadharnumber" >
+                <input type="text" id="aadharnumber" name="aadharnumber" readonly>
             </div>
             
             <div>
                 <label>PAN Number</label>
-                <input type="text" id="pannumber" name="pannumber" >
+                <input type="text" id="pannumber" name="pannumber" readonly>
             </div>
             
             <div>
                 <label>Pincode</label>
-                <input type="text" id="pincode" name="pincode" >
+                <input type="text" id="pincode" name="pincode" readonly>
             </div>
             
         </div>
@@ -167,15 +167,30 @@ function validateForm() {
 
 function checkAccountDetails() {
     const accountCode = '<%= accountCode %>';
+    const accountCategory = '<%= accountCategory %>';
     
     console.log('Account Code:', accountCode); // DEBUG
+    console.log('Account Category:', accountCategory); // DEBUG
     
     if (!accountCode) {
         showToast('No account selected', 'error');
         return;
     }
     
-    showToast('Fetching account details...', 'info');
+    
+    
+    // Show/hide fields based on account category (before fetching data)
+    if (accountCategory === 'loan' || accountCategory === 'cc') {
+        // Show loan/CC specific fields
+        document.getElementById('limitAmount').closest('div').style.display = 'flex';
+        document.getElementById('drawingPower').closest('div').style.display = 'flex';
+        document.getElementById('accountReviewDate').closest('div').style.display = 'flex';
+    } else {
+        // Hide loan/CC specific fields for other categories
+        document.getElementById('limitAmount').closest('div').style.display = 'none';
+        document.getElementById('drawingPower').closest('div').style.display = 'none';
+        document.getElementById('accountReviewDate').closest('div').style.display = 'none';
+    }
     
     // Make AJAX call to fetch account details
     fetch('GetAccountDetails.jsp?accountCode=' + encodeURIComponent(accountCode))
@@ -189,12 +204,12 @@ function checkAccountDetails() {
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
-                // Populate product name and balance fields
+                // Populate only product name and balance fields
                 document.getElementById('ProductName').value = data.productName || '';
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
                 
-                showToast('Account details loaded successfully', 'success');
+                
             }
         })
         .catch(error => {
