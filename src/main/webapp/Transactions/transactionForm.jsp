@@ -168,6 +168,8 @@ function validateForm() {
 function checkAccountDetails() {
     const accountCode = '<%= accountCode %>';
     
+    console.log('Account Code:', accountCode); // DEBUG
+    
     if (!accountCode) {
         showToast('No account selected', 'error');
         return;
@@ -177,25 +179,20 @@ function checkAccountDetails() {
     
     // Make AJAX call to fetch account details
     fetch('GetAccountDetails.jsp?accountCode=' + encodeURIComponent(accountCode))
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status); // DEBUG
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data); // DEBUG
+            
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
-                // Populate form fields
-                document.getElementById('glAccountCode').value = data.glAccountCode || '';
-                document.getElementById('glAccountName').value = data.glAccountName || '';
+                // Populate product name and balance fields
+                document.getElementById('ProductName').value = data.productName || '';
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
-                document.getElementById('newLedgerBalance').value = data.newLedgerBalance || '0.00';
-                document.getElementById('limitAmount').value = data.limitAmount || '0.00';
-                document.getElementById('drawingPower').value = data.drawingPower || '';
-                document.getElementById('unclearBalance').value = data.unclearBalance || '0.00';
-                document.getElementById('lastTransactionDate').value = data.lastTransactionDate || '';
-                document.getElementById('accountReviewDate').value = data.accountReviewDate || '';
-                document.getElementById('pincode').value = data.pincode || '';
-                document.getElementById('lastOdDate').value = data.lastOdDate || '';
-                document.getElementById('odInterest').value = data.odInterest || '0';
                 
                 showToast('Account details loaded successfully', 'success');
             }
@@ -206,14 +203,17 @@ function checkAccountDetails() {
         });
 }
 
-// Show account info section when page loads if account is selected
+//Show account info section when page loads if account is selected
 window.addEventListener('DOMContentLoaded', function() {
     const accountCode = '<%= accountCode %>';
     const operationType = '<%= operationType %>';
     
-    if (accountCode && accountCode.trim() !== '' && operationType === 'deposit') {
+    if (accountCode && accountCode.trim() !== '') {
         document.getElementById('accountInfoSection').classList.add('active');
-        }
+        
+       
+        checkAccountDetails();
+    }
 });
 </script>
 
