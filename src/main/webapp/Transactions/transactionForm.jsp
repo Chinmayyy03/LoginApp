@@ -57,6 +57,11 @@
             </div>
             
             <div>
+                <label>Product Name</label>
+                <input type="text" id="ProductName" name="ProductName" >
+            </div>
+            
+            <div>
                 <label>Ledger Balance</label>
                 <input type="text" id="ledgerBalance" name="ledgerBalance" >
             </div>
@@ -102,19 +107,25 @@
             </div>
             
             <div>
-                <label>Pincode</label>
-                <input type="text" id="pincode" name="pincode" >
-            </div>            
-            
-            <div>
                 <label>OD Interest</label>
                 <input type="text" id="odInterest" name="odInterest" >
             </div>
+                        
+            <div>
+                <label>Aadhar Number</label>
+                <input type="text" id="aadharnumber" name="aadharnumber" >
+            </div>
             
-        </div>
-        
-        <div class="form-buttons">
-            <button type="button" onclick="checkAccountDetails()">Check</button>
+            <div>
+                <label>PAN Number</label>
+                <input type="text" id="pannumber" name="pannumber" >
+            </div>
+            
+            <div>
+                <label>Pincode</label>
+                <input type="text" id="pincode" name="pincode" >
+            </div>
+            
         </div>
     </fieldset>
 
