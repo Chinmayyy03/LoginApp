@@ -57,10 +57,10 @@
             </div>
             
             <div>
-                <label>Product Name</label>
-                <input type="text" id="ProductName" name="ProductName" readonly>
-            </div>
-            
+			    <label>Customer ID</label>
+			    <input type="text" id="customerId" name="customerId" readonly>
+			</div>
+			
             <div>
                 <label>Ledger Balance</label>
                 <input type="text" id="ledgerBalance" name="ledgerBalance" readonly>
@@ -205,9 +205,9 @@ function checkAccountDetails() {
                 // Populate GL Account Code and Name
                 document.getElementById('glAccountCode').value = data.glAccountCode || '';
                 document.getElementById('glAccountName').value = data.glAccountName || '';
+               	document.getElementById('customerId').value = data.customerId || '';
                 
                 // Populate product name and balance fields
-                document.getElementById('ProductName').value = data.productName || '';
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
                 

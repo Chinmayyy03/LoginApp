@@ -17,18 +17,18 @@
         
         // Query to get balances, product name, GL account code and GL account name using functions
         String query = "SELECT " +
-                       "LEDGERBALANCE, " +
-                       "AVAILABLEBALANCE, " +
-                       "FN_GET_PRODUCT_DESC(SUBSTR(?, 5, 3)) AS PRODUCT_NAME, " +
-                       "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
-                       "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME " +
-                       "FROM BALANCE.ACCOUNT " +
-                       "WHERE ACCOUNT_CODE = ?";
+               "LEDGERBALANCE, " +
+               "AVAILABLEBALANCE, " +
+               "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
+               "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME, " +
+               "FN_GET_CUSTOMER_ID(?) AS CUSTOMER_ID " +
+               "FROM BALANCE.ACCOUNT " +
+               "WHERE ACCOUNT_CODE = ?";
         
         ps = con.prepareStatement(query);
-        ps.setString(1, accountCode);  // For FN_GET_PRODUCT_DESC function
-        ps.setString(2, accountCode);  // For FN_GET_AC_GL function
-        ps.setString(3, accountCode);  // For Fn_Get_Account_name(FN_GET_AC_GL(?))
+        ps.setString(1, accountCode);  // For FN_GET_AC_GL function
+        ps.setString(2, accountCode);  // For Fn_Get_Account_name(FN_GET_AC_GL(?))
+        ps.setString(3, accountCode);  // For FN_GET_CUSTOMER_ID function
         ps.setString(4, accountCode);  // For the WHERE clause
         rs = ps.executeQuery();
         
@@ -60,13 +60,14 @@
             }
             
             // Build JSON response
+         // Build JSON response
             out.print("{");
             out.print("\"success\": true,");
-            out.print("\"productName\": \"" + (rs.getString("PRODUCT_NAME") != null ? rs.getString("PRODUCT_NAME") : "") + "\",");
             out.print("\"ledgerBalance\": \"" + (rs.getBigDecimal("LEDGERBALANCE") != null ? rs.getBigDecimal("LEDGERBALANCE") : "0.00") + "\",");
             out.print("\"availableBalance\": \"" + (rs.getBigDecimal("AVAILABLEBALANCE") != null ? rs.getBigDecimal("AVAILABLEBALANCE") : "0.00") + "\",");
             out.print("\"glAccountCode\": \"" + glAccountCode + "\",");
-            out.print("\"glAccountName\": \"" + glAccountName + "\"");
+            out.print("\"glAccountName\": \"" + glAccountName + "\",");
+            out.print("\"customerId\": \"" + (rs.getString("CUSTOMER_ID") != null ? rs.getString("CUSTOMER_ID").trim() : "") + "\"");
             out.print("}");
         } else {
             out.print("{\"error\": \"Account not found in balance table\"}");
