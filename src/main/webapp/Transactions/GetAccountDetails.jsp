@@ -15,25 +15,58 @@
     try {
         con = DBConnection.getConnection();
         
-        // Query to get balances and product name using function
+        // Query to get balances, product name, GL account code and GL account name using functions
         String query = "SELECT " +
                        "LEDGERBALANCE, " +
                        "AVAILABLEBALANCE, " +
-                       "FN_GET_PRODUCT_DESC(SUBSTR(?, 5, 3)) AS PRODUCT_NAME " +
+                       "FN_GET_PRODUCT_DESC(SUBSTR(?, 5, 3)) AS PRODUCT_NAME, " +
+                       "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
+                       "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME " +
                        "FROM BALANCE.ACCOUNT " +
                        "WHERE ACCOUNT_CODE = ?";
         
         ps = con.prepareStatement(query);
-        ps.setString(1, accountCode);  // For the function
-        ps.setString(2, accountCode);  // For the WHERE clause
+        ps.setString(1, accountCode);  // For FN_GET_PRODUCT_DESC function
+        ps.setString(2, accountCode);  // For FN_GET_AC_GL function
+        ps.setString(3, accountCode);  // For Fn_Get_Account_name(FN_GET_AC_GL(?))
+        ps.setString(4, accountCode);  // For the WHERE clause
         rs = ps.executeQuery();
         
         if (rs.next()) {
+            String glAccountCode = rs.getString("GL_ACCOUNT_CODE");
+            String glAccountName = rs.getString("GL_ACCOUNT_NAME");
+            
+            // Clean up the GL account code (trim and check for default value)
+            if (glAccountCode != null) {
+                glAccountCode = glAccountCode.trim();
+                // Check if it's the default "not found" value
+                if ("00000000000000".equals(glAccountCode)) {
+                    glAccountCode = "";
+                    glAccountName = "";
+                }
+            } else {
+                glAccountCode = "";
+            }
+            
+            // Clean up GL account name
+            if (glAccountName != null) {
+                glAccountName = glAccountName.trim();
+                // Check if it's the default error value from function
+                if (".".equals(glAccountName)) {
+                    glAccountName = "";
+                }
+            } else {
+                glAccountName = "";
+            }
+            
+            // Build JSON response
             out.print("{");
             out.print("\"success\": true,");
             out.print("\"productName\": \"" + (rs.getString("PRODUCT_NAME") != null ? rs.getString("PRODUCT_NAME") : "") + "\",");
             out.print("\"ledgerBalance\": \"" + (rs.getBigDecimal("LEDGERBALANCE") != null ? rs.getBigDecimal("LEDGERBALANCE") : "0.00") + "\",");
-            out.print("\"availableBalance\": \"" + (rs.getBigDecimal("AVAILABLEBALANCE") != null ? rs.getBigDecimal("AVAILABLEBALANCE") : "0.00") + "\"");
+            out.print("\"availableBalance\": \"" + (rs.getBigDecimal("AVAILABLEBALANCE") != null ? rs.getBigDecimal("AVAILABLEBALANCE") : "0.00") + "\",");
+            out.print("\"glAccountCode\": \"" + glAccountCode + "\",");
+            out.print("\"glAccountName\": \"" + glAccountName + "\"");
             out.print("}");
         } else {
             out.print("{\"error\": \"Account not found in balance table\"}");

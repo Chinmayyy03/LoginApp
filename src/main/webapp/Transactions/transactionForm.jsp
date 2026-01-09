@@ -177,8 +177,6 @@ function checkAccountDetails() {
         return;
     }
     
-    
-    
     // Show/hide fields based on account category (before fetching data)
     if (accountCategory === 'loan' || accountCategory === 'cc') {
         // Show loan/CC specific fields
@@ -204,11 +202,14 @@ function checkAccountDetails() {
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
-                // Populate only product name and balance fields
+                // Populate GL Account Code and Name
+                document.getElementById('glAccountCode').value = data.glAccountCode || '';
+                document.getElementById('glAccountName').value = data.glAccountName || '';
+                
+                // Populate product name and balance fields
                 document.getElementById('ProductName').value = data.productName || '';
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
-                
                 
             }
         })
@@ -225,8 +226,6 @@ window.addEventListener('DOMContentLoaded', function() {
     
     if (accountCode && accountCode.trim() !== '') {
         document.getElementById('accountInfoSection').classList.add('active');
-        
-       
         checkAccountDetails();
     }
 });
