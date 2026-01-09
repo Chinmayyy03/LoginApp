@@ -25,7 +25,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Loan NPA - Branch <%= branchCode %></title>
+<title>Total Loan - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -105,7 +105,7 @@ function displayLoans(loans, page) {
     tbody.innerHTML = "";
     
     if (loans.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No NPA loans found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No loans found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
@@ -145,7 +145,7 @@ function updatePaginationControls(totalRecords, page) {
     document.getElementById("pageInfo").textContent = pageInfo;
     
     // Store current page in sessionStorage for back button
-    sessionStorage.setItem('loanNPAPage', page);
+    sessionStorage.setItem('totalLoanPage', page);
 }
 
 // Navigate to previous page
@@ -188,11 +188,11 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA');
+        window.parent.updateParentBreadcrumb('Dashboard > Total Loan');
     }
     
     // Check if returning from detail view and restore page
-    var savedPage = sessionStorage.getItem('loanNPAPage');
+    var savedPage = sessionStorage.getItem('totalLoanPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
         displayLoans(allLoans, currentPage);
@@ -202,15 +202,15 @@ window.onload = function() {
 // View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA > View Details');
+        window.parent.updateParentBreadcrumb('Dashboard > Total Loan > View Details');
     }
-    window.location.href = '../loanDetails.jsp?accountCode=' + accountCode + '&returnPage=loanNPA.jsp';
+    window.location.href = '../loanDetails.jsp?accountCode=' + accountCode + '&returnPage=totalLoan.jsp';
 }
 </script>
 </head>
 <body>
 
-<h2>Loan NPA for Branch: <%= branchCode %></h2>
+<h2>Total Loan for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
      <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Balance">
@@ -238,7 +238,7 @@ ResultSet rs = null;
 try {
     conn = DBConnection.getConnection();
     
-    // Get the D_QUERY from GLOBALCONFIG.DASHBOARD for Loan NPA (row 11)
+    // Query for Total Loan (not NPA)
     String query = "SELECT A.ACCOUNT_CODE, A.NAME, A.DATEACCOUNTOPEN, " +
                    "(fn_get_balance_ason(?, a.account_code)) v_os_balance, L.ACCOUNTREVIEWDATE " +
                    "FROM ACCOUNT.Account a, account.accountloan l " +
@@ -307,7 +307,7 @@ try {
     }
 
     if (!hasData) {
-        out.println("<tr><td colspan='7' class='no-data'>No NPA loans found for this branch.</td></tr>");
+        out.println("<tr><td colspan='7' class='no-data'>No loans found for this branch.</td></tr>");
     }
 
 } catch (Exception e) {
@@ -339,7 +339,7 @@ try {
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
     
     // Store initial page
-    sessionStorage.setItem('loanNPAPage', '1');
+    sessionStorage.setItem('totalLoanPage', '1');
 })();
 </script>
 
