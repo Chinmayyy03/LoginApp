@@ -21,7 +21,8 @@
                "AVAILABLEBALANCE, " +
                "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
                "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME, " +
-               "FN_GET_CUSTOMER_ID(?) AS CUSTOMER_ID " +
+            	"FN_GET_CUSTOMER_ID(?) AS CUSTOMER_ID, " +
+            	"Fn_Get_Cust_aadhar(FN_GET_CUSTOMER_ID(?)) AS AADHAR_NUMBER " +
                "FROM BALANCE.ACCOUNT " +
                "WHERE ACCOUNT_CODE = ?";
         
@@ -29,12 +30,14 @@
         ps.setString(1, accountCode);  // For FN_GET_AC_GL function
         ps.setString(2, accountCode);  // For Fn_Get_Account_name(FN_GET_AC_GL(?))
         ps.setString(3, accountCode);  // For FN_GET_CUSTOMER_ID function
-        ps.setString(4, accountCode);  // For the WHERE clause
+        ps.setString(4, accountCode);  // For Fn_Get_Cust_aadhar(FN_GET_CUSTOMER_ID(?))
+        ps.setString(5, accountCode);  // For the WHERE clause
         rs = ps.executeQuery();
         
         if (rs.next()) {
             String glAccountCode = rs.getString("GL_ACCOUNT_CODE");
             String glAccountName = rs.getString("GL_ACCOUNT_NAME");
+            String aadharNumber = rs.getString("AADHAR_NUMBER");
             
             // Clean up the GL account code (trim and check for default value)
             if (glAccountCode != null) {
@@ -48,15 +51,15 @@
                 glAccountCode = "";
             }
             
-            // Clean up GL account name
-            if (glAccountName != null) {
-                glAccountName = glAccountName.trim();
+         	// Clean up Aadhar number
+            if (aadharNumber != null) {
+                aadharNumber = aadharNumber.trim();
                 // Check if it's the default error value from function
-                if (".".equals(glAccountName)) {
-                    glAccountName = "";
+                if (".".equals(aadharNumber)) {
+                    aadharNumber = "";
                 }
             } else {
-                glAccountName = "";
+                aadharNumber = "";
             }
             
             // Build JSON response
@@ -67,7 +70,8 @@
             out.print("\"availableBalance\": \"" + (rs.getBigDecimal("AVAILABLEBALANCE") != null ? rs.getBigDecimal("AVAILABLEBALANCE") : "0.00") + "\",");
             out.print("\"glAccountCode\": \"" + glAccountCode + "\",");
             out.print("\"glAccountName\": \"" + glAccountName + "\",");
-            out.print("\"customerId\": \"" + (rs.getString("CUSTOMER_ID") != null ? rs.getString("CUSTOMER_ID").trim() : "") + "\"");
+            out.print("\"customerId\": \"" + (rs.getString("CUSTOMER_ID") != null ? rs.getString("CUSTOMER_ID").trim() : "") + "\",");
+            out.print("\"aadharNumber\": \"" + aadharNumber + "\"");
             out.print("}");
         } else {
             out.print("{\"error\": \"Account not found in balance table\"}");
