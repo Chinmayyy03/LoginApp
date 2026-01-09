@@ -204,7 +204,8 @@ function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Dashboard > Total Loan > View Details');
     }
-    window.location.href = '../loanDetails.jsp?accountCode=' + accountCode + '&returnPage=totalLoan.jsp';
+    // Reuse existing viewAccount.jsp with returnPage parameter
+    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/totalLoan.jsp';
 }
 </script>
 </head>

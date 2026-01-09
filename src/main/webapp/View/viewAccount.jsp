@@ -1,6 +1,13 @@
 <%@ page import="java.sql.*, db.DBConnection, java.text.SimpleDateFormat, java.util.List, java.util.ArrayList, java.util.Map, java.util.HashMap" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
+    // ✅ ADD THIS AT THE TOP - BEFORE ANY OTHER CODE
+    String returnPage = request.getParameter("returnPage");
+    if (returnPage == null || returnPage.trim().isEmpty()) {
+        returnPage = "View/totalAccounts.jsp"; // default fallback
+    }
+%>
+<%
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("../login.jsp");
@@ -118,21 +125,37 @@
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/addCustomer.css">
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/authViewCustomers.css">
   <script>
-  window.onload = function() {
-	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('View > Total Accounts > View Details');
-	    }
-	};
+window.onload = function() {
+    var returnPage = '<%= returnPage %>';
+    var breadcrumb = 'View > Total Accounts > View Details';
+    
+    if (returnPage.includes('totalLoan.jsp')) {
+        breadcrumb = 'Dashboard > Total Loan > View Details';
+    } else if (returnPage.includes('totalAccounts.jsp')) {
+        breadcrumb = 'View > Total Accounts > View Details';
+    }
+    
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(breadcrumb);
+    }
+};
 
-
-	function goBackToList() {
-	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('View > Total Accounts');
-	    }
-	    window.location.href = '/LoginApp/View/totalAccounts.jsp'; // adjust path as needed
-	}
-
-
+function goBackToList() {
+    var returnPage = '<%= returnPage %>';
+    var breadcrumb = 'View > Total Accounts';
+    
+    if (returnPage.includes('totalLoan.jsp')) {
+        breadcrumb = 'Dashboard > Total Loan';
+    } else if (returnPage.includes('totalAccounts.jsp')) {
+        breadcrumb = 'View > Total Accounts';
+    }
+    
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(breadcrumb);
+    }
+    
+    window.location.href = '<%= request.getContextPath() %>/' + returnPage;
+}
 </script>
 </head>
 <body>

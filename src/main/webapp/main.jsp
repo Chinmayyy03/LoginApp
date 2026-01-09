@@ -187,6 +187,7 @@ const pageMap = {
 		'Dashboard': 'Dashboard/dashboard.jsp',
 	    'Add Customer': 'addCustomer.jsp',
 	    'Total Customers': 'Dashboard/totalCustomers.jsp',
+	    'Total Loan': 'Dashboard/totalLoan.jsp',
 	    'Authorization': 'authorizationPending.jsp',
 	    'Customer List': 'authorizationPendingCustomers.jsp',
 	    'Application List': 'authorizationPendingApplications.jsp',
