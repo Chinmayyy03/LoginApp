@@ -1288,7 +1288,7 @@ function selectCreditAccountFromSearch(code, name) {
     document.getElementById('creditAccountName').value = name;
     previousCreditAccountCode = code;
     document.getElementById('creditSearchResults').classList.remove('active');
-    showToast('Credit account selected: ' + code, 'success');
+    
 }
 
 function handleSaveTransaction() {
