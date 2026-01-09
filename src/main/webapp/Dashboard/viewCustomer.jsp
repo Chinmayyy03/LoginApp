@@ -10,7 +10,7 @@
     // ✅ Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("../login.jsp");
         return;
     }
 
@@ -116,7 +116,7 @@
 <head>
   <meta charset="utf-8">
   <title>View Customer — <%= cid %></title>
-  <link rel="stylesheet" href="css/addCustomer.css">
+  <link rel="stylesheet" href="../css/addCustomer.css">
  <style>
 /* Whole page background */
 body {
@@ -235,7 +235,7 @@ window.onload = function() {
     var breadcrumb = 'Dashboard > Total Customer > View Details';
     
     // Set appropriate breadcrumb based on return page
-    if (returnPage === 'aTypeMember.jsp') {
+    if (returnPage === 'Dashboard/aTypeMember.jsp') {
         breadcrumb = 'Dashboard > A Type member > View Details';
     } else if (returnPage === 'bTypeMember.jsp') {
         breadcrumb = 'Dashboard > B Type member > View Details';

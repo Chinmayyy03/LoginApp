@@ -5,7 +5,7 @@
     String branchCode = (String) session.getAttribute("branchCode");
     
     if (branchCode == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("../login.jsp");
         return;
     }
 
@@ -368,7 +368,7 @@ async function loadCardValues() {
 
 async function loadSingleCard(card) {
     try {
-        const response = await fetch('getCardValueUnified.jsp?type=dashboard&id=' + card.srNumber);
+        const response = await fetch('../getCardValueUnified.jsp?type=dashboard&id=' + card.srNumber);
         const data = await response.json();
         
         const valueElement = document.getElementById('value-' + card.srNumber);
@@ -419,7 +419,11 @@ function openInParentFrame(page, breadcrumbPath) {
     if (window.parent && window.parent.document) {
         const iframe = window.parent.document.getElementById("contentFrame");
         if (iframe) {
-            iframe.src = page;
+            // If page ALREADY contains '/', use as-is (already has folder path)
+            // If page doesn't contain '/', add '../' to go up from Dashboard folder
+            var adjustedPage = page.includes('/') ? page : '../' + page;
+            iframe.src = adjustedPage;
+            
             if (window.parent.updateParentBreadcrumb) {
                 window.parent.updateParentBreadcrumb(breadcrumbPath);
             }

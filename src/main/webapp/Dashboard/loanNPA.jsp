@@ -6,7 +6,7 @@
     // Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("../login.jsp");
         return;
     }
 
@@ -26,7 +26,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Loan NPA - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/totalCustomers.css">
+<link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
     display: flex;
@@ -204,7 +204,7 @@ function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Dashboard > Loan NPA > View Details');
     }
-    window.location.href = 'loanDetails.jsp?accountCode=' + accountCode + '&returnPage=loanNPA.jsp';
+    window.location.href = '../loanDetails.jsp?accountCode=' + accountCode + '&returnPage=loanNPA.jsp';
 }
 </script>
 </head>

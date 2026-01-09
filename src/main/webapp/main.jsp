@@ -44,8 +44,8 @@
     </div>
 
     <ul class="menu">
-    <li class="active" data-page="dashboard.jsp">
-        <a href="#" onclick="loadPage('dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
+    <li class="active" data-page="Dashboard/dashboard.jsp">
+        <a href="#" onclick="loadPage('Dashboard/dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
             <img src="images/right-arrow.png" width="18" height="18" alt="">
             <span>Dashboard</span>
         </a>
@@ -184,10 +184,9 @@ document.addEventListener('visibilitychange', function() {
 
 //========== PAGE MAPPING ==========
 const pageMap = {
-		'Dashboard': 'dashboard.jsp',
+		'Dashboard': 'Dashboard/dashboard.jsp',
 	    'Add Customer': 'addCustomer.jsp',
-	    'Total Customers': 'totalCustomers.jsp',
-	    'Total Customer': 'totalCustomers.jsp',
+	    'Total Customers': 'Dashboard/totalCustomers.jsp',
 	    'Authorization': 'authorizationPending.jsp',
 	    'Customer List': 'authorizationPendingCustomers.jsp',
 	    'Application List': 'authorizationPendingApplications.jsp',
@@ -197,10 +196,10 @@ const pageMap = {
 	    'View': 'View/view.jsp',
 	    'Total Accounts': 'View/totalAccounts.jsp',
 	    'Transactions': 'Transactions/transactions.jsp',
-	    'A Type member': 'aTypeMember.jsp',
-	    'B Type member': 'bTypeMember.jsp',
-	    'OTHER': 'otherMember.jsp',
-	    'View Details': 'viewCustomer.jsp'
+	    'A Type member': 'Dashboard/aTypeMember.jsp',
+	    'B Type member': 'Dashboard/bTypeMember.jsp',
+	    'OTHER': 'Dashboard/otherMember.jsp',
+	    'View Details': 'Dashboard/viewCustomer.jsp'
 };
 
 // Track the currently active menu item
@@ -246,7 +245,7 @@ function updateBreadcrumb(path) {
         if (index === parts.length - 1) {
             breadcrumbHTML += '<span class="breadcrumb-current">' + part + '</span>';
         } else {
-            const pageName = pageMap[part] || 'dashboard.jsp';
+            const pageName = pageMap[part] || 'Dashboard/dashboard.jsp';
             const previousPath = parts.slice(0, index + 1).join(' > ');
             
             breadcrumbHTML += '<div class="breadcrumb-item">' +
@@ -336,13 +335,13 @@ window.onload = function () {
         updateBreadcrumb(savedBreadcrumb);
         updateActiveMenuFromSession();
     } else {
-        document.getElementById("contentFrame").src = "dashboard.jsp";
+        document.getElementById("contentFrame").src = "Dashboard/dashboard.jsp";
         updateBreadcrumb("Dashboard");
-        sessionStorage.setItem("currentPage", "dashboard.jsp");
+        sessionStorage.setItem("currentPage", "Dashboard/dashboard.jsp");
         sessionStorage.setItem("currentBreadcrumb", "Dashboard");
         sessionStorage.setItem("activeMenu", "Dashboard");
         
-        const dashboardItem = document.querySelector('.menu li[data-page="dashboard.jsp"]');
+        const dashboardItem = document.querySelector('.menu li[data-page="Dashboard/dashboard.jsp"]');
         if (dashboardItem) {
             dashboardItem.classList.add('active');
             currentActiveMenu = dashboardItem;

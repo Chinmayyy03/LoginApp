@@ -5,7 +5,7 @@
 	<%
 	    String branchCode = (String) session.getAttribute("branchCode");
 	    if (branchCode == null) {
-	        response.sendRedirect("login.jsp");
+	        response.sendRedirect("../login.jsp");
 	        return;
 	    }
 	    

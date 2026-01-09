@@ -5,7 +5,7 @@
     // ✅ Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("../login.jsp");
         return;
     }
 
@@ -18,8 +18,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>A Type Member - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/totalCustomers.css">
+<title>B Type Member - Branch <%= branchCode %></title>
+<link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
     display: flex;
@@ -135,7 +135,7 @@ function updatePaginationControls(totalRecords, page) {
     document.getElementById("pageInfo").textContent = pageInfo;
     
     // Store current page in sessionStorage for back button
-    sessionStorage.setItem('aTypeMemberPage', page);
+    sessionStorage.setItem('bTypeMemberPage', page);
 }
 
 // Navigate to previous page
@@ -180,11 +180,11 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > A Type member');
+        window.parent.updateParentBreadcrumb('Dashboard > B Type member');
     }
     
     // Check if returning from detail view and restore page
-    var savedPage = sessionStorage.getItem('aTypeMemberPage');
+    var savedPage = sessionStorage.getItem('bTypeMemberPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
         displayCustomers(allCustomers, currentPage);
@@ -194,15 +194,15 @@ window.onload = function() {
 // View customer and update breadcrumb
 function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > A Type member > View Details');
+        window.parent.updateParentBreadcrumb('Dashboard > B Type member > View Details');
     }
-    window.location.href = 'viewCustomer.jsp?cid=' + customerId + '&returnPage=aTypeMember.jsp';
+    window.location.href = 'viewCustomer.jsp?cid=' + customerId + '&returnPage=bTypeMember.jsp';
 }
 </script>
 </head>
 <body>
 
-<h2>A Type Member for Branch: <%= branchCode %></h2>
+<h2>B Type Member for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
      <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Name, Customer ID, Branch, Mobile">
@@ -224,7 +224,7 @@ function viewCustomer(customerId) {
 <%
 try (Connection conn = DBConnection.getConnection();
      PreparedStatement ps = conn.prepareStatement(
-        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS='A' AND IS_ACTIVE='Y' AND MEMBER_TYPE='A' ORDER BY CUSTOMER_ID")) {
+        "SELECT BRANCH_CODE, CUSTOMER_ID, CUSTOMER_NAME, MOBILE_NO FROM CUSTOMERS WHERE BRANCH_CODE = ? AND STATUS='A' AND IS_ACTIVE='Y' AND MEMBER_TYPE='B' ORDER BY CUSTOMER_ID")) {
 
     ps.setString(1, branchCode);
     ResultSet rs = ps.executeQuery();
@@ -300,7 +300,7 @@ try (Connection conn = DBConnection.getConnection();
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
     
     // Store initial page
-    sessionStorage.setItem('aTypeMemberPage', '1');
+    sessionStorage.setItem('bTypeMemberPage', '1');
 })();
 </script>
 
