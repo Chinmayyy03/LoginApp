@@ -730,9 +730,9 @@ input[type="text"]:read-only {
 				        <input type="text" name="accountName" id="accountName" placeholder="Account Name" style="width: 220px;" readonly>
 				    </div>
 				    <div>
-				        <div class="label" id="transactionamountLabel">Transaction Amount</div>
-				        <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount">
-				    </div>
+					    <div class="label" id="transactionamountLabel">Transaction Amount</div>
+					    <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount" oninput="calculateNewBalanceInIframe()">
+					</div>
 				    <div class="save-button-container">
 					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
 					</div>
@@ -1057,10 +1057,15 @@ function updateLabelsBasedOnOperation() {
 
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
-    const operationRadios = document.querySelectorAll("input[name='operationType']");
-    operationRadios.forEach(function(radio) {
-        radio.addEventListener('change', updateLabelsBasedOnOperation);
-    });
+	// Inside DOMContentLoaded
+	const operationRadios = document.querySelectorAll("input[name='operationType']");
+	operationRadios.forEach(function(radio) {
+	    radio.addEventListener('change', function() {
+	        updateLabelsBasedOnOperation();
+	        // ADD THIS LINE
+	        calculateNewBalanceInIframe();
+	    });
+	});
     
     // Credit Account Code - digits only
     const creditAccountCodeInput = document.getElementById('creditAccountCode');
@@ -1098,6 +1103,8 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             document.getElementById("accountCode").value = '';
             document.getElementById("accountName").value = '';
+            // ADD THIS LINE
+            document.getElementById("transactionamount").value = '';
             previousAccountCode = '';
             document.getElementById('searchResults').classList.remove('active');
             currentCategory = this.value;
@@ -1315,6 +1322,39 @@ function highlightMatch(text, search) {
            search + 
            '</span>' + 
            text.substring(actualIndex + search.length);
+}
+
+function calculateNewBalanceInIframe() {
+    const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    
+    const iframe = document.getElementById('resultFrame');
+    
+    try {
+        const iframeWindow = iframe.contentWindow;
+        const iframeDoc = iframeWindow.document;
+        
+        // Get ledger balance from iframe
+        const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+        const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+        
+        if (ledgerBalanceField && newLedgerBalanceField) {
+            const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+            let newLedgerBalance = ledgerBalance;
+            
+            if (transactionAmount > 0) {
+                if (operationType === 'deposit') {
+                    newLedgerBalance = ledgerBalance + transactionAmount;
+                } else if (operationType === 'withdrawal') {
+                    newLedgerBalance = ledgerBalance - transactionAmount;
+                }
+            }
+            
+            newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
+        }
+    } catch (e) {
+        console.error('Error calculating balance:', e);
+    }
 }
 </script>
 </body>
