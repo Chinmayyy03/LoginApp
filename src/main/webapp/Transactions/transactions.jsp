@@ -1486,8 +1486,7 @@ function addCreditAccountRow() {
                        placeholder="Enter credit account code" 
                        maxlength="14" 
                        autocomplete="off"
-                       onkeydown="allowOnlyNumbers(event)"
-                    	   oninput="handleDynamicCreditSearch(${creditRowCounter}, this.value.replace(/\\D/g, ''))"
+                       oninput="handleDynamicCreditSearch(${creditRowCounter}, this.value.replace(/\\D/g, ''))">
                 <button type="button" class="icon-btn" onclick="openDynamicLookup(${creditRowCounter})">…</button>
             </div>
             <div class="search-hint">Type last 7 digits to search</div>
