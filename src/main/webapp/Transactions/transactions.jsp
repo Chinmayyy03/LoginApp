@@ -616,6 +616,60 @@ input[type="text"]:read-only {
 		    transform: scale(0.97);
 		}
 		
+		
+.add-btn {
+    background-color: #373279;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-btn:hover {
+    background-color: #2b0d73;
+    transform: scale(1.05);
+}
+
+.add-btn:active {
+    transform: scale(0.97);
+}
+
+/* Container for dynamically added credit account rows */
+.credit-accounts-container {
+    margin-top: 15px;
+}
+
+.credit-account-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    align-items: flex-end;
+}
+
+.remove-btn {
+    background-color: #c62828;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    height: fit-content;
+}
+
+.remove-btn:hover {
+    background-color: #b71c1c;
+}
 		/* Responsive adjustments */
 		@media (max-width: 600px) {
 		    .save-btn {
@@ -623,6 +677,8 @@ input[type="text"]:read-only {
 		        padding: 10px;
 		    }
 		}
+		
+		
     </style>
 </head>
 <body>
@@ -772,7 +828,7 @@ input[type="text"]:read-only {
 				    </div>
 				    
 				    <div class="save-button-container">
-					    <button type="button" class="Addbutton" onclick="handleSaveTransaction()">+</button>
+					    <button type="button" class="add-btn" onclick="addCreditAccountRow()">+</button>
 					</div>
 				    
 				    <div>
@@ -786,6 +842,7 @@ input[type="text"]:read-only {
 				    </div>
 				  
 				</div>
+				<div id="creditAccountsContainer"></div>
             </fieldset>
 
         </div>
@@ -1170,7 +1227,12 @@ function sendBack(code, desc, type) {
 }
 
 function setValueFromLookup(code, desc, type) {
-    if (window.currentLookupType === "creditAccount") {
+    if (window.currentLookupType === "dynamicCredit" && window.currentDynamicRowId) {
+        const rowId = window.currentDynamicRowId;
+        document.getElementById("creditAccountCode_" + rowId).value = code;
+        document.getElementById("creditAccountName_" + rowId).value = desc;
+        closeLookup();
+    } else if (window.currentLookupType === "creditAccount") {
         document.getElementById("creditAccountCode").value = code;
         document.getElementById("creditAccountName").value = desc;
         previousCreditAccountCode = code;
@@ -1392,6 +1454,92 @@ function calculateNewBalanceInIframe() {
     } catch (e) {
         console.error('Error calculating balance:', e);
     }
+}
+
+//========== DYNAMIC CREDIT ACCOUNT ROWS ==========
+let creditRowCounter = 0;
+
+function addCreditAccountRow() {
+    creditRowCounter++;
+    const container = document.getElementById('creditAccountsContainer');
+    
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row';
+    rowDiv.id = 'dynamicCreditRow_' + creditRowCounter;
+    rowDiv.style.marginTop = '15px';
+    
+    rowDiv.innerHTML = `
+        <div>
+            <div class="label">Credit Account Code</div>
+            <div class="input-box">
+                <input type="text" 
+                       name="creditAccountCode_${creditRowCounter}" 
+                       id="creditAccountCode_${creditRowCounter}" 
+                       placeholder="Enter credit account code" 
+                       maxlength="14" 
+                       autocomplete="off"
+                       onkeydown="allowOnlyNumbers(event)"
+                       oninput="this.value = this.value.replace(/\\D/g, '')">
+                <button type="button" class="icon-btn" onclick="openDynamicLookup(${creditRowCounter})">…</button>
+            </div>
+            <div class="search-hint">Type last 7 digits to search</div>
+            <div class="search-dropdown">
+                <div class="search-results" id="creditSearchResults_${creditRowCounter}"></div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="label">Credit Account Name</div>
+            <input type="text" 
+                   name="creditAccountName_${creditRowCounter}" 
+                   id="creditAccountName_${creditRowCounter}" 
+                   placeholder="Account Name" 
+                   style="width: 220px;" 
+                   readonly>
+        </div>
+        
+        <div>
+            <div class="label">Credit Amount</div>
+            <input type="text" 
+                   name="creditAmount_${creditRowCounter}" 
+                   id="creditAmount_${creditRowCounter}" 
+                   placeholder="Account Amount">
+        </div>
+        
+        <div class="save-button-container">
+            <button type="button" class="remove-btn" onclick="removeCreditAccountRow(${creditRowCounter})">×</button>
+        </div>
+    `;
+    
+    container.appendChild(rowDiv);
+    showToast('Credit account row added', 'success');
+}
+
+function removeCreditAccountRow(rowId) {
+    const row = document.getElementById('dynamicCreditRow_' + rowId);
+    if (row) {
+        row.remove();
+        showToast('Credit account row removed', 'info');
+    }
+}
+
+function allowOnlyNumbers(e) {
+    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true) ||
+        (e.keyCode >= 35 && e.keyCode <= 39)) {
+        return;
+    }
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+    }
+}
+
+function openDynamicLookup(rowId) {
+    window.currentDynamicRowId = rowId;
+    openLookup('dynamicCredit');
 }
 </script>
 </body>
