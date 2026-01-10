@@ -23,7 +23,7 @@
         String accType = request.getParameter("accType");
         query = "SELECT PRODUCT_CODE, DESCRIPTION FROM HEADOFFICE.PRODUCT WHERE ACCOUNT_TYPE = ? ORDER BY PRODUCT_CODE";
     }
-    else if ("account".equals(type)) {
+    else if ("account".equals(type) || "dynamicCredit".equals(type)) {
         // Map account categories to product code starting digits
         String productCodePattern = "";
         switch(accountCategory) {

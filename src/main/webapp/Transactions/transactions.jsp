@@ -1197,16 +1197,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
     let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
-    let url = "LookupForTransactions.jsp?type=" + (type === 'creditAccount' ? 'account' : type);
-    if (type === 'account' || type === 'creditAccount') {
-        url += "&accountCategory=" + accountCategory;
-    }
+    let url = "LookupForTransactions.jsp?type=account";  // ALWAYS USE 'account'
+    url += "&accountCategory=" + accountCategory;
+    
     fetch(url)
         .then(function(response) { return response.text(); })
         .then(function(html) {
             document.getElementById("lookupContent").innerHTML = html;
             document.getElementById("lookupModal").style.display = "flex";
-            window.currentLookupType = type;
+            window.currentLookupType = type;  // Keep track of what called it
             setTimeout(function() {
                 const searchBox = document.getElementById('searchBox');
                 if (searchBox) searchBox.focus();
@@ -1227,21 +1226,30 @@ function sendBack(code, desc, type) {
 }
 
 function setValueFromLookup(code, desc, type) {
-    if (window.currentLookupType === "dynamicCredit" && window.currentDynamicRowId) {
+    // Check for dynamic credit row FIRST
+    if (window.currentDynamicRowId) {
         const rowId = window.currentDynamicRowId;
         document.getElementById("creditAccountCode_" + rowId).value = code;
         document.getElementById("creditAccountName_" + rowId).value = desc;
+        window.currentDynamicRowId = null;
+        window.currentLookupType = null;
         closeLookup();
-    } else if (window.currentLookupType === "creditAccount") {
+    } 
+    // Then check for main credit account (transfer mode)
+    else if (window.currentLookupType === "creditAccount") {
         document.getElementById("creditAccountCode").value = code;
         document.getElementById("creditAccountName").value = desc;
         previousCreditAccountCode = code;
+        window.currentLookupType = null;
         closeLookup();
         setTimeout(function() { submitTransactionForm(); }, 500);
-    } else if (type === "account") {
+    } 
+    // Finally, debit account
+    else {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
         previousAccountCode = code;
+        window.currentLookupType = null;
         closeLookup();
         setTimeout(function() { submitTransactionForm(); }, 500);
     }
@@ -1479,7 +1487,7 @@ function addCreditAccountRow() {
                        maxlength="14" 
                        autocomplete="off"
                        onkeydown="allowOnlyNumbers(event)"
-                       oninput="this.value = this.value.replace(/\\D/g, '')">
+                    	   oninput="handleDynamicCreditSearch(${creditRowCounter}, this.value.replace(/\\D/g, ''))"
                 <button type="button" class="icon-btn" onclick="openDynamicLookup(${creditRowCounter})">…</button>
             </div>
             <div class="search-hint">Type last 7 digits to search</div>
@@ -1514,6 +1522,96 @@ function addCreditAccountRow() {
     container.appendChild(rowDiv);
     showToast('Credit account row added', 'success');
 }
+function handleDynamicCreditSearch(rowId, value) {
+    clearTimeout(searchTimeout);
+    const searchResults = document.getElementById('creditSearchResults_' + rowId);
+    
+    if (value.length === 0) {
+        searchResults.classList.remove('active');
+        return;
+    }
+    
+    let searchNumber = value;
+    if (value.length > 7) {
+        searchNumber = value.slice(-7);
+    }
+    
+    if (searchNumber.length < MIN_SEARCH_LENGTH) {
+        searchResults.innerHTML = '<div class="search-info">Type at least ' + MIN_SEARCH_LENGTH + ' digits to search...</div>';
+        searchResults.classList.add('active');
+        return;
+    }
+    
+    searchResults.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div><div style="margin-top: 8px;">Searching...</div></div>';
+    searchResults.classList.add('active');
+    
+    searchTimeout = setTimeout(function() {
+        performDynamicCreditSearch(rowId, searchNumber);
+    }, SEARCH_DELAY);
+}
+
+function performDynamicCreditSearch(rowId, searchNumber) {
+    const searchResults = document.getElementById('creditSearchResults_' + rowId);
+    currentCategory = document.querySelector('input[name="accountCategory"]:checked').value;
+    
+    fetch('SearchAccounts.jsp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'searchNumber=' + encodeURIComponent(searchNumber) + '&category=' + encodeURIComponent(currentCategory)
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.error) {
+            searchResults.innerHTML = '<div class="no-results">' + data.error + '</div>';
+            return;
+        }
+        if (data.accounts && data.accounts.length > 0) {
+            displayDynamicCreditSearchResults(rowId, data.accounts, searchNumber);
+        } else {
+            searchResults.innerHTML = '<div class="no-results">No accounts found matching "' + searchNumber + '"</div>';
+        }
+    })
+    .catch(function(error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="no-results">Error loading accounts. Please try again.</div>';
+        showToast('Search failed. Please try again.', 'error');
+    });
+}
+
+function displayDynamicCreditSearchResults(rowId, accounts, searchNumber) {
+    const searchResults = document.getElementById('creditSearchResults_' + rowId);
+    if (accounts.length === 0) {
+        searchResults.innerHTML = '<div class="no-results">No accounts found</div>';
+        return;
+    }
+    let html = '';
+    accounts.forEach(function(account) {
+        const highlightedCode = highlightMatch(account.code, searchNumber);
+        const escapedName = account.name.replace(/'/g, "\\'");
+        const productDesc = account.productDesc || '';
+        
+        html += '<div class="search-result-item" onclick="selectDynamicCreditFromSearch(' + rowId + ', \'' + 
+                account.code + '\', \'' + escapedName + '\')">' +
+                '<div class="result-code">' + highlightedCode + '</div>' +
+                '<div class="result-name-row">' + account.name + '</div>';
+        
+        if (productDesc && productDesc.trim() !== '') {
+            html += '<div class="result-product-desc">' + productDesc + '</div>';
+        }
+        
+        html += '</div>';
+    });
+    searchResults.innerHTML = html;
+}
+
+function selectDynamicCreditFromSearch(rowId, code, name) {
+    document.getElementById('creditAccountCode_' + rowId).value = code;
+    document.getElementById('creditAccountName_' + rowId).value = name;
+    document.getElementById('creditSearchResults_' + rowId).classList.remove('active');
+}
 
 function removeCreditAccountRow(rowId) {
     const row = document.getElementById('dynamicCreditRow_' + rowId);
@@ -1539,7 +1637,7 @@ function allowOnlyNumbers(e) {
 
 function openDynamicLookup(rowId) {
     window.currentDynamicRowId = rowId;
-    openLookup('dynamicCredit');
+    openLookup('account');  // USE 'account' instead of 'dynamicCredit'
 }
 </script>
 </body>
