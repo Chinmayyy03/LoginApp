@@ -208,7 +208,7 @@ function checkAccountDetails() {
                	document.getElementById('customerId').value = data.customerId || '';
                	document.getElementById('aadharnumber').value = data.aadharNumber || '';
                	document.getElementById('pannumber').value = data.panNumber || '';
-               	document.getElementById('pincode').value = data.pincode || ''; 
+               	document.getElementById('zipcode').value = data.zipcode || '';
                 
                 // Populate product name and balance fields
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';

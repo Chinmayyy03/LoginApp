@@ -17,15 +17,16 @@
         
         // Query to get balances, product name, GL account code and GL account name using functions
         String query = "SELECT " +
-               "LEDGERBALANCE, " +
-               "AVAILABLEBALANCE, " +
-               "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
-               "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME, " +
-            	"FN_GET_CUSTOMER_ID(?) AS CUSTOMER_ID, " +
-            	"Fn_Get_Cust_aadhar(FN_GET_CUSTOMER_ID(?)) AS AADHAR_NUMBER, " +
-            	"Fn_Get_Cust_PAN(FN_GET_CUSTOMER_ID(?)) AS PAN_NUMBER " +
-               "FROM BALANCE.ACCOUNT " +
-               "WHERE ACCOUNT_CODE = ?";
+       "LEDGERBALANCE, " +
+       "AVAILABLEBALANCE, " +
+       "FN_GET_AC_GL(?) AS GL_ACCOUNT_CODE, " +
+       "Fn_Get_Account_name(FN_GET_AC_GL(?)) AS GL_ACCOUNT_NAME, " +
+       "FN_GET_CUSTOMER_ID(?) AS CUSTOMER_ID, " +
+       "Fn_Get_Cust_aadhar(FN_GET_CUSTOMER_ID(?)) AS AADHAR_NUMBER, " +
+       "Fn_Get_Cust_PAN(FN_GET_CUSTOMER_ID(?)) AS PAN_NUMBER, " +
+       "Fn_Get_Cust_ZIPNO(FN_GET_CUSTOMER_ID(?)) AS ZIPCODE " +  // ADD THIS LINE
+       "FROM BALANCE.ACCOUNT " +
+       "WHERE ACCOUNT_CODE = ?";
         
         ps = con.prepareStatement(query);
         ps.setString(1, accountCode);  // For FN_GET_AC_GL function
@@ -33,7 +34,8 @@
         ps.setString(3, accountCode);  // For FN_GET_CUSTOMER_ID function
         ps.setString(4, accountCode);  // For Fn_Get_Cust_aadhar(FN_GET_CUSTOMER_ID(?))
         ps.setString(5, accountCode);  // For Fn_Get_Cust_PAN(FN_GET_CUSTOMER_ID(?))
-        ps.setString(6, accountCode);  // For the WHERE clause
+        ps.setString(6, accountCode);  // For Fn_Get_Cust_ZIPNO(FN_GET_CUSTOMER_ID(?)) - ADD THIS LINE
+        ps.setString(7, accountCode);  // For the WHERE clause - CHANGE FROM 6 to 7
         rs = ps.executeQuery();
         
         if (rs.next()) {
@@ -41,6 +43,7 @@
             String glAccountName = rs.getString("GL_ACCOUNT_NAME");
             String aadharNumber = rs.getString("AADHAR_NUMBER");
             String panNumber = rs.getString("PAN_NUMBER");
+            String zipcode = rs.getString("ZIPCODE");  
             
             // Clean up the GL account code (trim and check for default value)
             if (glAccountCode != null) {
@@ -75,6 +78,16 @@
                 panNumber = "";
             }
             
+            // Clean up ZIP code - ADD THIS BLOCK
+            if (zipcode != null) {
+                zipcode = zipcode.trim();
+                // Check if it's the default error value from function
+                if (".".equals(zipcode)) {
+                    zipcode = "";
+                }
+            } else {
+                zipcode = "";
+            }
             // Build JSON response
          // Build JSON response
             out.print("{");
@@ -85,7 +98,8 @@
             out.print("\"glAccountName\": \"" + glAccountName + "\",");
             out.print("\"customerId\": \"" + (rs.getString("CUSTOMER_ID") != null ? rs.getString("CUSTOMER_ID").trim() : "") + "\",");
             out.print("\"aadharNumber\": \"" + aadharNumber + "\",");
-            out.print("\"panNumber\": \"" + panNumber + "\"");
+            out.print("\"panNumber\": \"" + panNumber + "\",");
+            out.print("\"zipcode\": \"" + zipcode + "\"");  
             out.print("}");
         } else {
             out.print("{\"error\": \"Account not found in balance table\"}");
