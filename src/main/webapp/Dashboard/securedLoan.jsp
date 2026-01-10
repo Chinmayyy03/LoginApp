@@ -3,9 +3,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
-    // ========================================
-    // STEP 1: Session Validation
-    // ========================================
+    // Get branch code from session
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("../login.jsp");
@@ -22,18 +20,15 @@
     
     int recordsPerPage = 15;
     
-    // Get return page parameter (for back button functionality)
-    String returnPage = request.getParameter("returnPage");
-    if (returnPage == null || returnPage.trim().isEmpty()) {
-        returnPage = "Dashboard/dashboard.jsp";
-    }
+    // SR_NUMBER for Secured Loan in DASHBOARD table
+    String srNumber = "6";
 %>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Total Loan - Branch <%= branchCode %></title>
+<title>Secured Loan - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -70,20 +65,11 @@
     padding: 0 15px;
 }
 
+/* Number columns right-aligned */
 .amount-col {
     text-align: right;
 }
-
-.error-box {
-    background: #ffebee;
-    color: #c62828;
-    padding: 20px;
-    margin: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #c62828;
-}
 </style>
-
 <script>
 // Store all loan data for client-side search
 let allLoans = [];
@@ -97,8 +83,10 @@ function searchTable() {
     var table = document.getElementById("loanTable");
     var tbody = table.querySelector("tbody");
     
+    // Clear current table body
     tbody.innerHTML = "";
     
+    // Filter all loans
     let filteredLoans = allLoans;
     if (filter) {
         filteredLoans = allLoans.filter(function(loan) {
@@ -107,6 +95,7 @@ function searchTable() {
         });
     }
     
+    // Display filtered results (paginated)
     displayLoans(filteredLoans, 1);
 }
 
@@ -118,14 +107,16 @@ function displayLoans(loans, page) {
     tbody.innerHTML = "";
     
     if (loans.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No loans found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No secured loans found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
     
+    // Calculate start and end indices
     var start = (page - 1) * recordsPerPage;
     var end = Math.min(start + recordsPerPage, loans.length);
     
+    // Display loans for current page
     for (var i = start; i < end; i++) {
         var loan = loans[i];
         var srNo = i + 1;
@@ -152,8 +143,11 @@ function updatePaginationControls(totalRecords, page) {
     document.getElementById("prevBtn").disabled = (page <= 1);
     document.getElementById("nextBtn").disabled = (page >= totalPages);
     
-    document.getElementById("pageInfo").textContent = "Page " + page + " of " + totalPages;
-    sessionStorage.setItem('totalLoanPage', page);
+    var pageInfo = "Page " + page + " of " + totalPages;
+    document.getElementById("pageInfo").textContent = pageInfo;
+    
+    // Store current page in sessionStorage for back button
+    sessionStorage.setItem('securedLoanPage', page);
 }
 
 // Navigate to previous page
@@ -194,10 +188,11 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Loan');
+        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan');
     }
     
-    var savedPage = sessionStorage.getItem('totalLoanPage');
+    // Check if returning from detail view and restore page
+    var savedPage = sessionStorage.getItem('securedLoanPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
         displayLoans(allLoans, currentPage);
@@ -207,15 +202,16 @@ window.onload = function() {
 // View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Loan > View Details');
+        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan > View Details');
     }
-    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/totalLoan.jsp';
+    // Reuse existing viewAccount.jsp with returnPage parameter
+    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/securedLoan.jsp';
 }
 </script>
 </head>
 <body>
 
-<h2>Total Loan for Branch: <%= branchCode %></h2>
+<h2>Secured Loan for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
      <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Balance">
@@ -236,111 +232,74 @@ function viewLoan(accountCode) {
 </thead>
 <tbody>
 <%
-    // ========================================
-    // STEP 2: Fetch Query Configuration from DASHBOARD
-    // ========================================
-    Connection conn = null;
-    PreparedStatement psConfig = null;
-    PreparedStatement psDynamic = null;
-    ResultSet rsConfig = null;
-    ResultSet rsDynamic = null;
+Connection conn = null;
+PreparedStatement psDashboard = null;
+PreparedStatement psData = null;
+ResultSet rsDashboard = null;
+ResultSet rsData = null;
+
+try {
+    conn = DBConnection.getConnection();
+    
+    // Step 1: Get the query from DASHBOARD table
+    String dashboardQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = ?";
+    psDashboard = conn.prepareStatement(dashboardQuery);
+    psDashboard.setString(1, srNumber);
+    rsDashboard = psDashboard.executeQuery();
     
     String dynamicQuery = null;
+    if (rsDashboard.next()) {
+        dynamicQuery = rsDashboard.getString("QUERY");
+    }
     
-    try {
-        conn = DBConnection.getConnection();
+    if (dynamicQuery == null || dynamicQuery.trim().isEmpty()) {
+        out.println("<tr><td colspan='7' class='no-data'>Query not configured in DASHBOARD table for SR_NUMBER: " + srNumber + "</td></tr>");
+    } else {
+        // Step 2: Execute the dynamic query
+        // Replace placeholders with actual values
+        dynamicQuery = dynamicQuery.replace(":workingDate", "?");
+        dynamicQuery = dynamicQuery.replace(":branchCode", "?");
         
-        // Fetch D_QUERY from DASHBOARD table for Total Loan (SR_NUMBER = 5)
-        String configQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = 5";
+        psData = conn.prepareStatement(dynamicQuery);
         
-        psConfig = conn.prepareStatement(configQuery);
-        rsConfig = psConfig.executeQuery();
-        
-        if (rsConfig.next()) {
-            dynamicQuery = rsConfig.getString("D_QUERY");
-            
-            // ========================================
-            // STEP 3: Validate D_QUERY
-            // ========================================
-            if (dynamicQuery == null || dynamicQuery.trim().isEmpty()) {
-                out.println("<tr><td colspan='7' class='no-data'>");
-                out.println("<div class='error-box'>");
-                out.println("<h3>⚠ Configuration Error</h3>");
-                out.println("<p>No query defined in GLOBALCONFIG.DASHBOARD table (SR_NUMBER = 5).</p>");
-                out.println("<p>Please configure the D_QUERY column.</p>");
-                out.println("</div>");
-                out.println("</td></tr>");
-                return;
-            }
-            
-        } else {
-            out.println("<tr><td colspan='7' class='no-data'>");
-            out.println("<div class='error-box'>");
-            out.println("<h3>⚠ Configuration Not Found</h3>");
-            out.println("<p>Dashboard entry not found for SR_NUMBER = 5</p>");
-            out.println("</div>");
-            out.println("</td></tr>");
-            return;
-        }
-        
-        rsConfig.close();
-        psConfig.close();
-        
-        // ========================================
-        // STEP 4: Parse Query and Replace Parameters
-        // ========================================
-        // Count occurrences of '!' and '#' to know how many parameters to bind
-        int workingDateCount = 0;
-        int branchCodeCount = 0;
-        
-        for (char c : dynamicQuery.toCharArray()) {
-            if (c == '!') workingDateCount++;
-            if (c == '#') branchCodeCount++;
-        }
-        
-        // Replace '!' with '?' for DATE parameters
-        // Replace '#' with '?' for BRANCH parameters
-        String preparedQuery = dynamicQuery.replace('!', '?').replace('#', '?');
-        
-        // ========================================
-        // STEP 5: Execute Dynamic Query with Parameters
-        // ========================================
-        psDynamic = conn.prepareStatement(preparedQuery);
-        
-        // Bind parameters in the order they appear
+        // Set parameters based on placeholders in query
         int paramIndex = 1;
-        for (char c : dynamicQuery.toCharArray()) {
-            if (c == '!') {
-                // Bind working date
-                psDynamic.setDate(paramIndex++, workingDate);
-            } else if (c == '#') {
-                // Bind branch code
-                psDynamic.setString(paramIndex++, branchCode);
+        if (dynamicQuery.contains("?")) {
+            // Count occurrences of ? to determine parameter binding
+            int workingDateCount = (dynamicQuery.split("\\?", -1).length - 1);
+            
+            // Bind parameters (adjust based on your query structure)
+            for (int i = 0; i < workingDateCount; i++) {
+                if (i == 0) {
+                    psData.setDate(paramIndex++, workingDate);
+                } else if (i == 1) {
+                    psData.setDate(paramIndex++, workingDate);
+                } else if (i == 2) {
+                    psData.setString(paramIndex++, branchCode);
+                }
             }
         }
         
-        rsDynamic = psDynamic.executeQuery();
-        
-        // ========================================
-        // STEP 6: Process and Display Results
-        // ========================================
+        rsData = psData.executeQuery();
+
         boolean hasData = false;
         int displayCount = 0;
         int srNo = 1;
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
-        
-        while (rsDynamic.next()) {
+
+        // Data Rows - display first 15 records initially
+        while (rsData.next()) {
             hasData = true;
-            String accountCode = rsDynamic.getString("ACCOUNT_CODE");
-            String name = rsDynamic.getString("NAME");
-            Date dateOpen = rsDynamic.getDate("DATEACCOUNTOPEN");
+            String accountCode = rsData.getString("ACCOUNT_CODE");
+            String name = rsData.getString("NAME");
+            Date dateOpen = rsData.getDate("DATEACCOUNTOPEN");
             String dateOpenStr = (dateOpen != null) ? sdf.format(dateOpen) : "-";
             
-            double balance = rsDynamic.getDouble("v_os_balance");
+            double balance = rsData.getDouble("v_os_balance");
             String balanceStr = String.format("%.2f", balance);
             
-            Date reviewDate = rsDynamic.getDate("ACCOUNTREVIEWDATE");
+            Date reviewDate = rsData.getDate("ACCOUNTREVIEWDATE");
             String reviewDateStr = (reviewDate != null) ? sdf.format(reviewDate) : "-";
             
             // Add to JavaScript array for client-side operations
@@ -374,46 +333,22 @@ function viewLoan(accountCode) {
                 srNo++;
             }
         }
-        
+
         if (!hasData) {
-            out.println("<tr><td colspan='7' class='no-data'>No loans found for this branch.</td></tr>");
+            out.println("<tr><td colspan='7' class='no-data'>No secured loans found for this branch.</td></tr>");
         }
-        
-    } catch (SQLException e) {
-        // ========================================
-        // STEP 7: SQL Error Handling
-        // ========================================
-        out.println("<tr><td colspan='7'>");
-        out.println("<div class='error-box'>");
-        out.println("<h3>⚠ Database Error</h3>");
-        out.println("<p><strong>Error Message:</strong> " + e.getMessage() + "</p>");
-        out.println("<p><strong>SQL State:</strong> " + e.getSQLState() + "</p>");
-        
-        if (dynamicQuery != null) {
-            out.println("<p><strong>Query:</strong></p>");
-            out.println("<pre style='background: #f5f5f5; padding: 10px; overflow-x: auto;'>");
-            out.println(dynamicQuery);
-            out.println("</pre>");
-        }
-        
-        out.println("</div>");
-        out.println("</td></tr>");
-        e.printStackTrace();
-        
-    } catch (Exception e) {
-        out.println("<tr><td colspan='7' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
-        e.printStackTrace();
-        
-    } finally {
-        // ========================================
-        // STEP 8: Resource Cleanup
-        // ========================================
-        try { if (rsDynamic != null) rsDynamic.close(); } catch (Exception ex) {}
-        try { if (rsConfig != null) rsConfig.close(); } catch (Exception ex) {}
-        try { if (psDynamic != null) psDynamic.close(); } catch (Exception ex) {}
-        try { if (psConfig != null) psConfig.close(); } catch (Exception ex) {}
-        try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
+
+} catch (Exception e) {
+    out.println("<tr><td colspan='7' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
+    e.printStackTrace();
+} finally {
+    try { if (rsData != null) rsData.close(); } catch (Exception ex) {}
+    try { if (rsDashboard != null) rsDashboard.close(); } catch (Exception ex) {}
+    try { if (psData != null) psData.close(); } catch (Exception ex) {}
+    try { if (psDashboard != null) psDashboard.close(); } catch (Exception ex) {}
+    try { if (conn != null) conn.close(); } catch (Exception ex) {}
+}
 %>
 </tbody>
 </table>
@@ -433,7 +368,9 @@ function viewLoan(accountCode) {
     document.getElementById("prevBtn").disabled = true;
     document.getElementById("nextBtn").disabled = (totalPages <= 1);
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
-    sessionStorage.setItem('totalLoanPage', '1');
+    
+    // Store initial page
+    sessionStorage.setItem('securedLoanPage', '1');
 })();
 </script>
 
