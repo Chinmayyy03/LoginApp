@@ -765,6 +765,25 @@ input[type="text"]:read-only {
 				        <div class="label" id="creditAccountNameLabel">Credit Account Name</div>
 				        <input type="text" name="creditAccountName" id="creditAccountName" placeholder="Account Name" style="width: 220px;" readonly>
 				    </div>
+				    
+				    <div>
+				        <div class="label" id="creditAmount">Credit Amount</div>
+				        <input type="text" name="creditAmount" id="creditAmount" placeholder="Account Amount">
+				    </div>
+				    
+				    <div class="save-button-container">
+					    <button type="button" class="Addbutton" onclick="handleSaveTransaction()">+</button>
+					</div>
+				    
+				    <div>
+				        <div class="label" id="debitAmount">Debit Total</div>
+				        <input type="text" name="debitTotal" id="debitTotal" placeholder="Debit Total">
+				    </div>
+				    
+				    <div>
+				        <div class="label" id="CreditAmount">Credit Total</div>
+				        <input type="text" name="CreditAmount" id="CreditAmount" placeholder="Credit Total">
+				    </div>
 				  
 				</div>
             </fieldset>
@@ -1156,6 +1175,7 @@ function setValueFromLookup(code, desc, type) {
         document.getElementById("creditAccountName").value = desc;
         previousCreditAccountCode = code;
         closeLookup();
+        setTimeout(function() { submitTransactionForm(); }, 500);
     } else if (type === "account") {
         document.getElementById("accountCode").value = code;
         document.getElementById("accountName").value = desc;
@@ -1172,12 +1192,28 @@ function submitTransactionForm() {
     let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
     let accountCode = document.querySelector("input[name='accountCode']").value.trim();
     let accountName = document.querySelector("input[name='accountName']").value.trim();
-    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName);
+    
+    // Get credit account values (will be empty if not in transfer mode)
+    let creditAccountCodeInput = document.getElementById('creditAccountCode');
+    let creditAccountNameInput = document.getElementById('creditAccountName');
+    let creditAccountCode = creditAccountCodeInput ? creditAccountCodeInput.value.trim() : '';
+    let creditAccountName = creditAccountNameInput ? creditAccountNameInput.value.trim() : '';
+    
+    // Set hidden field values
+    let hiddenCreditCode = document.getElementById('hiddenCreditAccountCode');
+    let hiddenCreditName = document.getElementById('hiddenCreditAccountName');
+    
+    if (hiddenCreditCode) hiddenCreditCode.value = creditAccountCode;
+    if (hiddenCreditName) hiddenCreditName.value = creditAccountName;
+    
+    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName, creditAccountCode, creditAccountName);
+    
     const pageMap = {
         "deposit": "transactionForm.jsp",
         "withdrawal": "transactionForm.jsp",
-        "transfer": "transactionForm.jsp"
+        "transfer": "transferForm.jsp"
     };
+    
     if (pageMap[operationType]) {
         let form = document.getElementById("transactionForm");
         form.action = pageMap[operationType];
@@ -1295,6 +1331,7 @@ function selectCreditAccountFromSearch(code, name) {
     document.getElementById('creditAccountName').value = name;
     previousCreditAccountCode = code;
     document.getElementById('creditSearchResults').classList.remove('active');
+    setTimeout(function() { submitTransactionForm(); }, 500);
     
 }
 
