@@ -122,8 +122,8 @@
             </div>
             
             <div>
-                <label>Pincode</label>
-                <input type="text" id="pincode" name="pincode" readonly>
+                <label>ZIP Code</label>
+                <input type="text" id="zipcode" name="zipcode" readonly>
             </div>
             
         </div>
@@ -208,6 +208,7 @@ function checkAccountDetails() {
                	document.getElementById('customerId').value = data.customerId || '';
                	document.getElementById('aadharnumber').value = data.aadharNumber || '';
                	document.getElementById('pannumber').value = data.panNumber || '';
+               	document.getElementById('pincode').value = data.pincode || ''; 
                 
                 // Populate product name and balance fields
                 document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
