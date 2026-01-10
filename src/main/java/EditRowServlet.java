@@ -1,5 +1,3 @@
-
-
 import db.DBConnection;
 
 import javax.servlet.ServletException;
