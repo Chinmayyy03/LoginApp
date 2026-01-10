@@ -88,8 +88,7 @@ function searchTable() {
     if (filter) {
         filteredLoans = allLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   loan.name.toLowerCase().indexOf(filter) > -1 ||
-                   loan.balance.toLowerCase().indexOf(filter) > -1;
+                   loan.name.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -156,8 +155,7 @@ function previousPage() {
     if (filter) {
         loans = allLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   loan.name.toLowerCase().indexOf(filter) > -1 ||
-                   loan.balance.toLowerCase().indexOf(filter) > -1;
+                   loan.name.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -174,8 +172,7 @@ function nextPage() {
     if (filter) {
         loans = allLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   loan.name.toLowerCase().indexOf(filter) > -1 ||
-                   loan.balance.toLowerCase().indexOf(filter) > -1;
+                   loan.name.toLowerCase().indexOf(filter) > -1;
         });
     }
     
