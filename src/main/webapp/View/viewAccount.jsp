@@ -134,6 +134,13 @@ window.onload = function() {
     } else if (returnPage.includes('totalAccounts.jsp')) {
         breadcrumb = 'View > Total Accounts > View Details';
     }
+    else if (returnPage.includes('personalLoan.jsp')) {
+        breadcrumb = 'Dashboard > Personal Loan > View Details';
+    } else if (returnPage.includes('securedLoan.jsp')) {
+        breadcrumb = 'Dashboard > Secured Loan > View Details';
+    } else if (returnPage.includes('unsecuredLoan.jsp')) {
+        breadcrumb = 'Dashboard > Unsecured Loan > View Details';
+    }
     
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb(breadcrumb);
@@ -148,6 +155,13 @@ function goBackToList() {
         breadcrumb = 'Dashboard > Total Loan';
     } else if (returnPage.includes('totalAccounts.jsp')) {
         breadcrumb = 'View > Total Accounts';
+    }
+    else if (returnPage.includes('personalLoan.jsp')) {
+        breadcrumb = 'Dashboard > Personal Loan';
+    } else if (returnPage.includes('securedLoan.jsp')) {
+        breadcrumb = 'Dashboard > Secured Loan';
+    } else if (returnPage.includes('unsecuredLoan.jsp')) {
+        breadcrumb = 'Dashboard > Unsecured Loan';
     }
     
     if (window.parent && window.parent.updateParentBreadcrumb) {

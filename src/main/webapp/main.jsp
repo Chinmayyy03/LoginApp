@@ -185,9 +185,15 @@ document.addEventListener('visibilitychange', function() {
 //========== PAGE MAPPING ==========
 const pageMap = {
 		'Dashboard': 'Dashboard/dashboard.jsp',
-	    'Add Customer': 'addCustomer.jsp',
-	    'Total Customers': 'Dashboard/totalCustomers.jsp',
+		'Total Customers': 'Dashboard/totalCustomers.jsp',
+		'A Type member': 'Dashboard/aTypeMember.jsp',
+	    'B Type member': 'Dashboard/bTypeMember.jsp',
+	    'OTHER': 'Dashboard/otherMember.jsp',
 	    'Total Loan': 'Dashboard/totalLoan.jsp',
+		'Secured Loan': 'Dashboard/securedLoan.jsp',
+		'Unsecured Loan':'Dashboard/unsecuredLoan.jsp',
+		'Personal Loan':'Dashboard/personalLoan.jsp',
+	    'Add Customer': 'addCustomer.jsp',
 	    'Authorization': 'authorizationPending.jsp',
 	    'Customer List': 'authorizationPendingCustomers.jsp',
 	    'Application List': 'authorizationPendingApplications.jsp',
@@ -197,9 +203,6 @@ const pageMap = {
 	    'View': 'View/view.jsp',
 	    'Total Accounts': 'View/totalAccounts.jsp',
 	    'Transactions': 'Transactions/transactions.jsp',
-	    'A Type member': 'Dashboard/aTypeMember.jsp',
-	    'B Type member': 'Dashboard/bTypeMember.jsp',
-	    'OTHER': 'Dashboard/otherMember.jsp',
 	    'View Details': 'Dashboard/viewCustomer.jsp'
 };
 
