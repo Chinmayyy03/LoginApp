@@ -34,6 +34,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Dashboard</title>
     <link rel="stylesheet" href="css/main.css">
+    <script src="js/breadcrumb-auto.js"></script>
 </head>
 <body>
 
@@ -44,54 +45,61 @@
     </div>
 
     <ul class="menu">
-    <li class="active" data-page="Dashboard/dashboard.jsp">
-        <a href="#" onclick="loadPage('Dashboard/dashboard.jsp', 'Dashboard', 'Dashboard', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Dashboard</span>
-        </a>
-    </li>
+    <!-- Dashboard -->
+	<li class="active" data-page="Dashboard/dashboard.jsp">
+	    <a href="#" onclick="loadPage('Dashboard/dashboard.jsp', 'Dashboard', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Dashboard</span>
+	    </a>
+	</li>
 
-    <li data-page="addCustomer.jsp">
-        <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', 'Add Customer', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Add Customer</span>
-        </a>
-    </li>
-    
-    <li data-page="authorizationPending.jsp">
-        <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization', 'Authorization', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Authorization</span>
-        </a>
-    </li>
-    
-    <li data-page="newApplication.jsp">
-        <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', 'Open Account', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Open Account</span>
-        </a>
-    </li>
-    
-    <li data-page="Master/masters.jsp">
-        <a href="#" onclick="loadPage('masters', 'Masters', 'Masters', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Master</span>
-        </a>
-    </li>
-    
-    <li data-page="View/view.jsp">
-        <a href="#" onclick="loadPage('View/view.jsp', 'View', 'View', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>View</span>
-        </a>
-    </li>
-    
-    <li data-page="Transactions/transactions.jsp">
-        <a href="#" onclick="loadPage('Transactions/transactions.jsp', 'Transactions', 'Transactions', this); return false;">
-            <img src="images/right-arrow.png" width="18" height="18" alt="">
-            <span>Transactions</span>
-        </a>
-    </li>
+	<!-- Add Customer -->
+	<li data-page="addCustomer.jsp">
+	    <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Add Customer</span>
+	    </a>
+	</li>
+
+	<!-- Authorization -->
+	<li data-page="authorizationPending.jsp">
+	    <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Authorization</span>
+	    </a>
+	</li>
+
+	<!-- Open Account -->
+	<li data-page="newApplication.jsp">
+	    <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Open Account</span>
+	    </a>
+	</li>
+
+	<!-- Master -->
+	<li data-page="Master/masters.jsp">
+	    <a href="#" onclick="loadPage('Master/masters.jsp', 'Masters', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Master</span>
+	    </a>
+	</li>
+
+	<!-- View -->
+	<li data-page="View/view.jsp">
+	    <a href="#" onclick="loadPage('View/view.jsp', 'View', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>View</span>
+	    </a>
+	</li>
+
+	<!-- Transactions -->
+	<li data-page="Transactions/transactions.jsp">
+	    <a href="#" onclick="loadPage('Transactions/transactions.jsp', 'Transactions', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Transactions</span>
+	    </a>
+	</li>
 </ul>
 
     <div class="logout">
@@ -182,44 +190,24 @@ document.addEventListener('visibilitychange', function() {
     }, { passive: true, once: false });
 });
 
-//========== PAGE MAPPING ==========
-const pageMap = {
-		'Dashboard': 'Dashboard/dashboard.jsp',
-		'Total Customers': 'Dashboard/totalCustomers.jsp',
-		'A Type member': 'Dashboard/aTypeMember.jsp',
-	    'B Type member': 'Dashboard/bTypeMember.jsp',
-	    'OTHER': 'Dashboard/otherMember.jsp',
-	    'Total Loan': 'Dashboard/totalLoan.jsp',
-		'Secured Loan': 'Dashboard/securedLoan.jsp',
-		'Unsecured Loan':'Dashboard/unsecuredLoan.jsp',
-		'Personal Loan':'Dashboard/personalLoan.jsp',
-	    'Add Customer': 'addCustomer.jsp',
-	    'Authorization': 'authorizationPending.jsp',
-	    'Customer List': 'authorizationPendingCustomers.jsp',
-	    'Application List': 'authorizationPendingApplications.jsp',
-	    'Loan Details': 'loanDetails.jsp',
-	    'Open Account': 'newApplication.jsp',
-	    'Masters': 'Master/masters.jsp',
-	    'View': 'View/view.jsp',
-	    'Total Accounts': 'View/totalAccounts.jsp',
-	    'Transactions': 'Transactions/transactions.jsp',
-	    'View Details': 'Dashboard/viewCustomer.jsp'
-};
-
 // Track the currently active menu item
 let currentActiveMenu = null;
 
 // ========== PAGE STATE PERSISTENCE ==========
 
-function loadPage(page, title, breadcrumbPath, anchorEl) {
+function loadPage(page, title, anchorEl) {
+    let breadcrumbPath = buildBreadcrumbPath(page);
+    
     sessionStorage.setItem('currentPage', page);
     sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
     sessionStorage.setItem('activeMenu', title);
     
+    // ✅ Store page path for this breadcrumb (for navigation)
+    sessionStorage.setItem('page_for_breadcrumb_' + breadcrumbPath, page);
+    
     document.getElementById("contentFrame").src = page;
     updateBreadcrumb(breadcrumbPath);
     
-    // Update active menu
     document.querySelectorAll(".menu li").forEach(li => li.classList.remove("active"));
     if (anchorEl && anchorEl.closest) {
         const menuItem = anchorEl.closest('li');
@@ -228,7 +216,10 @@ function loadPage(page, title, breadcrumbPath, anchorEl) {
     }
 }
 
-function navigateToBreadcrumb(page, title, path) {
+function navigateToBreadcrumb(page, title) {
+    // ✅ Auto-build breadcrumb
+    let path = buildBreadcrumbPath(page);
+    
     sessionStorage.setItem('currentPage', page);
     sessionStorage.setItem('currentBreadcrumb', path);
     
@@ -245,16 +236,25 @@ function updateBreadcrumb(path) {
     const parts = path.split(' > ');
     let breadcrumbHTML = '';
     
+    // Store full paths as we build breadcrumb
+    let currentPaths = [];
+    
     parts.forEach((part, index) => {
         if (index === parts.length - 1) {
+            // Last item (current page) - not clickable
             breadcrumbHTML += '<span class="breadcrumb-current">' + part + '</span>';
         } else {
-            const pageName = pageMap[part] || 'Dashboard/dashboard.jsp';
-            const previousPath = parts.slice(0, index + 1).join(' > ');
+            // Clickable breadcrumb items
+            // Build accumulated path for this level
+            currentPaths.push(part);
+            let accumulatedPath = currentPaths.join(' > ');
+            
+            // Store in session for click handling
+            sessionStorage.setItem('breadcrumb_path_' + index, accumulatedPath);
             
             breadcrumbHTML += '<div class="breadcrumb-item">' +
-                '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumb(\'' + 
-                pageName + '\', \'' + part + '\', \'' + previousPath + '\'); return false;">' +
+                '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumbByIndex(' + 
+                index + '); return false;">' +
                 part + '</a><span class="breadcrumb-separator">></span></div>';
         }
     });
@@ -387,5 +387,31 @@ document.addEventListener('keydown', function(event) {
         closeLogoutModal();
     }
 });
+
+function navigateToBreadcrumbByIndex(index) {
+    // Get the stored path for this breadcrumb level
+    let breadcrumbPath = sessionStorage.getItem('breadcrumb_path_' + index);
+    
+    if (!breadcrumbPath) {
+        console.error('No path found for breadcrumb index:', index);
+        return;
+    }
+    
+    // Find the stored page path for this breadcrumb
+    let storedPage = sessionStorage.getItem('page_for_breadcrumb_' + breadcrumbPath);
+    
+    if (!storedPage) {
+        // Fallback: try to go back in history
+        console.warn('No stored page for breadcrumb:', breadcrumbPath);
+        window.history.back();
+        return;
+    }
+    
+    // Navigate to the page
+    document.getElementById("contentFrame").src = storedPage;
+    updateBreadcrumb(breadcrumbPath);
+    sessionStorage.setItem('currentPage', storedPage);
+    sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
+}
 
 </script>

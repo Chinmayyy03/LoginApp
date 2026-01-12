@@ -218,7 +218,7 @@ function viewLoan(accountCode) {
 <h2>Personal Loan for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
-     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Balance">
+     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name">
 </div>
 
 <div class="table-container">

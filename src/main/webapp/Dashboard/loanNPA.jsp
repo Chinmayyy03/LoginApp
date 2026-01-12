@@ -33,7 +33,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Secured Loan - Branch <%= branchCode %></title>
+<title>Loan NPA - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -85,8 +85,8 @@
 </style>
 
 <script>
-// Store all secured loan data for client-side search
-let allSecuredLoans = [];
+// Store all NPA loan data for client-side search
+let allNPALoans = [];
 let currentPage = 1;
 const recordsPerPage = <%= recordsPerPage %>;
 
@@ -94,14 +94,14 @@ const recordsPerPage = <%= recordsPerPage %>;
 function searchTable() {
     var input = document.getElementById("searchInput");
     var filter = input.value.toLowerCase().trim();
-    var table = document.getElementById("securedLoanTable");
+    var table = document.getElementById("npaTable");
     var tbody = table.querySelector("tbody");
     
     tbody.innerHTML = "";
     
-    let filteredLoans = allSecuredLoans;
+    let filteredLoans = allNPALoans;
     if (filter) {
-        filteredLoans = allSecuredLoans.filter(function(loan) {
+        filteredLoans = allNPALoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -113,12 +113,12 @@ function searchTable() {
 // Display loans with pagination
 function displayLoans(loans, page) {
     currentPage = page;
-    var table = document.getElementById("securedLoanTable");
+    var table = document.getElementById("npaTable");
     var tbody = table.querySelector("tbody");
     tbody.innerHTML = "";
     
     if (loans.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No secured loans found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No NPA loans found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
@@ -153,16 +153,16 @@ function updatePaginationControls(totalRecords, page) {
     document.getElementById("nextBtn").disabled = (page >= totalPages);
     
     document.getElementById("pageInfo").textContent = "Page " + page + " of " + totalPages;
-    sessionStorage.setItem('securedLoanPage', page);
+    sessionStorage.setItem('loanNPAPage', page);
 }
 
 // Navigate to previous page
 function previousPage() {
     var filter = document.getElementById("searchInput").value.toLowerCase().trim();
-    var loans = allSecuredLoans;
+    var loans = allNPALoans;
     
     if (filter) {
-        loans = allSecuredLoans.filter(function(loan) {
+        loans = allNPALoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -176,10 +176,10 @@ function previousPage() {
 // Navigate to next page
 function nextPage() {
     var filter = document.getElementById("searchInput").value.toLowerCase().trim();
-    var loans = allSecuredLoans;
+    var loans = allNPALoans;
     
     if (filter) {
-        loans = allSecuredLoans.filter(function(loan) {
+        loans = allNPALoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -194,35 +194,35 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan');
+        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA');
     }
     
-    var savedPage = sessionStorage.getItem('securedLoanPage');
+    var savedPage = sessionStorage.getItem('loanNPAPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
-        displayLoans(allSecuredLoans, currentPage);
+        displayLoans(allNPALoans, currentPage);
     }
 };
 
 // View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan > View Details');
+        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA > View Details');
     }
-    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/securedLoan.jsp';
+    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loanNPA.jsp';
 }
 </script>
 </head>
 <body>
 
-<h2>Secured Loan for Branch: <%= branchCode %></h2>
+<h2>Loan NPA for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
-     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name">
+     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Balance">
 </div>
 
 <div class="table-container">
-<table id="securedLoanTable">
+<table id="npaTable">
 <thead>
     <tr>
         <th>SR NO</th>
@@ -250,8 +250,8 @@ function viewLoan(accountCode) {
     try {
         conn = DBConnection.getConnection();
         
-        // Fetch D_QUERY from DASHBOARD table for Secured Loan (SR_NUMBER = 6)
-        String configQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = 6";
+        // Fetch D_QUERY from DASHBOARD table for Loan NPA (SR_NUMBER = 11)
+        String configQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = 11";
         
         psConfig = conn.prepareStatement(configQuery);
         rsConfig = psConfig.executeQuery();
@@ -266,7 +266,7 @@ function viewLoan(accountCode) {
                 out.println("<tr><td colspan='7' class='no-data'>");
                 out.println("<div class='error-box'>");
                 out.println("<h3>⚠ Configuration Error</h3>");
-                out.println("<p>No query defined in GLOBALCONFIG.DASHBOARD table (SR_NUMBER = 6).</p>");
+                out.println("<p>No query defined in GLOBALCONFIG.DASHBOARD table (SR_NUMBER = 11).</p>");
                 out.println("<p>Please configure the D_QUERY column.</p>");
                 out.println("</div>");
                 out.println("</td></tr>");
@@ -277,7 +277,7 @@ function viewLoan(accountCode) {
             out.println("<tr><td colspan='7' class='no-data'>");
             out.println("<div class='error-box'>");
             out.println("<h3>⚠ Configuration Not Found</h3>");
-            out.println("<p>Dashboard entry not found for SR_NUMBER = 6</p>");
+            out.println("<p>Dashboard entry not found for SR_NUMBER = 11</p>");
             out.println("</div>");
             out.println("</td></tr>");
             return;
@@ -345,7 +345,7 @@ function viewLoan(accountCode) {
             
             // Add to JavaScript array for client-side operations
             out.println("<script>");
-            out.println("allSecuredLoans.push({");
+            out.println("allNPALoans.push({");
             out.println("  accountCode: '" + accountCode + "',");
             out.println("  name: '" + name.replace("'", "\\'") + "',");
             out.println("  dateAccountOpen: '" + dateOpenStr + "',");
@@ -376,7 +376,7 @@ function viewLoan(accountCode) {
         }
         
         if (!hasData) {
-            out.println("<tr><td colspan='7' class='no-data'>No secured loans found for this branch.</td></tr>");
+            out.println("<tr><td colspan='7' class='no-data'>No NPA loans found for this branch.</td></tr>");
         }
         
     } catch (SQLException e) {
@@ -429,11 +429,11 @@ function viewLoan(accountCode) {
 <script>
 // Initialize pagination on page load
 (function() {
-    var totalPages = Math.ceil(allSecuredLoans.length / recordsPerPage);
+    var totalPages = Math.ceil(allNPALoans.length / recordsPerPage);
     document.getElementById("prevBtn").disabled = true;
     document.getElementById("nextBtn").disabled = (totalPages <= 1);
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
-    sessionStorage.setItem('securedLoanPage', '1');
+    sessionStorage.setItem('loanNPAPage', '1');
 })();
 </script>
 
