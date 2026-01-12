@@ -537,12 +537,40 @@
         }
 
         /* ================= EDIT BUTTON FIX ================= */
-        function attachEditButtonEvents() {
-            document.querySelectorAll(".edit-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
+function attachEditButtonEvents() {
 
+    const table = document.querySelector(".data-table");
+    if (!table) return;
+
+    const theadRow = table.querySelector("thead tr");
+    const tbodyRows = table.querySelectorAll("tbody tr");
+
+    /* MOVE EDIT HEADER TO FIRST */
+    if (theadRow && theadRow.children.length > 1) {
+        const lastTh = theadRow.lastElementChild;
+        theadRow.insertBefore(lastTh, theadRow.firstElementChild);
+        lastTh.textContent = "Edit";
+        lastTh.style.textAlign = "center";
+    }
+
+    /* MOVE EDIT BUTTON TO FIRST COLUMN */
+    tbodyRows.forEach(tr => {
+        if (tr.children.length > 1) {
+            const lastTd = tr.lastElementChild;
+            tr.insertBefore(lastTd, tr.firstElementChild);
+
+            const btn = lastTd.querySelector(".edit-btn");
+            if (btn) {
+                btn.onclick = function () {
                     const tableName = document.getElementById("tableSearch").value;
-                    const recordId = this.dataset.id;
+
+                    let recordId = this.dataset.id;
+
+                    // 🔥 FALLBACK: take first data column as PK
+                    if (!recordId) {
+                        const firstCell = this.closest("tr").querySelector("td:nth-child(2)");
+                        recordId = firstCell ? firstCell.textContent.trim() : null;
+                    }
 
                     if (!recordId) {
                         alert("Primary key not found for this row!");
@@ -555,9 +583,11 @@
                         encodeURIComponent(tableName) +
                         "&id=" +
                         encodeURIComponent(recordId);
-                });
-            });
+                };
+            }
         }
+    });
+}
 
         document.addEventListener("DOMContentLoaded", function () {
             showDashboard();
