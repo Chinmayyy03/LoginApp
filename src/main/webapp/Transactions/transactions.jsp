@@ -1447,14 +1447,30 @@ function calculateNewBalanceInIframe() {
 }
 
 // ========== DYNAMIC CREDIT ACCOUNT TABLE ==========
+// ========== DYNAMIC CREDIT ACCOUNT TABLE ==========
 let creditAccountsData = [];
 
 function addCreditAccountRow() {
+    // Try multiple possible IDs for the credit amount field
+    let creditAmountInput = document.getElementById('creditAmount');
+    
+    // If not found, try alternative IDs
+    if (!creditAmountInput) {
+        creditAmountInput = document.querySelector('input[name="creditAmount"]');
+    }
+    
     // Get values from the input fields
     const creditCode = document.getElementById('creditAccountCode').value.trim();
     const creditName = document.getElementById('creditAccountName').value.trim();
-    const creditAmountInput = document.getElementById('creditAmount');
     const creditAmount = creditAmountInput ? creditAmountInput.value.trim() : '';
+    
+    console.log('Adding credit account:', {
+        code: creditCode,
+        name: creditName,
+        amount: creditAmount,
+        inputElement: creditAmountInput,
+        inputValue: creditAmountInput ? creditAmountInput.value : 'NOT FOUND'
+    });
     
     // Validate inputs
     if (!creditCode) {
@@ -1467,6 +1483,15 @@ function addCreditAccountRow() {
         return;
     }
     
+    // More lenient validation - allow empty or check if it's a valid number
+    if (creditAmount && creditAmount !== '') {
+        const amountValue = parseFloat(creditAmount);
+        if (isNaN(amountValue) || amountValue < 0) {
+            showToast('Please enter a valid credit amount', 'error');
+            return;
+        }
+    }
+    
     // Check for duplicate account
     const isDuplicate = creditAccountsData.some(acc => acc.code === creditCode);
     if (isDuplicate) {
@@ -1474,20 +1499,32 @@ function addCreditAccountRow() {
         return;
     }
     
-    // Add to data array with amount (can be empty)
+    // Parse and store the amount properly
+    let finalAmount = '0.00';
+    if (creditAmount && creditAmount !== '') {
+        const parsedAmount = parseFloat(creditAmount);
+        if (!isNaN(parsedAmount)) {
+            finalAmount = parsedAmount.toFixed(2);
+        }
+    }
+    
+    console.log('Final amount to be stored:', finalAmount);
+    
+    // Add to data array with amount
     creditAccountsData.push({
         id: Date.now(), // Unique ID
         code: creditCode,
         name: creditName,
-        amount: creditAmount ? parseFloat(creditAmount).toFixed(2) : '0.00'
+        amount: finalAmount
     });
     
-    // Clear input fields
+    // Clear ALL input fields after adding
     document.getElementById('creditAccountCode').value = '';
     document.getElementById('creditAccountName').value = '';
     if (creditAmountInput) {
         creditAmountInput.value = '';
     }
+    previousCreditAccountCode = '';
     
     // Refresh the table
     refreshCreditAccountsTable();
@@ -1521,7 +1558,7 @@ function refreshCreditAccountsTable() {
         tableHTML += '<tr style="background-color: #f9f9f9;">' +
                      '<td style="padding: 10px; border: 1px solid #ddd;">' + account.code + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd;">' + account.name + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹ ' + account.amount + '</td>' +
+                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #2e7d32;">₹ ' + account.amount + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' +
                      '<button type="button" onclick="removeCreditAccount(' + account.id + ')" class="remove-btn" style="padding: 5px 10px; font-size: 16px;">×</button>' +
                      '</td>' +
@@ -1567,10 +1604,21 @@ function updateTotals() {
             showToast('Transaction is balanced ✓', 'success');
         } else {
             const difference = Math.abs(debitAmount - creditTotal).toFixed(2);
-            showToast('Difference: ₹' + difference, 'warning');
+            const balanceMsg = debitAmount > creditTotal ? 
+                'Credit side is short by ₹' + difference : 
+                'Credit side exceeds by ₹' + difference;
+            showToast(balanceMsg, 'warning');
         }
     }
 }
+
+// Also update the transaction amount input to recalculate totals
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionAmountInput = document.getElementById('transactionamount');
+    if (transactionAmountInput) {
+        transactionAmountInput.addEventListener('input', updateTotals);
+    }
+});
 </script>
 </body>
 </html>
