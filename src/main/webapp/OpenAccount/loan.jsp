@@ -3433,35 +3433,6 @@
 	        }, 100);
 	    }
 	});
-	
-	// Handle OP Type dropdown change
-	const opTypeSelect = document.getElementById('opType');
-	if (opTypeSelect) {
-	    opTypeSelect.addEventListener('change', function() {
-	        const opType = this.value;
-	        const accountCodeLabel = document.getElementById("accountCodeLabel");
-	        const accountNameLabel = document.getElementById("accountNameLabel");
-	        const transactionAmountLabel = document.getElementById("transactionamountLabel");
-	        
-	        if (opType === 'DI') {
-	            accountCodeLabel.textContent = 'Debit Account Code';
-	            accountNameLabel.textContent = 'Debit Account Name';
-	            transactionAmountLabel.textContent = 'Debit Amount';
-	        } else if (opType === 'CI') {
-	            accountCodeLabel.textContent = 'Credit Account Code';
-	            accountNameLabel.textContent = 'Credit Account Name';
-	            transactionAmountLabel.textContent = 'Credit Amount';
-	        }
-	        
-	        // Clear inputs when OP Type changes
-	        document.getElementById('accountCode').value = '';
-	        document.getElementById('accountName').value = '';
-	        document.getElementById('transactionamount').value = '';
-	        document.getElementById('particular').value = '';
-	        previousAccountCode = '';
-	        clearIframe();
-	    });
-	}
 	//==================== CUSTOMER LOOKUP FUNCTIONS ====================
 	
 	//Helper function to set select value with multiple matching strategies
