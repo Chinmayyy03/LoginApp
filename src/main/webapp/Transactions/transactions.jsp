@@ -761,9 +761,7 @@ input[type="text"]:read-only {
                                 <span>Other</span>
                             </label>
                         </div>
-                        <div class="save-button-container">
-					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
-					</div>
+
                     </div>
                 </div>
 
@@ -773,8 +771,8 @@ input[type="text"]:read-only {
 				<div>
 				    <div class="label">OP Type</div>
 				    <select name="opType" id="opType" style="padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; width: 85px;">
-				        <option value="DI" selected>DEBIT</option>
-				        <option value="CI">CREDIT</option>
+				        <option value="Debit" selected>DEBIT</option>
+				        <option value="Credit">CREDIT</option>
 				    </select>
 				</div>
 								
@@ -815,6 +813,9 @@ input[type="text"]:read-only {
 				
 				
 				<div id="creditAccountsContainer"></div>
+				 <div class="save-button-container">
+					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
+				</div>
             </fieldset>
 
         </div>
@@ -1107,14 +1108,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize transaction table
     refreshCreditAccountsTable();
     
- // Set initial labels based on default OP Type
-    const accountCodeLabel = document.getElementById("accountCodeLabel");
-    const accountNameLabel = document.getElementById("accountNameLabel");
-    const transactionAmountLabel = document.getElementById("transactionamountLabel");
-    
-    accountCodeLabel.textContent = 'Debit Account Code';
-    accountNameLabel.textContent = 'Debit Account Name';
-    transactionAmountLabel.textContent = 'Debit Amount';
     
     // Operation type change handler
     const operationRadios = document.querySelectorAll("input[name='operationType']");
@@ -1134,11 +1127,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const accountNameLabel = document.getElementById("accountNameLabel");
             const transactionAmountLabel = document.getElementById("transactionamountLabel");
             
-            if (opType === 'DI') {
+            if (opType === 'Debit') {
                 accountCodeLabel.textContent = 'Debit Account Code';
                 accountNameLabel.textContent = 'Debit Account Name';
                 transactionAmountLabel.textContent = 'Debit Amount';
-            } else if (opType === 'CI') {
+            } else if (opType === 'Credit') {
                 accountCodeLabel.textContent = 'Credit Account Code';
                 accountNameLabel.textContent = 'Credit Account Name';
                 transactionAmountLabel.textContent = 'Credit Amount';
@@ -1378,7 +1371,7 @@ function refreshCreditAccountsTable() {
                     '<tbody>';
     
     creditAccountsData.forEach(function(account) {
-        const opTypeColor = account.opType === 'DI' ? '#c62828' : '#2e7d32';
+        const opTypeColor = account.opType === 'Debit' ? '#c62828' : '#2e7d32';
         tableHTML += '<tr style="background-color: #f9f9f9;">' +
                      '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: ' + opTypeColor + ';">' + account.opType + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd;">' + account.code + '</td>' +
