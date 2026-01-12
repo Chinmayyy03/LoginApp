@@ -73,7 +73,14 @@ function buildBreadcrumbPath(pagePath, returnPage = null) {
     
     // Normal case: build from URL
     let parts = pagePath.replace('.jsp', '').split('/');
-    
+	
+	// ✅ FIX: If folder name matches filename, only show once
+	    if (parts.length === 2 && parts[0].toLowerCase() === parts[1].toLowerCase()) {
+	        // e.g., "View/view" -> just show "View"
+	        let fullPath = pagePath;
+	        return PAGE_EXCEPTIONS[fullPath] || autoGenerateTitle(parts[0]);
+	    }
+		
     return parts.map((part, index) => {
         let fullPath = parts.slice(0, index + 1).join('/') + '.jsp';
         return PAGE_EXCEPTIONS[fullPath] || autoGenerateTitle(part);
