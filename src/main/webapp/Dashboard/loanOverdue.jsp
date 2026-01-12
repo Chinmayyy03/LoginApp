@@ -191,10 +191,12 @@ function nextPage() {
     }
 }
 
-// Update breadcrumb on page load
+//Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan Overdue');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('Dashboard/loadOverdue.jsp')
+        );
     }
     
     var savedPage = sessionStorage.getItem('loanOverduePage');
@@ -207,9 +209,11 @@ window.onload = function() {
 // View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan Overdue > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/loadOverdue.jsp')
+        );
     }
-    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loanOverdue.jsp';
+    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loadOverdue.jsp';
 }
 </script>
 </head>

@@ -7,15 +7,28 @@
 // ONLY ADD PAGES WITH CUSTOM NAMES HERE
 // ============================================
 const PAGE_EXCEPTIONS = {
-    // View Details pages
-    'Dashboard/viewCustomer.jsp': 'View Details',
-    'View/viewAccount.jsp': 'View Details',
-    'authViewCustomers.jsp': 'View Details',
-    
-    // Special formatting
-    'Dashboard/aTypeMember.jsp': 'A Type Member',
-    'Dashboard/bTypeMember.jsp': 'B Type Member',
-    'Dashboard/otherMember.jsp': 'OTHER'
+		// View Details pages
+	    'Dashboard/viewCustomer.jsp': 'View Details',
+	    'View/viewAccount.jsp': 'View Details',
+	    'authViewCustomers.jsp': 'View Details',
+	    
+	    // Special formatting
+	    'Dashboard/aTypeMember.jsp': 'A Type Member',
+	    'Dashboard/bTypeMember.jsp': 'B Type Member',
+	    'Dashboard/otherMember.jsp': 'OTHER',
+	    
+	    // Loan pages
+	    'Dashboard/loadOverdue.jsp': 'Loan Overdue',
+	    'Dashboard/loanNPA.jsp': 'Loan NPA',
+	    'Dashboard/loanRegular.jsp': 'Loan Regular',
+	    'Dashboard/personalLoan.jsp': 'Personal Loan',
+	    'Dashboard/securedLoan.jsp': 'Secured Loan',
+	    'Dashboard/unsecuredLoan.jsp': 'Unsecured Loan',
+	    'Dashboard/totalLoan.jsp': 'Total Loan',
+
+	
+	//Transactions
+	'Transactions/transactions.jsp': 'Transactions'
 };
 
 // ============================================

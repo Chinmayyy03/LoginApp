@@ -1151,6 +1151,15 @@ function updateLabelsBasedOnOperation() {
     }
 }
 
+//========== UPDATE BREADCRUMB ON LOAD ==========
+window.onload = function() {
+    // Auto-build breadcrumb
+    if (window.parent && window.parent.buildBreadcrumbPath) {
+        let breadcrumb = window.parent.buildBreadcrumbPath('Transactions/transactions.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb);
+    }
+};
+
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize credit accounts table

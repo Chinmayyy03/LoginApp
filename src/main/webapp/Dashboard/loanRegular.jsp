@@ -194,7 +194,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan Regular');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('Dashboard/loanRegular.jsp')
+        );
     }
     
     var savedPage = sessionStorage.getItem('loanRegularPage');
@@ -204,10 +206,11 @@ window.onload = function() {
     }
 };
 
-// View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan Regular > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/loanRegular.jsp')
+        );
     }
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loanRegular.jsp';
 }
