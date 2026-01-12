@@ -222,139 +222,139 @@
 		}
         
         /* ========== LIVE SEARCH DROPDOWN STYLES ========== */
-input[type="text"]:read-only {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-
-.search-dropdown {
-    position: relative;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.search-results {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    max-height: 300px;
-    width: max-content;
-    overflow-y: auto;
-    background: white;
-    border: 2px solid #8066E8;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: none;
-}
-
-.search-results.active {
-    display: block;
-}
-
-.search-result-item {
-    padding: 12px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
-    transition: all 0.2s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.search-result-item:hover {
-    background-color: #e8e4fc;
-    transform: translateX(5px);
-}
-
-.result-code {
-    font-weight: bold;
-    color: #3D316F;
-    font-size: 14px;
-    min-width: 140px;
-}
-
-.result-name {
-    color: #0306fffc;
-    font-size: 13px;
-    font-weight: bold;
-    flex: 1;
-    text-align: left;
-    padding-left: 15px;
-}
-
-.search-info {
-    padding: 12px 15px;
-    text-align: center;
-    color: #999;
-    font-size: 13px;
-    font-style: italic;
-}
-
-.search-loading {
-    padding: 15px;
-    text-align: center;
-    color: #8066E8;
-}
-
-.loading-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #8066E8;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.no-results {
-    padding: 15px;
-    text-align: center;
-    color: #f44336;
-    font-size: 13px;
-}
-
-.search-hint {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-    font-style: italic;
-}
-
-.highlight {
-    background-color: #ffeb3b;
-    font-weight: bold;
-    padding: 1px 2px;
-}
-
-.search-results::-webkit-scrollbar {
-    width: 8px;
-}
-
-.search-results::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.search-results::-webkit-scrollbar-thumb {
-    background: #8066E8;
-    border-radius: 4px;
-}
-
-.search-results::-webkit-scrollbar-thumb:hover {
-    background: #6B52CC;
-}
+		input[type="text"]:read-only {
+		    background-color: #f5f5f5;
+		    cursor: not-allowed;
+		}
+		
+		.search-dropdown {
+		    position: relative;
+		    width: 100%;
+		    margin-top: 10px;
+		}
+		
+		.search-results {
+		    position: absolute;
+		    top: 0;
+		    left: 0;
+		    right: 0;
+		    max-height: 300px;
+		    width: max-content;
+		    overflow-y: auto;
+		    background: white;
+		    border: 2px solid #8066E8;
+		    border-radius: 8px;
+		    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+		    z-index: 1000;
+		    display: none;
+		}
+		
+		.search-results.active {
+		    display: block;
+		}
+		
+		.search-result-item {
+		    padding: 12px 15px;
+		    cursor: pointer;
+		    border-bottom: 1px solid #f0f0f0;
+		    transition: all 0.2s ease;
+		    display: flex;
+		    justify-content: space-between;
+		    align-items: center;
+		    gap: 10px;
+		}
+		
+		.search-result-item:last-child {
+		    border-bottom: none;
+		}
+		
+		.search-result-item:hover {
+		    background-color: #e8e4fc;
+		    transform: translateX(5px);
+		}
+		
+		.result-code {
+		    font-weight: bold;
+		    color: #3D316F;
+		    font-size: 14px;
+		    min-width: 140px;
+		}
+		
+		.result-name {
+		    color: #0306fffc;
+		    font-size: 13px;
+		    font-weight: bold;
+		    flex: 1;
+		    text-align: left;
+		    padding-left: 15px;
+		}
+		
+		.search-info {
+		    padding: 12px 15px;
+		    text-align: center;
+		    color: #999;
+		    font-size: 13px;
+		    font-style: italic;
+		}
+		
+		.search-loading {
+		    padding: 15px;
+		    text-align: center;
+		    color: #8066E8;
+		}
+		
+		.loading-spinner {
+		    display: inline-block;
+		    width: 20px;
+		    height: 20px;
+		    border: 3px solid #f3f3f3;
+		    border-top: 3px solid #8066E8;
+		    border-radius: 50%;
+		    animation: spin 1s linear infinite;
+		}
+		
+		@keyframes spin {
+		    0% { transform: rotate(0deg); }
+		    100% { transform: rotate(360deg); }
+		}
+		
+		.no-results {
+		    padding: 15px;
+		    text-align: center;
+		    color: #f44336;
+		    font-size: 13px;
+		}
+		
+		.search-hint {
+		    font-size: 12px;
+		    color: #666;
+		    margin-top: 5px;
+		    font-style: italic;
+		}
+		
+		.highlight {
+		    background-color: #ffeb3b;
+		    font-weight: bold;
+		    padding: 1px 2px;
+		}
+		
+		.search-results::-webkit-scrollbar {
+		    width: 8px;
+		}
+		
+		.search-results::-webkit-scrollbar-track {
+		    background: #f1f1f1;
+		    border-radius: 4px;
+		}
+		
+		.search-results::-webkit-scrollbar-thumb {
+		    background: #8066E8;
+		    border-radius: 4px;
+		}
+		
+		.search-results::-webkit-scrollbar-thumb:hover {
+		    background: #6B52CC;
+		}
 
         /* ---------------- Responsive CSS Added ---------------- */
 
@@ -592,7 +592,7 @@ input[type="text"]:read-only {
 		    display: flex;
 		    justify-content: center;
 		    align-items: center;
-		    margin: 15px 15px 15px 15px;
+		    margin: 15px 0px 15px 0px;
 		}
 		
 		.save-btn {
@@ -617,59 +617,59 @@ input[type="text"]:read-only {
 		}
 		
 		
-.add-btn {
-    background-color: #373279;
-    color: white;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.add-btn:hover {
-    background-color: #2b0d73;
-    transform: scale(1.05);
-}
-
-.add-btn:active {
-    transform: scale(0.97);
-}
-
-/* Container for dynamically added credit account rows */
-.credit-accounts-container {
-    margin-top: 15px;
-}
-
-.credit-account-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    align-items: flex-end;
-}
-
-.remove-btn {
-    background-color: #c62828;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    height: fit-content;
-}
-
-.remove-btn:hover {
-    background-color: #b71c1c;
-}
+		.add-btn {
+		    background-color: #373279;
+		    color: white;
+		    border: none;
+		    padding: 10px 25px;
+		    border-radius: 6px;
+		    font-size: 14px;
+		    font-weight: bold;
+		    cursor: pointer;
+		    transition: background-color 0.3s ease, transform 0.2s ease;
+		}
+		
+		.add-btn:hover {
+		    background-color: #2b0d73;
+		    transform: scale(1.05);
+		}
+		
+		.add-btn:active {
+		    transform: scale(0.97);
+		}
+		
+		/* Container for dynamically added credit account rows */
+		.credit-accounts-container {
+		    margin-top: 15px;
+		}
+		
+		.credit-account-row {
+		    display: flex;
+		    gap: 20px;
+		    margin-bottom: 15px;
+		    padding: 15px;
+		    background-color: #f9f9f9;
+		    border-radius: 8px;
+		    border: 1px solid #ddd;
+		    align-items: flex-end;
+		}
+		
+		.remove-btn {
+		    background-color: #c62828;
+		    color: white;
+		    border: none;
+		    padding: 8px 15px;
+		    border-radius: 6px;
+		    font-size: 12px;
+		    font-weight: bold;
+		    cursor: pointer;
+		    transition: background-color 0.3s ease;
+		    height: fit-content;
+		}
+		
+		.remove-btn:hover {
+		    background-color: #b71c1c;
+		}
 		/* Responsive adjustments */
 		@media (max-width: 600px) {
 		    .save-btn {
@@ -678,7 +678,96 @@ input[type="text"]:read-only {
 		    }
 		}
 		
+		select {
+		    padding: 10px;
+		    border: 2px solid #C8B7F6;
+		    border-radius: 8px;
+		    background-color: #F4EDFF;
+		    color: #3D316F;
+		    font-size: 14px;
+		    font-weight: 600;
+		    cursor: pointer;
+		    outline: none;
+		    transition: all 0.3s ease;
+		}
 		
+		select:hover {
+		    border-color: #8066E8;
+		    background: #E8DCFF;
+		}
+		
+		select:focus {
+		    border-color: #8066E8;
+		    background: #E8DCFF;
+		    box-shadow: 0 0 0 3px rgba(128, 102, 232, 0.1);
+		}
+
+	select option {
+	    background-color: white;
+	    color: #3D316F;
+	    padding: 10px;
+	}
+	/* Dropdown inline styles */
+	.dropdown-inline {
+	    display: flex;
+	    flex-direction: row;
+	    align-items: center;
+	    gap: 10px;
+	}
+	
+	.dropdown-inline .label {
+	    margin-bottom: 0;
+	    white-space: nowrap;
+	}
+	
+	.dropdown-inline select {
+	    padding: 10px;
+	    border: 2px solid #C8B7F6;
+	    border-radius: 8px;
+	    background-color: #F4EDFF;
+	    color: #3D316F;
+	    font-size: 14px;
+	    font-weight: 600;
+	    cursor: pointer;
+	}
+	.op-type-inline {
+    display: inline-flex;        /* 👈 forces single row */
+    align-items: center;         /* vertical center */
+    gap: 12px;                   /* space between label & dropdown */
+    white-space: nowrap;         /* 👈 NO wrapping */
+    font-size: 14px;
+	}
+	
+	.op-type-inline label {
+	    font-weight:bold;
+	}
+	
+	.op-type-inline select {
+	    min-width: 120px;
+	}
+	
+	.totals-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+	}
+	
+	.total-label {
+	    font-weight: bold;
+	    font-size: 14px;
+	    color: #3D316F;
+	}
+	
+	.totals-row input[type="text"] {
+	    width: 100px;
+	    text-align: right;
+	    font-weight: bold;
+	    background-color: #eef2ff;
+	    border: 2px solid #C8B7F6;
+	    border-radius: 6px;
+	}
+	
     </style>
 </head>
 <body>
@@ -728,54 +817,44 @@ input[type="text"]:read-only {
                         </div>
                     </div>
 
-                    <!-- Account Category -->
-                    <div class="radio-group-inline">
-                        <div class="label">Account Type:</div>
-                        <div class="radio-buttons">
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="saving" checked>
-                                <span>Saving</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="loan">
-                                <span>Loan</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="deposit">
-                                <span>Deposit</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="pigmy">
-                                <span>Pigmy</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="current">
-                                <span>Current</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="cc">
-                                <span>CC</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="accountCategory" value="other">
-                                <span>Other</span>
-                            </label>
-                        </div>
+                <!-- Account Category Dropdown -->
+				<div class="dropdown-inline">
+				    <div class="label">Account Type:</div>
+				    <select name="accountCategory" id="accountCategory" style="min-width: 150px;">
+				        <option value="saving" selected>Saving</option>
+				        <option value="loan">Loan</option>
+				        <option value="deposit">Deposit</option>
+				        <option value="pigmy">Pigmy</option>
+				        <option value="current">Current</option>
+				        <option value="cc">CC</option>
+				        <option value="other">Other</option>
+				    </select>
+				</div>
+				
+				<!-- OP Type Dropdown -->
+				<div class="op-type-inline">
+				    <label for="opType">OP Type:</label>
+				    <select id="opType" name="opType">
+				        <option value="Debit">DEBIT</option>
+				        <option value="Credit" selected>CREDIT</option>
+				    </select>
+				</div>
+				<!-- Total Debit -->
+				<div>
+			    <label class="total-label">Total Debit:</label>
+			    <input type="text" id="totalDebit" readonly>
+			    </div>
+			
+			    <!-- Total Credit -->
+			    <div>
+			    <label class="total-label">Total Credit:</label>
+			    <input type="text" id="totalCredit" readonly>
+			    </div>
 
-                    </div>
                 </div>
 
                 <!-- Account Code and Name Row -->
-				<div class="row">
-				
-				<div>
-				    <div class="label">OP Type</div>
-				    <select name="opType" id="opType" style="padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; width: 85px;">
-				        <option value="Debit" selected>DEBIT</option>
-				        <option value="Credit">CREDIT</option>
-				    </select>
-				</div>
-								
+				<div class="row">			
 				    <!-- Account Code -->
 				    <div>
 				        <div class="label" id="accountCodeLabel">Account Code</div>
@@ -807,15 +886,15 @@ input[type="text"]:read-only {
 					<div class="save-button-container">
 					    <button type="button" class="add-btn" onclick="addTransactionRow()">+</button>
 					</div>
-				    
+				    <div class="save-button-container">
+					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
+				</div>
 
 				</div>
 				
 				
 				<div id="creditAccountsContainer"></div>
-				 <div class="save-button-container">
-					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
-				</div>
+
             </fieldset>
 
         </div>
@@ -949,7 +1028,7 @@ function handleLiveSearch(value) {
 // ========== PERFORM SEARCH ==========
 function performSearch(searchNumber) {
     const searchResults = document.getElementById('searchResults');
-    currentCategory = document.querySelector('input[name="accountCategory"]:checked').value;
+    currentCategory = document.getElementById('accountCategory').value;
     
     fetch('SearchAccounts.jsp', {
         method: 'POST',
@@ -1147,10 +1226,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Category change handler
-    const categoryRadios = document.querySelectorAll("input[name='accountCategory']");
-    categoryRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
+ // Category change handler
+    const categoryDropdown = document.getElementById('accountCategory');
+    if (categoryDropdown) {
+        categoryDropdown.addEventListener('change', function() {
             document.getElementById("accountCode").value = '';
             document.getElementById("accountName").value = '';
             document.getElementById("transactionamount").value = '';
@@ -1158,7 +1237,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('searchResults').classList.remove('active');
             currentCategory = this.value;
         });
-    });
+    }
     
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
@@ -1175,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
-    let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
+	let accountCategory = document.getElementById('accountCategory').value;
     let url = "LookupForTransactions.jsp?type=account";
     url += "&accountCategory=" + accountCategory;
     
@@ -1218,7 +1297,7 @@ function setValueFromLookup(code, desc, type) {
 function submitTransactionForm() {
     let transTypeRadio = document.querySelector("input[name='transactionTypeRadio']:checked").value;
     let operationType = document.querySelector("input[name='operationType']:checked").value;
-    let accountCategory = document.querySelector("input[name='accountCategory']:checked").value;
+    let accountCategory = document.getElementById('accountCategory').value;
     let accountCode = document.querySelector("input[name='accountCode']").value.trim();
     let accountName = document.querySelector("input[name='accountName']").value.trim();
     
@@ -1398,6 +1477,8 @@ function removeCreditAccount(accountId) {
 function updateTotals() {
     // This function can be used if you need to calculate totals
 }
+
+
 </script>
 </body>
 </html>
