@@ -773,7 +773,7 @@ input[type="text"]:read-only {
 				<div>
 				    <div class="label">OP Type</div>
 				    <select name="opType" id="opType" style="padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; width: 85px;">
-				        <option value="DI">DEBIT</option>
+				        <option value="DI" selected>DEBIT</option>
 				        <option value="CI">CREDIT</option>
 				    </select>
 				</div>
@@ -1106,6 +1106,15 @@ function updateLabelsBasedOnOperation() {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize transaction table
     refreshCreditAccountsTable();
+    
+ // Set initial labels based on default OP Type
+    const accountCodeLabel = document.getElementById("accountCodeLabel");
+    const accountNameLabel = document.getElementById("accountNameLabel");
+    const transactionAmountLabel = document.getElementById("transactionamountLabel");
+    
+    accountCodeLabel.textContent = 'Debit Account Code';
+    accountNameLabel.textContent = 'Debit Account Name';
+    transactionAmountLabel.textContent = 'Debit Amount';
     
     // Operation type change handler
     const operationRadios = document.querySelectorAll("input[name='operationType']");
