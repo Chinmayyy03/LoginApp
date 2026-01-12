@@ -20,6 +20,8 @@
 <meta charset="UTF-8">
 <title>Authorization Pending Applications - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="css/totalCustomers.css">
+<script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+
 <style>
 .pagination-container {
     display: flex;
@@ -180,7 +182,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Application List');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authorizationPendingApplications.jsp')
+        );
     }
     
     // Check if returning from detail view and restore page
@@ -194,10 +198,10 @@ window.onload = function() {
 // View application
 function viewApplication(applicationNumber) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Application List > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authViewApplication.jsp', 'authorizationPendingApplications.jsp')
+        );
     }
-    window.location.href = 'authViewApplication.jsp?appNo=' + applicationNumber;
-}
 </script>
 </head>
 <body>

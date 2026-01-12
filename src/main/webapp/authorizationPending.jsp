@@ -14,6 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authorization Pending</title>
+    <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+    
     
 <style>
     * {
@@ -201,11 +203,10 @@
     <script>
     window.onload = function() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Authorization ');
+            window.parent.updateParentBreadcrumb(
+                window.buildBreadcrumbPath('authorizationPending.jsp')
+            );
         }
-        
-        loadCardValues();
-    };
     
     async function loadCardValues() {
         await Promise.all([

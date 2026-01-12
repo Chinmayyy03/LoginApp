@@ -29,6 +29,8 @@
   <meta charset="UTF-8">
   <title>Complete Bank Customer Form</title>
   <link rel="stylesheet" href="css/addCustomer.css">
+  <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+  
  <!-- Add Toastify CSS -->
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   
@@ -1033,6 +1035,14 @@ function resetFormWithUploads() {
     }
   }, 10);
 }
+
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('addCustomer.jsp')
+        );
+    }
+};
 </script>
 
 </body>

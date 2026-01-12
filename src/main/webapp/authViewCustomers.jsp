@@ -102,6 +102,7 @@
   <title>View Customer — <%= cid %></title>
   <link rel="stylesheet" href="css/addCustomer.css">
   <link rel="stylesheet" href="css/authViewCustomers.css">
+  <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
   <style>
   .image-preview-section {
       display: flex;
@@ -147,13 +148,17 @@
 <script>
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Customer List > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authViewCustomers.jsp', 'authorizationPendingCustomers.jsp')
+        );
     }
 };
 
 function goBackToList() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Customer List');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authorizationPendingCustomers.jsp')
+        );
     }
     window.location.href = 'authorizationPendingCustomers.jsp';
 }

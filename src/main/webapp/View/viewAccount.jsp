@@ -122,6 +122,8 @@
 <head>
   <meta charset="UTF-8">
   <title>View Account — <%= accountCode %></title>
+  <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+  
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/addCustomer.css">
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/authViewCustomers.css">
   <script>

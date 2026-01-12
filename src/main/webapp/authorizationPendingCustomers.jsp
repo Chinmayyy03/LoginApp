@@ -20,6 +20,8 @@
 <meta charset="UTF-8">
 <title>Authorization Pending Customers - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="css/totalCustomers.css">
+<script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+
 <style>
 .pagination-container {
     display: flex;
@@ -180,7 +182,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Customer List');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authorizationPendingCustomers.jsp')
+        );
     }
     
     // Check if returning from detail view and restore page
@@ -194,10 +198,10 @@ window.onload = function() {
 // View customer
 function viewCustomer(customerId) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Authorization > Customer List > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('authViewCustomers.jsp', 'authorizationPendingCustomers.jsp')
+        );
     }
-    window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
-}
 </script>
 </head>
 <body>

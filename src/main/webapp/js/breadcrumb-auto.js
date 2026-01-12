@@ -25,9 +25,20 @@ const PAGE_EXCEPTIONS = {
 	    'Dashboard/securedLoan.jsp': 'Secured Loan',
 	    'Dashboard/unsecuredLoan.jsp': 'Unsecured Loan',
 	    'Dashboard/totalLoan.jsp': 'Total Loan',
+		
 		'Transactions/transactions.jsp': 'Transactions',
-		'View/totalAccounts.jsp': 'Total Accounts'
-
+		'View/totalAccounts.jsp': 'Total Accounts',
+		
+		// Authorization pages
+		'authorizationPending.jsp': 'Authorization',
+		'authorizationPendingCustomers.jsp': 'Customer List',
+		'authorizationPendingApplications.jsp': 'Application List',
+		'authViewCustomers.jsp': 'View Details',
+		'authViewApplication.jsp': 'View Details',
+		    
+		// Other pages
+		'addCustomer.jsp': 'Add Customer',
+		'newApplication.jsp': 'Open Account',
 
 	
 	//Transactions

@@ -19,6 +19,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Total Accounts - Branch <%= branchCode %></title>
+<script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -41,8 +43,6 @@
     font-weight: bold;
     transition: background 0.3s;
 }
-
-
 
 .pagination-btn:disabled {
     background: #ccc;
@@ -177,7 +177,6 @@ function nextPage() {
     }
 }
 
-//Update breadcrumb on page load
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {

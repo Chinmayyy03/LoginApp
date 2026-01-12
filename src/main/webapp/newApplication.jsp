@@ -121,12 +121,9 @@
 <head>
     <meta charset="UTF-8">
     <title>List of Product</title>
-    
-    <!-- Add Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    
-    <!-- Add Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
     
     <style>
         body {
@@ -409,6 +406,13 @@
 </div>
 
 <script>
+window.onload = function() {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('newApplication.jsp')
+        );
+    }
+};
 // ========== TOAST UTILITY FUNCTION ==========
 function showToast(message, type = 'error') {
     const styles = {
