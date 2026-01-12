@@ -101,7 +101,7 @@
 
         input[type="text"] {
             padding: 10px;
-            width: 150px;
+            width: 110px;
             border: 2px solid #C8B7F6;
             border-radius: 8px;
             background-color: #F4EDFF;
@@ -592,7 +592,7 @@ input[type="text"]:read-only {
 		    display: flex;
 		    justify-content: center;
 		    align-items: center;
-		    margin: 15px 0;
+		    margin: 15px 15px 15px 15px;
 		}
 		
 		.save-btn {
@@ -761,11 +761,23 @@ input[type="text"]:read-only {
                                 <span>Other</span>
                             </label>
                         </div>
+                        <div class="save-button-container">
+					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
+					</div>
                     </div>
                 </div>
 
                 <!-- Account Code and Name Row -->
 				<div class="row">
+				
+				<div>
+				    <div class="label">OP Type</div>
+				    <select name="opType" id="opType" style="padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; width: 85px;">
+				        <option value="DI">DEBIT</option>
+				        <option value="CI">CREDIT</option>
+				    </select>
+				</div>
+								
 				    <!-- Account Code -->
 				    <div>
 				        <div class="label" id="accountCodeLabel">Account Code</div>
@@ -789,59 +801,19 @@ input[type="text"]:read-only {
 					    <div class="label" id="transactionamountLabel">Transaction Amount</div>
 					    <input type="text" name="transactionamount" id="transactionamount" placeholder="Enter Transaction Amount" oninput="calculateNewBalanceInIframe()">
 					</div>
-				    <div class="save-button-container">
-					    <button type="button" class="save-btn" onclick="handleSaveTransaction()">Save</button>
+					<div>
+					    <div class="label">Particular</div>
+					    <textarea name="particular" id="particular" placeholder="Enter particular details" style="width: 250px; height: 40px; padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; resize: vertical;"></textarea>
 					</div>
+					
+					<div class="save-button-container">
+					    <button type="button" class="add-btn" onclick="addTransactionRow()">+</button>
+					</div>
+				    
 
-				
-				    <!-- OPERATION DISPLAY BOX -->
-					<div class="operation-display-box deposit" id="operationBox">
-					    <span class="display-value" id="operationDisplay">DEPOSIT</span>
-					</div>
 				</div>
 				
-				<!-- Credit Account Code and Name Row -->
-				<div class="row" id="creditAccountRow" style="display: none;">
-				    <!-- Credit Account Code -->
-				    <div>
-				        <div class="label" id="creditAccountCodeLabel">Credit Account Code</div>
-				        <div class="input-box">
-				            <input type="text" name="creditAccountCode" id="creditAccountCode" placeholder="Enter credit account code" maxlength="14" autocomplete="off">
-				            <button type="button" class="icon-btn" id="creditAccountLookupBtn" onclick="openLookup('creditAccount')">…</button>
-				        </div>
-				        <div class="search-hint">Type last 7 digits to search</div>
-				        
-				        <!-- LIVE SEARCH DROPDOWN FOR CREDIT ACCOUNT -->
-				        <div class="search-dropdown">
-				            <div class="search-results" id="creditSearchResults"></div>
-				        </div>
-				    </div>
 				
-				    <div>
-				        <div class="label" id="creditAccountNameLabel">Credit Account Name</div>
-				        <input type="text" name="creditAccountName" id="creditAccountName" placeholder="Account Name" style="width: 220px;" readonly>
-				    </div>
-				    
-				    <div>
-				        <div class="label" id="creditAmountLabel">Credit Amount</div>
-						<input type="text" name="creditAmount" id="creditAmount" placeholder="Enter Credit Amount">
-				    </div>
-				    
-				    <div class="save-button-container">
-					    <button type="button" class="add-btn" onclick="addCreditAccountRow()">+</button>
-					</div>
-				    
-				    <div>
-				        <div class="label" id="debitAmount">Debit Total</div>
-				        <input type="text" name="debitTotal" id="debitTotal" placeholder="Debit Total">
-				    </div>
-				    
-				    <div>
-				        <div class="label" id="creditTotalLabel">Credit Total</div>
-				        <input type="text" name="CreditAmount" id="CreditAmount" placeholder="Credit Total">
-				    </div>
-				  
-				</div>
 				<div id="creditAccountsContainer"></div>
             </fieldset>
 
@@ -878,7 +850,6 @@ const SEARCH_DELAY = 300;
 let searchTimeout;
 let currentCategory = 'saving';
 let previousAccountCode = '';
-let previousCreditAccountCode = '';
 
 // ========== TOAST UTILITY ==========
 function showToast(message, type = 'error') {
@@ -923,7 +894,6 @@ accountCodeInput.addEventListener('input', function(e) {
     const currentValue = this.value.replace(/\D/g, '');
     this.value = currentValue;
     
-    // Clear Account Name if Account Code changes
     if (currentValue !== previousAccountCode) {
         document.getElementById('accountName').value = '';
         previousAccountCode = currentValue;
@@ -1036,19 +1006,13 @@ function displaySearchResults(accounts, searchNumber) {
 
 // ========== HIGHLIGHT MATCHING TEXT ==========
 function highlightMatch(text, search) {
-    // Get the last 7 digits of the account code
     const last7Digits = text.slice(-7);
-    
-    // Find the match position within the last 7 digits
     const matchIndex = last7Digits.indexOf(search);
     
-    // If no match found in last 7 digits, return original text
     if (matchIndex === -1) return text;
     
-    // Calculate the actual position in the full text
     const actualIndex = text.length - 7 + matchIndex;
     
-    // Build the highlighted string
     return text.substring(0, actualIndex) + 
            '<span class="highlight">' + 
            search + 
@@ -1106,54 +1070,41 @@ function filterTable() {
     }
 }
 
+// ========== UPDATE LABELS AND SHOW/HIDE TRANSFER CONTROLS ==========
 function updateLabelsBasedOnOperation() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
-    const accountCodeLabel = document.getElementById("accountCodeLabel");
-    const accountNameLabel = document.getElementById("accountNameLabel");
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
-    const operationDisplay = document.getElementById("operationDisplay");
-    const operationBox = document.getElementById("operationBox");
-    const creditAccountRow = document.getElementById("creditAccountRow");
     
-    // Clear Account Code, Account Name and iframe when operation type changes
+    // Get the OP Type dropdown parent div
+    const opTypeDiv = document.getElementById('opType').parentElement;
+    const addButtonDiv = document.querySelector('.add-btn').parentElement;
+    
+    // Clear inputs
     accountCodeInput.value = '';
     accountNameInput.value = '';
-    document.getElementById('creditAccountCode').value = '';
-    document.getElementById('creditAccountName').value = '';
-    document.getElementById('creditAmount').value = '';
+    document.getElementById('transactionamount').value = '';
+    document.getElementById('particular').value = '';
     previousAccountCode = '';
-    previousCreditAccountCode = '';
     clearIframe();
     
-    // Clear credit accounts data and refresh table
+    // Clear transaction data
     creditAccountsData = [];
     refreshCreditAccountsTable();
     
-    // Update the display box text
-    operationDisplay.textContent = operationType.toUpperCase();
-    
-    // Update the display box color by changing classes
-    operationBox.className = 'operation-display-box ' + operationType;
-    
-    if (operationType === "transfer") {
-        accountCodeLabel.textContent = "Debit Account Code";
-        accountNameLabel.textContent = "Debit Account Name";
-        accountCodeInput.placeholder = "Enter debit account code";
-        accountNameInput.placeholder = "Debit Account Name";
-        creditAccountRow.style.display = "flex";
+    // Show/Hide OP Type and + button based on operation type
+    if (operationType === 'transfer') {
+        opTypeDiv.style.display = 'block';
+        addButtonDiv.style.display = 'flex';
     } else {
-        accountCodeLabel.textContent = "Account Code";
-        accountNameLabel.textContent = "Account Name";
-        accountCodeInput.placeholder = "Enter account code";
-        accountNameInput.placeholder = "Account Name";
-        creditAccountRow.style.display = "none";
+        opTypeDiv.style.display = 'none';
+        addButtonDiv.style.display = 'none';
     }
 }
 
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize credit accounts table
+    // Initialize transaction table
     refreshCreditAccountsTable();
     
     // Operation type change handler
@@ -1165,37 +1116,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Credit Account Code - digits only
-    const creditAccountCodeInput = document.getElementById('creditAccountCode');
-    if (creditAccountCodeInput) {
-        creditAccountCodeInput.addEventListener('input', function(e) {
-            const currentValue = this.value.replace(/\D/g, '');
-            this.value = currentValue;
+    // Handle OP Type dropdown change
+    const opTypeSelect = document.getElementById('opType');
+    if (opTypeSelect) {
+        opTypeSelect.addEventListener('change', function() {
+            const opType = this.value;
+            const accountCodeLabel = document.getElementById("accountCodeLabel");
+            const accountNameLabel = document.getElementById("accountNameLabel");
+            const transactionAmountLabel = document.getElementById("transactionamountLabel");
             
-            // Clear Credit Account Name if Credit Account Code changes
-            if (currentValue !== previousCreditAccountCode) {
-                document.getElementById('creditAccountName').value = '';
-                previousCreditAccountCode = currentValue;
+            if (opType === 'DI') {
+                accountCodeLabel.textContent = 'Debit Account Code';
+                accountNameLabel.textContent = 'Debit Account Name';
+                transactionAmountLabel.textContent = 'Debit Amount';
+            } else if (opType === 'CI') {
+                accountCodeLabel.textContent = 'Credit Account Code';
+                accountNameLabel.textContent = 'Credit Account Name';
+                transactionAmountLabel.textContent = 'Credit Amount';
             }
             
-            handleLiveSearchCredit(currentValue);
-        });
-
-        creditAccountCodeInput.addEventListener('keydown', function(e) {
-            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                (e.keyCode === 65 && e.ctrlKey === true) ||
-                (e.keyCode === 67 && e.ctrlKey === true) ||
-                (e.keyCode === 86 && e.ctrlKey === true) ||
-                (e.keyCode === 88 && e.ctrlKey === true) ||
-                (e.keyCode >= 35 && e.keyCode <= 39)) {
-                return;
-            }
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
-            }
+            // Clear inputs when OP Type changes
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('transactionamount').value = '';
+            document.getElementById('particular').value = '';
+            previousAccountCode = '';
+            clearIframe();
         });
     }
     
+    // Category change handler
     const categoryRadios = document.querySelectorAll("input[name='accountCategory']");
     categoryRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -1210,8 +1160,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
-    previousCreditAccountCode = document.getElementById('creditAccountCode').value;
     
+    // Transaction amount input handler for totals
+    const transactionAmountInput = document.getElementById('transactionamount');
+    if (transactionAmountInput) {
+        transactionAmountInput.addEventListener('input', updateTotals);
+    }
+    
+    // Initial call to set visibility
     updateLabelsBasedOnOperation();
 });
 
@@ -1248,18 +1204,6 @@ function sendBack(code, desc, type) {
 }
 
 function setValueFromLookup(code, desc, type) {
-    // Check for credit account (transfer mode)
-    if (window.currentLookupType === "creditAccount") {
-        document.getElementById("creditAccountCode").value = code;
-        document.getElementById("creditAccountName").value = desc;
-        previousCreditAccountCode = code;
-        window.currentLookupType = null;
-        closeLookup();
-        // Don't auto-submit for credit account - user may want to add amount first
-        return;
-    } 
-    
-    // Default - debit account
     document.getElementById("accountCode").value = code;
     document.getElementById("accountName").value = desc;
     previousAccountCode = code;
@@ -1276,13 +1220,7 @@ function submitTransactionForm() {
     let accountCode = document.querySelector("input[name='accountCode']").value.trim();
     let accountName = document.querySelector("input[name='accountName']").value.trim();
     
-    // Get credit account values (will be empty if not in transfer mode)
-    let creditAccountCodeInput = document.getElementById('creditAccountCode');
-    let creditAccountNameInput = document.getElementById('creditAccountName');
-    let creditAccountCode = creditAccountCodeInput ? creditAccountCodeInput.value.trim() : '';
-    let creditAccountName = creditAccountNameInput ? creditAccountNameInput.value.trim() : '';
-    
-    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName, creditAccountCode, creditAccountName);
+    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName);
     
     const pageMap = {
         "deposit": "transactionForm.jsp",
@@ -1304,8 +1242,6 @@ function submitTransactionForm() {
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.input-box') && !e.target.closest('.search-dropdown')) {
         document.getElementById('searchResults').classList.remove('active');
-        const creditResults = document.getElementById('creditSearchResults');
-        if (creditResults) creditResults.classList.remove('active');
     }
 });
 
@@ -1315,99 +1251,6 @@ document.addEventListener('keydown', function(event) {
         document.getElementById('searchResults').classList.remove('active');
     }
 });
-
-// ========== CREDIT ACCOUNT LIVE SEARCH ==========
-function handleLiveSearchCredit(value) {
-    clearTimeout(searchTimeout);
-    const searchResults = document.getElementById('creditSearchResults');
-    
-    if (value.length === 0) {
-        searchResults.classList.remove('active');
-        return;
-    }
-    
-    let searchNumber = value;
-    if (value.length > 7) {
-        searchNumber = value.slice(-7);
-    }
-    
-    if (searchNumber.length < MIN_SEARCH_LENGTH) {
-        searchResults.innerHTML = '<div class="search-info">Type at least ' + MIN_SEARCH_LENGTH + ' digits to search...</div>';
-        searchResults.classList.add('active');
-        return;
-    }
-    
-    searchResults.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div><div style="margin-top: 8px;">Searching...</div></div>';
-    searchResults.classList.add('active');
-    
-    searchTimeout = setTimeout(function() {
-        performSearchCredit(searchNumber);
-    }, SEARCH_DELAY);
-}
-
-function performSearchCredit(searchNumber) {
-    const searchResults = document.getElementById('creditSearchResults');
-    currentCategory = document.querySelector('input[name="accountCategory"]:checked').value;
-    
-    fetch('SearchAccounts.jsp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'searchNumber=' + encodeURIComponent(searchNumber) + '&category=' + encodeURIComponent(currentCategory)
-    })
-    .then(function(response) {
-        if (!response.ok) throw new Error('Network error');
-        return response.json();
-    })
-    .then(function(data) {
-        if (data.error) {
-            searchResults.innerHTML = '<div class="no-results">' + data.error + '</div>';
-            return;
-        }
-        if (data.accounts && data.accounts.length > 0) {
-            displaySearchResultsCredit(data.accounts, searchNumber);
-        } else {
-            searchResults.innerHTML = '<div class="no-results">No accounts found matching "' + searchNumber + '"</div>';
-        }
-    })
-    .catch(function(error) {
-        console.error('Search error:', error);
-        searchResults.innerHTML = '<div class="no-results">Error loading accounts. Please try again.</div>';
-        showToast('Search failed. Please try again.', 'error');
-    });
-}
-
-function displaySearchResultsCredit(accounts, searchNumber) {
-    const searchResults = document.getElementById('creditSearchResults');
-    if (accounts.length === 0) {
-        searchResults.innerHTML = '<div class="no-results">No accounts found</div>';
-        return;
-    }
-    let html = '';
-    accounts.forEach(function(account) {
-        const highlightedCode = highlightMatch(account.code, searchNumber);
-        const escapedName = account.name.replace(/'/g, "\\'");
-        const productDesc = account.productDesc || '';
-        
-        html += '<div class="search-result-item" onclick="selectCreditAccountFromSearch(\'' + 
-                account.code + '\', \'' + escapedName + '\')">' +
-                '<div class="result-code">' + highlightedCode + '</div>' +
-                '<div class="result-name-row">' + account.name + '</div>';
-        
-        if (productDesc && productDesc.trim() !== '') {
-            html += '<div class="result-product-desc">' + productDesc + '</div>';
-        }
-        
-        html += '</div>';
-    });
-    searchResults.innerHTML = html;
-}
-
-function selectCreditAccountFromSearch(code, name) {
-    document.getElementById('creditAccountCode').value = code;
-    document.getElementById('creditAccountName').value = name;
-    previousCreditAccountCode = code;
-    document.getElementById('creditSearchResults').classList.remove('active');
-}
 
 function handleSaveTransaction() {
     showToast('Save transaction functionality not yet implemented', 'warning');
@@ -1423,7 +1266,6 @@ function calculateNewBalanceInIframe() {
         const iframeWindow = iframe.contentWindow;
         const iframeDoc = iframeWindow.document;
         
-        // Get ledger balance from iframe
         const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
         const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
         
@@ -1446,134 +1288,94 @@ function calculateNewBalanceInIframe() {
     }
 }
 
-// ========== DYNAMIC CREDIT ACCOUNT TABLE ==========
-// ========== DYNAMIC CREDIT ACCOUNT TABLE ==========
+// ========== DYNAMIC TRANSACTION TABLE ==========
 let creditAccountsData = [];
 
-function addCreditAccountRow() {
-    // Try multiple possible IDs for the credit amount field
-    let creditAmountInput = document.getElementById('creditAmount');
-    
-    // If not found, try alternative IDs
-    if (!creditAmountInput) {
-        creditAmountInput = document.querySelector('input[name="creditAmount"]');
-    }
-    
-    // Get values from the input fields
-    const creditCode = document.getElementById('creditAccountCode').value.trim();
-    const creditName = document.getElementById('creditAccountName').value.trim();
-    const creditAmount = creditAmountInput ? creditAmountInput.value.trim() : '';
-    
-    console.log('Adding credit account:', {
-        code: creditCode,
-        name: creditName,
-        amount: creditAmount,
-        inputElement: creditAmountInput,
-        inputValue: creditAmountInput ? creditAmountInput.value : 'NOT FOUND'
-    });
+function addTransactionRow() {
+    const accountCode = document.getElementById('accountCode').value.trim();
+    const accountName = document.getElementById('accountName').value.trim();
+    const transactionAmount = document.getElementById('transactionamount').value.trim();
+    const particular = document.getElementById('particular').value.trim();
+    const opType = document.getElementById('opType').value;
     
     // Validate inputs
-    if (!creditCode) {
-        showToast('Please enter or select a credit account code', 'error');
+    if (!accountCode) {
+        showToast('Please enter or select an account code', 'error');
         return;
     }
     
-    if (!creditName) {
-        showToast('Please select a credit account', 'error');
+    if (!accountName) {
+        showToast('Please select an account', 'error');
         return;
     }
     
-    // More lenient validation - allow empty or check if it's a valid number
-    if (creditAmount && creditAmount !== '') {
-        const amountValue = parseFloat(creditAmount);
-        if (isNaN(amountValue) || amountValue < 0) {
-            showToast('Please enter a valid credit amount', 'error');
-            return;
-        }
+    if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
+        showToast('Please enter a valid transaction amount', 'error');
+        return;
     }
     
     // Check for duplicate account
-    const isDuplicate = creditAccountsData.some(acc => acc.code === creditCode);
+    const isDuplicate = creditAccountsData.some(acc => acc.code === accountCode);
     if (isDuplicate) {
         showToast('This account is already added', 'warning');
         return;
     }
     
- 
-		// Parse and store the amount properly
-		let finalAmount = '0.00';
-		if (creditAmount && creditAmount !== '') {
-		    const parsedAmount = parseFloat(creditAmount);
-		    if (!isNaN(parsedAmount)) {
-		        finalAmount = parsedAmount.toFixed(2);
-		    }
-		}
-		
-		// Get current debit total
-		const debitAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
-		
-		// Calculate what the new credit total would be
-		const currentCreditTotal = creditAccountsData.reduce((sum, acc) => sum + parseFloat(acc.amount), 0);
-		const newCreditTotal = currentCreditTotal + parseFloat(finalAmount);
-		
-		// Check if adding this amount would exceed debit total
-		if (newCreditTotal > debitAmount) {
-		    const excess = (newCreditTotal - debitAmount).toFixed(2);
-		    showToast('Cannot add: Credit total would exceed debit total by ₹' + excess, 'error');
-		    return;
-		}
-		
-		console.log('Final amount to be stored:', finalAmount);
+    const finalAmount = parseFloat(transactionAmount).toFixed(2);
     
-    // Add to data array with amount
+    // Add to data array
     creditAccountsData.push({
-        id: Date.now(), // Unique ID
-        code: creditCode,
-        name: creditName,
-        amount: finalAmount
+        id: Date.now(),
+        code: accountCode,
+        name: accountName,
+        amount: finalAmount,
+        particular: particular,
+        opType: opType
     });
     
-    // Clear ALL input fields after adding
-    document.getElementById('creditAccountCode').value = '';
-    document.getElementById('creditAccountName').value = '';
-    if (creditAmountInput) {
-        creditAmountInput.value = '';
-    }
-    previousCreditAccountCode = '';
+    // Clear input fields
+    document.getElementById('accountCode').value = '';
+    document.getElementById('accountName').value = '';
+    document.getElementById('transactionamount').value = '';
+    document.getElementById('particular').value = '';
+    previousAccountCode = '';
+    clearIframe();
     
     // Refresh the table
     refreshCreditAccountsTable();
     
-    // Update totals
-    updateTotals();
-    
-    showToast('Credit account added successfully', 'success');
+    showToast('Transaction added successfully', 'success');
 }
 
 function refreshCreditAccountsTable() {
     const container = document.getElementById('creditAccountsContainer');
     
     if (creditAccountsData.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No credit accounts added yet</p>';
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No transactions added yet</p>';
         return;
     }
     
     let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">' +
                     '<thead>' +
                     '<tr style="background-color: #373279; color: white;">' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Credit Account Code</th>' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Credit Account Name</th>' +
-                    '<th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Credit Amount</th>' +
+                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">OP Type</th>' +
+                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Account Code</th>' +
+                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Account Name</th>' +
+                    '<th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Amount</th>' +
+                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Particular</th>' +
                     '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 80px;">Action</th>' +
                     '</tr>' +
                     '</thead>' +
                     '<tbody>';
     
     creditAccountsData.forEach(function(account) {
+        const opTypeColor = account.opType === 'DI' ? '#c62828' : '#2e7d32';
         tableHTML += '<tr style="background-color: #f9f9f9;">' +
+                     '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: ' + opTypeColor + ';">' + account.opType + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd;">' + account.code + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd;">' + account.name + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #2e7d32;">₹ ' + account.amount + '</td>' +
+                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹ ' + account.amount + '</td>' +
+                     '<td style="padding: 10px; border: 1px solid #ddd;">' + (account.particular || '-') + '</td>' +
                      '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' +
                      '<button type="button" onclick="removeCreditAccount(' + account.id + ')" class="remove-btn" style="padding: 5px 10px; font-size: 16px;">×</button>' +
                      '</td>' +
@@ -1583,75 +1385,17 @@ function refreshCreditAccountsTable() {
     tableHTML += '</tbody></table>';
     
     container.innerHTML = tableHTML;
-    
-    console.log('Table refreshed with', creditAccountsData.length, 'accounts');
 }
 
 function removeCreditAccount(accountId) {
     creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
     refreshCreditAccountsTable();
-    updateTotals();
-    showToast('Credit account removed', 'info');
+    showToast('Transaction removed', 'info');
 }
 
 function updateTotals() {
-    // Calculate credit total
-    const creditTotal = creditAccountsData.reduce((sum, acc) => sum + parseFloat(acc.amount), 0);
-    
-    // Get debit amount (transaction amount)
-    const debitAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
-    
-    // Update the display fields
-    const creditTotalField = document.getElementById('CreditAmount');
-    const debitTotalField = document.getElementById('debitTotal');
-    
-    if (creditTotalField) {
-        creditTotalField.value = creditTotal.toFixed(2);
-        
-        // Update border color based on match
-        if (debitAmount > 0 && creditTotal > 0) {
-            if (Math.abs(debitAmount - creditTotal) < 0.01) {
-                // Matched - Green border
-                creditTotalField.style.border = '3px solid #4caf50';
-                debitTotalField.style.border = '3px solid #4caf50';
-            } else if (creditTotal < debitAmount) {
-                // Credit less than debit - Yellow/Orange border
-                creditTotalField.style.border = '3px solid #ff9800';
-                debitTotalField.style.border = '3px solid #ff9800';
-            } else {
-                // This shouldn't happen due to validation, but just in case
-                creditTotalField.style.border = '3px solid #f44336';
-                debitTotalField.style.border = '3px solid #f44336';
-            }
-        } else {
-            // Reset to default
-            creditTotalField.style.border = '2px solid #C8B7F6';
-            debitTotalField.style.border = '2px solid #C8B7F6';
-        }
-    }
-    
-    if (debitTotalField) {
-        debitTotalField.value = debitAmount.toFixed(2);
-    }
-    
-    // Check if balanced
-    if (debitAmount > 0 && creditTotal > 0) {
-        if (Math.abs(debitAmount - creditTotal) < 0.01) {
-            showToast('Transaction is balanced ✓', 'success');
-        } else {
-            const difference = Math.abs(debitAmount - creditTotal).toFixed(2);
-            showToast('Credit side is short by ₹' + difference, 'warning');
-        }
-    }
+    // This function can be used if you need to calculate totals
 }
-
-// Also update the transaction amount input to recalculate totals
-document.addEventListener('DOMContentLoaded', function() {
-    const transactionAmountInput = document.getElementById('transactionamount');
-    if (transactionAmountInput) {
-        transactionAmountInput.addEventListener('input', updateTotals);
-    }
-});
 </script>
 </body>
 </html>
