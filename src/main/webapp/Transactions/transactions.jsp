@@ -824,7 +824,7 @@ input[type="text"]:read-only {
 				    
 				    <div>
 				        <div class="label" id="creditAmountLabel">Credit Amount</div>
-						<input type="text" name="creditAmount" id="creditAmount">
+						<input type="text" name="creditAmount" id="creditAmount" placeholder="Enter Credit Amount">
 				    </div>
 				    
 				    <div class="save-button-container">
