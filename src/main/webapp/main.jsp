@@ -100,6 +100,14 @@
 	        <span>Transactions</span>
 	    </a>
 	</li>
+	
+	<!-- Reports -->
+	<li data-page="Reports/reports.jsp">
+	    <a href="#" onclick="loadPage('Reports/reports.jsp', 'Reports', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Reports</span>
+	    </a>
+	</li>
 </ul>
 
     <div class="logout">

@@ -39,6 +39,9 @@ const PAGE_EXCEPTIONS = {
 		// Other pages
 		'addCustomer.jsp': 'Add Customer',
 		'newApplication.jsp': 'Open Account',
+		
+		// Reports page
+		'Reports/reports.jsp': 'Reports'
 
 	
 	//Transactions

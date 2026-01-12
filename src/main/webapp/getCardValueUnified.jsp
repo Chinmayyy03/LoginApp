@@ -80,6 +80,31 @@
                 }
                 break;
                 
+            case "reports":
+                // Reports cards - use function calls (same as dashboard)
+                ps = conn.prepareStatement(
+                    "SELECT FUNCATION_NAME, PARAMITAR, TABLE_NAME, DESCRIPTION " +
+                    "FROM GLOBALCONFIG.REPORTS " +
+                    "WHERE SR_NUMBER = ? AND DESCRIPTION IS NOT NULL"
+                );
+                ps.setString(1, cardId);
+                rs = ps.executeQuery();
+                
+                if (rs.next()) {
+                    String functionName = rs.getString("FUNCATION_NAME");
+                    String parameters = rs.getString("PARAMITAR");
+                    String tableName = rs.getString("TABLE_NAME");
+                    
+                    if (functionName != null && !functionName.trim().isEmpty()) {
+                        value = executeCardFunction(conn, functionName, parameters, tableName, branchCode);
+                    } else {
+                        value = "N/A";
+                    }
+                } else {
+                    value = "N/A";
+                }
+                break;
+                
             case "auth":
                 // Authorization pending cards
                 if ("pending_customers".equals(cardId)) {
