@@ -177,10 +177,13 @@ function nextPage() {
     }
 }
 
+//Update breadcrumb on page load
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('View > Total Accounts');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/totalAccounts.jsp')
+        );
     }
     
     // Check if returning from detail view and restore page
@@ -191,11 +194,14 @@ window.onload = function() {
     }
 };
 
-
-    function viewAccount(accountCode) {
-        window.location.href =
-            '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode;
+function viewAccount(accountCode) {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'View/totalAccounts.jsp')
+        );
     }
+    window.location.href = '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=View/totalAccounts.jsp';
+}
 
 </script>
 </head>

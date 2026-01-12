@@ -201,13 +201,15 @@
 </div>
 
 <script>
-    window.onload = function () {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('View');
-        }
-        
-        loadCardValues();
-    };
+window.onload = function () {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/view.jsp')
+        );
+    }
+    
+    loadCardValues();
+};
     
     async function loadCardValues() {
         await loadCard('total_accounts', 'total-accounts-value', 'view');
@@ -243,7 +245,9 @@
             if (iframe) {
                 iframe.src = page;
                 if (window.parent.updateParentBreadcrumb) {
-                    window.parent.updateParentBreadcrumb(breadcrumbPath);
+                    window.parent.updateParentBreadcrumb(
+                        window.buildBreadcrumbPath(page)
+                    );
                 }
             }
         }

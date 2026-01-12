@@ -25,10 +25,15 @@ const PAGE_EXCEPTIONS = {
 	    'Dashboard/securedLoan.jsp': 'Secured Loan',
 	    'Dashboard/unsecuredLoan.jsp': 'Unsecured Loan',
 	    'Dashboard/totalLoan.jsp': 'Total Loan',
+		'Transactions/transactions.jsp': 'Transactions',
+		'View/totalAccounts.jsp': 'Total Accounts'
+
 
 	
 	//Transactions
-	'Transactions/transactions.jsp': 'Transactions'
+	
+	
+	// View
 };
 
 // ============================================
