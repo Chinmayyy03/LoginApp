@@ -114,19 +114,24 @@
   <title>View Application — <%= appNo %></title>
   <link rel="stylesheet" href="css/addCustomer.css">
   <link rel="stylesheet" href="css/authViewCustomers.css">
-  <script>
-  window.onload = function() {
-	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('Authorization > Application List > View Details');
-	    }
-	};
-
-	function goBackToList() {
-	    if (window.parent && window.parent.updateParentBreadcrumb) {
-	        window.parent.updateParentBreadcrumb('Authorization > Application List');
-	    }
-	    window.location.href = 'authorizationPendingApplications.jsp';
-	}
+  <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+	<script>
+		window.onload = function() {
+		    if (window.parent && window.parent.updateParentBreadcrumb) {
+		        window.parent.updateParentBreadcrumb(
+		            window.buildBreadcrumbPath('authViewApplication.jsp', 'authorizationPendingApplications.jsp')
+		        );
+		    }
+		};
+		
+		function goBackToList() {
+		    if (window.parent && window.parent.updateParentBreadcrumb) {
+		        window.parent.updateParentBreadcrumb(
+		            window.buildBreadcrumbPath('authorizationPendingApplications.jsp')
+		        );
+		    }
+		    window.location.href = 'authorizationPendingApplications.jsp';
+		}
 
 function showAuthorizeConfirmation(event) {
     event.preventDefault();

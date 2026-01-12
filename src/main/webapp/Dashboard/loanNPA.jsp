@@ -191,10 +191,11 @@ function nextPage() {
     }
 }
 
-// Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('Dashboard/loanNPA.jsp')
+        );
     }
     
     var savedPage = sessionStorage.getItem('loanNPAPage');
@@ -204,10 +205,11 @@ window.onload = function() {
     }
 };
 
-// View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Loan NPA > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/loanNPA.jsp')
+        );
     }
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loanNPA.jsp';
 }

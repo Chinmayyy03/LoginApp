@@ -122,60 +122,32 @@
 <head>
   <meta charset="UTF-8">
   <title>View Account — <%= accountCode %></title>
+  <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+  
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/addCustomer.css">
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/authViewCustomers.css">
   <script>
 //Fixed breadcrumb navigation for viewAccount.jsp
-//Replace the existing <script> section with this
-
 window.onload = function() {
-   var returnPage = '<%= returnPage %>';
-   var breadcrumb = 'View > Total Accounts > View Details'; // Default
-   
-   // Check in specific order - most specific first to avoid false matches
-   if (returnPage.includes('unsecuredLoan.jsp')) {
-       breadcrumb = 'Dashboard > Unsecured Loan > View Details';
-   } else if (returnPage.includes('securedLoan.jsp')) {
-       breadcrumb = 'Dashboard > Secured Loan > View Details';
-   } else if (returnPage.includes('personalLoan.jsp')) {
-       breadcrumb = 'Dashboard > Personal Loan > View Details';
-   } else if (returnPage.includes('totalLoan.jsp')) {
-       breadcrumb = 'Dashboard > Total Loan > View Details';
-   } else if (returnPage.includes('totalAccounts.jsp')) {
-       breadcrumb = 'View > Total Accounts > View Details';
-   }
-   
-   if (window.parent && window.parent.updateParentBreadcrumb) {
-       window.parent.updateParentBreadcrumb(breadcrumb);
-   }
-   
-   // Debug log (remove in production)
-   console.log('viewAccount.jsp loaded - returnPage:', returnPage, 'breadcrumb:', breadcrumb);
+    var returnPage = '<%= returnPage %>';
+    
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', returnPage)
+        );
+    }
 };
 
 function goBackToList() {
-   var returnPage = '<%= returnPage %>';
-   var breadcrumb = 'View > Total Accounts'; // Default
-   
-   // Check in specific order - most specific first to avoid false matches
-   if (returnPage.includes('unsecuredLoan.jsp')) {
-       breadcrumb = 'Dashboard > Unsecured Loan';
-   } else if (returnPage.includes('securedLoan.jsp')) {
-       breadcrumb = 'Dashboard > Secured Loan';
-   } else if (returnPage.includes('personalLoan.jsp')) {
-       breadcrumb = 'Dashboard > Personal Loan';
-   } else if (returnPage.includes('totalLoan.jsp')) {
-       breadcrumb = 'Dashboard > Total Loan';
-   } else if (returnPage.includes('totalAccounts.jsp')) {
-       breadcrumb = 'View > Total Accounts';
-   }
-   
-   if (window.parent && window.parent.updateParentBreadcrumb) {
-       window.parent.updateParentBreadcrumb(breadcrumb);
-   }
-   
-   // Navigate back
-   window.location.href = '<%= request.getContextPath() %>/' + returnPage;
+    var returnPage = '<%= returnPage %>';
+    
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath(returnPage)
+        );
+    }
+    
+    window.location.href = '<%= request.getContextPath() %>/' + returnPage;
 }
 </script>
 </head>

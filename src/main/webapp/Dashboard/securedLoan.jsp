@@ -194,7 +194,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('Dashboard/securedLoan.jsp')
+        );
     }
     
     var savedPage = sessionStorage.getItem('securedLoanPage');
@@ -204,10 +206,11 @@ window.onload = function() {
     }
 };
 
-// View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Secured Loan > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/securedLoan.jsp')
+        );
     }
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/securedLoan.jsp';
 }

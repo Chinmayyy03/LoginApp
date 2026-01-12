@@ -19,6 +19,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Total Accounts - Branch <%= branchCode %></title>
+<script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
+
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -41,8 +43,6 @@
     font-weight: bold;
     transition: background 0.3s;
 }
-
-
 
 .pagination-btn:disabled {
     background: #ccc;
@@ -180,7 +180,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('View > Total Accounts');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/totalAccounts.jsp')
+        );
     }
     
     // Check if returning from detail view and restore page
@@ -191,11 +193,14 @@ window.onload = function() {
     }
 };
 
-
-    function viewAccount(accountCode) {
-        window.location.href =
-            '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode;
+function viewAccount(accountCode) {
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'View/totalAccounts.jsp')
+        );
     }
+    window.location.href = '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=View/totalAccounts.jsp';
+}
 
 </script>
 </head>

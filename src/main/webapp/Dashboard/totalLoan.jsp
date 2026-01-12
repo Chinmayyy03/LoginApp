@@ -194,7 +194,9 @@ function nextPage() {
 // Update breadcrumb on page load
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Loan');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('Dashboard/totalLoan.jsp')
+        );
     }
     
     var savedPage = sessionStorage.getItem('totalLoanPage');
@@ -204,10 +206,11 @@ window.onload = function() {
     }
 };
 
-// View loan details and update breadcrumb
 function viewLoan(accountCode) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > Total Loan > View Details');
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/totalLoan.jsp')
+        );
     }
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/totalLoan.jsp';
 }
