@@ -837,7 +837,7 @@ input[type="text"]:read-only {
 				    </div>
 				    
 				    <div>
-				        <div class="label" id="CreditAmount">Credit Total</div>
+				        <div class="label" id="creditTotalLabel">Credit Total</div>
 				        <input type="text" name="CreditAmount" id="CreditAmount" placeholder="Credit Total">
 				    </div>
 				  
@@ -1499,16 +1499,31 @@ function addCreditAccountRow() {
         return;
     }
     
-    // Parse and store the amount properly
-    let finalAmount = '0.00';
-    if (creditAmount && creditAmount !== '') {
-        const parsedAmount = parseFloat(creditAmount);
-        if (!isNaN(parsedAmount)) {
-            finalAmount = parsedAmount.toFixed(2);
-        }
-    }
-    
-    console.log('Final amount to be stored:', finalAmount);
+ 
+		// Parse and store the amount properly
+		let finalAmount = '0.00';
+		if (creditAmount && creditAmount !== '') {
+		    const parsedAmount = parseFloat(creditAmount);
+		    if (!isNaN(parsedAmount)) {
+		        finalAmount = parsedAmount.toFixed(2);
+		    }
+		}
+		
+		// Get current debit total
+		const debitAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
+		
+		// Calculate what the new credit total would be
+		const currentCreditTotal = creditAccountsData.reduce((sum, acc) => sum + parseFloat(acc.amount), 0);
+		const newCreditTotal = currentCreditTotal + parseFloat(finalAmount);
+		
+		// Check if adding this amount would exceed debit total
+		if (newCreditTotal > debitAmount) {
+		    const excess = (newCreditTotal - debitAmount).toFixed(2);
+		    showToast('Cannot add: Credit total would exceed debit total by ₹' + excess, 'error');
+		    return;
+		}
+		
+		console.log('Final amount to be stored:', finalAmount);
     
     // Add to data array with amount
     creditAccountsData.push({
@@ -1592,6 +1607,27 @@ function updateTotals() {
     
     if (creditTotalField) {
         creditTotalField.value = creditTotal.toFixed(2);
+        
+        // Update border color based on match
+        if (debitAmount > 0 && creditTotal > 0) {
+            if (Math.abs(debitAmount - creditTotal) < 0.01) {
+                // Matched - Green border
+                creditTotalField.style.border = '3px solid #4caf50';
+                debitTotalField.style.border = '3px solid #4caf50';
+            } else if (creditTotal < debitAmount) {
+                // Credit less than debit - Yellow/Orange border
+                creditTotalField.style.border = '3px solid #ff9800';
+                debitTotalField.style.border = '3px solid #ff9800';
+            } else {
+                // This shouldn't happen due to validation, but just in case
+                creditTotalField.style.border = '3px solid #f44336';
+                debitTotalField.style.border = '3px solid #f44336';
+            }
+        } else {
+            // Reset to default
+            creditTotalField.style.border = '2px solid #C8B7F6';
+            debitTotalField.style.border = '2px solid #C8B7F6';
+        }
     }
     
     if (debitTotalField) {
@@ -1604,10 +1640,7 @@ function updateTotals() {
             showToast('Transaction is balanced ✓', 'success');
         } else {
             const difference = Math.abs(debitAmount - creditTotal).toFixed(2);
-            const balanceMsg = debitAmount > creditTotal ? 
-                'Credit side is short by ₹' + difference : 
-                'Credit side exceeds by ₹' + difference;
-            showToast(balanceMsg, 'warning');
+            showToast('Credit side is short by ₹' + difference, 'warning');
         }
     }
 }
