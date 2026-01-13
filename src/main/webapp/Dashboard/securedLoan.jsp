@@ -85,6 +85,12 @@
 </style>
 
 <script>
+
+//--- Child-side shim: copy parent's builder once if local one is missing ---
+if (typeof window.buildBreadcrumbPath !== 'function' &&
+    window.parent && typeof window.parent.buildBreadcrumbPath === 'function') {
+    window.buildBreadcrumbPath = window.parent.buildBreadcrumbPath;
+}
 // Store all secured loan data for client-side search
 let allSecuredLoans = [];
 let currentPage = 1;
@@ -192,25 +198,54 @@ function nextPage() {
 }
 
 // Update breadcrumb on page load
-window.onload = function() {
+window.addEventListener('load', function () {
+    const builder = (typeof window.buildBreadcrumbPath === 'function')
+        ? window.buildBreadcrumbPath
+        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
+            ? window.parent.buildBreadcrumbPath
+            : null;
+
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(
-            window.buildBreadcrumbPath('Dashboard/securedLoan.jsp')
-        );
+        if (builder) {
+            try {
+                window.parent.updateParentBreadcrumb(builder('Dashboard/securedLoan.jsp'));
+            } catch (e) {
+                console.warn('Breadcrumb build failed:', e);
+                window.parent.updateParentBreadcrumb('Dashboard > Secured Loan');
+            }
+        } else {
+            window.parent.updateParentBreadcrumb('Dashboard > Secured Loan');
+        }
     }
-    
+
+    // existing onload logic (restore savedPage / displayLoans)
     var savedPage = sessionStorage.getItem('securedLoanPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
         displayLoans(allSecuredLoans, currentPage);
     }
-};
+});
 
 function viewLoan(accountCode) {
+    const builder = (typeof window.buildBreadcrumbPath === 'function')
+        ? window.buildBreadcrumbPath
+        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
+            ? window.parent.buildBreadcrumbPath
+            : null;
+
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(
-            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/securedLoan.jsp')
-        );
+        if (builder) {
+            try {
+                window.parent.updateParentBreadcrumb(
+                    builder('View/viewAccount.jsp', 'Dashboard/securedLoan.jsp')
+                );
+            } catch (e) {
+                console.warn('Breadcrumb build failed in viewLoan:', e);
+                window.parent.updateParentBreadcrumb('View > View Details');
+            }
+        } else {
+            window.parent.updateParentBreadcrumb('View > View Details');
+        }
     }
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/securedLoan.jsp';
 }

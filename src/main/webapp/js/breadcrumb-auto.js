@@ -53,9 +53,15 @@ const PAGE_EXCEPTIONS = {
 	// View
 };
 
-// ============================================
+// Cache for generated breadcrumb strings
+const _breadcrumbCache = new Map();
+
+// Helper to build cache key
+function _cacheKey(pagePath, returnPage) {
+    return pagePath + '|' + (returnPage || '');
+}
+
 // AUTO-GENERATE TITLE FROM FILENAME
-// ============================================
 function autoGenerateTitle(filename) {
     return filename
         .replace(/([A-Z])/g, ' $1')
@@ -63,36 +69,44 @@ function autoGenerateTitle(filename) {
         .trim();
 }
 
-// ============================================
-// BUILD BREADCRUMB PATH
-// ============================================
+// BUILD BREADCRUMB PATH (memoized)
 function buildBreadcrumbPath(pagePath, returnPage = null) {
+    const key = _cacheKey(pagePath, returnPage);
+    if (_breadcrumbCache.has(key)) {
+        return _breadcrumbCache.get(key);
+    }
+
     // Handle dynamic parent (for View Details pages)
+    let result;
     if (returnPage) {
         let parentBreadcrumb = buildBreadcrumbPath(returnPage);
         let currentTitle = PAGE_EXCEPTIONS[pagePath] || getPageTitle(pagePath);
-        return parentBreadcrumb + ' > ' + currentTitle;
+        result = parentBreadcrumb + ' > ' + currentTitle;
+        _breadcrumbCache.set(key, result);
+        return result;
     }
-    
+
     // Normal case: build from URL
     let parts = pagePath.replace('.jsp', '').split('/');
-	
-	// ✅ FIX: If folder name matches filename, only show once
-	    if (parts.length === 2 && parts[0].toLowerCase() === parts[1].toLowerCase()) {
-	        // e.g., "View/view" -> just show "View"
-	        let fullPath = pagePath;
-	        return PAGE_EXCEPTIONS[fullPath] || autoGenerateTitle(parts[0]);
-	    }
-		
-    return parts.map((part, index) => {
+
+    // If folder name matches filename, only show once
+    if (parts.length === 2 && parts[0].toLowerCase() === parts[1].toLowerCase()) {
+        let fullPath = pagePath;
+        result = PAGE_EXCEPTIONS[fullPath] || autoGenerateTitle(parts[0]);
+        _breadcrumbCache.set(key, result);
+        return result;
+    }
+
+    result = parts.map((part, index) => {
         let fullPath = parts.slice(0, index + 1).join('/') + '.jsp';
         return PAGE_EXCEPTIONS[fullPath] || autoGenerateTitle(part);
     }).join(' > ');
+
+    _breadcrumbCache.set(key, result);
+    return result;
 }
 
-// ============================================
-// GET PAGE TITLE
-// ============================================
+// GET PAGE TITLE (unchanged)
 function getPageTitle(pagePath) {
     if (PAGE_EXCEPTIONS[pagePath]) {
         return PAGE_EXCEPTIONS[pagePath];
@@ -101,8 +115,6 @@ function getPageTitle(pagePath) {
     return autoGenerateTitle(filename);
 }
 
-// ============================================
-// MAKE AVAILABLE GLOBALLY
-// ============================================
+// Expose globally
 window.buildBreadcrumbPath = buildBreadcrumbPath;
 window.getPageTitle = getPageTitle;

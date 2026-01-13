@@ -85,6 +85,11 @@
 </style>
 
 <script>
+
+if (typeof window.buildBreadcrumbPath !== 'function' && window.parent && typeof window.parent.buildBreadcrumbPath === 'function') {
+    window.buildBreadcrumbPath = window.parent.buildBreadcrumbPath;
+}
+
 // Store all loan data for client-side search
 let allLoans = [];
 let currentPage = 1;
@@ -192,26 +197,56 @@ function nextPage() {
 }
 
 // Update breadcrumb on page load
-window.onload = function() {
+window.addEventListener('load', function () {
+    // Make a builder that prefers local, else parent
+    const builder = (typeof window.buildBreadcrumbPath === 'function')
+        ? window.buildBreadcrumbPath
+        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
+            ? window.parent.buildBreadcrumbPath
+            : null;
+
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(
-            window.buildBreadcrumbPath('Dashboard/totalLoan.jsp')
-        );
+        if (builder) {
+            try {
+                window.parent.updateParentBreadcrumb(
+                    builder('Dashboard/totalLoan.jsp')
+                );
+            } catch (e) {
+                console.warn('Error building breadcrumb:', e);
+                window.parent.updateParentBreadcrumb('Dashboard > Total Loan');
+            }
+        } else {
+            // fallback text if no builder available
+            window.parent.updateParentBreadcrumb('Dashboard > Total Loan');
+        }
     }
-    
-    var savedPage = sessionStorage.getItem('totalLoanPage');
-    if (savedPage) {
-        currentPage = parseInt(savedPage);
-        displayLoans(allLoans, currentPage);
-    }
-};
+});
 
 function viewLoan(accountCode) {
+    // Prefer local builder, fall back to parent builder if available
+    const builder = (typeof window.buildBreadcrumbPath === 'function')
+        ? window.buildBreadcrumbPath
+        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
+            ? window.parent.buildBreadcrumbPath
+            : null;
+
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(
-            window.buildBreadcrumbPath('View/viewAccount.jsp', 'Dashboard/totalLoan.jsp')
-        );
+        try {
+            if (builder) {
+                window.parent.updateParentBreadcrumb(
+                    builder('View/viewAccount.jsp', 'Dashboard/totalLoan.jsp')
+                );
+            } else {
+                // Fallback text if no builder is available
+                window.parent.updateParentBreadcrumb('View > View Details');
+            }
+        } catch (e) {
+            // If builder exists but throws for any reason, still navigate
+            console.warn('Breadcrumb build failed:', e);
+            window.parent.updateParentBreadcrumb('View > View Details');
+        }
     }
+
     window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/totalLoan.jsp';
 }
 </script>

@@ -79,7 +79,7 @@
 
 	<!-- Master -->
 	<li data-page="Master/masters.jsp">
-	    <a href="#" onclick="loadPage('Master/masters.jsp', 'Masters', this); return false;">
+	    <a href="#" onclick="loadPage('Master/masters.jsp', 'Master', this); return false;">
 	        <img src="images/right-arrow.png" width="18" height="18" alt="">
 	        <span>Master</span>
 	    </a>
@@ -237,37 +237,77 @@ function navigateToBreadcrumb(page, title) {
 
 // ========== BREADCRUMB FUNCTIONS ==========
 
+// --- Optimized breadcrumb updater (replace the existing updateBreadcrumb) ---
+
+// Simple debounce to coalesce rapid calls (100ms)
+let _breadcrumbTimeout = null;
+let _currentBreadcrumbPath = null;
+
 function updateBreadcrumb(path) {
+    // If path is same as current, skip (fast path)
+    if (path === _currentBreadcrumbPath) return;
+
+    // Debounce multiple rapid calls
+    if (_breadcrumbTimeout) {
+        clearTimeout(_breadcrumbTimeout);
+    }
+    _breadcrumbTimeout = setTimeout(() => {
+        _breadcrumbTimeout = null;
+        _doUpdateBreadcrumb(path);
+    }, 100);
+}
+
+function _doUpdateBreadcrumb(path) {
+    _currentBreadcrumbPath = path;
+
     const breadcrumbNav = document.getElementById("breadcrumbNav");
     if (!breadcrumbNav) return;
-    
+
     const parts = path.split(' > ');
-    let breadcrumbHTML = '';
-    
-    // Store full paths as we build breadcrumb
-    let currentPaths = [];
-    
-    parts.forEach((part, index) => {
+
+    // Build HTML parts and session entries
+    const breadcrumbParts = [];
+    const sessionEntries = [];
+
+    for (let index = 0; index < parts.length; index++) {
+        const part = parts[index];
         if (index === parts.length - 1) {
-            // Last item (current page) - not clickable
-            breadcrumbHTML += '<span class="breadcrumb-current">' + part + '</span>';
+            breadcrumbParts.push('<span class="breadcrumb-current">' + escapeHtml(part) + '</span>');
         } else {
-            // Clickable breadcrumb items
-            // Build accumulated path for this level
-            currentPaths.push(part);
-            let accumulatedPath = currentPaths.join(' > ');
-            
-            // Store in session for click handling
-            sessionStorage.setItem('breadcrumb_path_' + index, accumulatedPath);
-            
-            breadcrumbHTML += '<div class="breadcrumb-item">' +
-                '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumbByIndex(' + 
-                index + '); return false;">' +
-                part + '</a><span class="breadcrumb-separator">></span></div>';
+            const accumulatedParts = parts.slice(0, index + 1);
+            const accumulatedPath = accumulatedParts.join(' > ');
+            sessionEntries.push({ key: 'breadcrumb_path_' + index, value: accumulatedPath });
+
+            breadcrumbParts.push(
+                '<div class="breadcrumb-item">' +
+                '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumbByIndex(' + index + '); return false;">' +
+                escapeHtml(part) + '</a><span class="breadcrumb-separator">></span></div>'
+            );
         }
-    });
-    
-    breadcrumbNav.innerHTML = breadcrumbHTML;
+    }
+
+    // Single DOM update
+    breadcrumbNav.innerHTML = breadcrumbParts.join('');
+
+    // Batch write sessionStorage (avoid many writes)
+    try {
+        sessionEntries.forEach(entry => {
+            sessionStorage.setItem(entry.key, entry.value);
+        });
+        sessionStorage.setItem('currentBreadcrumb', path);
+    } catch (e) {
+        console.warn('Failed to write breadcrumb sessionStorage:', e);
+    }
+}
+
+// small helper to avoid XSS when injecting text
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function updateActiveMenuFromSession() {

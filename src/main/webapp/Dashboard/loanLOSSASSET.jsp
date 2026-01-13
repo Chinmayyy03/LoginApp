@@ -33,7 +33,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Personal Loan - Branch <%= branchCode %></title>
+<title>Loan LOSS ASSET - Branch <%= branchCode %></title>
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .pagination-container {
@@ -85,15 +85,8 @@
 </style>
 
 <script>
-
-//--- Child-side shim: copy parent's builder once if local one is missing ---
-if (typeof window.buildBreadcrumbPath !== 'function' &&
-    window.parent && typeof window.parent.buildBreadcrumbPath === 'function') {
-    window.buildBreadcrumbPath = window.parent.buildBreadcrumbPath;
-}
-
-// Store all loan data for client-side search
-let allLoans = [];
+// Store all loss asset loan data for client-side search
+let allLossAssetLoans = [];
 let currentPage = 1;
 const recordsPerPage = <%= recordsPerPage %>;
 
@@ -101,14 +94,14 @@ const recordsPerPage = <%= recordsPerPage %>;
 function searchTable() {
     var input = document.getElementById("searchInput");
     var filter = input.value.toLowerCase().trim();
-    var table = document.getElementById("loanTable");
+    var table = document.getElementById("lossAssetTable");
     var tbody = table.querySelector("tbody");
     
     tbody.innerHTML = "";
     
-    let filteredLoans = allLoans;
+    let filteredLoans = allLossAssetLoans;
     if (filter) {
-        filteredLoans = allLoans.filter(function(loan) {
+        filteredLoans = allLossAssetLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -120,12 +113,12 @@ function searchTable() {
 // Display loans with pagination
 function displayLoans(loans, page) {
     currentPage = page;
-    var table = document.getElementById("loanTable");
+    var table = document.getElementById("lossAssetTable");
     var tbody = table.querySelector("tbody");
     tbody.innerHTML = "";
     
     if (loans.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No personal loans found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No loss asset loans found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
@@ -160,16 +153,16 @@ function updatePaginationControls(totalRecords, page) {
     document.getElementById("nextBtn").disabled = (page >= totalPages);
     
     document.getElementById("pageInfo").textContent = "Page " + page + " of " + totalPages;
-    sessionStorage.setItem('personalLoanPage', page);
+    sessionStorage.setItem('loanLOSSASSETPage', page);
 }
 
 // Navigate to previous page
 function previousPage() {
     var filter = document.getElementById("searchInput").value.toLowerCase().trim();
-    var loans = allLoans;
+    var loans = allLossAssetLoans;
     
     if (filter) {
-        loans = allLoans.filter(function(loan) {
+        loans = allLossAssetLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -183,10 +176,10 @@ function previousPage() {
 // Navigate to next page
 function nextPage() {
     var filter = document.getElementById("searchInput").value.toLowerCase().trim();
-    var loans = allLoans;
+    var loans = allLossAssetLoans;
     
     if (filter) {
-        loans = allLoans.filter(function(loan) {
+        loans = allLossAssetLoans.filter(function(loan) {
             return loan.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    loan.name.toLowerCase().indexOf(filter) > -1;
         });
@@ -199,69 +192,37 @@ function nextPage() {
 }
 
 // Update breadcrumb on page load
-window.addEventListener('load', function () {
-    const builder = (typeof window.buildBreadcrumbPath === 'function')
-        ? window.buildBreadcrumbPath
-        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
-            ? window.parent.buildBreadcrumbPath
-            : null;
-
+window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        if (builder) {
-            try {
-                window.parent.updateParentBreadcrumb(builder('Dashboard/personalLoan.jsp'));
-            } catch (e) {
-                console.warn('Breadcrumb build failed:', e);
-                window.parent.updateParentBreadcrumb('Dashboard > Personal Loan');
-            }
-        } else {
-            window.parent.updateParentBreadcrumb('Dashboard > Personal Loan');
-        }
+        window.parent.updateParentBreadcrumb('Dashboard > Loan LOSS ASSET');
     }
-
-    // existing onload logic (restore savedPage / displayLoans)
-    var savedPage = sessionStorage.getItem('personalLoanPage');
+    
+    var savedPage = sessionStorage.getItem('loanLOSSASSETPage');
     if (savedPage) {
         currentPage = parseInt(savedPage);
-        displayLoans(allLoans, currentPage);
+        displayLoans(allLossAssetLoans, currentPage);
     }
-});
+};
 
+// View loan details and update breadcrumb
 function viewLoan(accountCode) {
-    const builder = (typeof window.buildBreadcrumbPath === 'function')
-        ? window.buildBreadcrumbPath
-        : (window.parent && typeof window.parent.buildBreadcrumbPath === 'function')
-            ? window.parent.buildBreadcrumbPath
-            : null;
-
     if (window.parent && window.parent.updateParentBreadcrumb) {
-        if (builder) {
-            try {
-                window.parent.updateParentBreadcrumb(
-                    builder('View/viewAccount.jsp', 'Dashboard/personalLoan.jsp')
-                );
-            } catch (e) {
-                console.warn('Breadcrumb build failed in viewLoan:', e);
-                window.parent.updateParentBreadcrumb('View > View Details');
-            }
-        } else {
-            window.parent.updateParentBreadcrumb('View > View Details');
-        }
+        window.parent.updateParentBreadcrumb('Dashboard > Loan LOSS ASSET > View Details');
     }
-    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/personalLoan.jsp';
+    window.location.href = '../View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=Dashboard/loanLOSSASSET.jsp';
 }
 </script>
 </head>
 <body>
 
-<h2>Personal Loan for Branch: <%= branchCode %></h2>
+<h2>Loan LOSS ASSET for Branch: <%= branchCode %></h2>
 
 <div class="search-container">
-     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name">
+     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Balance">
 </div>
 
 <div class="table-container">
-<table id="loanTable">
+<table id="lossAssetTable">
 <thead>
     <tr>
         <th>SR NO</th>
@@ -289,8 +250,8 @@ function viewLoan(accountCode) {
     try {
         conn = DBConnection.getConnection();
         
-        // Fetch D_QUERY from DASHBOARD table for Personal Loan (SR_NUMBER = 8)
-        String configQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = 8";
+        // Fetch D_QUERY from DASHBOARD table for Loan LOSS ASSET (SR_NUMBER = 12)
+        String configQuery = "SELECT D_QUERY FROM GLOBALCONFIG.DASHBOARD WHERE SR_NUMBER = 12";
         
         psConfig = conn.prepareStatement(configQuery);
         rsConfig = psConfig.executeQuery();
@@ -305,7 +266,7 @@ function viewLoan(accountCode) {
                 out.println("<tr><td colspan='7' class='no-data'>");
                 out.println("<div class='error-box'>");
                 out.println("<h3>⚠ Configuration Error</h3>");
-                out.println("<p>No query defined in GLOBALCONFIG.DASHBOARD table (SR_NUMBER = 8).</p>");
+                out.println("<p>No query defined in GLOBALCONFIG.DASHBOARD table (SR_NUMBER = 12).</p>");
                 out.println("<p>Please configure the D_QUERY column.</p>");
                 out.println("</div>");
                 out.println("</td></tr>");
@@ -316,7 +277,7 @@ function viewLoan(accountCode) {
             out.println("<tr><td colspan='7' class='no-data'>");
             out.println("<div class='error-box'>");
             out.println("<h3>⚠ Configuration Not Found</h3>");
-            out.println("<p>Dashboard entry not found for SR_NUMBER = 8</p>");
+            out.println("<p>Dashboard entry not found for SR_NUMBER = 12</p>");
             out.println("</div>");
             out.println("</td></tr>");
             return;
@@ -384,7 +345,7 @@ function viewLoan(accountCode) {
             
             // Add to JavaScript array for client-side operations
             out.println("<script>");
-            out.println("allLoans.push({");
+            out.println("allLossAssetLoans.push({");
             out.println("  accountCode: '" + accountCode + "',");
             out.println("  name: '" + name.replace("'", "\\'") + "',");
             out.println("  dateAccountOpen: '" + dateOpenStr + "',");
@@ -415,7 +376,7 @@ function viewLoan(accountCode) {
         }
         
         if (!hasData) {
-            out.println("<tr><td colspan='7' class='no-data'>No personal loans found for this branch.</td></tr>");
+            out.println("<tr><td colspan='7' class='no-data'>No loss asset loans found for this branch.</td></tr>");
         }
         
     } catch (SQLException e) {
@@ -468,11 +429,11 @@ function viewLoan(accountCode) {
 <script>
 // Initialize pagination on page load
 (function() {
-    var totalPages = Math.ceil(allLoans.length / recordsPerPage);
+    var totalPages = Math.ceil(allLossAssetLoans.length / recordsPerPage);
     document.getElementById("prevBtn").disabled = true;
     document.getElementById("nextBtn").disabled = (totalPages <= 1);
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
-    sessionStorage.setItem('personalLoanPage', '1');
+    sessionStorage.setItem('loanLOSSASSETPage', '1');
 })();
 </script>
 
