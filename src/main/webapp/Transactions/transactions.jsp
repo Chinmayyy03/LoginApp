@@ -1148,12 +1148,15 @@ function filterTable() {
     }
 }
 
-// ========== UPDATE LABELS AND SHOW/HIDE TRANSFER CONTROLS ==========
+//========== UPDATE LABELS AND SHOW/HIDE TRANSFER CONTROLS ==========
 function updateLabelsBasedOnOperation() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
 
     const accountCodeInput = document.getElementById("accountCode");
     const accountNameInput = document.getElementById("accountName");
+    const accountCodeLabel = document.getElementById("accountCodeLabel");
+    const accountNameLabel = document.getElementById("accountNameLabel");
+    const transactionAmountLabel = document.getElementById("transactionamountLabel");
 
     const opTypeDiv = document.getElementById('opType').parentElement;
     const addButtonDiv = document.querySelector('.add-btn').parentElement;
@@ -1173,20 +1176,32 @@ function updateLabelsBasedOnOperation() {
     updateTotals();
 
     if (operationType === 'transfer') {
+        // Update labels for transfer mode
+        const opType = document.getElementById('opType').value;
+        if (opType === 'Debit') {
+            accountCodeLabel.textContent = 'Debit Account Code';
+            accountNameLabel.textContent = 'Debit Account Name';
+            transactionAmountLabel.textContent = 'Debit Amount';
+        } else {
+            accountCodeLabel.textContent = 'Credit Account Code';
+            accountNameLabel.textContent = 'Credit Account Name';
+            transactionAmountLabel.textContent = 'Credit Amount';
+        }
+        
         opTypeDiv.style.display = 'block';
         addButtonDiv.style.display = 'flex';
-
-        // ✅ SHOW TOTALS
         totalsContainer.style.display = 'flex';
     } else {
+        // Reset labels for deposit/withdrawal
+        accountCodeLabel.textContent = 'Account Code';
+        accountNameLabel.textContent = 'Account Name';
+        transactionAmountLabel.textContent = 'Transaction Amount';
+        
         opTypeDiv.style.display = 'none';
         addButtonDiv.style.display = 'none';
-
-        // ❌ HIDE TOTALS
         totalsContainer.style.display = 'none';
     }
 }
-
 
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
@@ -1450,19 +1465,20 @@ function refreshCreditAccountsTable() {
                     '</thead>' +
                     '<tbody>';
     
-    creditAccountsData.forEach(function(account) {
-        const opTypeColor = account.opType === 'Debit' ? '#c62828' : '#2e7d32';
-        tableHTML += '<tr style="background-color: #f9f9f9;">' +
-                     '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: ' + opTypeColor + ';">' + account.opType + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd;">' + account.code + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd;">' + account.name + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹ ' + account.amount + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd;">' + (account.particular || '-') + '</td>' +
-                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' +
-                     '<button type="button" onclick="removeCreditAccount(' + account.id + ')" class="remove-btn" style="padding: 5px 10px; font-size: 16px;">×</button>' +
-                     '</td>' +
-                     '</tr>';
-    });
+                    creditAccountsData.forEach(function(account) {
+                        const opTypeColor = account.opType === 'Debit' ? '#ffffff' : '#ffffff';
+                        const rowBgColor = account.opType === 'Debit' ? '#ef5350' : '#66bb6a';
+                        tableHTML += '<tr style="background-color: ' + rowBgColor + '; color: white;">' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: white;">' + account.opType + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.code + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.name + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: white;">₹ ' + account.amount + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + (account.particular || '-') + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' +
+                                     '<button type="button" onclick="removeCreditAccount(' + account.id + ')" class="remove-btn" style="padding: 5px 10px; font-size: 16px;">×</button>' +
+                                     '</td>' +
+                                     '</tr>';
+                    });
     
     tableHTML += '</tbody></table>';
     
