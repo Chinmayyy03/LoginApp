@@ -1161,6 +1161,7 @@ function updateLabelsBasedOnOperation() {
     const opTypeDiv = document.getElementById('opType').parentElement;
     const addButtonDiv = document.querySelector('.add-btn').parentElement;
     const totalsContainer = document.getElementById('totalsContainer');
+    const creditAccountsContainer = document.getElementById('creditAccountsContainer');
 
     // Clear inputs
     accountCodeInput.value = '';
@@ -1191,6 +1192,7 @@ function updateLabelsBasedOnOperation() {
         opTypeDiv.style.display = 'block';
         addButtonDiv.style.display = 'flex';
         totalsContainer.style.display = 'flex';
+        creditAccountsContainer.style.display = 'block';
     } else {
         // Reset labels for deposit/withdrawal
         accountCodeLabel.textContent = 'Account Code';
@@ -1200,6 +1202,7 @@ function updateLabelsBasedOnOperation() {
         opTypeDiv.style.display = 'none';
         addButtonDiv.style.display = 'none';
         totalsContainer.style.display = 'none';
+        creditAccountsContainer.style.display = 'none';
     }
 }
 
