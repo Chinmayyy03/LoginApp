@@ -1467,7 +1467,7 @@ function refreshCreditAccountsTable() {
     
                     creditAccountsData.forEach(function(account) {
                         const opTypeColor = account.opType === 'Debit' ? '#ffffff' : '#ffffff';
-                        const rowBgColor = account.opType === 'Debit' ? '#ef5350' : '#66bb6a';
+                        const rowBgColor = account.opType === 'Debit' ? '#ff0000' : '#16b21d';
                         tableHTML += '<tr style="background-color: ' + rowBgColor + '; color: white;">' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: white;">' + account.opType + '</td>' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.code + '</td>' +
