@@ -41,7 +41,10 @@ const PAGE_EXCEPTIONS = {
 		'newApplication.jsp': 'Open Account',
 		
 		// Reports page
-		'Reports/reports.jsp': 'Reports'
+		'Reports/reports.jsp': 'Reports',
+		
+		// Master page
+		'Master/masters.jsp': 'Master'
 
 	
 	//Transactions
