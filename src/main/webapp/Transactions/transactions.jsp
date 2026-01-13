@@ -768,6 +768,77 @@
 	    border-radius: 6px;
 	}
 	
+	/* Loan-specific fields section */
+	.loan-fields-section {
+	    display: none;
+	    margin-top: 20px;
+	    padding: 20px;
+	    background-color: #fff9e6;
+	    border: 2px solid #ffc107;
+	    border-radius: 8px;
+	}
+	
+	.loan-fields-section.active {
+	    display: block;
+	}
+	
+	.loan-fields-section .section-title {
+	    font-size: 16px;
+	    font-weight: bold;
+	    color: #3D316F;
+	    margin-bottom: 15px;
+	    padding-bottom: 10px;
+	    border-bottom: 2px solid #ffc107;
+	}
+	
+	.loan-field-group {
+	    display: grid;
+	    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	    gap: 15px;
+	    margin-top: 10px;
+	}
+	
+	.loan-field-item {
+	    display: flex;
+	    flex-direction: column;
+	}
+	
+	.loan-field-item .label {
+	    margin-bottom: 5px;
+	}
+	
+	.loan-field-item input[type="text"] {
+	    width: 65%;
+	}
+	
+	/* Transfer-specific fields section */
+	.transfer-fields-section {
+	    display: none;
+	    padding: 20px;
+	    background-color: #f0e6ff;
+	    border: 2px solid #8066E8;
+	    border-radius: 8px;
+	}
+	
+	.transfer-fields-section.active {
+	    display: block;
+	}
+	
+	.transfer-fields-section .section-title {
+	    font-size: 16px;
+	    font-weight: bold;
+	    color: #3D316F;
+	    margin-bottom: 15px;
+	    padding-bottom: 10px;
+	    border-bottom: 2px solid #8066E8;
+	}
+	
+	.transfer-field-group {
+	    display: flex;
+	    align-items: center;
+	    gap: 25px;
+	    flex-wrap: wrap;
+	}
     </style>
 </head>
 <body>
@@ -831,23 +902,30 @@
 				    </select>
 				</div>
 				
-				<!-- OP Type Dropdown -->
-				<div class="op-type-inline">
-				    <label for="opType">OP Type:</label>
-				    <select id="opType" name="opType">
-				        <option value="Debit">DEBIT</option>
-				        <option value="Credit" selected>CREDIT</option>
-				    </select>
-				</div>
-				<!-- Total Debit -->
-				<div id="totalsContainer" class="totals-row" style="display:none;">
-				    <span class="total-label">Total Debit:</span>
-				    <input type="text" id="totalDebit" readonly>
-				
-				    <span class="total-label">Total Credit:</span>
-				    <input type="text" id="totalCredit" readonly>
-				</div>
-
+				<!-- TRANSFER SPECIFIC FIELDS (Hidden by default) -->
+		<div id="transferFieldsSection" class="transfer-fields-section">
+		    <div class="transfer-field-group">
+		        <!-- OP Type Dropdown -->
+		        <div class="op-type-inline">
+		            <label for="opType">OP Type:</label>
+		            <select id="opType" name="opType">
+		                <option value="Debit">DEBIT</option>
+		                <option value="Credit" selected>CREDIT</option>
+		            </select>
+		        </div>
+		        
+		        <!-- Totals -->
+		        <div class="totals-row">
+		            <span class="total-label">Total Debit:</span>
+		            <input type="text" id="totalDebit" readonly>
+		        </div>
+		        
+		        <div class="totals-row">
+		            <span class="total-label">Total Credit:</span>
+		            <input type="text" id="totalCredit" readonly>
+		        </div>
+		    </div>
+		</div>
 
                 </div>
 
@@ -892,6 +970,44 @@
 				
 				
 				<div id="creditAccountsContainer"></div>
+				
+				<!-- LOAN SPECIFIC FIELDS (Hidden by default) -->
+				<div id="loanFieldsSection" class="loan-fields-section">
+				    <div class="loan-field-group">
+				        <div class="loan-field-item">
+				            <div class="label">Insurance Receivable</div>
+				            <input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Other Charges</div>
+				            <input type="text" name="otherCharges" id="otherCharges" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Interest Receivable</div>
+				            <input type="text" name="interestReceivable" id="interestReceivable" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Penal Receivable</div>
+				            <input type="text" name="penalReceivable" id="penalReceivable" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Postage</div>
+				            <input type="text" name="postage" id="postage" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Current Interest Rate (%)</div>
+				            <input type="text" name="currentInterestRate" id="currentInterestRate" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Overdue Amount</div>
+				            <input type="text" name="overdueAmount" id="overdueAmount" placeholder="0.00" readonly>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Account Status</div>
+				            <input type="text" name="accountStatus" id="accountStatus" placeholder="Status" readonly>
+				        </div>
+				    </div>
+				</div>
 
             </fieldset>
 
@@ -1158,9 +1274,7 @@ function updateLabelsBasedOnOperation() {
     const accountNameLabel = document.getElementById("accountNameLabel");
     const transactionAmountLabel = document.getElementById("transactionamountLabel");
 
-    const opTypeDiv = document.getElementById('opType').parentElement;
     const addButtonDiv = document.querySelector('.add-btn').parentElement;
-    const totalsContainer = document.getElementById('totalsContainer');
     const creditAccountsContainer = document.getElementById('creditAccountsContainer');
 
     // Clear inputs
@@ -1176,6 +1290,9 @@ function updateLabelsBasedOnOperation() {
     refreshCreditAccountsTable();
     updateTotals();
 
+    // ✅ Toggle transfer fields visibility
+    toggleTransferFields();
+
     if (operationType === 'transfer') {
         // Update labels for transfer mode
         const opType = document.getElementById('opType').value;
@@ -1189,9 +1306,7 @@ function updateLabelsBasedOnOperation() {
             transactionAmountLabel.textContent = 'Credit Amount';
         }
         
-        opTypeDiv.style.display = 'block';
         addButtonDiv.style.display = 'flex';
-        totalsContainer.style.display = 'flex';
         creditAccountsContainer.style.display = 'block';
     } else {
         // Reset labels for deposit/withdrawal
@@ -1199,13 +1314,46 @@ function updateLabelsBasedOnOperation() {
         accountNameLabel.textContent = 'Account Name';
         transactionAmountLabel.textContent = 'Transaction Amount';
         
-        opTypeDiv.style.display = 'none';
         addButtonDiv.style.display = 'none';
-        totalsContainer.style.display = 'none';
         creditAccountsContainer.style.display = 'none';
     }
 }
 
+//========== TOGGLE LOAN FIELDS VISIBILITY ==========
+function toggleLoanFields() {
+    const accountCategory = document.getElementById('accountCategory').value;
+    const loanFieldsSection = document.getElementById('loanFieldsSection');
+    
+    if (accountCategory === 'loan') {
+        loanFieldsSection.classList.add('active');
+    } else {
+        loanFieldsSection.classList.remove('active');
+        // Clear loan fields when switching away from loan
+        clearLoanFields();
+    }
+}
+
+function clearLoanFields() {
+    document.getElementById('insuranceReceivable').value = '';
+    document.getElementById('otherCharges').value = '';
+    document.getElementById('interestReceivable').value = '';
+    document.getElementById('penalReceivable').value = '';
+    document.getElementById('postage').value = '';
+    document.getElementById('currentInterestRate').value = '';
+    document.getElementById('overdueAmount').value = '';
+    document.getElementById('accountStatus').value = '';
+}
+//========== TOGGLE TRANSFER FIELDS VISIBILITY ==========
+function toggleTransferFields() {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const transferFieldsSection = document.getElementById('transferFieldsSection');
+    
+    if (operationType === 'transfer') {
+        transferFieldsSection.classList.add('active');
+    } else {
+        transferFieldsSection.classList.remove('active');
+    }
+}
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize transaction table
@@ -1260,9 +1408,11 @@ document.addEventListener('DOMContentLoaded', function() {
             previousAccountCode = '';
             document.getElementById('searchResults').classList.remove('active');
             currentCategory = this.value;
+            
+            // ✅ Toggle loan fields visibility
+            toggleLoanFields();
         });
     }
-    
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
     
@@ -1274,6 +1424,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial call to set visibility
     updateLabelsBasedOnOperation();
+    toggleLoanFields();
+    toggleTransferFields();
 });
 
 // ========== LOOKUP MODAL FUNCTIONS ==========
