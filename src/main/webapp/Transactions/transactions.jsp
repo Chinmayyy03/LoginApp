@@ -1470,7 +1470,7 @@ function refreshCreditAccountsTable() {
                         const rowBgColor = account.opType === 'Debit' ? '#ff0000' : '#16b21d';
                         tableHTML += '<tr style="background-color: ' + rowBgColor + '; color: white;">' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: white;">' + account.opType + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.code + '</td>' +
+                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white; cursor: pointer; text-decoration: underline;" onclick="loadAccountInTransferForm(\'' + account.code + '\', \'' + account.name.replace(/'/g, "\\'") + '\', \'' + account.opType + '\')">' + account.code + '</td>' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.name + '</td>' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: white;">₹ ' + account.amount + '</td>' +
                                      '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + (account.particular || '-') + '</td>' +
@@ -1524,7 +1524,37 @@ function refreshCreditAccountsTable() {
     	}
 	}
 
-
+	function loadAccountInTransferForm(accountCode, accountName, opType) {
+	    const operationType = document.querySelector("input[name='operationType']:checked").value;
+	    const accountCategory = document.getElementById('accountCategory').value;
+	    
+	    if (operationType !== 'transfer') {
+	        showToast('This feature only works in transfer mode', 'warning');
+	        return;
+	    }
+	    
+	    // Build URL with parameters
+	    let url = 'transferForm.jsp?';
+	    url += 'operationType=' + encodeURIComponent(operationType);
+	    url += '&accountCategory=' + encodeURIComponent(accountCategory);
+	    
+	    if (opType === 'Debit') {
+	        url += '&accountCode=' + encodeURIComponent(accountCode);
+	        url += '&accountName=' + encodeURIComponent(accountName);
+	        url += '&creditAccountCode=';
+	        url += '&creditAccountName=';
+	    } else {
+	        url += '&accountCode=';
+	        url += '&accountName=';
+	        url += '&creditAccountCode=' + encodeURIComponent(accountCode);
+	        url += '&creditAccountName=' + encodeURIComponent(accountName);
+	    }
+	    
+	    // Load in iframe
+	    document.getElementById('resultFrame').src = url;
+	    
+	   
+	}
 
 </script>
 </body>
