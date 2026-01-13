@@ -1,12 +1,11 @@
 import db.DBConnection;
 
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @WebServlet("/masters")
 public class MastersServlet extends HttpServlet {
@@ -15,41 +14,43 @@ public class MastersServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        System.out.println(">>> MastersServlet CALLED");
+        System.out.println(">>> MastersServlet CALLED <<<");
 
-        List<String> tableList = new ArrayList<>();
-
-        // 🔴 CHANGE THIS to your actual schema name
-        final String OWNER = "GLOBALCONFIG";
+        List<Map<String, String>> mastersList = new ArrayList<>();
 
         try (Connection con = DBConnection.getConnection()) {
 
-            System.out.println(">>> DB CONNECTED");
+            System.out.println("DB USER = " + con.getMetaData().getUserName());
 
             PreparedStatement ps = con.prepareStatement(
-                "SELECT table_name " +
-                "FROM all_tables " +
-                "WHERE owner = ? " +
-                "ORDER BY table_name"
+                "SELECT DESCRIPTION, TABLE_NAME " +
+                "FROM GLOBALCONFIG.MASTERS " +
+                "ORDER BY SR_NUMBER"
             );
-
-            ps.setString(1, OWNER.toUpperCase());
 
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String table = rs.getString("table_name");
-                System.out.println(">>> FOUND TABLE: " + table);
-                tableList.add(table);
+                Map<String, String> row = new HashMap<>();
+                row.put("DESCRIPTION", rs.getString("DESCRIPTION"));
+                row.put("TABLE_NAME", rs.getString("TABLE_NAME"));
+                mastersList.add(row);
+
+                System.out.println(
+                    "CARD => " +
+                    rs.getString("DESCRIPTION") + " | " +
+                    rs.getString("TABLE_NAME")
+                );
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            throw new ServletException(e);
         }
 
-        System.out.println(">>> TOTAL TABLES: " + tableList.size());
+        System.out.println("TOTAL CARDS = " + mastersList.size());
 
-        req.setAttribute("tableList", tableList);
+        req.setAttribute("mastersList", mastersList);
         req.getRequestDispatcher("/Master/masters.jsp")
            .forward(req, resp);
     }
