@@ -202,6 +202,8 @@ function viewCustomer(customerId) {
             window.buildBreadcrumbPath('authViewCustomers.jsp', 'authorizationPendingCustomers.jsp')
         );
     }
+    window.location.href = 'authViewCustomers.jsp?cid=' + customerId;
+}
 </script>
 </head>
 <body>

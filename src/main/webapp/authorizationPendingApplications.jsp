@@ -202,6 +202,9 @@ function viewApplication(applicationNumber) {
             window.buildBreadcrumbPath('authViewApplication.jsp', 'authorizationPendingApplications.jsp')
         );
     }
+
+    window.location.href = 'authViewApplication.jsp?appNo=' + applicationNumber;
+}
 </script>
 </head>
 <body>

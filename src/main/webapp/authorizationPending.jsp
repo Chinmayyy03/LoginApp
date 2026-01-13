@@ -207,7 +207,8 @@
                 window.buildBreadcrumbPath('authorizationPending.jsp')
             );
         }
-    
+        loadCardValues();
+    };
     async function loadCardValues() {
         await Promise.all([
             loadCard('pending_customers', 'pending-customers-value', 'auth'),
