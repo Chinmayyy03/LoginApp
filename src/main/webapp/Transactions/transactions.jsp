@@ -839,12 +839,51 @@
 	    gap: 20px;
 	    flex-wrap: wrap;
 	}
+	
+	/* Base select */
+	#opType {
+	    font-weight: bold;
+	    color: #fff;
+	    border-radius: 8px;
+	    padding: 8px 12px;
+	    border: 2px solid #C8B7F6;
+	}
+	
+	/* Selected background */
+	#opType.debit-bg {
+	    background-color: #ff0000;
+	}
+	
+	#opType.credit-bg {
+	    background-color: #16b21d;
+	}
+	
+	/* ===== DROPDOWN LIST COLORS ===== */
+	
+	/* Debit option */
+	#opType option[value="Debit"] {
+	    background-color: #ff0000;
+	    color: #fff;
+	    font-weight: bold;
+	}
+	
+	/* Credit option */
+	#opType option[value="Credit"] {
+	    background-color: #16b21d;
+	    color: #fff;
+	    font-weight: bold;
+	}
+	
+	/* Hover effect (Chrome / Edge) */
+	#opType option:hover {
+	    filter: brightness(0.9);
+	}
+		
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>TRANSACTION</h1>
 
     <form id="transactionForm" method="post" target="resultFrame">
         <div class="card">
@@ -1607,35 +1646,39 @@ function refreshCreditAccountsTable() {
         return;
     }
     
-    let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">' +
-                    '<thead>' +
-                    '<tr style="background-color: #373279; color: white;">' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">OP Type</th>' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Account Code</th>' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Account Name</th>' +
-                    '<th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Amount</th>' +
-                    '<th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Particular</th>' +
-                    '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 80px;">Action</th>' +
-                    '</tr>' +
-                    '</thead>' +
-                    '<tbody>';
-    
-                    creditAccountsData.forEach(function(account) {
-                        const opTypeColor = account.opType === 'Debit' ? '#ffffff' : '#ffffff';
-                        const rowBgColor = account.opType === 'Debit' ? '#ff0000' : '#16b21d';
-                        tableHTML += '<tr style="background-color: ' + rowBgColor + '; color: white;">' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: white;">' + account.opType + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white; cursor: pointer; text-decoration: underline;" onclick="loadAccountInTransferForm(\'' + account.code + '\', \'' + account.name.replace(/'/g, "\\'") + '\', \'' + account.opType + '\')">' + account.code + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + account.name + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: white;">₹ ' + account.amount + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; color: white;">' + (account.particular || '-') + '</td>' +
-                                     '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' +
-                                     '<button type="button" onclick="removeCreditAccount(' + account.id + ')" class="remove-btn" style="padding: 5px 10px; font-size: 16px;">×</button>' +
-                                     '</td>' +
-                                     '</tr>';
-                    });
-    
-    tableHTML += '</tbody></table>';
+	    let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">' +
+		    '<thead>' +
+		    '<tr style="background-color: #373279; color: white;">' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">OP Type</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Account Code</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Account Name</th>' +
+		    '<th style="padding: 6px 8px; text-align: right; border: 1px solid #ddd;">Amount</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Particular</th>' +
+		    '<th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd; width: 60px;">Action</th>' +
+		    '</tr>' +
+		    '</thead>' +
+		    '<tbody>';
+		
+		creditAccountsData.forEach(function(account) {
+		const rowBgColor = account.opType === 'Debit' ? '#FF4D0F' : '#3AD330';
+		
+		tableHTML += '<tr style="background-color:' + rowBgColor + '; color:white; line-height:1.2;">' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; font-weight:bold;">' + account.opType + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; cursor:pointer; text-decoration:underline;" ' +
+		     'onclick="loadAccountInTransferForm(\'' + account.code + '\', \'' + account.name.replace(/'/g, "\\'") + '\', \'' + account.opType + '\')">' +
+		     account.code + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd;">' + account.name + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; text-align:right; font-weight:bold;">₹ ' + account.amount + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd;">' + (account.particular || '-') + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; text-align:center;">' +
+		     '<button type="button" onclick="removeCreditAccount(' + account.id + ')" ' +
+		     ' class="remove-btn" style="padding:2px 6px; font-size:14px;">×</button>' +
+		     '</td>' +
+		     '</tr>';
+		});
+	
+	tableHTML += '</tbody></table>';
+
     
     container.innerHTML = tableHTML;
 	}
@@ -1707,9 +1750,22 @@ function refreshCreditAccountsTable() {
 	    
 	    // Load in iframe
 	    document.getElementById('resultFrame').src = url;
-	    
-	   
+
 	}
+	const opTypeSelect = document.getElementById('opType');
+
+	function updateOpTypeBackground() {
+	    opTypeSelect.classList.remove('debit-bg', 'credit-bg');
+
+	    if (opTypeSelect.value === 'Debit') {
+	        opTypeSelect.classList.add('debit-bg');
+	    } else {
+	        opTypeSelect.classList.add('credit-bg');
+	    }
+	}
+
+	opTypeSelect.addEventListener('change', updateOpTypeBackground);
+	updateOpTypeBackground();
 
 </script>
 </body>
