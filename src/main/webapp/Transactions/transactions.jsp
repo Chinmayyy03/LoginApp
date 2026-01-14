@@ -810,13 +810,35 @@
 	.loan-field-item input[type="text"] {
 	    width: 65%;
 	}
+	/* Dual input under one label */
+	.dual-input {
+	    display: flex;
+	    gap: 10px;
+	}
+	
+	.dual-input-item {
+	    display: flex;
+	    flex-direction: column;
+	}
+	
+	.dual-label {
+	    font-size: 12px;
+	    font-weight: bold;
+	    color: #3D316F;
+	    margin-bottom: 4px;
+	}
+	
+	.dual-input-item input[type="text"] {
+	    width: 90px;
+	    text-align: right;
+	}
 	
 	/* Transfer-specific fields section */
 	.transfer-fields-section {
 	    display: none;
 	    padding: 15px;
 	    background-color: #f0e6ff;
-	    border: 2px solid #8066E8;
+	    border: 2px solid #C8B7F6;
 	    border-radius: 8px;
 	}
 	
@@ -884,7 +906,8 @@
 <body>
 
 <div class="container">
-
+	<h1> TRANSACTION </h1>
+	
     <form id="transactionForm" method="post" target="resultFrame">
         <div class="card">
 
@@ -1014,36 +1037,117 @@
 				<div id="loanFieldsSection" class="loan-fields-section">
 				    <div class="loan-field-group">
 				        <div class="loan-field-item">
-				            <div class="label">Insurance Receivable</div>
-				            <input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly>
-				        </div>
+						    <div class="label">Insurance</div>
+						
+						    <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="insuranceReceived" id="insuranceReceived" placeholder="0.00">
+						        </div>
+						    </div>
+						</div>
 				        <div class="loan-field-item">
 				            <div class="label">Other Charges</div>
-				            <input type="text" name="otherCharges" id="otherCharges" placeholder="0.00" readonly>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="OtherChargesReceivable" id="OtherChargesReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="OtherChargesReceived" id="OtherChargesReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				        <div class="loan-field-item">
 				            <div class="label">Interest Receivable</div>
-				            <input type="text" name="interestReceivable" id="interestReceivable" placeholder="0.00" readonly>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="InterestReceivable" id="InterestReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="InterestReceived" id="InterestReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				        <div class="loan-field-item">
 				            <div class="label">Penal Receivable</div>
-				            <input type="text" name="penalReceivable" id="penalReceivable" placeholder="0.00" readonly>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="PenalReceivable" id="PenalReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="PenalReceived" id="PenalReceived" placeholder="0.00">
+						        </div>
+						    </div>
+				        </div>
+				        <div class="loan-field-item">
+				            <div class="label">Penal Interest</div>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="PenalInterestReceivable" id="PenalInterestReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="PenalInterestReceived" id="PenalInterestReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				        <div class="loan-field-item">
 				            <div class="label">Postage</div>
-				            <input type="text" name="postage" id="postage" placeholder="0.00" readonly>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="PostageReceivable" id="PostageReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="PostageReceived" id="PostageReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				        <div class="loan-field-item">
-				            <div class="label">Current Interest Rate (%)</div>
-				            <input type="text" name="currentInterestRate" id="currentInterestRate" placeholder="0.00" readonly>
+				            <div class="label">Current Interest</div>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="CurrentInterestReceivable" id="CurrentInterestReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="CurrentInterestReceived" id="CurrentInterestReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				        <div class="loan-field-item">
 				            <div class="label">Overdue Amount</div>
-				            <input type="text" name="overdueAmount" id="overdueAmount" placeholder="0.00" readonly>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Account Status</div>
-				            <input type="text" name="accountStatus" id="accountStatus" placeholder="Status" readonly>
+				            <div class="dual-input">
+						        <div class="dual-input-item">
+						            <span class="dual-label">Receivable</span>
+						            <input type="text" name="OverdueAmountReceivable" id="OverdueAmountReceivable" placeholder="0.00" readonly>
+						        </div>
+						
+						        <div class="dual-input-item">
+						            <span class="dual-label">Received</span>
+						            <input type="text" name="OverdueAmountReceived" id="OverdueAmountReceived" placeholder="0.00">
+						        </div>
+						    </div>
 				        </div>
 				    </div>
 				</div>
@@ -1373,15 +1477,33 @@ function toggleLoanFields() {
 }
 
 function clearLoanFields() {
-    document.getElementById('insuranceReceivable').value = '';
-    document.getElementById('otherCharges').value = '';
-    document.getElementById('interestReceivable').value = '';
-    document.getElementById('penalReceivable').value = '';
-    document.getElementById('postage').value = '';
-    document.getElementById('currentInterestRate').value = '';
-    document.getElementById('overdueAmount').value = '';
-    document.getElementById('accountStatus').value = '';
+    const fields = [
+        'insuranceReceivable',
+        'insuranceReceived',
+        'OtherChargesReceivable',
+        'OtherChargesReceived',
+        'InterestReceivable',
+        'InterestReceived',
+        'PenalReceivable',
+        'PenalReceived',
+        'PostageReceivable',
+        'PostageReceived',
+        'CurrentInterestReceivable',
+        'CurrentInterestReceived',
+        'OverdueAmountReceivable',
+        'OverdueAmountReceived',
+        'PenalInterestReceivable',
+        'PenalInterestReceived'
+    ];
+
+    fields.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = '';
+        }
+    });
 }
+
 //========== TOGGLE TRANSFER FIELDS VISIBILITY ==========
 function toggleTransferFields() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
