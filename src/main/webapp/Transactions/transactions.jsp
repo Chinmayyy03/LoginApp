@@ -743,7 +743,7 @@
 	}
 	
 	.op-type-inline select {
-	    min-width: 120px;
+	    min-width: 100px;
 	}
 	
 	.totals-row {
@@ -760,7 +760,7 @@
 	}
 	
 	.totals-row input[type="text"] {
-	    width: 100px;
+	    width: 95px;
 	    text-align: right;
 	    font-weight: bold;
 	    background-color: #eef2ff;
@@ -814,7 +814,7 @@
 	/* Transfer-specific fields section */
 	.transfer-fields-section {
 	    display: none;
-	    padding: 20px;
+	    padding: 15px;
 	    background-color: #f0e6ff;
 	    border: 2px solid #8066E8;
 	    border-radius: 8px;
@@ -836,7 +836,7 @@
 	.transfer-field-group {
 	    display: flex;
 	    align-items: center;
-	    gap: 25px;
+	    gap: 20px;
 	    flex-wrap: wrap;
 	}
     </style>
@@ -891,7 +891,7 @@
                 <!-- Account Category Dropdown -->
 				<div class="dropdown-inline">
 				    <div class="label">Account Type:</div>
-				    <select name="accountCategory" id="accountCategory" style="min-width: 150px;">
+				    <select name="accountCategory" id="accountCategory" style="min-width: 100px;">
 				        <option value="saving" selected>Saving</option>
 				        <option value="loan">Loan</option>
 				        <option value="deposit">Deposit</option>
@@ -909,8 +909,8 @@
 		        <div class="op-type-inline">
 		            <label for="opType">OP Type:</label>
 		            <select id="opType" name="opType">
-		                <option value="Debit">DEBIT</option>
-		                <option value="Credit" selected>CREDIT</option>
+		                <option value="Debit" selected>DEBIT</option>
+		                <option value="Credit">CREDIT</option>
 		            </select>
 		        </div>
 		        
