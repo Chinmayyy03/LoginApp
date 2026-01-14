@@ -24,14 +24,14 @@
         query = "SELECT PRODUCT_CODE, DESCRIPTION FROM HEADOFFICE.PRODUCT WHERE ACCOUNT_TYPE = ?";
     }
 
-    try (Connection con = DBConnection.getConnection();
-         PreparedStatement ps = con.prepareStatement(query)) {
+    Connection con = DBConnection.getConnection();
+    PreparedStatement ps = con.prepareStatement(query);
 
-        if ("product".equals(type)) {
-            ps.setString(1, accType);
-        }
+    if ("product".equals(type)) {
+        ps.setString(1, accType);
+    }
 
-        try (ResultSet rs = ps.executeQuery()) {
+    ResultSet rs = ps.executeQuery();
 %>
 
 <style>
@@ -82,10 +82,10 @@ tr:hover {
         <td><%=desc%></td>
     </tr>
 
-<% }
-        }
-    } catch (Exception e) {
-        out.println("<tr><td colspan='2' style='color:red;'>Error loading data: " + e.getMessage() + "</td></tr>");
-    }
+<% } 
+   rs.close();
+   ps.close();
+   con.close(); 
 %>
 </table>
+
