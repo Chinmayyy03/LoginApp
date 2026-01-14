@@ -49,9 +49,9 @@ tr:hover {
         // INSTALLMENT TYPE LOOKUP
         String query = "SELECT INSTALLMENTTYPE_ID, DISCRIPTION FROM HEADOFFICE.INSTALLMENTTYPE ORDER BY INSTALLMENTTYPE_ID";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
 %>
 
 <div class="lookup-title">
@@ -74,10 +74,8 @@ tr:hover {
         <td><%=desc%></td>
     </tr>
 <% 
+        }
         } 
-        rs.close();
-        ps.close();
-        con.close(); 
 %>
 </table>
 
@@ -100,9 +98,9 @@ function sendBackInstallment(id, desc) {
         // SOCIAL SECTOR LOOKUP
         String query = "SELECT SOCIALSECTOR_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTOR ORDER BY SOCIALSECTOR_ID";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
 %>
 
 <div class="lookup-title">
@@ -125,10 +123,8 @@ function sendBackInstallment(id, desc) {
         <td><%=desc%></td>
     </tr>
 <% 
-        } 
-        rs.close();
-        ps.close();
-        con.close(); 
+        }
+        }
 %>
 </table>
 
@@ -157,10 +153,10 @@ function sendBackSocialSector(id, desc) {
             String query = "SELECT SOCIALSUBSECTOR_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSUBSECTOR " +
                           "WHERE SOCIALSECTOR_ID = ? ORDER BY SOCIALSUBSECTOR_ID";
             
-            Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, sectorId);
-            ResultSet rs = ps.executeQuery();
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(query)) {
+                 ps.setString(1, sectorId);
+                 try (ResultSet rs = ps.executeQuery()) {
 %>
 
 <div class="lookup-title">
@@ -196,10 +192,8 @@ function sendBackSocialSector(id, desc) {
     </tr>
 <%
             }
-            
-            rs.close();
-            ps.close();
-            con.close(); 
+            }
+        }
 %>
 </table>
 
@@ -224,10 +218,10 @@ function sendBackSocialSubSector(id, desc) {
         String query = "SELECT AREA_CODE, AREA_DESCRIPTION FROM BRANCH.BRANCHAREA " +
                       "WHERE BRANCH_CODE = ? ORDER BY AREA_CODE";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+             ps.setString(1, branchCode);
+             try (ResultSet rs = ps.executeQuery()) {
 %>
 
 <div class="lookup-title">
@@ -263,10 +257,7 @@ function sendBackSocialSubSector(id, desc) {
     </tr>
 <%
         }
-        
-        rs.close();
-        ps.close();
-        con.close(); 
+        }
 %>
 </table>
 
@@ -295,11 +286,11 @@ function sendBackArea(code, desc) {
             String query = "SELECT SUBAREA_CODE, SUBAREA_DESCRIPTION FROM BRANCH.BRANCHSUBAREA " +
                           "WHERE BRANCH_CODE = ? AND AREA_CODE = ? ORDER BY SUBAREA_CODE";
             
-            Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, branchCode);
-            ps.setString(2, areaCode);
-            ResultSet rs = ps.executeQuery();
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(query)) {
+                 ps.setString(1, branchCode);
+                 ps.setString(2, areaCode);
+                 try (ResultSet rs = ps.executeQuery()) {
 %>
 
 <div class="lookup-title">
@@ -335,10 +326,8 @@ function sendBackArea(code, desc) {
     </tr>
 <%
             }
-            
-            rs.close();
-            ps.close();
-            con.close(); 
+            }
+        }
 %>
 </table>
 
