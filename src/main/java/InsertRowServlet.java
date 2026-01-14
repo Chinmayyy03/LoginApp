@@ -14,14 +14,14 @@ public class InsertRowServlet extends HttpServlet {
 
         String table = req.getParameter("table");
 
-        Map<String, String[]> params = req.getParameterMap();
+        Map<String,String[]> params = req.getParameterMap();
 
         StringBuilder cols = new StringBuilder();
         StringBuilder vals = new StringBuilder();
         List<String> values = new ArrayList<>();
 
         for (String key : params.keySet()) {
-            if (!"table".equals(key)) {
+            if (!key.equals("table") && !key.equals("schema")) {
                 cols.append(key).append(",");
                 vals.append("?,");
 
@@ -30,17 +30,16 @@ public class InsertRowServlet extends HttpServlet {
         }
 
         String sql =
-                "INSERT INTO " + table +
-                " (" + cols.substring(0, cols.length() - 1) + ")" +
-                " VALUES (" + vals.substring(0, vals.length() - 1) + ")";
+            "INSERT INTO " + table +
+            " (" + cols.substring(0, cols.length()-1) + ")" +
+            " VALUES (" + vals.substring(0, vals.length()-1) + ")";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            for (int i = 0; i < values.size(); i++) {
-                ps.setString(i + 1, values.get(i));
+            for (int i=0;i<values.size();i++) {
+                ps.setString(i+1, values.get(i));
             }
-
             ps.executeUpdate();
 
         } catch (Exception e) {

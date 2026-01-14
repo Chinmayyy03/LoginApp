@@ -14,33 +14,38 @@ public class EditRowServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String table = req.getParameter("table");
-        String pk = req.getParameter("pk");
+        String schema = req.getParameter("schema");
+        String table  = req.getParameter("table");
+        String pk     = req.getParameter("pk");
+
+        if (schema == null || table == null || pk == null) {
+            throw new ServletException("Missing parameters");
+        }
 
         List<String> columns = new ArrayList<>();
-        Map<String, String> row = new HashMap<>();
+        Map<String,String> row = new HashMap<>();
 
         try (Connection con = DBConnection.getConnection()) {
 
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery(
-                "SELECT * FROM GLOBALCONFIG." + table + " WHERE 1=0"
-            );
+            // column list
+            ResultSet rs = con.createStatement()
+                .executeQuery("SELECT * FROM " + schema + "." + table + " WHERE 1=0");
 
             ResultSetMetaData md = rs.getMetaData();
-            for (int i = 1; i <= md.getColumnCount(); i++) {
+            for (int i=1;i<=md.getColumnCount();i++) {
                 columns.add(md.getColumnName(i));
             }
 
+            // data row
             PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM GLOBALCONFIG." + table +
+                "SELECT * FROM " + schema + "." + table +
                 " WHERE " + columns.get(0) + " = ?"
             );
             ps.setString(1, pk);
 
             ResultSet rs2 = ps.executeQuery();
             if (rs2.next()) {
-                for (String c : columns) {
+                for (String c:columns) {
                     row.put(c, rs2.getString(c));
                 }
             }
@@ -49,10 +54,13 @@ public class EditRowServlet extends HttpServlet {
             throw new ServletException(e);
         }
 
+        req.setAttribute("schema", schema);
         req.setAttribute("table", table);
         req.setAttribute("columns", columns);
         req.setAttribute("row", row);
-        req.getRequestDispatcher("/Master/editRow.jsp")
-           .forward(req, resp);
+        req.setAttribute("primaryKey", columns.get(0));
+        req.setAttribute("mode", "EDIT");
+
+        req.getRequestDispatcher("/Master/editRow.jsp").forward(req, resp);
     }
 }

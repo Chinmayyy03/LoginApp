@@ -278,8 +278,10 @@
     </c:if>
 
     <!-- FORM -->
-    <form action="${pageContext.request.contextPath}/updateRow" method="post" id="editForm">
-        <input type="hidden" name="table" value="${table}">
+<form action="<%= request.getContextPath() %>/updateRow" method="post">
+    <input type="hidden" name="schema" value="${schema}">
+    <input type="hidden" name="table" value="${table}">
+
 
         <!-- THREE-COLUMN LAYOUT -->
         <div class="form-columns">
@@ -357,16 +359,26 @@
             </div>
         </div>
 
-        <!-- ACTIONS -->
-        <div class="form-actions">
-            <button type="submit">
-                <c:choose>
-                    <c:when test="${mode == 'ADD'}">Add ${table}</c:when>
-                    <c:otherwise>Update ${table}</c:otherwise>
-                </c:choose>
-            </button>
-            <a href="javascript:history.back()" class="back-btn">Back</a>
-        </div>
+<!-- ACTIONS -->
+<div class="form-actions">
+
+    <!-- SUBMIT -->
+    <button type="submit">
+        <c:choose>
+            <c:when test="${mode == 'ADD'}">Add ${table}</c:when>
+            <c:otherwise>Update ${table}</c:otherwise>
+        </c:choose>
+    </button>
+
+    <!-- CANCEL / BACK -->
+  <a href="${pageContext.request.contextPath}/masters?schema=${schema}&table=${table}"
+   class="back-btn">
+    Cancel
+</a>
+
+
+
+</div>
     </form>
 </div>
 </body>

@@ -34,46 +34,67 @@ let currentSchema = '';
 function openCard(title, schema){
     currentSchema = schema;
 
-    dashboard.style.display='none';
-    search.style.display='block';
-    pageTitle.innerText = title + ' Configuration';
+    const dashboard  = document.getElementById("dashboard");
+    const search     = document.getElementById("search");
+    const pageTitle  = document.getElementById("pageTitle");
+    const tableSearch = document.getElementById("tableSearch");
+    const tableMenu   = document.getElementById("tableMenu");
+    const data        = document.getElementById("data");
 
-    tableSearch.value='';
-    tableMenu.style.display='none';
-    data.innerHTML='<p style="text-align:center;color:#777">Select a table</p>';
+    if (!dashboard || !search || !pageTitle) return;
+
+    dashboard.style.display = 'none';
+    search.style.display    = 'block';
+    pageTitle.innerText     = title + ' Configuration';
+
+    tableSearch.value = '';
+    tableMenu.style.display = 'none';
+    data.innerHTML = '<p style="text-align:center;color:#777">Select a table</p>';
 
     loadTables();
 }
 
 function back(){
-    search.style.display='none';
-    dashboard.style.display='block';
+    const dashboard = document.getElementById("dashboard");
+    const search    = document.getElementById("search");
+
+    if (!dashboard || !search) return;
+
+    search.style.display = 'none';
+    dashboard.style.display = 'block';
 }
 
 function loadTables(){
+    const tableMenu = document.getElementById("tableMenu");
+    const tableSearch = document.getElementById("tableSearch");
+
     fetch(ctx + '/getTables?schema=' + encodeURIComponent(currentSchema))
-      .then(r=>r.json())
-      .then(list=>{
-        tableMenu.innerHTML='';
-        list.forEach(t=>{
-            const d=document.createElement('div');
-            d.innerText=t;
-            d.onclick=()=>{
-                tableSearch.value=t;
-                tableMenu.style.display='none';
-                loadTable(t);
-            };
-            tableMenu.appendChild(d);
+        .then(r => r.json())
+        .then(list => {
+            tableMenu.innerHTML = '';
+            list.forEach(t => {
+                const d = document.createElement('div');
+                d.innerText = t;
+                d.onclick = () => {
+                    tableSearch.value = t;
+                    tableMenu.style.display = 'none';
+                    loadTable(t);
+                };
+                tableMenu.appendChild(d);
+            });
+            tableMenu.style.display = 'block';
         });
-        tableMenu.style.display='block';
-      });
 }
 
 function filterTables(){
+    const tableSearch = document.getElementById("tableSearch");
+    const tableMenu   = document.getElementById("tableMenu");
+
     const q = tableSearch.value.toUpperCase();
-    tableMenu.style.display='block';
-    [...tableMenu.children].forEach(d=>{
-        d.style.display = d.innerText.toUpperCase().includes(q) ? 'block':'none';
+    tableMenu.style.display = 'block';
+
+    [...tableMenu.children].forEach(d => {
+        d.style.display = d.innerText.toUpperCase().includes(q) ? 'block' : 'none';
     });
 }
 
@@ -84,7 +105,6 @@ function moveEditColumnFront() {
     const thead = table.querySelector("thead tr");
     const rows  = table.querySelectorAll("tbody tr");
 
-    /* ---- Move EDIT header to first ---- */
     if (thead && thead.children.length > 1) {
         const editTh = thead.lastElementChild;
         thead.insertBefore(editTh, thead.firstChild);
@@ -92,7 +112,6 @@ function moveEditColumnFront() {
         editTh.style.textAlign = "center";
     }
 
-    /* ---- Move EDIT button column to first ---- */
     rows.forEach(row => {
         if (row.children.length > 1) {
             const editTd = row.lastElementChild;
@@ -102,12 +121,14 @@ function moveEditColumnFront() {
 }
 
 function loadTable(t){
+    const data = document.getElementById("data");
+
     fetch(ctx + '/loadTableData?schema=' + encodeURIComponent(currentSchema) + '&table=' + t)
-      .then(r=>r.text())
-      .then(html=>{
-          data.innerHTML = html;
-          moveEditColumnFront(); // ✅ FIX
-      });
+        .then(r => r.text())
+        .then(html => {
+            data.innerHTML = html;
+            moveEditColumnFront();
+        });
 }
 
 function filterTableRows(value) {
@@ -118,8 +139,7 @@ function filterTableRows(value) {
     const rows = table.querySelectorAll("tbody tr");
 
     rows.forEach(row => {
-        const text = row.innerText.toUpperCase();
-        row.style.display = text.includes(filter) ? "" : "none";
+        row.style.display = row.innerText.toUpperCase().includes(filter) ? "" : "none";
     });
 }
 
@@ -137,7 +157,26 @@ document.addEventListener("click", function(e){
         menu.style.display = "none";
     }
 });
+
+/* ✅ RESTORE STATE AFTER REDIRECT */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const params = new URLSearchParams(window.location.search);
+    const schemaFromUrl = params.get("schema");
+    const tableFromUrl  = params.get("table");
+
+    if (schemaFromUrl) {
+        openCard("Configuration", schemaFromUrl);
+
+        if (tableFromUrl) {
+            setTimeout(() => {
+                loadTable(tableFromUrl);
+            }, 300);
+        }
+    }
+});
 </script>
+
 </head>
 
 <body>
