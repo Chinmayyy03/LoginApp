@@ -1634,7 +1634,7 @@ function calculateNewBalanceInIframe() {
 	    refreshCreditAccountsTable();
 	    updateTotals();
 	
-	    showToast('Transaction added successfully', 'success');
+	    
 	}
 
 
@@ -1691,7 +1691,7 @@ function refreshCreditAccountsTable() {
 	    // ✅ UPDATE TOTALS
 	    updateTotals();
 	
-	    showToast('Transaction removed', 'info');
+	    
 	}
 
 
