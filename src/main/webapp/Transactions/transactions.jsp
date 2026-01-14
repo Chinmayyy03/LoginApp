@@ -1838,6 +1838,7 @@ function refreshCreditAccountsTable() {
     if (totalDebit === totalCredit && totalDebit > 0) {
         document.getElementById('totalDebit').style.borderColor = 'green';
         document.getElementById('totalCredit').style.borderColor = 'green';
+        showToast('transaction match', 'success');
     } else {
         document.getElementById('totalDebit').style.borderColor = '#C8B7F6';
         document.getElementById('totalCredit').style.borderColor = '#C8B7F6';
