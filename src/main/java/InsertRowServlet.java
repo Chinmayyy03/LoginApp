@@ -1,12 +1,10 @@
 import db.DBConnection;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
-
 
 @WebServlet("/insertRow")
 public class InsertRowServlet extends HttpServlet {
@@ -26,14 +24,15 @@ public class InsertRowServlet extends HttpServlet {
             if (!"table".equals(key)) {
                 cols.append(key).append(",");
                 vals.append("?,");
+
                 values.add(req.getParameter(key));
             }
         }
 
         String sql =
-            "INSERT INTO " + table +
-            " (" + cols.substring(0, cols.length()-1) + ")" +
-            " VALUES (" + vals.substring(0, vals.length()-1) + ")";
+                "INSERT INTO " + table +
+                " (" + cols.substring(0, cols.length() - 1) + ")" +
+                " VALUES (" + vals.substring(0, vals.length() - 1) + ")";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -48,6 +47,6 @@ public class InsertRowServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        resp.sendRedirect("masters");
+        resp.sendRedirect(req.getContextPath() + "/masters");
     }
 }

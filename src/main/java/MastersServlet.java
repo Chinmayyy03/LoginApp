@@ -1,6 +1,6 @@
 import db.DBConnection;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
@@ -16,31 +16,23 @@ public class MastersServlet extends HttpServlet {
 
         System.out.println(">>> MastersServlet CALLED <<<");
 
-        List<Map<String, String>> mastersList = new ArrayList<>();
+        List<Map<String, String>> cards = new ArrayList<>();
 
-        try (Connection con = DBConnection.getConnection()) {
-
-            System.out.println("DB USER = " + con.getMetaData().getUserName());
-
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT DESCRIPTION, TABLE_NAME " +
-                "FROM GLOBALCONFIG.MASTERS " +
-                "ORDER BY SR_NUMBER"
-            );
-
-            ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(
+                 "SELECT DESCRIPTION, TABLE_NAME " +
+                 "FROM GLOBALCONFIG.MASTERS " +
+                 "ORDER BY SR_NUMBER"
+             );
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Map<String, String> row = new HashMap<>();
-                row.put("DESCRIPTION", rs.getString("DESCRIPTION"));
-                row.put("TABLE_NAME", rs.getString("TABLE_NAME"));
-                mastersList.add(row);
+                Map<String, String> card = new HashMap<>();
+                card.put("title", rs.getString("DESCRIPTION"));
+                card.put("schema", rs.getString("TABLE_NAME"));
+                cards.add(card);
 
-                System.out.println(
-                    "CARD => " +
-                    rs.getString("DESCRIPTION") + " | " +
-                    rs.getString("TABLE_NAME")
-                );
+                System.out.println("CARD: " + card);
             }
 
         } catch (Exception e) {
@@ -48,9 +40,7 @@ public class MastersServlet extends HttpServlet {
             throw new ServletException(e);
         }
 
-        System.out.println("TOTAL CARDS = " + mastersList.size());
-
-        req.setAttribute("mastersList", mastersList);
+        req.setAttribute("cards", cards);
         req.getRequestDispatcher("/Master/masters.jsp")
            .forward(req, resp);
     }
