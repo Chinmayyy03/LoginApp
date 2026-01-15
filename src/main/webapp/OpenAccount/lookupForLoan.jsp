@@ -1,21 +1,5 @@
 <%@ page import="java.sql.*, db.DBConnection" %> 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%
-    // Get branch code from session
-    HttpSession sess = request.getSession(false);
-    if (sess == null || sess.getAttribute("branchCode") == null) {
-        response.sendRedirect("../login.jsp");
-        return;
-    }
-
-    String branchCode = (String) sess.getAttribute("branchCode");
-    String lookupType = request.getParameter("type");
-    
-    // Default to installment type if no type specified
-    if (lookupType == null || lookupType.isEmpty()) {
-        lookupType = "installmentType";
-    }
-%>
 
 <style>
 table {
@@ -42,21 +26,41 @@ tr:hover {
     font-weight: bold;
     color: #373279;
 }
+.error-message {
+    color: red;
+    padding: 20px;
+    border: 1px solid red;
+    background-color: #ffe6e6;
+    margin: 10px 0;
+}
 </style>
 
 <%
+    // Get branch code from session
+    HttpSession sess = request.getSession(false);
+    if (sess == null || sess.getAttribute("branchCode") == null) {
+        response.sendRedirect("../login.jsp");
+        return;
+    }
+
+    String branchCode = (String) sess.getAttribute("branchCode");
+    String lookupType = request.getParameter("type");
+    
+    // Default to installment type if no type specified
+    if (lookupType == null || lookupType.isEmpty()) {
+        lookupType = "installmentType";
+    }
+
+    // ========== INSTALLMENT TYPE LOOKUP ==========
     if ("installmentType".equals(lookupType)) {
-        // INSTALLMENT TYPE LOOKUP
         String query = "SELECT INSTALLMENTTYPE_ID, DISCRIPTION FROM HEADOFFICE.INSTALLMENTTYPE ORDER BY INSTALLMENTTYPE_ID";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
 %>
 
-<div class="lookup-title">
-    Select Installment Type
-</div>
+<div class="lookup-title">Select Installment Type</div>
 
 <table>
     <tr>
@@ -65,19 +69,24 @@ tr:hover {
     </tr>
 
 <%
-        while (rs.next()) {
-            String id = rs.getString(1);
-            String desc = rs.getString(2);
+            boolean hasRecords = false;
+            while (rs.next()) {
+                hasRecords = true;
+                String id = rs.getString(1);
+                String desc = rs.getString(2);
 %>
     <tr onclick="sendBackInstallment('<%=id%>', '<%=desc%>')">
         <td><%=id%></td>
         <td><%=desc%></td>
     </tr>
 <% 
-        } 
-        rs.close();
-        ps.close();
-        con.close(); 
+            }
+            
+            if (!hasRecords) {
+%>
+    <tr><td colspan="2" style="text-align:center; color:#999;">No installment types found</td></tr>
+<%
+            }
 %>
 </table>
 
@@ -96,18 +105,24 @@ function sendBackInstallment(id, desc) {
 </script>
 
 <%
-    } else if ("socialSector".equals(lookupType)) {
-        // SOCIAL SECTOR LOOKUP
+        } catch (SQLException e) {
+            e.printStackTrace();
+%>
+            <div class="error-message">Database error: <%= e.getMessage() %></div>
+<%
+        }
+    }
+    
+    // ========== SOCIAL SECTOR LOOKUP ==========
+    else if ("socialSector".equals(lookupType)) {
         String query = "SELECT SOCIALSECTOR_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTOR ORDER BY SOCIALSECTOR_ID";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
 %>
 
-<div class="lookup-title">
-    Select Social Sector
-</div>
+<div class="lookup-title">Select Social Sector</div>
 
 <table>
     <tr>
@@ -116,19 +131,24 @@ function sendBackInstallment(id, desc) {
     </tr>
 
 <%
-        while (rs.next()) {
-            String id = rs.getString(1);
-            String desc = rs.getString(2);
+            boolean hasRecords = false;
+            while (rs.next()) {
+                hasRecords = true;
+                String id = rs.getString(1);
+                String desc = rs.getString(2);
 %>
     <tr onclick="sendBackSocialSector('<%=id%>', '<%=desc%>')">
         <td><%=id%></td>
         <td><%=desc%></td>
     </tr>
 <% 
-        } 
-        rs.close();
-        ps.close();
-        con.close(); 
+            }
+            
+            if (!hasRecords) {
+%>
+    <tr><td colspan="2" style="text-align:center; color:#999;">No social sectors found</td></tr>
+<%
+            }
 %>
 </table>
 
@@ -147,25 +167,35 @@ function sendBackSocialSector(id, desc) {
 </script>
 
 <%
-    } else if ("socialSubSector".equals(lookupType)) {
-        // SOCIAL SUBSECTOR LOOKUP (filtered by sector)
+        } catch (SQLException e) {
+            e.printStackTrace();
+%>
+            <div class="error-message">Database error: <%= e.getMessage() %></div>
+<%
+        }
+    }
+    
+    // ========== SOCIAL SUBSECTOR LOOKUP ==========
+    else if ("socialSubSector".equals(lookupType)) {
         String sectorId = request.getParameter("sectorId");
         
         if (sectorId == null || sectorId.isEmpty()) {
-            out.println("<div style='color:red; padding:20px;'>Error: Social Sector ID is required</div>");
+%>
+            <div class="error-message">Error: Social Sector ID is required</div>
+<%
         } else {
             String query = "SELECT SOCIALSUBSECTOR_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSUBSECTOR " +
                           "WHERE SOCIALSECTOR_ID = ? ORDER BY SOCIALSUBSECTOR_ID";
             
-            Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, sectorId);
-            ResultSet rs = ps.executeQuery();
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(query)) {
+                
+                ps.setString(1, sectorId);
+                
+                try (ResultSet rs = ps.executeQuery()) {
 %>
 
-<div class="lookup-title">
-    Select Social SubSector (for Sector ID: <%=sectorId%>)
-</div>
+<div class="lookup-title">Select Social SubSector (for Sector ID: <%=sectorId%>)</div>
 
 <table>
     <tr>
@@ -174,32 +204,24 @@ function sendBackSocialSector(id, desc) {
     </tr>
 
 <%
-            boolean hasRecords = false;
-            while (rs.next()) {
-                hasRecords = true;
-                String id = rs.getString(1);
-                String desc = rs.getString(2);
+                    boolean hasRecords = false;
+                    while (rs.next()) {
+                        hasRecords = true;
+                        String id = rs.getString(1);
+                        String desc = rs.getString(2);
 %>
     <tr onclick="sendBackSocialSubSector('<%=id%>', '<%=desc%>')">
         <td><%=id%></td>
         <td><%=desc%></td>
     </tr>
 <% 
-            }
-            
-            if (!hasRecords) {
+                    }
+                    
+                    if (!hasRecords) {
 %>
-    <tr>
-        <td colspan="2" style="text-align:center; color:#999;">
-            No subsectors found for this sector
-        </td>
-    </tr>
+    <tr><td colspan="2" style="text-align:center; color:#999;">No subsectors found for this sector</td></tr>
 <%
-            }
-            
-            rs.close();
-            ps.close();
-            con.close(); 
+                    }
 %>
 </table>
 
@@ -218,21 +240,30 @@ function sendBackSocialSubSector(id, desc) {
 </script>
 
 <%
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+%>
+                <div class="error-message">Database error: <%= e.getMessage() %></div>
+<%
+            }
         }
-    } else if ("area".equals(lookupType)) {
-        // AREA LOOKUP (filtered by branch)
+    }
+    
+    // ========== AREA LOOKUP ==========
+    else if ("area".equals(lookupType)) {
         String query = "SELECT AREA_CODE, AREA_DESCRIPTION FROM BRANCH.BRANCHAREA " +
                       "WHERE BRANCH_CODE = ? ORDER BY AREA_CODE";
         
-        Connection con = DBConnection.getConnection();
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, branchCode);
-        ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            
+            ps.setString(1, branchCode);
+            
+            try (ResultSet rs = ps.executeQuery()) {
 %>
 
-<div class="lookup-title">
-    Select Area (Branch: <%=branchCode%>)
-</div>
+<div class="lookup-title">Select Area (Branch: <%=branchCode%>)</div>
 
 <table>
     <tr>
@@ -241,32 +272,24 @@ function sendBackSocialSubSector(id, desc) {
     </tr>
 
 <%
-        boolean hasRecords = false;
-        while (rs.next()) {
-            hasRecords = true;
-            String code = rs.getString(1);
-            String desc = rs.getString(2);
+                boolean hasRecords = false;
+                while (rs.next()) {
+                    hasRecords = true;
+                    String code = rs.getString(1);
+                    String desc = rs.getString(2);
 %>
     <tr onclick="sendBackArea('<%=code%>', '<%=desc%>')">
         <td><%=code%></td>
         <td><%=desc%></td>
     </tr>
 <% 
-        }
-        
-        if (!hasRecords) {
+                }
+                
+                if (!hasRecords) {
 %>
-    <tr>
-        <td colspan="2" style="text-align:center; color:#999;">
-            No areas found for this branch
-        </td>
-    </tr>
+    <tr><td colspan="2" style="text-align:center; color:#999;">No areas found for this branch</td></tr>
 <%
-        }
-        
-        rs.close();
-        ps.close();
-        con.close(); 
+                }
 %>
 </table>
 
@@ -285,26 +308,37 @@ function sendBackArea(code, desc) {
 </script>
 
 <%
-    } else if ("subArea".equals(lookupType)) {
-        // SUB AREA LOOKUP (filtered by area and branch)
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+%>
+            <div class="error-message">Database error: <%= e.getMessage() %></div>
+<%
+        }
+    }
+    
+    // ========== SUB AREA LOOKUP ==========
+    else if ("subArea".equals(lookupType)) {
         String areaCode = request.getParameter("areaCode");
         
         if (areaCode == null || areaCode.isEmpty()) {
-            out.println("<div style='color:red; padding:20px;'>Error: Area Code is required</div>");
+%>
+            <div class="error-message">Error: Area Code is required</div>
+<%
         } else {
             String query = "SELECT SUBAREA_CODE, SUBAREA_DESCRIPTION FROM BRANCH.BRANCHSUBAREA " +
                           "WHERE BRANCH_CODE = ? AND AREA_CODE = ? ORDER BY SUBAREA_CODE";
             
-            Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, branchCode);
-            ps.setString(2, areaCode);
-            ResultSet rs = ps.executeQuery();
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(query)) {
+                
+                ps.setString(1, branchCode);
+                ps.setString(2, areaCode);
+                
+                try (ResultSet rs = ps.executeQuery()) {
 %>
 
-<div class="lookup-title">
-    Select Sub Area (Area: <%=areaCode%>)
-</div>
+<div class="lookup-title">Select Sub Area (Area: <%=areaCode%>)</div>
 
 <table>
     <tr>
@@ -313,32 +347,24 @@ function sendBackArea(code, desc) {
     </tr>
 
 <%
-            boolean hasRecords = false;
-            while (rs.next()) {
-                hasRecords = true;
-                String code = rs.getString(1);
-                String desc = rs.getString(2);
+                    boolean hasRecords = false;
+                    while (rs.next()) {
+                        hasRecords = true;
+                        String code = rs.getString(1);
+                        String desc = rs.getString(2);
 %>
     <tr onclick="sendBackSubArea('<%=code%>', '<%=desc%>')">
         <td><%=code%></td>
         <td><%=desc%></td>
     </tr>
 <% 
-            }
-            
-            if (!hasRecords) {
+                    }
+                    
+                    if (!hasRecords) {
 %>
-    <tr>
-        <td colspan="2" style="text-align:center; color:#999;">
-            No sub areas found for this area
-        </td>
-    </tr>
+    <tr><td colspan="2" style="text-align:center; color:#999;">No sub areas found for this area</td></tr>
 <%
-            }
-            
-            rs.close();
-            ps.close();
-            con.close(); 
+                    }
 %>
 </table>
 
@@ -357,8 +383,20 @@ function sendBackSubArea(code, desc) {
 </script>
 
 <%
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+%>
+                <div class="error-message">Database error: <%= e.getMessage() %></div>
+<%
+            }
         }
-    } else {
-        out.println("<div style='color:red; padding:20px;'>Invalid lookup type</div>");
+    }
+    
+    // ========== INVALID LOOKUP TYPE ==========
+    else {
+%>
+        <div class="error-message">Invalid lookup type: <%=lookupType%></div>
+<%
     }
 %>
