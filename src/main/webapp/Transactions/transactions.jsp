@@ -71,6 +71,8 @@
             border: 2px solid #BBADED;
             border-radius: 12px;
             padding: 20px;
+            width :103% ;
+           margin: 0 0 0 -40px
         }
 
         legend {
@@ -803,7 +805,7 @@
 .compact-loan-table th:first-child {
     text-align: left;
     padding-left: 8px;
-    width: 80px; /* Fixed width for first column */
+    width: 70px; /* Fixed width for first column */
 }
 
 .compact-loan-table td {
@@ -871,16 +873,16 @@
 /* Further responsive adjustments */
 @media (max-width: 1400px) {
     .compact-loan-table th {
-        font-size: 12px;
+        font-size: 10px;
         padding: 5px 1px;
     }
     
     .compact-loan-table td:first-child {
-        font-size: 12px;
+        font-size: 10px;
     }
     
     .compact-loan-table input {
-        font-size: 12px;
+        font-size: 10px;
         padding: 2px;
     }
 }
@@ -1906,7 +1908,7 @@ function buildLoanFieldsTable() {
         
         // Truncate long descriptions for display
         const displayName = col.description.length > 10 
-            ? col.description.substring(0, 18) + '...' 
+            ? col.description.substring(0, 20) 
             : col.description;
         headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
     });
