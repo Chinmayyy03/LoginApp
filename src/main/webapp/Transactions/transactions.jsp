@@ -1003,19 +1003,7 @@
                         </div>
                     </div>
 
-                <!-- Account Category Dropdown -->
-				<div class="dropdown-inline">
-				    <div class="label">Account Type:</div>
-				    <select name="accountCategory" id="accountCategory" style="min-width: 100px;">
-				        <option value="saving" selected>Saving</option>
-				        <option value="loan">Loan</option>
-				        <option value="deposit">Deposit</option>
-				        <option value="pigmy">Pigmy</option>
-				        <option value="current">Current</option>
-				        <option value="cc">CC</option>
-				        <option value="other">Other</option>
-				    </select>
-				</div>
+                
 				
 				<!-- TRANSFER SPECIFIC FIELDS (Hidden by default) -->
 		<div id="transferFieldsSection" class="transfer-fields-section">
@@ -1045,7 +1033,21 @@
                 </div>
 
                 <!-- Account Code and Name Row -->
-				<div class="row">			
+				<div class="row">	
+				<!-- Account Category Dropdown -->
+				<div class="dropdown-inline">
+				<div>
+				    <div class="label">Type:</div>
+				    <select name="accountCategory" id="accountCategory" style="min-width: 100px;">
+				        <option value="saving" selected>Saving</option>
+				        <option value="loan">Loan</option>
+				        <option value="deposit">Deposit</option>
+				        <option value="pigmy">Pigmy</option>
+				        <option value="current">Current</option>
+				        <option value="cc">CC</option>
+				        <option value="other">Other</option>
+				    </select>
+				</div>	</div>	
 				    <!-- Account Code -->
 				    <div>
 				        <div class="label" id="accountCodeLabel">Account Code</div>
