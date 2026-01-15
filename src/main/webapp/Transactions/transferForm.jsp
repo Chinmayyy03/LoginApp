@@ -171,6 +171,55 @@
                 <input type="text" id="creditNewLedgerBalance" name="creditNewLedgerBalance" readonly>
             </div>
             
+            <div>
+			    <label>Limit Amount</label>
+			    <input type="text" id="creditLimitAmount" name="creditLimitAmount" readonly>
+			</div>
+			
+			<div>
+			    <label>Drawing Power</label>
+			    <input type="text" id="creditDrawingPower" name="creditDrawingPower" readonly>
+			</div>
+			
+			<div>
+			    <label>Unclear Balance</label>
+			    <input type="text" id="creditUnclearBalance" name="creditUnclearBalance" readonly>
+			</div>
+			
+			<div>
+			    <label>Last Transaction Date</label>
+			    <input type="date" id="creditLastTransactionDate" name="creditLastTransactionDate" readonly>
+			</div>
+			
+			<div>
+			    <label>Account Review Date</label>
+			    <input type="date" id="creditAccountReviewDate" name="creditAccountReviewDate" readonly>
+			</div>
+			
+			<div>
+			    <label>Last OD Date</label>
+			    <input type="date" id="creditLastOdDate" name="creditLastOdDate" readonly>
+			</div>
+			
+			<div>
+			    <label>OD Interest</label>
+			    <input type="text" id="creditOdInterest" name="creditOdInterest" readonly>
+			</div>
+			
+			<div>
+			    <label>Aadhar Number</label>
+			    <input type="text" id="creditAadharnumber" name="creditAadharnumber" readonly>
+			</div>
+			
+			<div>
+			    <label>PAN Number</label>
+			    <input type="text" id="creditPannumber" name="creditPannumber" readonly>
+			</div>
+			
+			<div>
+			    <label>ZIP Code</label>
+			    <input type="text" id="creditZipcode" name="creditZipcode" readonly>
+			</div>
         </div>
     </fieldset>
 
@@ -288,6 +337,10 @@ function checkCreditAccountDetails() {
                 document.getElementById('creditCustomerId').value = data.customerId || '';
                 document.getElementById('creditLedgerBalance').value = data.ledgerBalance || '0.00';
                 document.getElementById('creditAvailableBalance').value = data.availableBalance || '0.00';
+                // ADD THESE NEW LINES:
+                document.getElementById('creditAadharnumber').value = data.aadharNumber || '';
+                document.getElementById('creditPannumber').value = data.panNumber || '';
+                document.getElementById('creditZipcode').value = data.zipcode || '';
             }
         })
         .catch(error => {
