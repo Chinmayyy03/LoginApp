@@ -31,11 +31,12 @@ public class GetTablesServlet extends HttpServlet {
         }
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(
-                 "SELECT table_name " +
-                 "FROM all_tables " +
-                 "WHERE owner = ? " +
-                 "ORDER BY table_name"
+        		PreparedStatement ps = con.prepareStatement(
+        			    "SELECT table_name " +
+        			    "FROM all_tables " +
+        			    "WHERE owner = ? " +
+        			    "AND table_name NOT LIKE 'SYS_%' " +
+        			    "ORDER BY table_name"
              )) {
 
             ps.setString(1, schema.toUpperCase());

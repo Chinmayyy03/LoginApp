@@ -110,9 +110,20 @@ public class UpdateRowServlet extends HttpServlet {
             }
 
             if (setClauses.isEmpty()) {
-                resp.sendRedirect(req.getContextPath() + "/masters");
+                req.setAttribute(
+                    "errorMessage",
+                    "Update not allowed. Some fields are system-managed."
+                );
+
+                // 🔹 RELOAD EDIT PAGE WITH EXISTING DATA
+                req.getRequestDispatcher(
+                    "/editRow?schema=" + schema +
+                    "&table=" + table +
+                    "&pk=" + pkValue
+                ).forward(req, resp);
                 return;
             }
+
 
             String sql =
                 "UPDATE " + schema + "." + table +

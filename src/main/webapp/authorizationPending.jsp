@@ -197,6 +197,13 @@
                 <h3>Authorization Pending Application</h3>
                 <p class="loading" id="pending-applications-value">Loading...</p>
             </div>
+            
+            <div class="card"
+     onclick="openInParentFrame('authorizationPendingMasters.jsp', 'Authorization > Pending Masters')">
+    <h3>Authorization Pending Masters</h3>
+    <p class="loading" id="pending-masters-value">Loading...</p>
+</div>
+            
         </div>
     </div>
     
@@ -212,9 +219,11 @@
     async function loadCardValues() {
         await Promise.all([
             loadCard('pending_customers', 'pending-customers-value', 'auth'),
-            loadCard('pending_applications', 'pending-applications-value', 'auth')
+            loadCard('pending_applications', 'pending-applications-value', 'auth'),
+            loadCard('pending_masters', 'pending-masters-value', 'auth') // ✅ FIXED
         ]);
     }
+
     
     async function loadCard(cardId, elementId, cardType) {
         try {
