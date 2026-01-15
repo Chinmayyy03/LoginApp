@@ -768,70 +768,123 @@
 	    border-radius: 6px;
 	}
 	
-	/* Loan-specific fields section */
-	.loan-fields-section {
-	    display: none;
-	    margin-top: 20px;
-	    padding: 20px;
-	    background-color: #fff9e6;
-	    border: 2px solid #ffc107;
-	    border-radius: 8px;
-	}
-	
-	.loan-fields-section.active {
-	    display: block;
-	}
-	
-	.loan-fields-section .section-title {
-	    font-size: 16px;
-	    font-weight: bold;
-	    color: #3D316F;
-	    margin-bottom: 15px;
-	    padding-bottom: 10px;
-	    border-bottom: 2px solid #ffc107;
-	}
-	
-	.loan-field-group {
-	    display: grid;
-	    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	    gap: 15px;
-	    margin-top: 10px;
-	}
-	
-	.loan-field-item {
-	    display: flex;
-	    flex-direction: column;
-	}
-	
-	.loan-field-item .label {
-	    margin-bottom: 5px;
-	}
-	
-	.loan-field-item input[type="text"] {
-	    width: 65%;
-	}
-	/* Dual input under one label */
-	.dual-input {
-	    display: flex;
-	    gap: 10px;
-	}
-	
-	.dual-input-item {
-	    display: flex;
-	    flex-direction: column;
-	}
-	
-	.dual-label {
-	    font-size: 12px;
-	    font-weight: bold;
-	    color: #3D316F;
-	    margin-bottom: 4px;
-	}
-	
-	.dual-input-item input[type="text"] {
-	    width: 90px;
-	    text-align: right;
-	}
+/* Loan fields compact table - FIXED WIDTH NO SCROLL */
+.loan-fields-section {
+    display: none;
+    margin-top: 20px;
+    overflow: hidden; /* Prevent any overflow */
+}
+
+.loan-fields-section.active {
+    display: block;
+}
+
+.compact-loan-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Force fixed layout */
+}
+
+.compact-loan-table thead {
+    background: linear-gradient(135deg, #373279 0%, #2b0d73 100%);
+    color: white;
+}
+
+.compact-loan-table th {
+    padding: 6px 2px;
+    font-size: 9px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    font-weight: bold;
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+.compact-loan-table th:first-child {
+    text-align: left;
+    padding-left: 8px;
+    width: 80px; /* Fixed width for first column */
+}
+
+.compact-loan-table td {
+    padding: 3px 2px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+}
+
+.compact-loan-table td:first-child {
+    text-align: left;
+    font-weight: bold;
+    font-size: 10px;
+    color: #3D316F;
+    padding-left: 8px;
+    background: #f9f9f9;
+    width: 80px; /* Fixed width for first column */
+}
+
+.compact-loan-table input {
+    width: 100%;
+    padding: 2px 3px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.compact-loan-table input:read-only {
+    background: #f0f0f0;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.compact-loan-table input:focus {
+    outline: none;
+    border-color: #8066E8;
+    box-shadow: 0 0 0 1px rgba(128, 102, 232, 0.3);
+}
+
+.compact-loan-table tbody tr:hover {
+    background: #f4edff;
+}
+
+.compact-loan-table .receivable-row td {
+    background: #fff9e6;
+}
+
+.compact-loan-table .received-row td {
+    background: #e6f7ff;
+}
+
+.compact-loan-table .remaining-row td {
+    background: #ffe6e6;
+}
+
+.compact-loan-table .receivable-row td:first-child,
+.compact-loan-table .received-row td:first-child,
+.compact-loan-table .remaining-row td:first-child {
+    background: #f9f9f9;
+}
+
+/* Further responsive adjustments */
+@media (max-width: 1400px) {
+    .compact-loan-table th {
+        font-size: 12px;
+        padding: 5px 1px;
+    }
+    
+    .compact-loan-table td:first-child {
+        font-size: 12px;
+    }
+    
+    .compact-loan-table input {
+        font-size: 12px;
+        padding: 2px;
+    }
+}
+
 	
 	/* Transfer-specific fields section */
 	.transfer-fields-section {
@@ -906,8 +959,6 @@
 <body>
 
 <div class="container">
-	<h1> TRANSACTION </h1>
-	
     <form id="transactionForm" method="post" target="resultFrame">
         <div class="card">
 
@@ -1034,122 +1085,57 @@
 				<div id="creditAccountsContainer"></div>
 				
 				<!-- LOAN SPECIFIC FIELDS (Hidden by default) -->
-				<div id="loanFieldsSection" class="loan-fields-section">
-				    <div class="loan-field-group">
-				        <div class="loan-field-item">
-						    <div class="label">Insurance</div>
-						
-						    <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="insuranceReceived" id="insuranceReceived" placeholder="0.00">
-						        </div>
-						    </div>
-						</div>
-				        <div class="loan-field-item">
-				            <div class="label">Other Charges</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="OtherChargesReceivable" id="OtherChargesReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="OtherChargesReceived" id="OtherChargesReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Interest Receivable</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="InterestReceivable" id="InterestReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="InterestReceived" id="InterestReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Penal Receivable</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="PenalReceivable" id="PenalReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="PenalReceived" id="PenalReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Penal Interest</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="PenalInterestReceivable" id="PenalInterestReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="PenalInterestReceived" id="PenalInterestReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Postage</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="PostageReceivable" id="PostageReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="PostageReceived" id="PostageReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Current Interest</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="CurrentInterestReceivable" id="CurrentInterestReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="CurrentInterestReceived" id="CurrentInterestReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				        <div class="loan-field-item">
-				            <div class="label">Overdue Amount</div>
-				            <div class="dual-input">
-						        <div class="dual-input-item">
-						            <span class="dual-label">Receivable</span>
-						            <input type="text" name="OverdueAmountReceivable" id="OverdueAmountReceivable" placeholder="0.00" readonly>
-						        </div>
-						
-						        <div class="dual-input-item">
-						            <span class="dual-label">Received</span>
-						            <input type="text" name="OverdueAmountReceived" id="OverdueAmountReceived" placeholder="0.00">
-						        </div>
-						    </div>
-				        </div>
-				    </div>
+				<div id="loanFieldsSection" class="loan-fields-section">    
+				    <table class="compact-loan-table">
+				        <thead>
+				            <tr>
+				                <th>Type</th>
+				                <th>Ins.</th>
+				                <th>Other</th>
+				                <th>Int.</th>
+				                <th>Penal</th>
+				                <th>P.Int</th>
+				                <th>Post</th>
+				                <th>Cur.Int</th>
+				                <th>Ovdue</th>
+				            </tr>
+				        </thead>
+				        <tbody>
+				            <tr class="receivable-row">
+				                <td>Receivable</td>
+				                <td><input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="OtherChargesReceivable" id="OtherChargesReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="InterestReceivable" id="InterestReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="PenalReceivable" id="PenalReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="PenalInterestReceivable" id="PenalInterestReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="PostageReceivable" id="PostageReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="CurrentInterestReceivable" id="CurrentInterestReceivable" placeholder="0.00" readonly></td>
+				                <td><input type="text" name="OverdueAmountReceivable" id="OverdueAmountReceivable" placeholder="0.00" readonly></td>
+				            </tr>
+				            <tr class="received-row">
+				                <td>Received</td>
+				                <td><input type="text" name="insuranceReceived" id="insuranceReceived" placeholder="0.00" oninput="calculateRemaining('insurance')"></td>
+				                <td><input type="text" name="OtherChargesReceived" id="OtherChargesReceived" placeholder="0.00" oninput="calculateRemaining('OtherCharges')"></td>
+				                <td><input type="text" name="InterestReceived" id="InterestReceived" placeholder="0.00" oninput="calculateRemaining('Interest')"></td>
+				                <td><input type="text" name="PenalReceived" id="PenalReceived" placeholder="0.00" oninput="calculateRemaining('Penal')"></td>
+				                <td><input type="text" name="PenalInterestReceived" id="PenalInterestReceived" placeholder="0.00" oninput="calculateRemaining('PenalInterest')"></td>
+				                <td><input type="text" name="PostageReceived" id="PostageReceived" placeholder="0.00" oninput="calculateRemaining('Postage')"></td>
+				                <td><input type="text" name="CurrentInterestReceived" id="CurrentInterestReceived" placeholder="0.00" oninput="calculateRemaining('CurrentInterest')"></td>
+				                <td><input type="text" name="OverdueAmountReceived" id="OverdueAmountReceived" placeholder="0.00" oninput="calculateRemaining('OverdueAmount')"></td>
+				            </tr>
+				            <tr class="remaining-row">
+				                <td>Remaining</td>
+				                <td><input type="text" id="insuranceRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="OtherChargesRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="InterestRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="PenalRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="PenalInterestRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="PostageRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="CurrentInterestRemaining" placeholder="0.00" readonly></td>
+				                <td><input type="text" id="OverdueAmountRemaining" placeholder="0.00" readonly></td>
+				            </tr>
+				        </tbody>
+				    </table>
 				</div>
 
             </fieldset>
@@ -1476,34 +1462,75 @@ function toggleLoanFields() {
     }
 }
 
+//Calculate remaining amount (Receivable - Received)
+function calculateRemaining(fieldName) {
+    const receivableEl = document.getElementById(fieldName + 'Receivable');
+    const receivedEl = document.getElementById(fieldName + 'Received');
+    const remainingEl = document.getElementById(fieldName + 'Remaining');
+    
+    if (!receivableEl || !receivedEl || !remainingEl) return;
+    
+    const receivable = parseFloat(receivableEl.value.replace(/,/g, '')) || 0;
+    const received = parseFloat(receivedEl.value.replace(/,/g, '')) || 0;
+    const remaining = receivable - received;
+    
+    remainingEl.value = remaining.toFixed(2);
+    
+    // Color coding for remaining amount
+    if (remaining < 0) {
+        remainingEl.style.color = 'red';
+        remainingEl.style.fontWeight = 'bold';
+    } else if (remaining === 0) {
+        remainingEl.style.color = 'green';
+        remainingEl.style.fontWeight = 'bold';
+    } else {
+        remainingEl.style.color = '#666';
+        remainingEl.style.fontWeight = 'normal';
+    }
+}
+
+<!-- ========================================== -->
+<!-- 4. UPDATE THE clearLoanFields() FUNCTION -->
+<!-- Replace your existing clearLoanFields() with this updated version -->
+<!-- ========================================== -->
+
 function clearLoanFields() {
     const fields = [
         'insuranceReceivable',
         'insuranceReceived',
+        'insuranceRemaining',
         'OtherChargesReceivable',
         'OtherChargesReceived',
+        'OtherChargesRemaining',
         'InterestReceivable',
         'InterestReceived',
+        'InterestRemaining',
         'PenalReceivable',
         'PenalReceived',
+        'PenalRemaining',
         'PostageReceivable',
         'PostageReceived',
+        'PostageRemaining',
         'CurrentInterestReceivable',
         'CurrentInterestReceived',
+        'CurrentInterestRemaining',
         'OverdueAmountReceivable',
         'OverdueAmountReceived',
+        'OverdueAmountRemaining',
         'PenalInterestReceivable',
-        'PenalInterestReceived'
+        'PenalInterestReceived',
+        'PenalInterestRemaining'
     ];
 
     fields.forEach(function(id) {
         const el = document.getElementById(id);
         if (el) {
             el.value = '';
+            el.style.color = '';
+            el.style.fontWeight = '';
         }
     });
 }
-
 //========== TOGGLE TRANSFER FIELDS VISIBILITY ==========
 function toggleTransferFields() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
