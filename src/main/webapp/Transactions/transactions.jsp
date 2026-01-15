@@ -1309,13 +1309,24 @@ function highlightMatch(text, search) {
            text.substring(actualIndex + search.length);
 }
 
-// ========== SELECT ACCOUNT FROM DROPDOWN ==========
+//Update selectAccountFromSearch to fetch loan data
 function selectAccountFromSearch(code, name) {
     document.getElementById('accountCode').value = code;
     document.getElementById('accountName').value = name;
     previousAccountCode = code;
     document.getElementById('searchResults').classList.remove('active');
-    setTimeout(function() { submitTransactionForm(); }, 500);
+    
+    setTimeout(function() { 
+        submitTransactionForm(); 
+        
+        // ✅ ADD THIS: Fetch loan data if category is loan
+        const accountCategory = document.getElementById('accountCategory').value;
+        if (accountCategory === 'loan') {
+            setTimeout(() => {
+                fetchLoanReceivableData(code);
+            }, 1500); // Wait a bit longer for iframe load
+        }
+    }, 500);
 }
 
 // ========== FILTER TABLE FUNCTION FOR LOOKUP ==========
@@ -1586,10 +1597,21 @@ function setValueFromLookup(code, desc, type) {
     previousAccountCode = code;
     window.currentLookupType = null;
     closeLookup();
-    setTimeout(function() { submitTransactionForm(); }, 500);
+    
+    setTimeout(function() { 
+        submitTransactionForm(); 
+        
+        // ✅ ADD THIS: Fetch loan data if category is loan
+        const accountCategory = document.getElementById('accountCategory').value;
+        if (accountCategory === 'loan') {
+            setTimeout(() => {
+                fetchLoanReceivableData(code);
+            }, 1500);
+        }
+    }, 500);
 }
 
-// ========== SUBMIT TRANSACTION FORM ==========
+//Update the submitTransactionForm function
 function submitTransactionForm() {
     let transTypeRadio = document.querySelector("input[name='transactionTypeRadio']:checked").value;
     let operationType = document.querySelector("input[name='operationType']:checked").value;
@@ -1610,6 +1632,13 @@ function submitTransactionForm() {
         form.action = pageMap[operationType];
         form.submit();
         showToast('Loading transaction form...', 'info');
+        
+        // ✅ ADD THIS: Fetch loan receivable data if it's a loan account
+        if (accountCategory === 'loan' && accountCode) {
+            setTimeout(() => {
+                fetchLoanReceivableData(accountCode);
+            }, 1000); // Wait for iframe to load
+        }
     } else {
         showToast('No page found for Operation Type: ' + operationType, 'error');
     }
@@ -1964,6 +1993,44 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+//Add this function after the buildLoanFieldsTable() function
+
+function fetchLoanReceivableData(accountCode) {
+    if (!accountCode || accountCode.trim() === '') {
+        return;
+    }
+    
+    fetch('GetLoanReceivableData.jsp?accountCode=' + encodeURIComponent(accountCode))
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('Error loading loan data: ' + data.error, 'error');
+                console.error('Error:', data.error);
+                return;
+            }
+            
+            if (data.success && data.receivableData) {
+                populateLoanReceivableFields(data.receivableData);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching loan receivable data:', error);
+            showToast('Failed to fetch loan receivable data', 'error');
+        });
+}
+
+function populateLoanReceivableFields(receivableData) {
+    // Populate all receivable fields
+    for (const fieldName in receivableData) {
+        const receivableField = document.getElementById(fieldName + 'Receivable');
+        if (receivableField) {
+            receivableField.value = receivableData[fieldName];
+            
+            // Also calculate remaining (Receivable - Received)
+            calculateRemaining(fieldName);
+        }
+    }
+}
 
 //Updated clearLoanFields to work with dynamic fields
 function clearLoanFields() {
