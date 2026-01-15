@@ -1086,56 +1086,20 @@
 				
 				<!-- LOAN SPECIFIC FIELDS (Hidden by default) -->
 				<div id="loanFieldsSection" class="loan-fields-section">    
-				    <table class="compact-loan-table">
-				        <thead>
-				            <tr>
-				                <th>Type</th>
-				                <th>Ins.</th>
-				                <th>Other</th>
-				                <th>Int.</th>
-				                <th>Penal</th>
-				                <th>P.Int</th>
-				                <th>Post</th>
-				                <th>Cur.Int</th>
-				                <th>Ovdue</th>
-				            </tr>
-				        </thead>
-				        <tbody>
-				            <tr class="receivable-row">
-				                <td>Receivable</td>
-				                <td><input type="text" name="insuranceReceivable" id="insuranceReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="OtherChargesReceivable" id="OtherChargesReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="InterestReceivable" id="InterestReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="PenalReceivable" id="PenalReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="PenalInterestReceivable" id="PenalInterestReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="PostageReceivable" id="PostageReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="CurrentInterestReceivable" id="CurrentInterestReceivable" placeholder="0.00" readonly></td>
-				                <td><input type="text" name="OverdueAmountReceivable" id="OverdueAmountReceivable" placeholder="0.00" readonly></td>
-				            </tr>
-				            <tr class="received-row">
-				                <td>Received</td>
-				                <td><input type="text" name="insuranceReceived" id="insuranceReceived" placeholder="0.00" oninput="calculateRemaining('insurance')"></td>
-				                <td><input type="text" name="OtherChargesReceived" id="OtherChargesReceived" placeholder="0.00" oninput="calculateRemaining('OtherCharges')"></td>
-				                <td><input type="text" name="InterestReceived" id="InterestReceived" placeholder="0.00" oninput="calculateRemaining('Interest')"></td>
-				                <td><input type="text" name="PenalReceived" id="PenalReceived" placeholder="0.00" oninput="calculateRemaining('Penal')"></td>
-				                <td><input type="text" name="PenalInterestReceived" id="PenalInterestReceived" placeholder="0.00" oninput="calculateRemaining('PenalInterest')"></td>
-				                <td><input type="text" name="PostageReceived" id="PostageReceived" placeholder="0.00" oninput="calculateRemaining('Postage')"></td>
-				                <td><input type="text" name="CurrentInterestReceived" id="CurrentInterestReceived" placeholder="0.00" oninput="calculateRemaining('CurrentInterest')"></td>
-				                <td><input type="text" name="OverdueAmountReceived" id="OverdueAmountReceived" placeholder="0.00" oninput="calculateRemaining('OverdueAmount')"></td>
-				            </tr>
-				            <tr class="remaining-row">
-				                <td>Remaining</td>
-				                <td><input type="text" id="insuranceRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="OtherChargesRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="InterestRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="PenalRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="PenalInterestRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="PostageRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="CurrentInterestRemaining" placeholder="0.00" readonly></td>
-				                <td><input type="text" id="OverdueAmountRemaining" placeholder="0.00" readonly></td>
-				            </tr>
-				        </tbody>
-				    </table>
+				    <div id="loanFieldsLoader" style="text-align: center; padding: 20px;">
+				        <div class="loading-spinner"></div>
+				        <div style="margin-top: 10px; color: #8066E8;">Loading loan fields...</div>
+				    </div>
+				    <div id="loanFieldsTableContainer" style="display: none;">
+				        <table class="compact-loan-table" id="loanFieldsTable">
+				            <thead id="loanTableHeader">
+				                <!-- Headers will be dynamically generated -->
+				            </thead>
+				            <tbody id="loanTableBody">
+				                <!-- Rows will be dynamically generated -->
+				            </tbody>
+				        </table>
+				    </div>
 				</div>
 
             </fieldset>
@@ -1455,9 +1419,13 @@ function toggleLoanFields() {
     
     if (accountCategory === 'loan') {
         loanFieldsSection.classList.add('active');
+        
+        // Fetch columns if not already loaded
+        if (loanRecoveryColumns.length === 0) {
+            fetchLoanRecoveryColumns();
+        }
     } else {
         loanFieldsSection.classList.remove('active');
-        // Clear loan fields when switching away from loan
         clearLoanFields();
     }
 }
@@ -1489,48 +1457,6 @@ function calculateRemaining(fieldName) {
     }
 }
 
-<!-- ========================================== -->
-<!-- 4. UPDATE THE clearLoanFields() FUNCTION -->
-<!-- Replace your existing clearLoanFields() with this updated version -->
-<!-- ========================================== -->
-
-function clearLoanFields() {
-    const fields = [
-        'insuranceReceivable',
-        'insuranceReceived',
-        'insuranceRemaining',
-        'OtherChargesReceivable',
-        'OtherChargesReceived',
-        'OtherChargesRemaining',
-        'InterestReceivable',
-        'InterestReceived',
-        'InterestRemaining',
-        'PenalReceivable',
-        'PenalReceived',
-        'PenalRemaining',
-        'PostageReceivable',
-        'PostageReceived',
-        'PostageRemaining',
-        'CurrentInterestReceivable',
-        'CurrentInterestReceived',
-        'CurrentInterestRemaining',
-        'OverdueAmountReceivable',
-        'OverdueAmountReceived',
-        'OverdueAmountRemaining',
-        'PenalInterestReceivable',
-        'PenalInterestReceived',
-        'PenalInterestRemaining'
-    ];
-
-    fields.forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = '';
-            el.style.color = '';
-            el.style.fontWeight = '';
-        }
-    });
-}
 //========== TOGGLE TRANSFER FIELDS VISIBILITY ==========
 function toggleTransferFields() {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
@@ -1544,6 +1470,10 @@ function toggleTransferFields() {
 }
 // ========== INITIALIZE ON PAGE LOAD ==========
 document.addEventListener('DOMContentLoaded', function() {
+	
+	// Fetch loan recovery columns from database
+    fetchLoanRecoveryColumns();
+	
     // Initialize transaction table
     refreshCreditAccountsTable();
     
@@ -1926,7 +1856,142 @@ function removeCreditAccount(accountId) {
 
 	opTypeSelect.addEventListener('change', updateOpTypeBackground);
 	updateOpTypeBackground();
+	
+	// ========== DYNAMIC LOAN FIELDS ==========
+	let loanRecoveryColumns = [];
 
+	// Fetch loan recovery columns from database
+	function fetchLoanRecoveryColumns() {
+	    fetch('GetLoanRecoveryColumns.jsp')
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.success && data.columns && data.columns.length > 0) {
+	                loanRecoveryColumns = data.columns;
+	                buildLoanFieldsTable();
+	            } else {
+	                showToast('Failed to load loan recovery columns', 'error');
+	                console.error('Error:', data.error || 'No columns found');
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error fetching loan recovery columns:', error);
+	            showToast('Failed to load loan recovery columns', 'error');
+	        });
+	}
+
+	// Build the dynamic loan fields table
+function buildLoanFieldsTable() {
+    const loader = document.getElementById('loanFieldsLoader');
+    const tableContainer = document.getElementById('loanFieldsTableContainer');
+    const headerRow = document.getElementById('loanTableHeader');
+    const tableBody = document.getElementById('loanTableBody');
+    
+    if (!loanRecoveryColumns || loanRecoveryColumns.length === 0) {
+        loader.innerHTML = '<p style="color: #f44336;">No loan recovery columns configured</p>';
+        return;
+    }
+    
+    // Hide loader and show table
+    loader.style.display = 'none';
+    tableContainer.style.display = 'block';
+    
+    // Build table headers
+    let headerHTML = '<tr><th>Type</th>';
+    loanRecoveryColumns.forEach(col => {
+        // Safety check for undefined/null values
+        if (!col || !col.description) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        // Truncate long descriptions for display
+        const displayName = col.description.length > 10 
+            ? col.description.substring(0, 18) + '...' 
+            : col.description;
+        headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
+    });
+    headerHTML += '</tr>';
+    headerRow.innerHTML = headerHTML;
+    
+    // Build table rows (Receivable, Received, Remaining)
+    let receivableRow = '<tr class="receivable-row"><td>Receivable</td>';
+    let receivedRow = '<tr class="received-row"><td>Received</td>';
+    let remainingRow = '<tr class="remaining-row"><td>Remaining</td>';
+    
+    loanRecoveryColumns.forEach(col => {
+        // Safety check for undefined/null values
+        if (!col || !col.columnName) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        
+        // Skip if fieldName is empty
+        if (!fieldName) {
+            console.warn('Empty fieldName for column:', col);
+            return;
+        }
+        
+        // Receivable row (readonly)
+        receivableRow += '<td><input type="text" name="' + fieldName + 'Receivable" ' +
+                        'id="' + fieldName + 'Receivable" placeholder="0.00" readonly></td>';
+        
+        // Received row (editable with oninput)
+        receivedRow += '<td><input type="text" name="' + fieldName + 'Received" ' +
+                      'id="' + fieldName + 'Received" placeholder="0.00" ' +
+                      'oninput="calculateRemaining(\'' + fieldName + '\')"></td>';
+        
+        // Remaining row (readonly)
+        remainingRow += '<td><input type="text" id="' + fieldName + 'Remaining" ' +
+                       'placeholder="0.00" readonly></td>';
+    });
+    
+    receivableRow += '</tr>';
+    receivedRow += '</tr>';
+    remainingRow += '</tr>';
+    
+    tableBody.innerHTML = receivableRow + receivedRow + remainingRow;
+}
+
+// Helper function to escape HTML (add this if not already present)
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+
+//Updated clearLoanFields to work with dynamic fields
+function clearLoanFields() {
+    if (!loanRecoveryColumns || loanRecoveryColumns.length === 0) {
+        return;
+    }
+    
+    loanRecoveryColumns.forEach(col => {
+        // Safety check
+        if (!col || !col.columnName) {
+            return;
+        }
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        
+        // Skip if fieldName is empty
+        if (!fieldName) {
+            return;
+        }
+        
+        ['Receivable', 'Received', 'Remaining'].forEach(suffix => {
+            const el = document.getElementById(fieldName + suffix);
+            if (el) {
+                el.value = '';
+                el.style.color = '';
+                el.style.fontWeight = '';
+            }
+        });
+    });
+}
 </script>
 </body>
 </html>
