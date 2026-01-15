@@ -1805,16 +1805,26 @@ function refreshCreditAccountsTable() {
     container.innerHTML = tableHTML;
 	}
 	
-	function removeCreditAccount(accountId) {
-	    creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
-	
-	    refreshCreditAccountsTable();
-	
-	    // ✅ UPDATE TOTALS
-	    updateTotals();
-	
-	    
-	}
+function removeCreditAccount(accountId) {
+    // Find the account being removed
+    const removedAccount = creditAccountsData.find(acc => acc.id === accountId);
+    
+    // Remove from array
+    creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
+    refreshCreditAccountsTable();
+    updateTotals();
+    
+    // ✅ Only clear iframe if the removed account is in the current iframe URL
+    if (removedAccount) {
+        const iframe = document.getElementById('resultFrame');
+        const iframeSrc = iframe.src || '';
+        
+        // Check if the removed account code is in the iframe URL
+        if (iframeSrc.includes(encodeURIComponent(removedAccount.code))) {
+            clearIframe();
+        }
+    }
+}
 
 
 	function updateTotals() {
