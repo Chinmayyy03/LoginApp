@@ -16,7 +16,7 @@ public class LoadTableDataServlet extends HttpServlet {
             throws IOException {
 
         String schema = req.getParameter("schema");
-        String table = req.getParameter("table");
+        String table  = req.getParameter("table");
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
@@ -26,8 +26,8 @@ public class LoadTableDataServlet extends HttpServlet {
            VALIDATION
         ========================= */
         if (schema == null || table == null ||
-            !schema.matches("[A-Z0-9_]+") ||
-            !table.matches("[A-Z0-9_]+")) {
+            !schema.matches("[A-Za-z0-9_]+") ||
+            !table.matches("[A-Za-z0-9_]+")) {
 
             out.println("<p style='color:red'>Invalid schema or table</p>");
             return;
@@ -63,24 +63,47 @@ public class LoadTableDataServlet extends HttpServlet {
             out.println("<tbody>");
 
             while (rs.next()) {
-                String pk = rs.getString(1); // first column = PK
 
-                out.println("<tr>");
-                for (int i = 1; i <= cols; i++) {
-                    String val = rs.getString(i);
-                    out.println("<td>" + (val == null ? "" : val) + "</td>");
+                String pk;
+                try {
+                    pk = rs.getString(1); // first column assumed PK
+                } catch (Exception ex) {
+                    pk = "";
                 }
 
-                out.println(
-                    "<td style='text-align:center'>" +
-                    "<a class='edit-btn' href='" +
-                    req.getContextPath() +
-                    "/editRow?schema=" + schema +
-                    "&table=" + table +
-                    "&pk=" + pk +
-                    "'>Edit</a>" +
-                    "</td>"
-                );
+                out.println("<tr>");
+
+                // print all column values safely
+                for (int i = 1; i <= cols; i++) {
+                    Object val = rs.getObject(i);
+
+                    if (val == null) {
+                        out.println("<td></td>");
+                    } else if (val instanceof Clob) {
+                        out.println("<td>[CLOB]</td>");
+                    } else if (val instanceof Blob) {
+                        out.println("<td>[BLOB]</td>");
+                    } else {
+                        out.println("<td>" + val + "</td>");
+                    }
+                }
+
+                // show Edit button ONLY if PK exists
+                if (pk != null && !pk.trim().isEmpty()) {
+                    out.println(
+                        "<td style='text-align:center'>" +
+                        "<a class='edit-btn' href='" +
+                        req.getContextPath() +
+                        "/editRow?schema=" + schema +
+                        "&table=" + table +
+                        "&pk=" + pk +
+                        "'>Edit</a>" +
+                        "</td>"
+                    );
+                } else {
+                	out.println("<td style='color:#999;text-align:center'>N/A</td>");
+                }
+
                 out.println("</tr>");
             }
 

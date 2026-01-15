@@ -276,6 +276,16 @@
             ${errorMessage}
         </div>
     </c:if>
+    
+    <c:if test="${empty primaryKey}">
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const btn = document.querySelector("button[type='submit']");
+            if (btn) btn.disabled = true;
+        });
+    </script>
+</c:if>
+    
 
     <!-- FORM -->
 <form action="<%= request.getContextPath() %>/updateRow" method="post">

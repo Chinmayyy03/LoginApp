@@ -2,6 +2,10 @@
 <%@ page import="java.sql.*,java.util.*,db.DBConnection" %>
 
 <%
+    String updated = request.getParameter("updated");
+%>
+
+<%
     List<Map<String,String>> cards = new ArrayList<>();
 
     try (Connection con = DBConnection.getConnection();
@@ -11,9 +15,36 @@
          ResultSet rs = ps.executeQuery()) {
 
         while (rs.next()) {
+
             Map<String,String> c = new HashMap<>();
-            c.put("title", rs.getString("DESCRIPTION"));
-            c.put("schema", rs.getString("TABLE_NAME"));
+
+            String title  = rs.getString("DESCRIPTION");
+            String schema = rs.getString("TABLE_NAME"); // schema name
+
+            c.put("title", title);
+            c.put("schema", schema);
+
+            /* ===============================
+               COUNT TABLES IN THIS SCHEMA
+            =============================== */
+            String tableCount = "0";
+
+            try (PreparedStatement cntPs = con.prepareStatement(
+                    "SELECT COUNT(*) FROM ALL_TABLES " +
+                    "WHERE OWNER = ? AND TABLE_NAME NOT LIKE 'SYS_%'")) {
+
+
+                cntPs.setString(1, schema.toUpperCase());
+                ResultSet cntRs = cntPs.executeQuery();
+
+                if (cntRs.next()) {
+                    tableCount = cntRs.getString(1);
+                }
+            } catch (Exception ex) {
+                tableCount = "0"; // safe fallback
+            }
+
+            c.put("count", tableCount);
             cards.add(c);
         }
     }
@@ -26,7 +57,8 @@
 
 <!-- ✅ LINK EXTERNAL CSS -->
 <link rel="stylesheet"
-          href="<%=request.getContextPath()%>/Master/css/master.css">
+      href="<%=request.getContextPath()%>/Master/css/master.css">
+
 <script>
 const ctx = '<%=request.getContextPath()%>';
 let currentSchema = '';
@@ -158,7 +190,7 @@ document.addEventListener("click", function(e){
     }
 });
 
-/* ✅ RESTORE STATE AFTER REDIRECT */
+/* restore state after redirect */
 document.addEventListener("DOMContentLoaded", function () {
 
     const params = new URLSearchParams(window.location.search);
@@ -166,13 +198,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableFromUrl  = params.get("table");
 
     if (schemaFromUrl) {
-        openCard("Configuration", schemaFromUrl);
-
+        openCard("", schemaFromUrl);
         if (tableFromUrl) {
-            setTimeout(() => {
-                loadTable(tableFromUrl);
-            }, 300);
+            setTimeout(() => loadTable(tableFromUrl), 300);
         }
+    }
+
+    const msg = document.getElementById("updateMsg");
+    if (msg) {
+        setTimeout(() => msg.style.display = "none", 4000);
     }
 });
 </script>
@@ -181,75 +215,79 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <body>
 
+<% if ("true".equals(updated)) { %>
+<div id="updateMsg" style="
+    background:#e7f7e7;
+    border:1px solid #4CAF50;
+    color:#2e7d32;
+    padding:6px 12px;
+    margin:10px auto;
+    border-radius:4px;
+    font-size:13px;
+    font-weight:500;
+    width:fit-content;">
+    ✅ Updated successfully
+</div>
+<% } %>
+
 <!-- DASHBOARD -->
 <div id="dashboard" class="dashboard-view">
     <div class="dashboard-container">
         <div class="cards-wrapper">
+
             <% for(Map<String,String> c : cards){ %>
             <div class="card"
                  onclick="openCard('<%=c.get("title")%>',
                                    '<%=c.get("schema")%>')">
+
                 <h3><%=c.get("title")%></h3>
+
+                <!-- ✅ DYNAMIC TABLE COUNT -->
+                <p style="font-size:13px;color:#fff;margin:6px 0;">
+                    Total Tables: <strong><%=c.get("count")%></strong>
+                </p>
+
                 <p>Click to manage</p>
             </div>
             <% } %>
+
         </div>
     </div>
 </div>
 
-<!-- ================= SEARCH VIEW ================= -->
+<!-- SEARCH VIEW -->
 <div id="search" class="search-view">
     <div class="search-container">
 
-        <!-- BACK -->
         <button class="back" onclick="back()">← Back</button>
-
-        <!-- PAGE TITLE -->
         <h1 id="pageTitle" class="page-title"></h1>
 
-        <!-- SEARCH BAR (CENTERED LIKE IMAGE) -->
         <div class="search-wrapper">
+            <div class="search-bar" onclick="toggleTableMenu(event)">
+                <span class="search-icon">🔍</span>
+                <input id="tableSearch"
+                       placeholder="Search by Table Name..."
+                       onkeyup="filterTables()">
+                <button class="menu-btn">⋮</button>
+            </div>
+            <div id="tableMenu" class="dropdown"></div>
+        </div>
 
-    <div class="search-bar">
-        <span class="search-icon">🔍</span>
+        <div class="table-toolbar">
+            <div class="table-title">Records</div>
+            <input class="table-search"
+                   placeholder="🔍 Search inside table..."
+                   onkeyup="filterTableRows(this.value)">
+        </div>
 
-        <input id="tableSearch"
-               placeholder="Search by Code, Name, Type..."
-               onkeyup="filterTables()">
-
-        <!-- THREE DOTS BUTTON -->
-        <button class="menu-btn"
-                onclick="toggleTableMenu(event)">⋮</button>
-    </div>
-
-    <!-- DROPDOWN -->
-    <div id="tableMenu" class="dropdown"></div>
-
-</div>
-
-
-       <!-- TABLE TOOLBAR -->
-<div class="table-toolbar">
-    <div class="table-title">Records</div>
-
-    <input type="text"
-           class="table-search"
-           placeholder="🔍 Search inside table..."
-           onkeyup="filterTableRows(this.value)">
-</div>
-
-<!-- TABLE CONTAINER -->
-<div id="data" class="data-container">
-    <div class="initial-message">
-        Select a table to view data
-    </div>
-</div>
-
+        <div id="data" class="data-container">
+            <div class="initial-message">
+                Select a table to view data
+            </div>
+        </div>
 
     </div>
 </div>
-
 
 </body>
 </html>
-
