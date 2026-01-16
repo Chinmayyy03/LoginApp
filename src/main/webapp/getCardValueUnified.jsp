@@ -139,13 +139,13 @@
                     );
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
-                    
+
                     if (rs.next()) {
                         value = String.valueOf(rs.getInt(1));
                     } else {
                         value = "0";
                     }
-                    
+
                 } else if ("pending_applications".equals(cardId)) {
                     if (workingDate != null) {
                         ps = conn.prepareStatement(
@@ -156,7 +156,7 @@
                         ps.setString(1, branchCode);
                         ps.setDate(2, workingDate);
                         rs = ps.executeQuery();
-                        
+
                         if (rs.next()) {
                             value = String.valueOf(rs.getInt(1));
                         } else {
@@ -165,8 +165,21 @@
                     } else {
                         value = "N/A";
                     }
+
+                } else if ("pending_masters".equals(cardId)) {
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM AUDITTRAIL.MASTER_AUDITTRAIL WHERE STATUS='E'"
+                    );
+                    rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        value = String.valueOf(rs.getInt(1));
+                    } else {
+                        value = "0";
+                    }
                 }
                 break;
+
                 
             default:
                 out.print("{\"error\": \"Unknown card type\"}");

@@ -29,138 +29,130 @@ public class UpdateRowServlet extends HttpServlet {
         try (Connection con = DBConnection.getConnection()) {
 
             /* ===============================
-               1. FIND PRIMARY KEY
+               FIND PRIMARY KEY
             =============================== */
             String primaryKey;
-
             PreparedStatement pkStmt = con.prepareStatement(
                 "SELECT acc.column_name " +
                 "FROM all_constraints ac " +
                 "JOIN all_cons_columns acc " +
                 "ON ac.constraint_name = acc.constraint_name " +
-                "WHERE ac.constraint_type = 'P' " +
-                "AND ac.owner = ? " +
-                "AND ac.table_name = ?"
+                "WHERE ac.constraint_type='P' " +
+                "AND ac.owner=? AND ac.table_name=?"
             );
             pkStmt.setString(1, schema.toUpperCase());
             pkStmt.setString(2, table.toUpperCase());
 
             ResultSet pkRs = pkStmt.executeQuery();
-            if (!pkRs.next()) {
-                throw new ServletException("Primary key not found");
-            }
+            if (!pkRs.next()) throw new ServletException("Primary key not found");
             primaryKey = pkRs.getString(1);
 
             String pkValue = req.getParameter(primaryKey);
-            if (pkValue == null || pkValue.trim().isEmpty()) {
+            if (pkValue == null || pkValue.trim().isEmpty())
                 throw new ServletException("Primary key value missing");
-            }
 
             /* ===============================
-               2. LOAD DATE / TIMESTAMP COLUMNS
+               LOAD OLD VALUES
             =============================== */
-            Set<String> dateColumns = new HashSet<>();
+            Map<String,String> oldValues = new HashMap<>();
 
-            PreparedStatement metaStmt = con.prepareStatement(
-                "SELECT column_name, data_type " +
-                "FROM all_tab_columns " +
-                "WHERE owner = ? AND table_name = ?"
+            PreparedStatement oldPs = con.prepareStatement(
+                "SELECT * FROM " + schema + "." + table +
+                " WHERE " + primaryKey + "=?"
             );
-            metaStmt.setString(1, schema.toUpperCase());
-            metaStmt.setString(2, table.toUpperCase());
+            oldPs.setString(1, pkValue);
+            ResultSet rsOld = oldPs.executeQuery();
+            ResultSetMetaData md = rsOld.getMetaData();
 
-            ResultSet metaRs = metaStmt.executeQuery();
-            while (metaRs.next()) {
-                String type = metaRs.getString("DATA_TYPE");
-                if (type != null && (
-                        type.startsWith("DATE") ||
-                        type.startsWith("TIMESTAMP")
-                )) {
-                    dateColumns.add(metaRs.getString("COLUMN_NAME").toUpperCase());
-                }
+            if (!rsOld.next()) throw new ServletException("Record not found");
+
+            for (int i=1;i<=md.getColumnCount();i++) {
+                oldValues.put(md.getColumnName(i).toUpperCase(),
+                              rsOld.getString(i));
             }
 
             /* ===============================
-               3. BUILD UPDATE (NON-DATE ONLY)
+               GET MASTER NAME
             =============================== */
-            List<String> setClauses = new ArrayList<>();
-            List<String> values = new ArrayList<>();
+            String masterName = table;
+            PreparedStatement mps = con.prepareStatement(
+                "SELECT DESCRIPTION FROM GLOBALCONFIG.MASTERS WHERE TABLE_NAME=?"
+            );
+            mps.setString(1, table.toUpperCase());
+            ResultSet mrs = mps.executeQuery();
+            if (mrs.next()) masterName = mrs.getString(1);
 
-            for (Map.Entry<String, String[]> e : req.getParameterMap().entrySet()) {
+            HttpSession session = req.getSession(false);
+            String userId = session != null
+                    ? (String) session.getAttribute("userId")
+                    : "SYSTEM";
 
-                String col = e.getKey();
-                String val = e.getValue()[0];
+            /* ===============================
+               INSERT AUDIT ONLY
+            =============================== */
+            boolean anyChange = false;
 
-                if (col.equals("schema") ||
-                    col.equals("table") ||
-                    col.equals(primaryKey)) continue;
+            for (Map.Entry<String,String[]> e : req.getParameterMap().entrySet()) {
 
-                // 🚫 NEVER update DATE / TIMESTAMP from UI
-                if (dateColumns.contains(col.toUpperCase())) continue;
+                String column = e.getKey();
+                String newVal = e.getValue()[0];
 
-                if (val == null || val.trim().isEmpty()) continue;
+                if (column.equals("schema") ||
+                    column.equals("table") ||
+                    column.equals(primaryKey)) continue;
 
-                setClauses.add(col + " = ?");
-                values.add(val);
-            }
+                if (newVal == null || newVal.trim().isEmpty()) continue;
 
-            // ✅ Let Oracle manage MODIFIED_DATE safely
-            if (dateColumns.contains("MODIFIED_DATE")) {
-                setClauses.add("MODIFIED_DATE = SYSDATE");
-            }
+                String oldVal = oldValues.get(column.toUpperCase());
 
-            if (setClauses.isEmpty()) {
-                req.setAttribute(
-                    "errorMessage",
-                    "Update not allowed. Some fields are system-managed."
+                if (Objects.equals(
+                        oldVal == null ? "" : oldVal.trim(),
+                        newVal.trim())) continue;
+
+                PreparedStatement aps = con.prepareStatement(
+                    "INSERT INTO AUDITTRAIL.MASTER_AUDITTRAIL (" +
+                    "MASTER_NAME, SCHEMA_NAME, TABLE_NAME, RECORD_KEY, " +
+                    "FIELD_NAME, ORIGINAL_VALUE, MODIFIED_VALUE, " +
+                    "USER_ID, MODIFICATION_DATE, CREATED_DATE, STATUS) " +
+                    "VALUES (?,?,?,?,?,?,?,?,SYSDATE,SYSTIMESTAMP,'E')"
                 );
 
-                // 🔹 RELOAD EDIT PAGE WITH EXISTING DATA
-                req.getRequestDispatcher(
-                    "/editRow?schema=" + schema +
-                    "&table=" + table +
-                    "&pk=" + pkValue
-                ).forward(req, resp);
+                aps.setString(1, masterName);
+                aps.setString(2, schema);
+                aps.setString(3, table);
+                aps.setString(4, pkValue);
+                aps.setString(5, column);
+                aps.setString(6, oldVal);
+                aps.setString(7, newVal);
+                aps.setString(8, userId);
+                aps.executeUpdate();
+
+                anyChange = true;
+            }
+
+            if (!anyChange) {
+                req.setAttribute("errorMessage","No data changed");
+                req.getRequestDispatcher("/Master/editRow.jsp")
+                   .forward(req, resp);
                 return;
             }
 
-
-            String sql =
-                "UPDATE " + schema + "." + table +
-                " SET " + String.join(", ", setClauses) +
-                " WHERE " + primaryKey + " = ?";
-
-            PreparedStatement ps = con.prepareStatement(sql);
-
-            int idx = 1;
-            for (String v : values) {
-                ps.setString(idx++, v);
-            }
-            ps.setString(idx, pkValue);
-
-            ps.executeUpdate();
-
             /* ===============================
-               SUCCESS
+               NO MASTER UPDATE HERE
             =============================== */
+
             resp.sendRedirect(
                 req.getContextPath() +
                 "/masters?schema=" + schema +
                 "&table=" + table +
-                "&updated=true"
+                "&pendingAuth=true"
             );
 
         } catch (Exception e) {
             e.printStackTrace();
-
-            req.setAttribute(
-                "errorMessage",
-                "Update not allowed. Some fields are system-managed."
-            );
-
+            req.setAttribute("errorMessage","Unable to submit for authorization");
             req.getRequestDispatcher("/Master/editRow.jsp")
                .forward(req, resp);
         }
-
     }
 }

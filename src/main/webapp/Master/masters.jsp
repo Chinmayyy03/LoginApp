@@ -3,6 +3,8 @@
 
 <%
     String updated = request.getParameter("updated");
+    String pendingAuth = request.getParameter("pendingAuth");
+
 %>
 
 <%
@@ -199,16 +201,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (schemaFromUrl) {
         openCard("", schemaFromUrl);
+
         if (tableFromUrl) {
-            setTimeout(() => loadTable(tableFromUrl), 300);
+            setTimeout(() => {
+                // ✅ set table name in search bar
+                const tableSearch = document.getElementById("tableSearch");
+                if (tableSearch) {
+                    tableSearch.value = tableFromUrl;
+                }
+
+                // ✅ load table directly
+                loadTable(tableFromUrl);
+
+                // ❌ do NOT open dropdown
+                const tableMenu = document.getElementById("tableMenu");
+                if (tableMenu) {
+                    tableMenu.style.display = "none";
+                }
+            }, 300);
         }
     }
 
+    // ✅ auto-hide message
     const msg = document.getElementById("updateMsg");
     if (msg) {
         setTimeout(() => msg.style.display = "none", 4000);
     }
 });
+
 </script>
 
 </head>
@@ -229,6 +249,26 @@ document.addEventListener("DOMContentLoaded", function () {
     ✅ Updated successfully
 </div>
 <% } %>
+
+<% if ("true".equals(pendingAuth)) { %>
+<div id="updateMsg" style="
+    background:#fff3cd;
+    border:1px solid #ffca2c;
+    color:#856404;
+    padding:8px 18px;
+    margin:10px auto;
+    border-radius:4px;
+    font-size:13px;
+    font-weight:500;
+    min-width: 380px;   /* ✅ same width */
+    text-align: center;
+">
+    ⏳ Changes submitted successfully.<br>
+    Pending authorization approval.
+</div>
+
+<% } %>
+
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="dashboard-view">
