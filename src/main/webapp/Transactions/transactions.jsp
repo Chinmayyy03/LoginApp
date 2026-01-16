@@ -1089,7 +1089,7 @@
 				</div>
 				
 				
-				<div id="creditAccountsContainer"></div>
+				
 				
 				<!-- LOAN SPECIFIC FIELDS (Hidden by default) -->
 				<div id="loanFieldsSection" class="loan-fields-section">    
@@ -1108,6 +1108,8 @@
 				        </table>
 				    </div>
 				</div>
+				
+				<div id="creditAccountsContainer"></div>
 
             </fieldset>
 
