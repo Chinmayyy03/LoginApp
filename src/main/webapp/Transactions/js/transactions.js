@@ -1,0 +1,929 @@
+
+//========== CONFIGURATION ==========
+const MIN_SEARCH_LENGTH = 3;
+const SEARCH_DELAY = 300;
+let searchTimeout;
+let currentCategory = 'saving';
+let previousAccountCode = '';
+
+// ========== TOAST UTILITY ==========
+function showToast(message, type = 'error') {
+    const styles = {
+        success: { borderColor: '#4caf50', icon: '✅' },
+        error: { borderColor: '#f44336', icon: '❌' },
+        warning: { borderColor: '#ff9800', icon: '⚠️' },
+        info: { borderColor: '#2196F3', icon: 'ℹ️' }
+    };
+    const style = styles[type] || styles.error;
+    Toastify({
+        text: style.icon + ' ' + message,
+        duration: 5000,
+        close: true,
+        gravity: "top",
+        position: "center",
+        style: {
+            background: "#fff",
+            color: "#333",
+            borderRadius: "8px",
+            fontSize: "14px",
+            padding: "16px 24px",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+            borderLeft: "5px solid " + style.borderColor,
+            marginTop: "20px"
+        }
+    }).showToast();
+}
+
+// ========== CLEAR IFRAME CONTENT ==========
+function clearIframe() {
+    const iframe = document.getElementById('resultFrame');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+}
+
+// ========== ACCOUNT CODE INPUT - DIGITS ONLY ==========
+const accountCodeInput = document.getElementById('accountCode');
+
+accountCodeInput.addEventListener('input', function(e) {
+    const currentValue = this.value.replace(/\D/g, '');
+    this.value = currentValue;
+    
+    if (currentValue !== previousAccountCode) {
+        document.getElementById('accountName').value = '';
+        previousAccountCode = currentValue;
+    }
+    
+    handleLiveSearch(currentValue);
+});
+
+accountCodeInput.addEventListener('keydown', function(e) {
+    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true) ||
+        (e.keyCode >= 35 && e.keyCode <= 39)) {
+        return;
+    }
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+    }
+});
+
+// ========== HANDLE LIVE SEARCH ==========
+function handleLiveSearch(value) {
+    clearTimeout(searchTimeout);
+    const searchResults = document.getElementById('searchResults');
+    
+    if (value.length === 0) {
+        searchResults.classList.remove('active');
+        return;
+    }
+    
+    let searchNumber = value;
+    if (value.length > 7) {
+        searchNumber = value.slice(-7);
+    }
+    
+    if (searchNumber.length < MIN_SEARCH_LENGTH) {
+        searchResults.innerHTML = '<div class="search-info">Type at least ' + MIN_SEARCH_LENGTH + ' digits to search...</div>';
+        searchResults.classList.add('active');
+        return;
+    }
+    
+    searchResults.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div><div style="margin-top: 8px;">Searching...</div></div>';
+    searchResults.classList.add('active');
+    
+    searchTimeout = setTimeout(function() {
+        performSearch(searchNumber);
+    }, SEARCH_DELAY);
+}
+
+// ========== PERFORM SEARCH ==========
+function performSearch(searchNumber) {
+    const searchResults = document.getElementById('searchResults');
+    currentCategory = document.getElementById('accountCategory').value;
+    
+    fetch('SearchAccounts.jsp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'searchNumber=' + encodeURIComponent(searchNumber) + '&category=' + encodeURIComponent(currentCategory)
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.error) {
+            searchResults.innerHTML = '<div class="no-results">' + data.error + '</div>';
+            return;
+        }
+        if (data.accounts && data.accounts.length > 0) {
+            displaySearchResults(data.accounts, searchNumber);
+        } else {
+            searchResults.innerHTML = '<div class="no-results">No accounts found matching "' + searchNumber + '"</div>';
+        }
+    })
+    .catch(function(error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="no-results">Error loading accounts. Please try again.</div>';
+        showToast('Search failed. Please try again.', 'error');
+    });
+}
+
+// ========== DISPLAY SEARCH RESULTS ==========
+function displaySearchResults(accounts, searchNumber) {
+    const searchResults = document.getElementById('searchResults');
+    if (accounts.length === 0) {
+        searchResults.innerHTML = '<div class="no-results">No accounts found</div>';
+        return;
+    }
+    let html = '';
+    accounts.forEach(function(account) {
+        const highlightedCode = highlightMatch(account.code, searchNumber);
+        const escapedName = account.name.replace(/'/g, "\\'");
+        const productDesc = account.productDesc || '';
+        
+        html += '<div class="search-result-item" onclick="selectAccountFromSearch(\'' + 
+                account.code + '\', \'' + escapedName + '\')">' +
+                '<div class="result-code">' + highlightedCode + '</div>' +
+                '<div class="result-name-row">' + account.name + '</div>';
+        
+        if (productDesc && productDesc.trim() !== '') {
+            html += '<div class="result-product-desc">' + productDesc + '</div>';
+        }
+        
+        html += '</div>';
+    });
+    searchResults.innerHTML = html;
+}
+
+// ========== HIGHLIGHT MATCHING TEXT ==========
+function highlightMatch(text, search) {
+    const last7Digits = text.slice(-7);
+    const matchIndex = last7Digits.indexOf(search);
+    
+    if (matchIndex === -1) return text;
+    
+    const actualIndex = text.length - 7 + matchIndex;
+    
+    return text.substring(0, actualIndex) + 
+           '<span class="highlight">' + 
+           search + 
+           '</span>' + 
+           text.substring(actualIndex + search.length);
+}
+
+//Update selectAccountFromSearch to fetch loan data
+function selectAccountFromSearch(code, name) {
+    document.getElementById('accountCode').value = code;
+    document.getElementById('accountName').value = name;
+    previousAccountCode = code;
+    document.getElementById('searchResults').classList.remove('active');
+    
+    setTimeout(function() { 
+        submitTransactionForm(); 
+        
+        // ✅ ADD THIS: Fetch loan data if category is loan
+        const accountCategory = document.getElementById('accountCategory').value;
+        if (accountCategory === 'loan') {
+            setTimeout(() => {
+                fetchLoanReceivableData(code);
+            }, 1500); // Wait a bit longer for iframe load
+        }
+    }, 500);
+}
+
+// ========== FILTER TABLE FUNCTION FOR LOOKUP ==========
+function filterTable() {
+    const searchBox = document.getElementById('searchBox');
+    if (!searchBox) return;
+    const searchValue = searchBox.value.toLowerCase().trim();
+    const table = document.getElementById('lookupTable');
+    if (!table) return;
+    const rows = table.getElementsByClassName('data-row');
+    let noResultsRow = document.getElementById('noResultsRow');
+    if (searchValue.length < 2) {
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].style.display = '';
+        }
+        if (noResultsRow) noResultsRow.style.display = 'none';
+        return;
+    }
+    let visibleCount = 0;
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        if (cells.length < 2) continue;
+        const code = cells[0].textContent.toLowerCase();
+        const name = cells[1].textContent.toLowerCase();
+        if (code.includes(searchValue) || name.includes(searchValue)) {
+            rows[i].style.display = '';
+            visibleCount++;
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+    if (visibleCount === 0) {
+        if (!noResultsRow) {
+            noResultsRow = table.insertRow(-1);
+            noResultsRow.id = 'noResultsRow';
+            noResultsRow.innerHTML = '<td colspan="2" class="no-results">No accounts found</td>';
+        }
+        noResultsRow.style.display = '';
+    } else {
+        if (noResultsRow) noResultsRow.style.display = 'none';
+    }
+}
+
+//========== UPDATE LABELS AND SHOW/HIDE TRANSFER CONTROLS ==========
+function updateLabelsBasedOnOperation() {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+
+    const accountCodeInput = document.getElementById("accountCode");
+    const accountNameInput = document.getElementById("accountName");
+    const accountCodeLabel = document.getElementById("accountCodeLabel");
+    const accountNameLabel = document.getElementById("accountNameLabel");
+    const transactionAmountLabel = document.getElementById("transactionamountLabel");
+
+    const addButtonDiv = document.querySelector('.add-btn').parentElement;
+    const creditAccountsContainer = document.getElementById('creditAccountsContainer');
+
+    // Clear inputs
+    accountCodeInput.value = '';
+    accountNameInput.value = '';
+    document.getElementById('transactionamount').value = '';
+    document.getElementById('particular').value = '';
+    previousAccountCode = '';
+    clearIframe();
+
+    // Clear transaction data
+    creditAccountsData = [];
+    refreshCreditAccountsTable();
+    updateTotals();
+
+    // ✅ Toggle transfer fields visibility
+    toggleTransferFields();
+
+    if (operationType === 'transfer') {
+        // Update labels for transfer mode
+        const opType = document.getElementById('opType').value;
+        if (opType === 'Debit') {
+            accountCodeLabel.textContent = 'Debit Account Code';
+            accountNameLabel.textContent = 'Debit Account Name';
+            transactionAmountLabel.textContent = 'Debit Amount';
+        } else {
+            accountCodeLabel.textContent = 'Credit Account Code';
+            accountNameLabel.textContent = 'Credit Account Name';
+            transactionAmountLabel.textContent = 'Credit Amount';
+        }
+        
+        addButtonDiv.style.display = 'flex';
+        creditAccountsContainer.style.display = 'block';
+    } else {
+        // Reset labels for deposit/withdrawal
+        accountCodeLabel.textContent = 'Account Code';
+        accountNameLabel.textContent = 'Account Name';
+        transactionAmountLabel.textContent = 'Transaction Amount';
+        
+        addButtonDiv.style.display = 'none';
+        creditAccountsContainer.style.display = 'none';
+    }
+}
+
+//========== TOGGLE LOAN FIELDS VISIBILITY ==========
+function toggleLoanFields() {
+    const accountCategory = document.getElementById('accountCategory').value;
+    const loanFieldsSection = document.getElementById('loanFieldsSection');
+    
+    if (accountCategory === 'loan') {
+        loanFieldsSection.classList.add('active');
+        
+        // Fetch columns if not already loaded
+        if (loanRecoveryColumns.length === 0) {
+            fetchLoanRecoveryColumns();
+        }
+    } else {
+        loanFieldsSection.classList.remove('active');
+        clearLoanFields();
+    }
+}
+
+//Calculate remaining amount (Receivable - Received)
+function calculateRemaining(fieldName) {
+    const receivableEl = document.getElementById(fieldName + 'Receivable');
+    const receivedEl = document.getElementById(fieldName + 'Received');
+    const remainingEl = document.getElementById(fieldName + 'Remaining');
+    
+    if (!receivableEl || !receivedEl || !remainingEl) return;
+    
+    const receivable = parseFloat(receivableEl.value.replace(/,/g, '')) || 0;
+    const received = parseFloat(receivedEl.value.replace(/,/g, '')) || 0;
+    const remaining = receivable - received;
+    
+    remainingEl.value = remaining.toFixed(2);
+    
+    // Color coding for remaining amount
+    if (remaining < 0) {
+        remainingEl.style.color = 'red';
+        remainingEl.style.fontWeight = 'bold';
+    } else if (remaining === 0) {
+        remainingEl.style.color = 'green';
+        remainingEl.style.fontWeight = 'bold';
+    } else {
+        remainingEl.style.color = '#666';
+        remainingEl.style.fontWeight = 'normal';
+    }
+}
+
+//========== TOGGLE TRANSFER FIELDS VISIBILITY ==========
+function toggleTransferFields() {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const transferFieldsSection = document.getElementById('transferFieldsSection');
+    
+    if (operationType === 'transfer') {
+        transferFieldsSection.classList.add('active');
+    } else {
+        transferFieldsSection.classList.remove('active');
+    }
+}
+// ========== INITIALIZE ON PAGE LOAD ==========
+document.addEventListener('DOMContentLoaded', function() {
+	
+	// Fetch loan recovery columns from database
+    fetchLoanRecoveryColumns();
+	
+    // Initialize transaction table
+    refreshCreditAccountsTable();
+    
+    
+    // Operation type change handler
+    const operationRadios = document.querySelectorAll("input[name='operationType']");
+    operationRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            updateLabelsBasedOnOperation();
+            calculateNewBalanceInIframe();
+        });
+    });
+    
+    // Handle OP Type dropdown change
+    const opTypeSelect = document.getElementById('opType');
+    if (opTypeSelect) {
+        opTypeSelect.addEventListener('change', function() {
+            const opType = this.value;
+            const accountCodeLabel = document.getElementById("accountCodeLabel");
+            const accountNameLabel = document.getElementById("accountNameLabel");
+            const transactionAmountLabel = document.getElementById("transactionamountLabel");
+            
+            if (opType === 'Debit') {
+                accountCodeLabel.textContent = 'Debit Account Code';
+                accountNameLabel.textContent = 'Debit Account Name';
+                transactionAmountLabel.textContent = 'Debit Amount';
+            } else if (opType === 'Credit') {
+                accountCodeLabel.textContent = 'Credit Account Code';
+                accountNameLabel.textContent = 'Credit Account Name';
+                transactionAmountLabel.textContent = 'Credit Amount';
+            }
+            
+            // Clear inputs when OP Type changes
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('transactionamount').value = '';
+            document.getElementById('particular').value = '';
+            previousAccountCode = '';
+            clearIframe();
+        });
+    }
+    
+ // Category change handler
+    const categoryDropdown = document.getElementById('accountCategory');
+    if (categoryDropdown) {
+        categoryDropdown.addEventListener('change', function() {
+            document.getElementById("accountCode").value = '';
+            document.getElementById("accountName").value = '';
+            document.getElementById("transactionamount").value = '';
+            previousAccountCode = '';
+            document.getElementById('searchResults').classList.remove('active');
+            currentCategory = this.value;
+            
+            // ✅ Toggle loan fields visibility
+            toggleLoanFields();
+        });
+    }
+    // Initialize previous values
+    previousAccountCode = document.getElementById('accountCode').value;
+    
+    // Transaction amount input handler for totals
+    const transactionAmountInput = document.getElementById('transactionamount');
+    if (transactionAmountInput) {
+        transactionAmountInput.addEventListener('input', updateTotals);
+    }
+    
+    // Initial call to set visibility
+    updateLabelsBasedOnOperation();
+    toggleLoanFields();
+    toggleTransferFields();
+});
+
+// ========== LOOKUP MODAL FUNCTIONS ==========
+function openLookup(type) {
+	let accountCategory = document.getElementById('accountCategory').value;
+    let url = "LookupForTransactions.jsp?type=account";
+    url += "&accountCategory=" + accountCategory;
+    
+    fetch(url)
+        .then(function(response) { return response.text(); })
+        .then(function(html) {
+            document.getElementById("lookupContent").innerHTML = html;
+            document.getElementById("lookupModal").style.display = "flex";
+            window.currentLookupType = type;
+            setTimeout(function() {
+                const searchBox = document.getElementById('searchBox');
+                if (searchBox) searchBox.focus();
+            }, 100);
+        })
+        .catch(function(error) {
+            showToast('Failed to load lookup data.', 'error');
+            console.error('Lookup error:', error);
+        });
+}
+
+function closeLookup() {
+    document.getElementById("lookupModal").style.display = "none";
+    window.currentLookupType = null;
+}
+
+function sendBack(code, desc, type) {
+    setValueFromLookup(code, desc, type);
+}
+
+function setValueFromLookup(code, desc, type) {
+    document.getElementById("accountCode").value = code;
+    document.getElementById("accountName").value = desc;
+    previousAccountCode = code;
+    window.currentLookupType = null;
+    closeLookup();
+    
+    setTimeout(function() { 
+        submitTransactionForm(); 
+        
+        // ✅ ADD THIS: Fetch loan data if category is loan
+        const accountCategory = document.getElementById('accountCategory').value;
+        if (accountCategory === 'loan') {
+            setTimeout(() => {
+                fetchLoanReceivableData(code);
+            }, 1500);
+        }
+    }, 500);
+}
+
+//Update the submitTransactionForm function
+function submitTransactionForm() {
+    let transTypeRadio = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+    let operationType = document.querySelector("input[name='operationType']:checked").value;
+    let accountCategory = document.getElementById('accountCategory').value;
+    let accountCode = document.querySelector("input[name='accountCode']").value.trim();
+    let accountName = document.querySelector("input[name='accountName']").value.trim();
+    
+    console.log("Submitting:", transTypeRadio, operationType, accountCategory, accountCode, accountName);
+    
+    const pageMap = {
+        "deposit": "transactionForm.jsp",
+        "withdrawal": "transactionForm.jsp",
+        "transfer": "transferForm.jsp"
+    };
+    
+    if (pageMap[operationType]) {
+        let form = document.getElementById("transactionForm");
+        form.action = pageMap[operationType];
+        form.submit();
+        showToast('Loading transaction form...', 'info');
+        
+        // ✅ ADD THIS: Fetch loan receivable data if it's a loan account
+        if (accountCategory === 'loan' && accountCode) {
+            setTimeout(() => {
+                fetchLoanReceivableData(accountCode);
+            }, 1000); // Wait for iframe to load
+        }
+    } else {
+        showToast('No page found for Operation Type: ' + operationType, 'error');
+    }
+}
+
+// ========== CLOSE DROPDOWN AND MODAL ==========
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.input-box') && !e.target.closest('.search-dropdown')) {
+        document.getElementById('searchResults').classList.remove('active');
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeLookup();
+        document.getElementById('searchResults').classList.remove('active');
+    }
+});
+
+function handleSaveTransaction() {
+    showToast('Save transaction functionality not yet implemented', 'warning');
+}
+
+function calculateNewBalanceInIframe() {
+    const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    
+    const iframe = document.getElementById('resultFrame');
+    
+    try {
+        const iframeWindow = iframe.contentWindow;
+        const iframeDoc = iframeWindow.document;
+        
+        const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+        const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+        
+        if (ledgerBalanceField && newLedgerBalanceField) {
+            const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+            let newLedgerBalance = ledgerBalance;
+            
+            if (transactionAmount > 0) {
+                if (operationType === 'deposit') {
+                    newLedgerBalance = ledgerBalance + transactionAmount;
+                } else if (operationType === 'withdrawal') {
+                    newLedgerBalance = ledgerBalance - transactionAmount;
+                }
+            }
+            
+            newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
+        }
+    } catch (e) {
+        console.error('Error calculating balance:', e);
+    }
+}
+
+	// ========== DYNAMIC TRANSACTION TABLE ==========
+	let creditAccountsData = [];
+	
+	function addTransactionRow() {
+	    const accountCode = document.getElementById('accountCode').value.trim();
+	    const accountName = document.getElementById('accountName').value.trim();
+	    const transactionAmount = document.getElementById('transactionamount').value.trim();
+	    const particular = document.getElementById('particular').value.trim();
+	    const opType = document.getElementById('opType').value;
+	
+	    // Validate inputs
+	    if (!accountCode) {
+	        showToast('Please enter or select an account code', 'error');
+	        return;
+	    }
+	
+	    if (!accountName) {
+	        showToast('Please select an account', 'error');
+	        return;
+	    }
+	
+	    if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
+	        showToast('Please enter a valid transaction amount', 'error');
+	        return;
+	    }
+	
+	    const finalAmount = parseFloat(transactionAmount).toFixed(2);
+	
+	    // ✅ Add to data array (NO duplicate check now)
+	    creditAccountsData.push({
+	        id: Date.now(),
+	        code: accountCode,
+	        name: accountName,
+	        amount: finalAmount,
+	        particular: particular,
+	        opType: opType
+	    });
+	
+	    // Clear input fields
+	    document.getElementById('accountCode').value = '';
+	    document.getElementById('accountName').value = '';
+	    document.getElementById('transactionamount').value = '';
+	    document.getElementById('particular').value = '';
+	    previousAccountCode = '';
+	    clearIframe();
+	
+	    // Refresh table + totals
+	    refreshCreditAccountsTable();
+	    updateTotals();
+	
+	    
+	}
+
+
+function refreshCreditAccountsTable() {
+    const container = document.getElementById('creditAccountsContainer');
+    
+    if (creditAccountsData.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No transactions added yet</p>';
+        return;
+    }
+    
+	    let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">' +
+		    '<thead>' +
+		    '<tr style="background-color: #373279; color: white;">' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">OP Type</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Account Code</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Account Name</th>' +
+		    '<th style="padding: 6px 8px; text-align: right; border: 1px solid #ddd;">Amount</th>' +
+		    '<th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Particular</th>' +
+		    '<th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd; width: 60px;">Action</th>' +
+		    '</tr>' +
+		    '</thead>' +
+		    '<tbody>';
+		
+		creditAccountsData.forEach(function(account) {
+		const rowBgColor = account.opType === 'Debit' ? '#FF4D0F' : '#3AD330';
+		
+		tableHTML += '<tr style="background-color:' + rowBgColor + '; color:white; line-height:1.2;">' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; font-weight:bold;">' + account.opType + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; cursor:pointer; text-decoration:underline;" ' +
+		     'onclick="loadAccountInTransferForm(\'' + account.code + '\', \'' + account.name.replace(/'/g, "\\'") + '\', \'' + account.opType + '\')">' +
+		     account.code + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd;">' + account.name + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; text-align:right; font-weight:bold;">₹ ' + account.amount + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd;">' + (account.particular || '-') + '</td>' +
+		     '<td style="padding:4px 6px; border:1px solid #ddd; text-align:center;">' +
+		     '<button type="button" onclick="removeCreditAccount(' + account.id + ')" ' +
+		     ' class="remove-btn" style="padding:2px 6px; font-size:14px;">×</button>' +
+		     '</td>' +
+		     '</tr>';
+		});
+	
+	tableHTML += '</tbody></table>';
+
+    
+    container.innerHTML = tableHTML;
+	}
+	
+function removeCreditAccount(accountId) {
+    // Find the account being removed
+    const removedAccount = creditAccountsData.find(acc => acc.id === accountId);
+    
+    // Remove from array
+    creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
+    refreshCreditAccountsTable();
+    updateTotals();
+    
+    // ✅ Only clear iframe if the removed account is in the current iframe URL
+    if (removedAccount) {
+        const iframe = document.getElementById('resultFrame');
+        const iframeSrc = iframe.src || '';
+        
+        // Check if the removed account code is in the iframe URL
+        if (iframeSrc.includes(encodeURIComponent(removedAccount.code))) {
+            clearIframe();
+        }
+    }
+}
+
+
+	function updateTotals() {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    creditAccountsData.forEach(function (row) {
+        const amount = parseFloat(row.amount) || 0;
+
+        if (row.opType === 'Debit') {
+            totalDebit += amount;
+        } else if (row.opType === 'Credit') {
+            totalCredit += amount;
+        }
+    });
+
+    document.getElementById('totalDebit').value = totalDebit.toFixed(2);
+    document.getElementById('totalCredit').value = totalCredit.toFixed(2);
+
+    // Optional: highlight when balanced
+    if (totalDebit === totalCredit && totalDebit > 0) {
+        document.getElementById('totalDebit').style.borderColor = 'green';
+        document.getElementById('totalCredit').style.borderColor = 'green';
+        showToast('transaction match', 'success');
+    } else {
+        document.getElementById('totalDebit').style.borderColor = '#C8B7F6';
+        document.getElementById('totalCredit').style.borderColor = '#C8B7F6';
+    	}
+	}
+
+	function loadAccountInTransferForm(accountCode, accountName, opType) {
+	    const operationType = document.querySelector("input[name='operationType']:checked").value;
+	    const accountCategory = document.getElementById('accountCategory').value;
+	    
+	    if (operationType !== 'transfer') {
+	        showToast('This feature only works in transfer mode', 'warning');
+	        return;
+	    }
+	    
+	    // Build URL with parameters
+	    let url = 'transferForm.jsp?';
+	    url += 'operationType=' + encodeURIComponent(operationType);
+	    url += '&accountCategory=' + encodeURIComponent(accountCategory);
+	    
+	    if (opType === 'Debit') {
+	        url += '&accountCode=' + encodeURIComponent(accountCode);
+	        url += '&accountName=' + encodeURIComponent(accountName);
+	        url += '&creditAccountCode=';
+	        url += '&creditAccountName=';
+	    } else {
+	        url += '&accountCode=';
+	        url += '&accountName=';
+	        url += '&creditAccountCode=' + encodeURIComponent(accountCode);
+	        url += '&creditAccountName=' + encodeURIComponent(accountName);
+	    }
+	    
+	    // Load in iframe
+	    document.getElementById('resultFrame').src = url;
+
+	}
+	const opTypeSelect = document.getElementById('opType');
+
+	function updateOpTypeBackground() {
+	    opTypeSelect.classList.remove('debit-bg', 'credit-bg');
+
+	    if (opTypeSelect.value === 'Debit') {
+	        opTypeSelect.classList.add('debit-bg');
+	    } else {
+	        opTypeSelect.classList.add('credit-bg');
+	    }
+	}
+
+	opTypeSelect.addEventListener('change', updateOpTypeBackground);
+	updateOpTypeBackground();
+	
+	// ========== DYNAMIC LOAN FIELDS ==========
+	let loanRecoveryColumns = [];
+
+	// Fetch loan recovery columns from database
+	function fetchLoanRecoveryColumns() {
+	    fetch('GetLoanRecoveryColumns.jsp')
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.success && data.columns && data.columns.length > 0) {
+	                loanRecoveryColumns = data.columns;
+	                buildLoanFieldsTable();
+	            } else {
+	                showToast('Failed to load loan recovery columns', 'error');
+	                console.error('Error:', data.error || 'No columns found');
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error fetching loan recovery columns:', error);
+	            showToast('Failed to load loan recovery columns', 'error');
+	        });
+	}
+
+	// Build the dynamic loan fields table
+function buildLoanFieldsTable() {
+    const loader = document.getElementById('loanFieldsLoader');
+    const tableContainer = document.getElementById('loanFieldsTableContainer');
+    const headerRow = document.getElementById('loanTableHeader');
+    const tableBody = document.getElementById('loanTableBody');
+    
+    if (!loanRecoveryColumns || loanRecoveryColumns.length === 0) {
+        loader.innerHTML = '<p style="color: #f44336;">No loan recovery columns configured</p>';
+        return;
+    }
+    
+    // Hide loader and show table
+    loader.style.display = 'none';
+    tableContainer.style.display = 'block';
+    
+    // Build table headers
+    let headerHTML = '<tr><th>Type</th>';
+    loanRecoveryColumns.forEach(col => {
+        // Safety check for undefined/null values
+        if (!col || !col.description) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        // Truncate long descriptions for display
+        const displayName = col.description.length > 10 
+            ? col.description.substring(0, 20) 
+            : col.description;
+        headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
+    });
+    headerHTML += '</tr>';
+    headerRow.innerHTML = headerHTML;
+    
+    // Build table rows (Receivable, Received, Remaining)
+    let receivableRow = '<tr class="receivable-row"><td>Receivable</td>';
+    let receivedRow = '<tr class="received-row"><td>Received</td>';
+    let remainingRow = '<tr class="remaining-row"><td>Remaining</td>';
+    
+    loanRecoveryColumns.forEach(col => {
+        // Safety check for undefined/null values
+        if (!col || !col.columnName) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        
+        // Skip if fieldName is empty
+        if (!fieldName) {
+            console.warn('Empty fieldName for column:', col);
+            return;
+        }
+        
+        // Receivable row (readonly)
+        receivableRow += '<td><input type="text" name="' + fieldName + 'Receivable" ' +
+                        'id="' + fieldName + 'Receivable" placeholder="0.00" readonly></td>';
+        
+        // Received row (editable with oninput)
+        receivedRow += '<td><input type="text" name="' + fieldName + 'Received" ' +
+                      'id="' + fieldName + 'Received" placeholder="0.00" ' +
+                      'oninput="calculateRemaining(\'' + fieldName + '\')"></td>';
+        
+        // Remaining row (readonly)
+        remainingRow += '<td><input type="text" id="' + fieldName + 'Remaining" ' +
+                       'placeholder="0.00" readonly></td>';
+    });
+    
+    receivableRow += '</tr>';
+    receivedRow += '</tr>';
+    remainingRow += '</tr>';
+    
+    tableBody.innerHTML = receivableRow + receivedRow + remainingRow;
+}
+
+// Helper function to escape HTML (add this if not already present)
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+//Add this function after the buildLoanFieldsTable() function
+
+function fetchLoanReceivableData(accountCode) {
+    if (!accountCode || accountCode.trim() === '') {
+        return;
+    }
+    
+    fetch('GetLoanReceivableData.jsp?accountCode=' + encodeURIComponent(accountCode))
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('Error loading loan data: ' + data.error, 'error');
+                console.error('Error:', data.error);
+                return;
+            }
+            
+            if (data.success && data.receivableData) {
+                populateLoanReceivableFields(data.receivableData);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching loan receivable data:', error);
+            showToast('Failed to fetch loan receivable data', 'error');
+        });
+}
+
+function populateLoanReceivableFields(receivableData) {
+    // Populate all receivable fields
+    for (const fieldName in receivableData) {
+        const receivableField = document.getElementById(fieldName + 'Receivable');
+        if (receivableField) {
+            receivableField.value = receivableData[fieldName];
+            
+            // Also calculate remaining (Receivable - Received)
+            calculateRemaining(fieldName);
+        }
+    }
+}
+
+//Updated clearLoanFields to work with dynamic fields
+function clearLoanFields() {
+    if (!loanRecoveryColumns || loanRecoveryColumns.length === 0) {
+        return;
+    }
+    
+    loanRecoveryColumns.forEach(col => {
+        // Safety check
+        if (!col || !col.columnName) {
+            return;
+        }
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        
+        // Skip if fieldName is empty
+        if (!fieldName) {
+            return;
+        }
+        
+        ['Receivable', 'Received', 'Remaining'].forEach(suffix => {
+            const el = document.getElementById(fieldName + suffix);
+            if (el) {
+                el.value = '';
+                el.style.color = '';
+                el.style.fontWeight = '';
+            }
+        });
+    });
+}
