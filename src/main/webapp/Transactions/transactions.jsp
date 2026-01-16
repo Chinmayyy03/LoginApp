@@ -623,7 +623,7 @@
 		    background-color: #373279;
 		    color: white;
 		    border: none;
-		    padding: 10px 25px;
+		    padding: 10px 15px;
 		    border-radius: 6px;
 		    font-size: 14px;
 		    font-weight: bold;
@@ -713,12 +713,11 @@
 	.dropdown-inline {
 	    display: flex;
 	    flex-direction: row;
-	    align-items: center;
 	    gap: 10px;
 	}
 	
 	.dropdown-inline .label {
-	    margin-bottom: 0;
+	    margin-bottom: 8px;
 	    white-space: nowrap;
 	}
 	
@@ -895,10 +894,13 @@
 	    background-color: #f0e6ff;
 	    border: 2px solid #C8B7F6;
 	    border-radius: 8px;
+	    margin: 20px auto 0; /* Added auto margins for horizontal centering */
+	    max-width: 900px; /* Optional: set max-width to control section width */
 	}
 	
 	.transfer-fields-section.active {
 	    display: block;
+	    margin:auto; /* Maintain centering when active */
 	}
 	
 	.transfer-fields-section .section-title {
@@ -915,6 +917,7 @@
 	    align-items: center;
 	    gap: 20px;
 	    flex-wrap: wrap;
+	    justify-content: center; /* Centers the items within the flex container */
 	}
 	
 	/* Base select */
@@ -1037,7 +1040,7 @@
 				<!-- Account Category Dropdown -->
 				<div class="dropdown-inline">
 				<div>
-				    <div class="label">Type:</div>
+				    <div class="label">Account Type</div>
 				    <select name="accountCategory" id="accountCategory" style="min-width: 100px;">
 				        <option value="saving" selected>Saving</option>
 				        <option value="loan">Loan</option>
