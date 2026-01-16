@@ -1,4 +1,3 @@
-
 //========== CONFIGURATION ==========
 const MIN_SEARCH_LENGTH = 3;
 const SEARCH_DELAY = 300;
@@ -531,6 +530,7 @@ function handleSaveTransaction() {
 function calculateNewBalanceInIframe() {
     const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
     const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const accountCategory = document.getElementById('accountCategory').value;
     
     const iframe = document.getElementById('resultFrame');
     
@@ -546,6 +546,19 @@ function calculateNewBalanceInIframe() {
             let newLedgerBalance = ledgerBalance;
             
             if (transactionAmount > 0) {
+                // For loan accounts with deposit/credit, use sequential deduction
+                const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+                const shouldUseSequential = accountCategory === 'loan' && 
+                                           ((operationType === 'deposit') || 
+                                            (operationType === 'transfer' && opType === 'Credit'));
+                
+                if (shouldUseSequential) {
+                    // Call sequential deduction function
+                    calculateSequentialLoanDeduction();
+                    return; // Let sequential function handle everything
+                }
+                
+                // Normal calculation for non-loan or withdrawal
                 if (operationType === 'deposit') {
                     newLedgerBalance = ledgerBalance + transactionAmount;
                 } else if (operationType === 'withdrawal') {
@@ -927,3 +940,170 @@ function clearLoanFields() {
         });
     });
 }
+
+
+// Add this new function to handle sequential loan deduction
+function calculateSequentialLoanDeduction() {
+    const transactionAmountInput = document.getElementById('transactionamount');
+    const transactionAmount = parseFloat(transactionAmountInput.value) || 0;
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const accountCategory = document.getElementById('accountCategory').value;
+    
+    // Only proceed if it's a deposit or (transfer with credit OP Type)
+    const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+    const shouldProcess = (operationType === 'deposit') || 
+                         (operationType === 'transfer' && opType === 'Credit');
+    
+    if (!shouldProcess || transactionAmount <= 0 || accountCategory !== 'loan') {
+        return;
+    }
+    
+    // Clear previous highlights
+    if (loanRecoveryColumns && loanRecoveryColumns.length > 0) {
+        loanRecoveryColumns.forEach(col => {
+            if (!col || !col.columnName) return;
+            const fieldName = col.columnName.toLowerCase().trim();
+            if (!fieldName) return;
+            
+            const receivedEl = document.getElementById(fieldName + 'Received');
+            if (receivedEl) {
+                receivedEl.value = '';
+                receivedEl.style.backgroundColor = '';
+                receivedEl.style.fontWeight = '';
+            }
+        });
+    }
+    
+    let remainingAmount = transactionAmount;
+    
+    // Process each loan column sequentially
+    if (loanRecoveryColumns && loanRecoveryColumns.length > 0) {
+        for (let i = 0; i < loanRecoveryColumns.length; i++) {
+            const col = loanRecoveryColumns[i];
+            if (!col || !col.columnName) continue;
+            
+            const fieldName = col.columnName.toLowerCase().trim();
+            if (!fieldName) continue;
+            
+            const receivableEl = document.getElementById(fieldName + 'Receivable');
+            const receivedEl = document.getElementById(fieldName + 'Received');
+            const remainingEl = document.getElementById(fieldName + 'Remaining');
+            
+            if (!receivableEl || !receivedEl || !remainingEl) continue;
+            
+            // Get receivable and current received values
+            const receivable = parseFloat(receivableEl.value.replace(/,/g, '')) || 0;
+            const currentReceived = parseFloat(receivedEl.value.replace(/,/g, '')) || 0;
+            const outstanding = receivable - currentReceived;
+            
+            if (outstanding > 0 && remainingAmount > 0) {
+                // Calculate how much to deduct from this field
+                const deductionAmount = Math.min(outstanding, remainingAmount);
+                const newReceived = currentReceived + deductionAmount;
+                
+                // Update the received field
+                receivedEl.value = newReceived.toFixed(2);
+                
+                // Recalculate remaining
+                calculateRemaining(fieldName);
+                
+                // Reduce remaining amount
+                remainingAmount -= deductionAmount;
+                
+                // Highlight the updated field
+                receivedEl.style.backgroundColor = '#e6f7ff';
+                receivedEl.style.fontWeight = 'bold';
+                
+                setTimeout(() => {
+                    receivedEl.style.backgroundColor = '';
+                }, 2000);
+            }
+            
+            // If no remaining amount, stop processing
+            if (remainingAmount <= 0) {
+                break;
+            }
+        }
+    }
+    
+    // If there's still remaining amount, deduct from ledger balance
+    if (remainingAmount > 0) {
+        const iframe = document.getElementById('resultFrame');
+        
+        try {
+            const iframeWindow = iframe.contentWindow;
+            const iframeDoc = iframeWindow.document;
+            
+            const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+            const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+            
+            if (ledgerBalanceField && newLedgerBalanceField) {
+                const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+                const newLedgerBalance = ledgerBalance + remainingAmount;
+                
+                newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
+                
+                // Highlight ledger balance update
+                newLedgerBalanceField.style.backgroundColor = '#e6f7ff';
+                newLedgerBalanceField.style.fontWeight = 'bold';
+                
+                setTimeout(() => {
+                    newLedgerBalanceField.style.backgroundColor = '';
+                }, 2000);
+                
+                // Show info about remaining amount applied to ledger
+                showToast('₹' + remainingAmount.toFixed(2) + ' applied to Ledger Balance after loan recovery deductions', 'info');
+                
+                remainingAmount = 0;
+            }
+        } catch (e) {
+            console.error('Error updating ledger balance:', e);
+        }
+    }
+    
+    // If there's STILL remaining amount (shouldn't happen normally), alert user
+    if (remainingAmount > 0) {
+        showToast('WARNING: ₹' + remainingAmount.toFixed(2) + ' remaining after all deductions!', 'warning');
+    }
+}
+
+// Add reset function to clear loan received fields when needed
+function resetLoanReceivedFields() {
+    if (!loanRecoveryColumns || loanRecoveryColumns.length === 0) return;
+    
+    loanRecoveryColumns.forEach(col => {
+        if (!col || !col.columnName) return;
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        if (!fieldName) return;
+        
+        const receivedEl = document.getElementById(fieldName + 'Received');
+        if (receivedEl) {
+            receivedEl.value = '';
+            receivedEl.style.backgroundColor = '';
+            receivedEl.style.fontWeight = '';
+        }
+        
+        calculateRemaining(fieldName);
+    });
+}
+
+// Call this when transaction amount is cleared or changed significantly
+function handleTransactionAmountChange() {
+    const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
+    
+    if (transactionAmount === 0) {
+        // Reset all loan received fields if amount is cleared
+        resetLoanReceivedFields();
+    }
+    
+    calculateNewBalanceInIframe();
+    updateTotals();
+}
+
+// Handle transaction amount changes (only on blur/enter)
+function handleTransactionAmountFinalized() {
+    calculateNewBalanceInIframe();
+    updateTotals();
+}
+
