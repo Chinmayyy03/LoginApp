@@ -83,7 +83,7 @@ function openCard(title, schema){
 
     tableSearch.value = '';
     tableMenu.style.display = 'none';
-    data.innerHTML = '<p style="text-align:center;color:#777">Select a table</p>';
+    data.innerHTML = '<p style="text-align:center;color:#777">Select a Table</p>';
 
     loadTables();
 }
@@ -116,7 +116,7 @@ function loadTables(){
                 };
                 tableMenu.appendChild(d);
             });
-            tableMenu.style.display = 'block';
+            
         });
 }
 
