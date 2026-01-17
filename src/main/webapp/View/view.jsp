@@ -197,6 +197,12 @@
             <p class="loading" id="total-accounts-value">Loading...</p>
         </div>
         
+        <!-- All Customers Card -->
+        <div class="card" onclick="openInParentFrame('View/allCustomers.jsp', 'View > Customers')">
+            <h3>Customers</h3>
+            <p class="loading" id="all-customers-value">Loading...</p>
+        </div>
+        
         <!-- Add more cards here as needed -->
     </div>
 </div>
@@ -214,6 +220,7 @@ window.onload = function () {
     
     async function loadCardValues() {
         await loadCard('total_accounts', 'total-accounts-value', 'view');
+        await loadCard('all_customers', 'all-customers-value', 'view');
     }
     
     async function loadCard(cardId, elementId, cardType) {

@@ -28,6 +28,7 @@ const PAGE_EXCEPTIONS = {
 		
 		'Transactions/transactions.jsp': 'Transactions',
 		'View/totalAccounts.jsp': 'Total Accounts',
+		'View/allCustomers.jsp': 'Customers',
 		
 		// Authorization pages
 		'authorizationPending.jsp': 'Authorization',

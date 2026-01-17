@@ -77,6 +77,21 @@
                     } else {
                         value = "N/A";
                     }
+                } else if ("all_customers".equals(cardId)) {
+                    // All customers for the branch - filter by first 4 digits of CUSTOMER_ID
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) as TOTAL " +
+                        "FROM CUSTOMERS " +
+                        "WHERE SUBSTR(CUSTOMER_ID, 1, 4) = ?"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        value = String.valueOf(rs.getInt("TOTAL"));
+                    } else {
+                        value = "0";
+                    }
                 }
                 break;
                 
