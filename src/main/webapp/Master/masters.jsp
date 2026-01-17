@@ -116,7 +116,7 @@ function loadTables(){
                 };
                 tableMenu.appendChild(d);
             });
-            
+            tableMenu.style.display = 'block';
         });
 }
 
