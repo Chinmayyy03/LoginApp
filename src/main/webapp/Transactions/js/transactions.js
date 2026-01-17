@@ -288,6 +288,8 @@ function updateLabelsBasedOnOperation() {
         addButtonDiv.style.display = 'none';
         creditAccountsContainer.style.display = 'none';
     }
+	updateParticularField();
+
 }
 
 //========== TOGGLE LOAN FIELDS VISIBILITY ==========
@@ -391,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('particular').value = '';
             previousAccountCode = '';
             clearIframe();
+			updateParticularField()
         });
     }
     
@@ -422,6 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLabelsBasedOnOperation();
     toggleLoanFields();
     toggleTransferFields();
+	updateParticularField(); 
 });
 
 // ========== LOOKUP MODAL FUNCTIONS ==========
@@ -1107,3 +1111,25 @@ function handleTransactionAmountFinalized() {
     updateTotals();
 }
 
+ function updateParticularField() {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const particularField = document.getElementById('particular');
+    
+    if (!particularField) return;
+    
+    // Only auto-fill if the field is empty
+    if (particularField.value.trim() !== '') return;
+    
+    if (operationType === 'deposit') {
+        particularField.value = 'By Cash';
+    } else if (operationType === 'withdrawal') {
+        particularField.value = 'To Cash';
+    } else if (operationType === 'transfer') {
+        const opType = document.getElementById('opType').value;
+        if (opType === 'Debit') {
+            particularField.value = 'To Transfer';
+        } else	if (opType === 'Credit') {
+			 particularField.value = 'By Transfer';
+		}
+    }
+}
