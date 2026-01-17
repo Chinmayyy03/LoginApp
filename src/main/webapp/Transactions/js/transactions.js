@@ -186,7 +186,7 @@ function selectAccountFromSearch(code, name) {
         
         // ✅ ADD THIS: Fetch loan data if category is loan
         const accountCategory = document.getElementById('accountCategory').value;
-        if (accountCategory === 'loan') {
+        if (accountCategory === 'loan'|| accountCategory === 'cc') {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
             }, 1500); // Wait a bit longer for iframe load
@@ -297,7 +297,7 @@ function toggleLoanFields() {
     const accountCategory = document.getElementById('accountCategory').value;
     const loanFieldsSection = document.getElementById('loanFieldsSection');
     
-    if (accountCategory === 'loan') {
+    if (accountCategory === 'loan' || accountCategory === 'cc') {
         loanFieldsSection.classList.add('active');
         
         // Fetch columns if not already loaded
@@ -472,7 +472,7 @@ function setValueFromLookup(code, desc, type) {
         
         // ✅ ADD THIS: Fetch loan data if category is loan
         const accountCategory = document.getElementById('accountCategory').value;
-        if (accountCategory === 'loan') {
+        if (accountCategory === 'loan'|| accountCategory === 'cc') {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
             }, 1500);
@@ -552,7 +552,7 @@ function calculateNewBalanceInIframe() {
             if (transactionAmount > 0) {
                 // For loan accounts with deposit/credit, use sequential deduction
                 const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
-                const shouldUseSequential = accountCategory === 'loan' && 
+                const shouldUseSequential = (accountCategory === 'loan' || accountCategory === 'cc') && 
                                            ((operationType === 'deposit') || 
                                             (operationType === 'transfer' && opType === 'Credit'));
                 
@@ -958,7 +958,7 @@ function calculateSequentialLoanDeduction() {
     const shouldProcess = (operationType === 'deposit') || 
                          (operationType === 'transfer' && opType === 'Credit');
     
-    if (!shouldProcess || transactionAmount <= 0 || accountCategory !== 'loan') {
+    if (!shouldProcess || transactionAmount <= 0 || (accountCategory !== 'loan' && accountCategory !== 'cc')) {
         return;
     }
     
