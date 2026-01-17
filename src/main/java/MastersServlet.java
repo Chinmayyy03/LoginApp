@@ -18,13 +18,20 @@ public class MastersServlet extends HttpServlet {
 
         List<Map<String, String>> cards = new ArrayList<>();
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(
-                 "SELECT DESCRIPTION, TABLE_NAME " +
-                 "FROM GLOBALCONFIG.MASTERS " +
-                 "ORDER BY SR_NUMBER"
-             );
-             ResultSet rs = ps.executeQuery()) {
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            con = DBConnection.getConnection();
+
+            ps = con.prepareStatement(
+                "SELECT DESCRIPTION, TABLE_NAME " +
+                "FROM GLOBALCONFIG.MASTERS " +
+                "ORDER BY SR_NUMBER"
+            );
+
+            rs = ps.executeQuery();
 
             while (rs.next()) {
                 Map<String, String> card = new HashMap<>();
@@ -38,6 +45,11 @@ public class MastersServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ServletException(e);
+
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (ps != null) ps.close(); } catch (Exception e) {}
+            try { if (con != null) con.close(); } catch (Exception e) {}
         }
 
         req.setAttribute("cards", cards);

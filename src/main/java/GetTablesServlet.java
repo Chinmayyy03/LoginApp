@@ -30,27 +30,40 @@ public class GetTablesServlet extends HttpServlet {
             return;
         }
 
-        try (Connection con = DBConnection.getConnection();
-        		PreparedStatement ps = con.prepareStatement(
-        			    "SELECT table_name " +
-        			    "FROM all_tables " +
-        			    "WHERE owner = ? " +
-        			    "AND table_name NOT LIKE 'SYS_%' " +
-        			    "ORDER BY table_name"
-             )) {
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            con = DBConnection.getConnection();
+
+            ps = con.prepareStatement(
+                "SELECT table_name " +
+                "FROM all_tables " +
+                "WHERE owner = ? " +
+                "AND table_name NOT LIKE 'SYS_%' " +
+                "ORDER BY table_name"
+            );
 
             ps.setString(1, schema.toUpperCase());
 
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 tables.add(rs.getString("table_name"));
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (ps != null) ps.close(); } catch (Exception e) {}
+            try { if (con != null) con.close(); } catch (Exception e) {}
         }
 
-        // Send JSON response
+        /* ===============================
+           SEND JSON RESPONSE
+        =============================== */
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 

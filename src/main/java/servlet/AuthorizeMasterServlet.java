@@ -24,6 +24,13 @@ public class AuthorizeMasterServlet extends HttpServlet {
         }
 
         Connection con = null;
+        PreparedStatement ps = null;
+        PreparedStatement pkPs = null;
+        PreparedStatement upd = null;
+        PreparedStatement auth = null;
+        PreparedStatement rej = null;
+        ResultSet rs = null;
+        ResultSet pkRs = null;
 
         try {
             con = DBConnection.getConnection();
@@ -32,7 +39,7 @@ public class AuthorizeMasterServlet extends HttpServlet {
             /* ===============================
                LOAD AUDIT RECORD (PENDING ONLY)
             =============================== */
-            PreparedStatement ps = con.prepareStatement(
+            ps = con.prepareStatement(
                 "SELECT SCHEMA_NAME, TABLE_NAME, MODIFIED_VALUE " +
                 "FROM AUDITTRAIL.MASTER_AUDITTRAIL " +
                 "WHERE RECORD_KEY=? AND FIELD_NAME=? AND STATUS='E'"
@@ -40,7 +47,7 @@ public class AuthorizeMasterServlet extends HttpServlet {
             ps.setString(1, recordKey);
             ps.setString(2, field);
 
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             if (!rs.next()) {
                 con.rollback();
                 res.sendRedirect("authorizationPendingMasters.jsp?msg=error");
@@ -54,7 +61,7 @@ public class AuthorizeMasterServlet extends HttpServlet {
             /* ===============================
                FIND PRIMARY KEY COLUMN
             =============================== */
-            PreparedStatement pkPs = con.prepareStatement(
+            pkPs = con.prepareStatement(
                 "SELECT acc.column_name " +
                 "FROM all_constraints ac " +
                 "JOIN all_cons_columns acc " +
@@ -65,7 +72,7 @@ public class AuthorizeMasterServlet extends HttpServlet {
             pkPs.setString(1, schema.toUpperCase());
             pkPs.setString(2, table.toUpperCase());
 
-            ResultSet pkRs = pkPs.executeQuery();
+            pkRs = pkPs.executeQuery();
             if (!pkRs.next()) {
                 throw new Exception("Primary key not found for " + table);
             }
@@ -78,19 +85,19 @@ public class AuthorizeMasterServlet extends HttpServlet {
 
                 // 🔥 TRY MASTER UPDATE (SAFE)
                 try {
-                    PreparedStatement upd = con.prepareStatement(
+                    upd = con.prepareStatement(
                         "UPDATE " + schema + "." + table +
                         " SET " + field + "=? WHERE " + pkCol + "=?"
                     );
                     upd.setString(1, value);
-                    upd.setObject(2, recordKey); // IMPORTANT
+                    upd.setObject(2, recordKey);
                     upd.executeUpdate();
                 } catch (Exception ex) {
-                    // Do NOT fail authorization because of master issue
+                    // ❗ Do NOT fail authorization if master update fails
                     ex.printStackTrace();
                 }
 
-                PreparedStatement auth = con.prepareStatement(
+                auth = con.prepareStatement(
                     "UPDATE AUDITTRAIL.MASTER_AUDITTRAIL " +
                     "SET STATUS='A', MODIFIED_DATE=SYSTIMESTAMP " +
                     "WHERE RECORD_KEY=? AND FIELD_NAME=? AND STATUS='E'"
@@ -105,7 +112,7 @@ public class AuthorizeMasterServlet extends HttpServlet {
             =============================== */
             else if ("R".equalsIgnoreCase(action)) {
 
-                PreparedStatement rej = con.prepareStatement(
+                rej = con.prepareStatement(
                     "UPDATE AUDITTRAIL.MASTER_AUDITTRAIL " +
                     "SET STATUS='R', MODIFIED_DATE=SYSTIMESTAMP " +
                     "WHERE RECORD_KEY=? AND FIELD_NAME=? AND STATUS='E'"
@@ -124,6 +131,22 @@ public class AuthorizeMasterServlet extends HttpServlet {
                 if (con != null) con.rollback();
             } catch (Exception ignored) {}
             res.sendRedirect("authorizationPendingMasters.jsp?msg=error");
+
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (pkRs != null) pkRs.close(); } catch (Exception e) {}
+            try { if (ps != null) ps.close(); } catch (Exception e) {}
+            try { if (pkPs != null) pkPs.close(); } catch (Exception e) {}
+            try { if (upd != null) upd.close(); } catch (Exception e) {}
+            try { if (auth != null) auth.close(); } catch (Exception e) {}
+            try { if (rej != null) rej.close(); } catch (Exception e) {}
+
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (Exception e) {}
         }
     }
 }

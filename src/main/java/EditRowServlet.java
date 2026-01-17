@@ -23,37 +23,64 @@ public class EditRowServlet extends HttpServlet {
         }
 
         List<String> columns = new ArrayList<>();
-        Map<String,String> row = new HashMap<>();
+        Map<String, String> row = new HashMap<>();
 
-        try (Connection con = DBConnection.getConnection()) {
+        Connection con = null;
+        Statement stmt = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        ResultSet rs2 = null;
 
-            // column list
-            ResultSet rs = con.createStatement()
-                .executeQuery("SELECT * FROM " + schema + "." + table + " WHERE 1=0");
+        try {
+            con = DBConnection.getConnection();
+
+            /* ===============================
+               LOAD COLUMN LIST
+            =============================== */
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(
+                "SELECT * FROM " + schema + "." + table + " WHERE 1=0"
+            );
 
             ResultSetMetaData md = rs.getMetaData();
-            for (int i=1;i<=md.getColumnCount();i++) {
+            for (int i = 1; i <= md.getColumnCount(); i++) {
                 columns.add(md.getColumnName(i));
             }
 
-            // data row
-            PreparedStatement ps = con.prepareStatement(
+            if (columns.isEmpty()) {
+                throw new ServletException("No columns found");
+            }
+
+            /* ===============================
+               LOAD ROW DATA
+            =============================== */
+            ps = con.prepareStatement(
                 "SELECT * FROM " + schema + "." + table +
                 " WHERE " + columns.get(0) + " = ?"
             );
             ps.setString(1, pk);
 
-            ResultSet rs2 = ps.executeQuery();
+            rs2 = ps.executeQuery();
             if (rs2.next()) {
-                for (String c:columns) {
+                for (String c : columns) {
                     row.put(c, rs2.getString(c));
                 }
             }
 
         } catch (Exception e) {
             throw new ServletException(e);
+
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (rs2 != null) rs2.close(); } catch (Exception e) {}
+            try { if (stmt != null) stmt.close(); } catch (Exception e) {}
+            try { if (ps != null) ps.close(); } catch (Exception e) {}
+            try { if (con != null) con.close(); } catch (Exception e) {}
         }
 
+        /* ===============================
+           FORWARD TO JSP
+        =============================== */
         req.setAttribute("schema", schema);
         req.setAttribute("table", table);
         req.setAttribute("columns", columns);
@@ -61,6 +88,7 @@ public class EditRowServlet extends HttpServlet {
         req.setAttribute("primaryKey", columns.get(0));
         req.setAttribute("mode", "EDIT");
 
-        req.getRequestDispatcher("/Master/editRow.jsp").forward(req, resp);
+        req.getRequestDispatcher("/Master/editRow.jsp")
+           .forward(req, resp);
     }
 }

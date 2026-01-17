@@ -20,6 +20,7 @@ public class LoadTableDataServlet extends HttpServlet {
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
+
         PrintWriter out = resp.getWriter();
 
         /* =========================
@@ -33,14 +34,16 @@ public class LoadTableDataServlet extends HttpServlet {
             return;
         }
 
-        /* =========================
-           LOAD TABLE DATA
-        ========================= */
-        try (Connection con = DBConnection.getConnection();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(
-                 "SELECT * FROM " + schema + "." + table
-             )) {
+        Connection con = null;
+        Statement st = null;
+        ResultSet rs = null;
+
+        try {
+            con = DBConnection.getConnection();
+            st = con.createStatement();
+            rs = st.executeQuery(
+                "SELECT * FROM " + schema + "." + table
+            );
 
             ResultSetMetaData md = rs.getMetaData();
             int cols = md.getColumnCount();
@@ -73,7 +76,6 @@ public class LoadTableDataServlet extends HttpServlet {
 
                 out.println("<tr>");
 
-                // print all column values safely
                 for (int i = 1; i <= cols; i++) {
                     Object val = rs.getObject(i);
 
@@ -88,7 +90,9 @@ public class LoadTableDataServlet extends HttpServlet {
                     }
                 }
 
-                // show Edit button ONLY if PK exists
+                /* =========================
+                   EDIT BUTTON
+                ========================= */
                 if (pk != null && !pk.trim().isEmpty()) {
                     out.println(
                         "<td style='text-align:center'>" +
@@ -101,7 +105,7 @@ public class LoadTableDataServlet extends HttpServlet {
                         "</td>"
                     );
                 } else {
-                	out.println("<td style='color:#999;text-align:center'>N/A</td>");
+                    out.println("<td style='color:#999;text-align:center'>N/A</td>");
                 }
 
                 out.println("</tr>");
@@ -110,9 +114,14 @@ public class LoadTableDataServlet extends HttpServlet {
             out.println("</tbody>");
             out.println("</table>");
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             out.println("<p style='color:red'>Error loading table data</p>");
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (st != null) st.close(); } catch (Exception e) {}
+            try { if (con != null) con.close(); } catch (Exception e) {}
+            try { if (out != null) out.flush(); } catch (Exception e) {}
         }
     }
 }
