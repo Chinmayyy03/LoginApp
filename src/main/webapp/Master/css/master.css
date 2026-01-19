@@ -346,3 +346,19 @@ body{
 @media (max-width:500px){
     .cards-wrapper{grid-template-columns:1fr}
 }
+.add-btn{
+    background:#4CAF50;
+    color:#fff;
+    border:none;
+    padding:7px 14px;
+    font-size:13px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.add-btn:hover{
+    background:#3e9e44;
+}
+
+

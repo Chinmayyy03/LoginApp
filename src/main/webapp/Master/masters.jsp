@@ -231,6 +231,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </script>
 
+<script>
+function openAddForm() {
+    if (!currentSchema) {
+        alert("Schema not selected");
+        return;
+    }
+
+    const table = document.getElementById("tableSearch").value;
+    if (!table) {
+        alert("Please select a table first");
+        return;
+    }
+
+    window.location.href =
+        ctx + "/editRow?schema=" + encodeURIComponent(currentSchema) +
+        "&table=" + encodeURIComponent(table) +
+        "&mode=ADD";
+}
+</script>
+
+
 </head>
 
 <body>
@@ -314,11 +335,18 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
 
         <div class="table-toolbar">
-            <div class="table-title">Records</div>
-            <input class="table-search"
-                   placeholder="🔍 Search inside table..."
-                   onkeyup="filterTableRows(this.value)">
-        </div>
+    <div class="table-title">Records</div>
+
+    <div class="table-actions">
+        <button class="add-btn" onclick="openAddForm()">
+            ➕ Add New
+        </button>
+
+        <input class="table-search"
+               placeholder="🔍 Search inside table..."
+               onkeyup="filterTableRows(this.value)">
+    </div>
+</div>
 
         <div id="data" class="data-container">
             <div class="initial-message">
