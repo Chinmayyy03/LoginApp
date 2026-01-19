@@ -53,6 +53,15 @@ accountCodeInput.addEventListener('input', function(e) {
         previousAccountCode = currentValue;
     }
     
+    //  Clear loan fields when account code is cleared
+    if (currentValue === '' || currentValue.length === 0) {
+        const accountCategory = document.getElementById('accountCategory').value;
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
+            clearLoanFields();
+            resetLoanReceivedFields();
+        }
+    }
+    
     handleLiveSearch(currentValue);
 });
 
@@ -255,6 +264,13 @@ function updateLabelsBasedOnOperation() {
     document.getElementById('particular').value = '';
     previousAccountCode = '';
     clearIframe();
+	
+	//  Clear loan fields when operation changes
+	    const accountCategory = document.getElementById('accountCategory').value;
+	    if (accountCategory === 'loan' || accountCategory === 'cc') {
+	        clearLoanFields();
+	        resetLoanReceivedFields();
+	    }
 
     // Clear transaction data
     creditAccountsData = [];
@@ -397,21 +413,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
- // Category change handler
-    const categoryDropdown = document.getElementById('accountCategory');
-    if (categoryDropdown) {
-        categoryDropdown.addEventListener('change', function() {
-            document.getElementById("accountCode").value = '';
-            document.getElementById("accountName").value = '';
-            document.getElementById("transactionamount").value = '';
-            previousAccountCode = '';
-            document.getElementById('searchResults').classList.remove('active');
-            currentCategory = this.value;
-            
-            // ✅ Toggle loan fields visibility
-            toggleLoanFields();
-        });
-    }
+	// Category change handler
+	const categoryDropdown = document.getElementById('accountCategory');
+	if (categoryDropdown) {
+	    categoryDropdown.addEventListener('change', function() {
+	        document.getElementById("accountCode").value = '';
+	        document.getElementById("accountName").value = '';
+	        document.getElementById("transactionamount").value = '';
+	        previousAccountCode = '';
+	        document.getElementById('searchResults').classList.remove('active');
+	        currentCategory = this.value;
+	        
+	        // ✅ Clear loan fields when switching away from loan/cc
+	        const oldCategory = currentCategory;
+	        if (oldCategory === 'loan' || oldCategory === 'cc') {
+	            clearLoanFields();
+	            resetLoanReceivedFields();
+	        }
+	        
+	        // Toggle loan fields visibility
+	        toggleLoanFields();
+	    });
+	}
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
     
@@ -427,22 +450,27 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTransferFields();
 	updateParticularField(); 
 });
-// Transaction amount input handler
-const transactionAmountInput = document.getElementById('transactionamount');
-if (transactionAmountInput) {
-    transactionAmountInput.addEventListener('input', function() {
-        const accountCategory = document.getElementById('accountCategory').value;
-        
-        // ✅ Clear loan received fields when amount changes
-        if (accountCategory === 'loan' || accountCategory === 'cc') {
-            resetLoanReceivedFields();
-        }
-        
-        // Then recalculate
-        calculateNewBalanceInIframe();
-        updateTotals();
-    });
-}
+// Transaction amount input handler - SINGLE CONSOLIDATED LISTENER
+   const transactionAmountInput = document.getElementById('transactionamount');
+   if (transactionAmountInput) {
+       // Remove the inline oninput from HTML first
+       transactionAmountInput.removeAttribute('oninput');
+       
+       transactionAmountInput.addEventListener('input', function() {
+           const accountCategory = document.getElementById('accountCategory').value;
+           
+           // Clear loan received fields when amount changes
+           if (accountCategory === 'loan' || accountCategory === 'cc') {
+               resetLoanReceivedFields();
+           }
+           
+           // Calculate balance (this will call sequential deduction if needed)
+           calculateNewBalanceInIframe();
+           
+           // Update totals
+           updateTotals();
+       });
+   }
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
 	let accountCategory = document.getElementById('accountCategory').value;
@@ -1053,41 +1081,50 @@ function calculateSequentialLoanDeduction() {
         }
     }
     
-    // If there's still remaining amount, deduct from ledger balance
-    if (remainingAmount > 0) {
-        const iframe = document.getElementById('resultFrame');
-        
-        try {
-            const iframeWindow = iframe.contentWindow;
-            const iframeDoc = iframeWindow.document;
-            
-            const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
-            const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
-            
-            if (ledgerBalanceField && newLedgerBalanceField) {
-                const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
-                const newLedgerBalance = ledgerBalance + remainingAmount;
-                
-                newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
-                
-                // Highlight ledger balance update
-                newLedgerBalanceField.style.backgroundColor = '#e6f7ff';
-                newLedgerBalanceField.style.fontWeight = 'bold';
-                
-                setTimeout(() => {
-                    newLedgerBalanceField.style.backgroundColor = '';
-                }, 2000);
-                
-                // Show info about remaining amount applied to ledger
-                showToast('₹' + remainingAmount.toFixed(2) + ' applied to Ledger Balance after loan recovery deductions', 'info');
-                
-                remainingAmount = 0;
-            }
-        } catch (e) {
-            console.error('Error updating ledger balance:', e);
-        }
-    }
-    
+	let lastToastMessage = '';
+	let lastToastTime = 0;
+	// If there's still remaining amount, deduct from ledger balance
+	    if (remainingAmount > 0) {
+	        const iframe = document.getElementById('resultFrame');
+	        
+	        try {
+	            const iframeWindow = iframe.contentWindow;
+	            const iframeDoc = iframeWindow.document;
+	            
+	            const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+	            const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+	            
+	            if (ledgerBalanceField && newLedgerBalanceField) {
+	                const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+	                const newLedgerBalance = ledgerBalance + remainingAmount;
+	                
+	                newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
+	                
+	                // Highlight ledger balance update
+	                newLedgerBalanceField.style.backgroundColor = '#e6f7ff';
+	                newLedgerBalanceField.style.fontWeight = 'bold';
+	                
+	                setTimeout(() => {
+	                    newLedgerBalanceField.style.backgroundColor = '';
+	                }, 2000);
+	                
+	                // ✅ PREVENT DUPLICATE TOASTS
+	                const message = '₹' + remainingAmount.toFixed(2) + ' applied to Ledger Balance after loan recovery deductions';
+	                const now = Date.now();
+	                
+	                // Only show toast if message is different or enough time has passed (500ms)
+	                if (lastToastMessage !== message || (now - lastToastTime) > 500) {
+	                    showToast(message, 'info');
+	                    lastToastMessage = message;
+	                    lastToastTime = now;
+	                }
+	                
+	                remainingAmount = 0;
+	            }
+	        } catch (e) {
+	            console.error('Error updating ledger balance:', e);
+	        }
+	    }
     // If there's STILL remaining amount (shouldn't happen normally), alert user
     if (remainingAmount > 0) {
         showToast('WARNING: ₹' + remainingAmount.toFixed(2) + ' remaining after all deductions!', 'warning');
