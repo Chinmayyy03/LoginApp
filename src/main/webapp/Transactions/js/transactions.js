@@ -427,7 +427,22 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTransferFields();
 	updateParticularField(); 
 });
-
+// Transaction amount input handler
+const transactionAmountInput = document.getElementById('transactionamount');
+if (transactionAmountInput) {
+    transactionAmountInput.addEventListener('input', function() {
+        const accountCategory = document.getElementById('accountCategory').value;
+        
+        // ✅ Clear loan received fields when amount changes
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
+            resetLoanReceivedFields();
+        }
+        
+        // Then recalculate
+        calculateNewBalanceInIframe();
+        updateTotals();
+    });
+}
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
 	let accountCategory = document.getElementById('accountCategory').value;
@@ -958,11 +973,11 @@ function calculateSequentialLoanDeduction() {
     const shouldProcess = (operationType === 'deposit') || 
                          (operationType === 'transfer' && opType === 'Credit');
     
-    if (!shouldProcess || transactionAmount <= 0 || (accountCategory !== 'loan' && accountCategory !== 'cc')) {
+    if (!shouldProcess || (accountCategory !== 'loan' && accountCategory !== 'cc')) {
         return;
     }
     
-    // Clear previous highlights
+    // ✅ ALWAYS CLEAR ALL RECEIVED FIELDS FIRST (even if amount is 0)
     if (loanRecoveryColumns && loanRecoveryColumns.length > 0) {
         loanRecoveryColumns.forEach(col => {
             if (!col || !col.columnName) return;
@@ -975,7 +990,15 @@ function calculateSequentialLoanDeduction() {
                 receivedEl.style.backgroundColor = '';
                 receivedEl.style.fontWeight = '';
             }
+            
+            // ✅ Also recalculate remaining to show full receivable
+            calculateRemaining(fieldName);
         });
+    }
+    
+    // ✅ If transaction amount is 0 or empty, stop here (don't recalculate)
+    if (transactionAmount <= 0) {
+        return;
     }
     
     let remainingAmount = transactionAmount;

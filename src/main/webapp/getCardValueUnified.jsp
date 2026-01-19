@@ -78,13 +78,10 @@
                         value = "N/A";
                     }
                 } else if ("all_customers".equals(cardId)) {
-                    // All customers for the branch - filter by first 4 digits of CUSTOMER_ID
+                    // ✅ UPDATED: ALL customers in entire database (removed branch filter)
                     ps = conn.prepareStatement(
-                        "SELECT COUNT(*) as TOTAL " +
-                        "FROM CUSTOMER.CUSTOMER " +
-                        "WHERE SUBSTR(CUSTOMER_ID, 1, 4) = ?"
+                        "SELECT COUNT(*) as TOTAL FROM CUSTOMER.CUSTOMER"
                     );
-                    ps.setString(1, branchCode);
                     rs = ps.executeQuery();
                     
                     if (rs.next()) {
