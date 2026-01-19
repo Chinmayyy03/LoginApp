@@ -276,6 +276,14 @@ function updateLabelsBasedOnOperation() {
     creditAccountsData = [];
     refreshCreditAccountsTable();
     updateTotals();
+	if (accountCategory === 'loan' || accountCategory === 'cc') {
+	    const principalReceived = document.getElementById('principalReceived');
+	    if (principalReceived) {
+	        principalReceived.value = (parseFloat(this.value) || 0).toFixed(2);
+	    }
+	    calculateRemaining('principal');
+	}
+
 
     // ✅ Toggle transfer fields visibility
     toggleTransferFields();
@@ -328,6 +336,21 @@ function toggleLoanFields() {
 
 //Calculate remaining amount (Receivable - Received)
 function calculateRemaining(fieldName) {
+	
+	if (fieldName === 'principal') {
+	        const r = document.getElementById('principalReceivable');
+	        const g = document.getElementById('principalReceived');
+	        const m = document.getElementById('principalRemaining');
+
+	        if (!r || !g || !m) return;
+
+	        const receivable = parseFloat(r.value) || 0;
+	        const received = parseFloat(g.value) || 0;
+
+	        m.value = (receivable - received).toFixed(2);
+	        return;
+	    }
+
     const receivableEl = document.getElementById(fieldName + 'Receivable');
     const receivedEl = document.getElementById(fieldName + 'Received');
     const remainingEl = document.getElementById(fieldName + 'Remaining');
@@ -450,27 +473,34 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTransferFields();
 	updateParticularField(); 
 });
-// Transaction amount input handler - SINGLE CONSOLIDATED LISTENER
-   const transactionAmountInput = document.getElementById('transactionamount');
-   if (transactionAmountInput) {
-       // Remove the inline oninput from HTML first
-       transactionAmountInput.removeAttribute('oninput');
-       
-       transactionAmountInput.addEventListener('input', function() {
-           const accountCategory = document.getElementById('accountCategory').value;
-           
-           // Clear loan received fields when amount changes
-           if (accountCategory === 'loan' || accountCategory === 'cc') {
-               resetLoanReceivedFields();
-           }
-           
-           // Calculate balance (this will call sequential deduction if needed)
-           calculateNewBalanceInIframe();
-           
-           // Update totals
-           updateTotals();
-       });
-   }
+// ================= FINAL & ONLY TRANSACTION AMOUNT HANDLER =================
+const transactionAmountInput = document.getElementById('transactionamount');
+if (transactionAmountInput) {
+    transactionAmountInput.removeAttribute('oninput');
+
+    transactionAmountInput.addEventListener('input', function () {
+        const accountCategory = document.getElementById('accountCategory').value;
+        const txnAmount = parseFloat(this.value) || 0;
+
+        // ✅ LOAN / CC PRINCIPAL HANDLING (LAST)
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
+            resetLoanReceivedFields();
+
+            const principalReceived = document.getElementById('principalReceived');
+            if (principalReceived) {
+                principalReceived.value = txnAmount.toFixed(2);
+            }
+
+            calculateRemaining('principal');
+        }
+
+        // ✅ EXISTING FLOW
+        calculateNewBalanceInIframe();
+        updateTotals();
+    });
+}
+
+
 // ========== LOOKUP MODAL FUNCTIONS ==========
 function openLookup(type) {
 	let accountCategory = document.getElementById('accountCategory').value;
@@ -867,13 +897,14 @@ function buildLoanFieldsTable() {
             : col.description;
         headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
     });
+	headerHTML += '<th>Principal</th>';
     headerHTML += '</tr>';
     headerRow.innerHTML = headerHTML;
     
-    // Build table rows (Receivable, Received, Remaining)
-    let receivableRow = '<tr class="receivable-row"><td>Receivable</td>';
-    let receivedRow = '<tr class="received-row"><td>Received</td>';
-    let remainingRow = '<tr class="remaining-row"><td>Remaining</td>';
+	/* ================= ROWS ================= */
+	let receivableRow = '<tr class="receivable-row"><td>Receivable</td>';
+	let receivedRow   = '<tr class="received-row"><td>Received</td>';
+	let remainingRow  = '<tr class="remaining-row"><td>Remaining</td>';
     
     loanRecoveryColumns.forEach(col => {
         // Safety check for undefined/null values
@@ -883,7 +914,7 @@ function buildLoanFieldsTable() {
         }
         
         const fieldName = col.columnName.toLowerCase().trim();
-        
+		if (fieldName === 'principal') return;
         // Skip if fieldName is empty
         if (!fieldName) {
             console.warn('Empty fieldName for column:', col);
@@ -904,6 +935,10 @@ function buildLoanFieldsTable() {
                        'placeholder="0.00" readonly></td>';
     });
     
+	receivableRow += '<td><input type="text" id="principalReceivable" readonly></td>';
+	    receivedRow   += '<td><input type="text" id="principalReceived"></td>';
+	    remainingRow  += '<td><input type="text" id="principalRemaining" readonly></td>';
+		
     receivableRow += '</tr>';
     receivedRow += '</tr>';
     remainingRow += '</tr>';
@@ -946,17 +981,31 @@ function fetchLoanReceivableData(accountCode) {
 }
 
 function populateLoanReceivableFields(receivableData) {
-    // Populate all receivable fields
+    let totalReceivable = 0;
+
     for (const fieldName in receivableData) {
+        if (fieldName === 'principal') continue;
+
         const receivableField = document.getElementById(fieldName + 'Receivable');
+        const value = parseFloat(receivableData[fieldName]) || 0;
+
         if (receivableField) {
-            receivableField.value = receivableData[fieldName];
-            
-            // Also calculate remaining (Receivable - Received)
-            calculateRemaining(fieldName);
+            receivableField.value = value.toFixed(2);
+            totalReceivable += value;
         }
+
+        calculateRemaining(fieldName);
     }
+
+    // ✅ SET PRINCIPAL RECEIVABLE
+    const principalReceivable = document.getElementById('principalReceivable');
+    if (principalReceivable) {
+        principalReceivable.value = totalReceivable.toFixed(2);
+    }
+
+    calculateRemaining('principal');
 }
+
 
 //Updated clearLoanFields to work with dynamic fields
 function clearLoanFields() {
