@@ -81,7 +81,7 @@
                     // All customers for the branch - filter by first 4 digits of CUSTOMER_ID
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) as TOTAL " +
-                        "FROM CUSTOMERS " +
+                        "FROM CUSTOMER.CUSTOMER " +
                         "WHERE SUBSTR(CUSTOMER_ID, 1, 4) = ?"
                     );
                     ps.setString(1, branchCode);
