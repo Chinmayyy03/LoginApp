@@ -67,31 +67,36 @@
                     </div>
 
                 
-				
-				<!-- TRANSFER SPECIFIC FIELDS (Hidden by default) -->
-		<div id="transferFieldsSection" class="transfer-fields-section">
-		    <div class="transfer-field-group">
-		        <!-- OP Type Dropdown -->
-		        <div class="op-type-inline">
-		            <label for="opType">OP Type:</label>
-		            <select id="opType" name="opType">
-		                <option value="Debit" selected>DEBIT</option>
-		                <option value="Credit">CREDIT</option>
-		            </select>
-		        </div>
-		        
-		        <!-- Totals -->
-		        <div class="totals-row">
-		            <span class="total-label">Total Debit:</span>
-		            <input type="text" id="totalDebit" readonly>
-		        </div>
-		        
-		        <div class="totals-row">
-		            <span class="total-label">Total Credit:</span>
-		            <input type="text" id="totalCredit" readonly>
-		        </div>
-		    </div>
-		</div>
+							
+			<!-- TRANSFER SPECIFIC FIELDS (Hidden by default) -->
+			<div id="transferFieldsSection" class="transfer-fields-section">
+			    <div class="transfer-field-group">
+			        <!-- OP Type Dropdown -->
+			        <div class="op-type-inline">
+			            <label for="opType">OP Type:</label>
+			            <select id="opType" name="opType">
+			                <option value="Debit" selected>DEBIT</option>
+			                <option value="Credit">CREDIT</option>
+			            </select>
+			        </div>
+			        
+			        <!-- Totals -->
+			        <div class="totals-row">
+			            <span class="total-label">Total Debit:</span>
+			            <input type="text" id="totalDebit" readonly>
+			        </div>
+			        
+			        <div class="totals-row">
+			            <span class="total-label">Total Credit:</span>
+			            <input type="text" id="totalCredit" readonly>
+			        </div>
+			        
+			        <!-- Tallied Message -->
+			        <div id="talliedMessage" style="display: none; color: green; font-weight: bold; font-size: 16px; margin-left: 20px;">
+			            ✓ Transaction tallied
+			        </div>
+			    </div>
+			</div>
 
                 </div>
 

@@ -771,7 +771,7 @@ function removeCreditAccount(accountId) {
 }
 
 
-	function updateTotals() {
+function updateTotals() {
     let totalDebit = 0;
     let totalCredit = 0;
 
@@ -789,15 +789,25 @@ function removeCreditAccount(accountId) {
     document.getElementById('totalCredit').value = totalCredit.toFixed(2);
 
     // Optional: highlight when balanced
+    const talliedMessage = document.getElementById('talliedMessage');
     if (totalDebit === totalCredit && totalDebit > 0) {
         document.getElementById('totalDebit').style.borderColor = 'green';
         document.getElementById('totalCredit').style.borderColor = 'green';
-        showToast('transaction match', 'success');
+        
+        // Show "Transaction tallied" message
+        if (talliedMessage) {
+            talliedMessage.style.display = 'block';
+        }
     } else {
         document.getElementById('totalDebit').style.borderColor = '#C8B7F6';
         document.getElementById('totalCredit').style.borderColor = '#C8B7F6';
-    	}
-	}
+        
+        // Hide message
+        if (talliedMessage) {
+            talliedMessage.style.display = 'none';
+        }
+    }
+}
 
 	function loadAccountInTransferForm(accountCode, accountName, opType) {
 	    const operationType = document.querySelector("input[name='operationType']:checked").value;
