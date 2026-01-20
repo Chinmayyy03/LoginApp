@@ -38,7 +38,6 @@
                     break;
                 default:
                     if (c < 32 || c > 126) {
-                        // Escape non-printable characters
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);
@@ -58,11 +57,17 @@
 
     String sessionBranchCode = (String) sess.getAttribute("branchCode");
     String filterBranchCode = request.getParameter("branchCode");
+    String filterStatus = request.getParameter("status");
     
     // Use filter if provided, otherwise use session branch
     String branchCode = (filterBranchCode != null && !filterBranchCode.trim().isEmpty()) 
                         ? filterBranchCode.trim() 
                         : sessionBranchCode;
+    
+    // Default status to "All" if not specified
+    if (filterStatus == null || filterStatus.trim().isEmpty()) {
+        filterStatus = "All";
+    }
     
     int recordsPerPage = 15;
 %>
@@ -77,43 +82,123 @@
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .branch-filter-container {
-    text-align: center;
-    margin: 20px 0;
-    padding: 15px;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.branch-filter-container label {
-    font-size: 16px;
+.filter-row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.filter-group {
+    flex: 1;
+}
+
+.label {
     font-weight: bold;
-    color: #2b0d73;
-    margin-right: 10px;
-}
-
-.branch-filter-container input {
-    padding: 8px 12px;
     font-size: 14px;
-    border: 2px solid #2b0d73;
-    border-radius: 4px;
-    width: 150px;
-    margin-right: 10px;
+    color: #3D316F;
+    margin-bottom: 8px;
+    display: block;
 }
 
-.branch-filter-container button {
-    background: #2b0d73;
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-box select,
+.input-box input {
+    padding: 10px;
+    border: 2px solid #C8B7F6;
+    border-radius: 8px;
+    background-color: #F4EDFF;
+    outline: none;
+    font-size: 14px;
+    width: 100%;
+}
+
+.input-box select:focus,
+.input-box input:focus {
+    border-color: #8066E8;
+}
+
+.input-box input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.icon-btn {
+    background-color: #2D2B80;
     color: white;
-    padding: 8px 20px;
     border: none;
-    border-radius: 6px;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background-color: #1a0548;
+}
+
+.status-group {
+    flex: 1;
+}
+
+.radio-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #2D2B80;
+}
+
+.radio-option label {
+    font-size: 14px;
+    color: #3D316F;
+    cursor: pointer;
+}
+
+.filter-btn-container {
+    display: flex;
+    align-items: flex-end;
+}
+
+.filter-btn {
+    background: #2D2B80;
+    color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
     transition: background 0.3s;
 }
 
-.branch-filter-container button:hover {
+.filter-btn:hover {
     background: #1a0548;
 }
 
@@ -166,7 +251,35 @@
     font-weight: bold;
     padding: 0 15px;
 }
+
+/* Responsive Design */
+@media (max-width: 1000px) {
+    .filter-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .radio-container {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .input-box {
+        width: 100%;
+    }
+    
+    .radio-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
 </style>
+
 <script>
 let allCustomers = [];
 let currentPage = 1;
@@ -215,7 +328,6 @@ function displayCustomers(customers, page) {
         var srNo = i + 1;
         var row = tbody.insertRow();
         
-        // Create cells with safe text content
         var cell1 = row.insertCell(0);
         cell1.textContent = srNo;
         
@@ -321,23 +433,46 @@ window.onload = function() {
 };
 
 function viewCustomer(customerId) {
-    // View Customer functionality - currently does nothing
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewCustomer.jsp', 'View/allCustomers.jsp')
+        );
+    }
+    window.location.href = '<%= request.getContextPath() %>/View/viewCustomer.jsp?customerId=' + customerId + '&returnPage=View/allCustomers.jsp';
     return false;
 }
 
 function filterByBranch() {
-    var branchInput = document.getElementById("branchInput").value.trim();
-    if (branchInput.length === 0) {
-        alert("Please enter a branch code");
+    var branchSelect = document.getElementById("branchInput");
+    var branchCode = branchSelect.value.trim();
+    var statusRadios = document.getElementsByName("status");
+    var selectedStatus = "All";
+    
+    for (var i = 0; i < statusRadios.length; i++) {
+        if (statusRadios[i].checked) {
+            selectedStatus = statusRadios[i].value;
+            break;
+        }
+    }
+    
+    if (branchCode.length === 0) {
+        alert("Please select a branch");
         return;
     }
-    window.location.href = 'allCustomers.jsp?branchCode=' + encodeURIComponent(branchInput);
+    
+    window.location.href = 'allCustomers.jsp?branchCode=' + encodeURIComponent(branchCode) + 
+                          '&status=' + encodeURIComponent(selectedStatus);
 }
 
-function handleBranchKeyPress(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        filterByBranch();
+function updateBranchDescription() {
+    var branchSelect = document.getElementById("branchInput");
+    var descField = document.getElementById("branchDescription");
+    var selectedOption = branchSelect.options[branchSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        descField.value = selectedOption.getAttribute("data-name");
+    } else {
+        descField.value = "";
     }
 }
 </script>
@@ -347,14 +482,74 @@ function handleBranchKeyPress(event) {
 <h2>All Customers</h2>
 
 <div class="branch-filter-container">
-    <label for="branchInput">Branch:</label>
-    <input type="text" 
-           id="branchInput" 
-           placeholder="Enter Branch Code" 
-           value="<%= branchCode %>"
-           maxlength="4"
-           onkeypress="handleBranchKeyPress(event)">
-    <button onclick="filterByBranch()">Filter</button>
+    <div class="filter-row">
+        <!-- Branch Dropdown -->
+        <div class="filter-group">
+            <label class="label" for="branchInput">Branch</label>
+            <div class="input-box">
+                <select id="branchInput" onchange="updateBranchDescription()">
+                    <option value="">Select Branch</option>
+                    <%
+                    Connection conn = null;
+                    PreparedStatement ps = null;
+                    ResultSet rs = null;
+                    try {
+                        conn = DBConnection.getConnection();
+                        ps = conn.prepareStatement("SELECT BRANCH_CODE, NAME FROM HEADOFFICE.BRANCH ORDER BY BRANCH_CODE");
+                        rs = ps.executeQuery();
+                        
+                        while (rs.next()) {
+                            String code = rs.getString("BRANCH_CODE");
+                            String name = rs.getString("NAME");
+                            String selected = code.equals(branchCode) ? "selected" : "";
+                    %>
+                            <option value="<%= code %>" data-name="<%= name %>" <%= selected %>><%= code %></option>
+                    <%
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try { if (rs != null) rs.close(); } catch (Exception e) {}
+                        try { if (ps != null) ps.close(); } catch (Exception e) {}
+                        try { if (conn != null) conn.close(); } catch (Exception e) {}
+                    }
+                    %>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Branch Description -->
+        <div class="filter-group">
+            <label class="label" for="branchDescription">Description</label>
+            <div class="input-box">
+                <input type="text" id="branchDescription" placeholder="Branch Name" readonly>
+            </div>
+        </div>
+        
+        <!-- Status Radio Buttons -->
+        <div class="status-group">
+            <label class="label">Status</label>
+            <div class="radio-container">
+                <div class="radio-option">
+                    <input type="radio" id="statusAll" name="status" value="All" <%= "All".equals(filterStatus) ? "checked" : "" %>>
+                    <label for="statusAll">All</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="statusLive" name="status" value="Live" <%= "Live".equals(filterStatus) ? "checked" : "" %>>
+                    <label for="statusLive">Live</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="statusClosed" name="status" value="Closed" <%= "Closed".equals(filterStatus) ? "checked" : "" %>>
+                    <label for="statusClosed">Closed</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Button -->
+        <div class="filter-btn-container">
+            <button type="button" class="filter-btn" onclick="filterByBranch()">Filter</button>
+        </div>
+    </div>
 </div>
 
 <div class="search-container">
@@ -377,17 +572,17 @@ function handleBranchKeyPress(event) {
 </thead>
 <tbody>
 <%
-try (Connection conn = DBConnection.getConnection()) {
+try {
+    conn = DBConnection.getConnection();
     
-    // Filter by first 4 digits of CUSTOMER_ID
-    PreparedStatement ps = conn.prepareStatement(
+    ps = conn.prepareStatement(
         "SELECT CUSTOMER_ID, NAME, ADDRESS1, MEMBER_NUMBER, PANNO, AADHAR_CARD_NO " +
         "FROM CUSTOMER.CUSTOMER " +
         "WHERE SUBSTR(CUSTOMER_ID, 1, 4) = ? " +
         "ORDER BY CUSTOMER_ID");
 
     ps.setString(1, branchCode);
-    ResultSet rs = ps.executeQuery();
+    rs = ps.executeQuery();
 
     boolean hasData = false;
     int displayCount = 0;
@@ -402,7 +597,6 @@ try (Connection conn = DBConnection.getConnection()) {
         String panNo = rs.getString("PANNO");
         String aadharNo = rs.getString("AADHAR_CARD_NO");
         
-        // ✅ FIXED: Safe JavaScript generation
         out.println("<script>");
         out.println("allCustomers.push({");
         out.println("  customerId: '" + escapeJavaScript(customerId) + "',");
@@ -437,6 +631,10 @@ try (Connection conn = DBConnection.getConnection()) {
 } catch (Exception e) {
     out.println("<tr><td colspan='8' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
     e.printStackTrace();
+} finally {
+    try { if (rs != null) rs.close(); } catch (Exception e) {}
+    try { if (ps != null) ps.close(); } catch (Exception e) {}
+    try { if (conn != null) conn.close(); } catch (Exception e) {}
 }
 %>
 </tbody>
@@ -457,6 +655,9 @@ try (Connection conn = DBConnection.getConnection()) {
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
     
     sessionStorage.setItem('allCustomersPage', '1');
+    
+    // Set initial branch description
+    updateBranchDescription();
 })();
 </script>
 
