@@ -82,11 +82,11 @@
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
 .branch-filter-container {
-    background: white;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background: #ffffff;
+    padding: 10px 30px 10px 30px;
+    margin: 20px 20px 0px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .filter-row {
@@ -159,7 +159,7 @@
     display: flex;
     gap: 20px;
     align-items: center;
-    margin-top: 8px;
+    margin-top: 16px;
 }
 
 .radio-option {
@@ -196,6 +196,7 @@
     font-size: 14px;
     font-weight: bold;
     transition: background 0.3s;
+    margin-top: 14px;
 }
 
 .filter-btn:hover {
@@ -255,7 +256,6 @@
 /* Responsive Design */
 @media (max-width: 1000px) {
     .filter-row {
-        flex-direction: column;
         gap: 15px;
     }
     
@@ -265,10 +265,6 @@
 }
 
 @media (max-width: 768px) {
-    .filter-row {
-        flex-direction: column;
-    }
-    
     .input-box {
         width: 100%;
     }
