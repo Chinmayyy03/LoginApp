@@ -140,9 +140,13 @@ function goBackToList() {
 }
 
 function viewAccounts() {
-    // Navigate to accounts page filtered by this customer
-    alert('View accounts for customer: <%= customerId %>');
-    // You can implement actual navigation here
+    var customerId = '<%= customerId %>';
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        window.parent.updateParentBreadcrumb(
+            window.buildBreadcrumbPath('View/viewCustomerAccounts.jsp', 'View/viewCustomer.jsp')
+        );
+    }
+    window.location.href = '<%= request.getContextPath() %>/View/viewCustomerAccounts.jsp?customerId=' + customerId;
 }
 
 function modifyKYC() {
