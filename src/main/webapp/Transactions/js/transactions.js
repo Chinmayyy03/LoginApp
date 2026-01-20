@@ -935,9 +935,9 @@ function buildLoanFieldsTable() {
                        'placeholder="0.00" readonly></td>';
     });
     
-	receivableRow += '<td><input type="text" id="principalReceivable" readonly></td>';
-	    receivedRow   += '<td><input type="text" id="principalReceived"></td>';
-	    remainingRow  += '<td><input type="text" id="principalRemaining" readonly></td>';
+	receivableRow += '<td><input type="text" id="principalReceivable" placeholder="0.00" readonly></td>';
+	    receivedRow   += '<td><input type="text" id="principalReceived" placeholder="0.00"></td>';
+	    remainingRow  += '<td><input type="text" id="principalRemaining"  placeholder="0.00" readonly></td>';
 		
     receivableRow += '</tr>';
     receivedRow += '</tr>';
