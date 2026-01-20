@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -96,9 +95,49 @@ body {
 
 <body>
 
+<!-- ===== TOAST MESSAGE (NO DATA / NO CHANGE) ===== -->
+<c:if test="${not empty errorMessage or param.msg eq 'noData'}">
+    <div id="toast"
+         style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fdecea;
+            color: #b71c1c;
+            padding: 16px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            z-index: 9999;
+            text-align: center;
+         ">
+        ⚠
+        <c:choose>
+            <c:when test="${not empty errorMessage}">
+                ${errorMessage}
+            </c:when>
+            <c:otherwise>
+                No new data found
+            </c:otherwise>
+        </c:choose>
+    </div>
+</c:if>
+
+
 <div class="edit-container">
 
 <h2>
+<div style="
+    font-size:13px;
+    color:#555;
+    margin-bottom:12px;
+">
+    Total Records in <strong>${table}</strong> :
+    <strong>${recordCount}</strong>
+</div>
+
 <c:choose>
     <c:when test="${mode eq 'ADD'}">Add New ${table}</c:when>
     <c:otherwise>Edit ${table}</c:otherwise>
@@ -198,13 +237,26 @@ body {
 </c:choose>
 </button>
 
-<a href="${pageContext.request.contextPath}/masters?schema=${schema}&table=${table}">
-Cancel
+<a href="${pageContext.request.contextPath}/masters?schema=${schema}&table=${table}&restore=true">
+    Cancel
 </a>
+
 </div>
 
 </form>
 </div>
-
+<!-- ===== AUTO HIDE TOAST ===== -->
+<script>
+(function () {
+    const toast = document.getElementById("toast");
+    if (toast) {
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transition = "opacity 0.5s";
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+})();
+</script>
 </body>
 </html>

@@ -5,52 +5,63 @@
     String updated = request.getParameter("updated");
     String pendingAuth = request.getParameter("pendingAuth");
 
-%>
-
-<%
     List<Map<String,String>> cards = new ArrayList<>();
 
-    try (Connection con = DBConnection.getConnection();
-         PreparedStatement ps = con.prepareStatement(
+    Connection con = null;
+    PreparedStatement ps = null;
+    PreparedStatement cntPs = null;
+    ResultSet rs = null;
+    ResultSet cntRs = null;
+
+    try {
+        con = DBConnection.getConnection();
+
+        ps = con.prepareStatement(
             "SELECT DESCRIPTION, TABLE_NAME FROM GLOBALCONFIG.MASTERS ORDER BY SR_NUMBER"
-         );
-         ResultSet rs = ps.executeQuery()) {
+        );
+        rs = ps.executeQuery();
 
         while (rs.next()) {
 
             Map<String,String> c = new HashMap<>();
 
             String title  = rs.getString("DESCRIPTION");
-            String schema = rs.getString("TABLE_NAME"); // schema name
+            String schema = rs.getString("TABLE_NAME");
 
             c.put("title", title);
             c.put("schema", schema);
 
-            /* ===============================
-               COUNT TABLES IN THIS SCHEMA
-            =============================== */
             String tableCount = "0";
 
-            try (PreparedStatement cntPs = con.prepareStatement(
+            try {
+                cntPs = con.prepareStatement(
                     "SELECT COUNT(*) FROM ALL_TABLES " +
-                    "WHERE OWNER = ? AND TABLE_NAME NOT LIKE 'SYS_%'")) {
-
-
+                    "WHERE OWNER = ? AND TABLE_NAME NOT LIKE 'SYS_%'"
+                );
                 cntPs.setString(1, schema.toUpperCase());
-                ResultSet cntRs = cntPs.executeQuery();
+                cntRs = cntPs.executeQuery();
 
                 if (cntRs.next()) {
                     tableCount = cntRs.getString(1);
                 }
-            } catch (Exception ex) {
-                tableCount = "0"; // safe fallback
+            } finally {
+                try { if (cntRs != null) cntRs.close(); } catch (Exception e) {}
+                try { if (cntPs != null) cntPs.close(); } catch (Exception e) {}
             }
 
             c.put("count", tableCount);
             cards.add(c);
         }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        try { if (rs != null) rs.close(); } catch (Exception e) {}
+        try { if (ps != null) ps.close(); } catch (Exception e) {}
+        try { if (con != null) con.close(); } catch (Exception e) {}
     }
 %>
+
 
 <!DOCTYPE html>
 <html>
@@ -232,15 +243,34 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
+
+function showToast(message) {
+    const toast = document.getElementById("toastMsg");
+    if (!toast) return;
+
+    toast.innerText = message;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.5s";
+        setTimeout(() => {
+            toast.style.display = "none";
+            toast.style.transition = "";
+        }, 500);
+    }, 3000);
+}
+
 function openAddForm() {
     if (!currentSchema) {
-        alert("Schema not selected");
+        showToast("Please select a schema first");
         return;
     }
 
     const table = document.getElementById("tableSearch").value;
     if (!table) {
-        alert("Please select a table first");
+        showToast("Please select a table first");
         return;
     }
 
@@ -249,6 +279,7 @@ function openAddForm() {
         "&table=" + encodeURIComponent(table) +
         "&mode=ADD";
 }
+
 </script>
 
 
@@ -356,6 +387,29 @@ function openAddForm() {
 
     </div>
 </div>
+<!-- Toast message -->
+<!-- Top Center Toast -->
+<div id="toastMsg"
+     style="
+        display:none;
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fdecea;
+        color: #b71c1c;
+        padding: 14px 26px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        z-index: 9999;
+        text-align: center;
+        min-width: 260px;
+     ">
+</div>
+
 
 </body>
 </html>
+

@@ -34,7 +34,6 @@ if ("success".equals(msg)) {
 <style>
 body { font-family: Arial; background:#f5f7fa; padding:20px; }
 
-/* Wrapper */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -42,7 +41,6 @@ body { font-family: Arial; background:#f5f7fa; padding:20px; }
     border: 1px solid #ddd;
 }
 
-/* Table */
 .auth-table {
     width: 100%;
     border-collapse: collapse;
@@ -50,7 +48,6 @@ body { font-family: Arial; background:#f5f7fa; padding:20px; }
     font-size: 13px;
 }
 
-/* Header */
 .auth-table th {
     background: #373279;
     color: white;
@@ -60,7 +57,6 @@ body { font-family: Arial; background:#f5f7fa; padding:20px; }
     white-space: nowrap;
 }
 
-/* Cells */
 .auth-table td {
     padding: 8px;
     border: 1px solid #ccc;
@@ -69,60 +65,30 @@ body { font-family: Arial; background:#f5f7fa; padding:20px; }
     text-overflow: ellipsis;
 }
 
-/* Column widths */
-.auth-table th:nth-child(1), .auth-table td:nth-child(1) { width: 90px; }
-.auth-table th:nth-child(2), .auth-table td:nth-child(2) { width: 140px; }
-.auth-table th:nth-child(3), .auth-table td:nth-child(3) { width: 220px; }
-.auth-table th:nth-child(4), .auth-table td:nth-child(4) { width: 160px; }
-.auth-table th:nth-child(5), .auth-table td:nth-child(5) { width: 90px; text-align:center; }
-.auth-table th:nth-child(6), .auth-table td:nth-child(6) { width: 140px; }
-.auth-table th:nth-child(7), .auth-table td:nth-child(7) { width: 180px; }
-.auth-table th:nth-child(8), .auth-table td:nth-child(8) { width: 180px; }
-.auth-table th:nth-child(9), .auth-table td:nth-child(9) { width: 170px; }
+.auth-table th:nth-child(1),
+.auth-table td:nth-child(1) {
+    width: 60px !important;
+    text-align: center;
+}
 
-/* Status */
 .status-pending { color: orange; font-weight: bold; }
 .status-rejected { color: red; font-weight: bold; }
 
-/* Buttons */
 .btn {
     display:inline-block;
     padding:4px 8px;
     font-size:12px;
     border-radius:4px;
     text-decoration:none;
-    margin:2px 0;
 }
 .btn.auth { background:#28a745; color:#fff; }
 .btn.rej  { background:#dc3545; color:#fff; }
-
-/* FIX STATUS COLUMN SIZE */
-.auth-table th:nth-child(1),
-.auth-table td:nth-child(1) {
-    width: 60px !important;
-    min-width: 60px;
-    max-width: 60px;
-    text-align: center;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-/* Keep status text compact */
-.status-pending,
-.status-rejected {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
 </style>
 </head>
 
 <body>
 
 <script>
-/* Hide message after 2 seconds */
 setTimeout(() => {
     const msg = document.getElementById("msgBox");
     if (msg) msg.style.display = "none";
@@ -147,9 +113,16 @@ setTimeout(() => {
 </tr>
 
 <%
-try (Connection con = DBConnection.getConnection()) {
+Connection con = null;
+PreparedStatement ps = null;
+ResultSet rs = null;
 
-    PreparedStatement ps = con.prepareStatement(
+boolean found = false;
+
+try {
+    con = DBConnection.getConnection();
+
+    ps = con.prepareStatement(
         "SELECT MASTER_NAME, TABLE_NAME, RECORD_KEY, FIELD_NAME, " +
         "ORIGINAL_VALUE, MODIFIED_VALUE, CREATED_DATE, STATUS " +
         "FROM AUDITTRAIL.MASTER_AUDITTRAIL " +
@@ -157,14 +130,12 @@ try (Connection con = DBConnection.getConnection()) {
         "ORDER BY CREATED_DATE DESC"
     );
 
-    ResultSet rs = ps.executeQuery();
-    boolean found = false;
+    rs = ps.executeQuery();
 
     while (rs.next()) {
         found = true;
 %>
 <tr>
-    <!-- STATUS -->
     <td>
         <% if ("E".equals(rs.getString("STATUS"))) { %>
             <span class="status-pending">Pending</span>
@@ -173,29 +144,23 @@ try (Connection con = DBConnection.getConnection()) {
         <% } %>
     </td>
 
-    <!-- ACTION -->
     <td>
-        <% if ("E".equals(rs.getString("STATUS"))) { %>
-            <a class="btn auth"
-               href="AuthorizeMasterServlet?action=A&recordKey=<%=rs.getString("RECORD_KEY")%>&field=<%=rs.getString("FIELD_NAME")%>">
-               Authorize
-            </a>
-            <a class="btn rej"
-               href="AuthorizeMasterServlet?action=R&recordKey=<%=rs.getString("RECORD_KEY")%>&field=<%=rs.getString("FIELD_NAME")%>">
-               Reject
-            </a>
-        <% } else { %>
-            No Action
-        <% } %>
+        <a class="btn auth"
+           href="AuthorizeMasterServlet?action=A&recordKey=<%=rs.getString("RECORD_KEY")%>&field=<%=rs.getString("FIELD_NAME")%>">
+           Authorize
+        </a>
+        <a class="btn rej"
+           href="AuthorizeMasterServlet?action=R&recordKey=<%=rs.getString("RECORD_KEY")%>&field=<%=rs.getString("FIELD_NAME")%>">
+           Reject
+        </a>
     </td>
 
-    <!-- DATA -->
-    <td title="<%=rs.getString("MASTER_NAME")%>"><%=rs.getString("MASTER_NAME")%></td>
-    <td title="<%=rs.getString("TABLE_NAME")%>"><%=rs.getString("TABLE_NAME")%></td>
+    <td><%=rs.getString("MASTER_NAME")%></td>
+    <td><%=rs.getString("TABLE_NAME")%></td>
     <td style="text-align:center;"><%=rs.getString("RECORD_KEY")%></td>
-    <td title="<%=rs.getString("FIELD_NAME")%>"><%=rs.getString("FIELD_NAME")%></td>
-    <td title="<%=rs.getString("ORIGINAL_VALUE")%>"><%=rs.getString("ORIGINAL_VALUE")%></td>
-    <td title="<%=rs.getString("MODIFIED_VALUE")%>"><%=rs.getString("MODIFIED_VALUE")%></td>
+    <td><%=rs.getString("FIELD_NAME")%></td>
+    <td><%=rs.getString("ORIGINAL_VALUE")%></td>
+    <td><%=rs.getString("MODIFIED_VALUE")%></td>
     <td><%=rs.getTimestamp("CREATED_DATE")%></td>
 </tr>
 <%
@@ -203,9 +168,18 @@ try (Connection con = DBConnection.getConnection()) {
 
     if (!found) {
 %>
-<tr><td colspan="9" style="text-align:center;">No records found</td></tr>
+<tr>
+    <td colspan="9" style="text-align:center;">No records found</td>
+</tr>
 <%
     }
+
+} catch (Exception e) {
+    e.printStackTrace();
+} finally {
+    try { if (rs != null) rs.close(); } catch (Exception e) {}
+    try { if (ps != null) ps.close(); } catch (Exception e) {}
+    try { if (con != null) con.close(); } catch (Exception e) {}
 }
 %>
 
@@ -214,4 +188,3 @@ try (Connection con = DBConnection.getConnection()) {
 
 </body>
 </html>
-

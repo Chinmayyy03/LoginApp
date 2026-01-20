@@ -57,27 +57,32 @@ public class InsertRowServlet extends HttpServlet {
 
             rs.close();
             ps.close();
+            rs = null;
+            ps = null;
 
             String pkVal = req.getParameter(pkCol);
-            if (pkVal == null || pkVal.trim().isEmpty()) {
-                throw new Exception("Primary key value missing");
+            if (pkVal == null) {
+                pkVal = "";
             }
 
             /* =========================
                INSERT AUDIT RECORDS (ADD)
             ========================= */
-            for (Map.Entry<String,String[]> e : req.getParameterMap().entrySet()) {
+            boolean anyDataInserted = false;
+
+            for (Map.Entry<String, String[]> e : req.getParameterMap().entrySet()) {
 
                 String column = e.getKey();
 
                 if ("schema".equals(column) ||
-                    "table".equals(column)) {
+                    "table".equals(column) ||
+                    pkCol.equals(column)) {
                     continue;
                 }
 
                 String newVal = e.getValue()[0];
 
-                // ✅ skip empty values
+                // skip empty values
                 if (newVal == null || newVal.trim().isEmpty()) {
                     continue;
                 }
@@ -93,14 +98,30 @@ public class InsertRowServlet extends HttpServlet {
                 ps.setString(1, table);
                 ps.setString(2, schema);
                 ps.setString(3, table);
-                ps.setString(4, pkVal);     // PK value
-                ps.setString(5, column);   // column name
-                ps.setString(6, null);     // original value (ADD)
-                ps.setString(7, newVal);   // new value
+                ps.setString(4, pkVal);
+                ps.setString(5, column);
+                ps.setString(6, null);
+                ps.setString(7, newVal);
                 ps.setString(8, userId);
 
                 ps.executeUpdate();
+                anyDataInserted = true;
+
                 ps.close();
+                ps = null;
+            }
+
+            /* =========================
+               🚨 NO DATA FOUND (ADD)
+            ========================= */
+            if (!anyDataInserted) {
+                resp.sendRedirect(
+                    req.getContextPath() +
+                    "/editRow?schema=" + schema +
+                    "&table=" + table +
+                    "&mode=ADD&msg=noData"
+                );
+                return; // ⛔ STOP HERE
             }
 
         } catch (Exception ex) {
@@ -112,7 +133,7 @@ public class InsertRowServlet extends HttpServlet {
         }
 
         /* =========================
-           REDIRECT TO PENDING AUTH
+           SUCCESS → PENDING AUTH
         ========================= */
         resp.sendRedirect(
             req.getContextPath() +
