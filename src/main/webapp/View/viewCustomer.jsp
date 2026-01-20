@@ -114,6 +114,78 @@
     .back-btn:hover {
       background: #2b0d73;
     }
+
+    /* Modal Popup Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-content {
+        background-color: #ffffff;
+        margin: 5% auto;
+        padding: 30px;
+        border: 1px solid #888;
+        border-radius: 12px;
+        width: 60%;
+        max-width: 700px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 20px;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #2b0d73;
+    }
+
+    .modal-header {
+        color: #2b0d73;
+        margin-bottom: 20px;
+        text-align: center;
+        border-bottom: 2px solid #e8e4fc;
+        padding-bottom: 15px;
+    }
+
+    .signature-container {
+        text-align: center;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .signature-image {
+        max-width: 100%;
+        max-height: 400px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background: white;
+        padding: 10px;
+    }
+
+    .no-signature {
+        color: #999;
+        font-style: italic;
+        font-size: 16px;
+    }
   </style>
   
   <script>
@@ -149,6 +221,48 @@ function viewAccounts() {
     window.location.href = '<%= request.getContextPath() %>/View/viewCustomerAccounts.jsp?customerId=' + customerId;
 }
 
+function viewSignature() {
+    var customerId = '<%= customerId %>';
+    
+    // Show the modal
+    document.getElementById('signatureModal').style.display = 'block';
+    
+    // Load signature image
+    var signatureImg = document.getElementById('signatureImage');
+    var noSignatureMsg = document.getElementById('noSignatureMessage');
+    var loadingMsg = document.getElementById('loadingMessage');
+    
+    // Show loading message
+    loadingMsg.style.display = 'block';
+    signatureImg.style.display = 'none';
+    noSignatureMsg.style.display = 'none';
+    
+    // Create a new image to test if signature exists
+    var testImg = new Image();
+    testImg.onload = function() {
+        signatureImg.src = '<%= request.getContextPath() %>/GetSignatureServlet?customerId=' + customerId;
+        signatureImg.style.display = 'block';
+        loadingMsg.style.display = 'none';
+    };
+    testImg.onerror = function() {
+        noSignatureMsg.style.display = 'block';
+        loadingMsg.style.display = 'none';
+    };
+    testImg.src = '<%= request.getContextPath() %>/GetSignatureServlet?customerId=' + customerId;
+}
+
+function closeSignatureModal() {
+    document.getElementById('signatureModal').style.display = 'none';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    var modal = document.getElementById('signatureModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
 function modifyKYC() {
     alert('Modify KYC Details for customer: <%= customerId %>');
     // Implement navigation to KYC modification page
@@ -167,6 +281,9 @@ function modifyProfile() {
     <div class="action-buttons">
         <button type="button" class="action-btn" onclick="viewAccounts()">
             📋 Accounts
+        </button>
+        <button type="button" class="action-btn" onclick="viewSignature()">
+            ✍️ View Signature
         </button>
         <button type="button" class="action-btn" onclick="modifyKYC()">
             📝 Modify K.Y.C. Details
@@ -591,6 +708,26 @@ function modifyProfile() {
         </button>
     </div>
 </form>
+
+<!-- Signature Modal Popup -->
+<div id="signatureModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeSignatureModal()">&times;</span>
+        <div class="modal-header">
+            <h2>Customer Signature</h2>
+            <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Customer ID: <%= customerId %></p>
+        </div>
+        <div class="signature-container">
+            <div id="loadingMessage" style="display: none;">
+                <p>Loading signature...</p>
+            </div>
+            <img id="signatureImage" class="signature-image" style="display: none;" alt="Customer Signature">
+            <p id="noSignatureMessage" class="no-signature" style="display: none;">
+                No signature available for this customer.
+            </p>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
