@@ -1,6 +1,54 @@
 <%@ page import="java.sql.*, db.DBConnection" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 
+<%!
+    // Helper method to safely escape strings for JavaScript
+    private String escapeJavaScript(String str) {
+        if (str == null || str.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            switch (c) {
+                case '\'':
+                    sb.append("\\'");
+                    break;
+                case '\"':
+                    sb.append("\\\"");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                default:
+                    if (c < 32 || c > 126) {
+                        // Escape non-printable characters
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+            }
+        }
+        return sb.toString();
+    }
+%>
+
 <%
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
@@ -166,15 +214,40 @@ function displayCustomers(customers, page) {
         var customer = customers[i];
         var srNo = i + 1;
         var row = tbody.insertRow();
-        row.innerHTML = 
-            "<td>" + srNo + "</td>" +
-            "<td>" + customer.customerId + "</td>" +
-            "<td>" + customer.name + "</td>" +
-            "<td>" + customer.address + "</td>" +
-            "<td>" + customer.memberNumber + "</td>" +
-            "<td>" + customer.panNo + "</td>" +
-            "<td>" + customer.aadharNo + "</td>" +
-            "<td><button class='action-btn' onclick=\"viewCustomer('" + customer.customerId + "'); return false;\">View Customer</button></td>";
+        
+        // Create cells with safe text content
+        var cell1 = row.insertCell(0);
+        cell1.textContent = srNo;
+        
+        var cell2 = row.insertCell(1);
+        cell2.textContent = customer.customerId;
+        
+        var cell3 = row.insertCell(2);
+        cell3.textContent = customer.name;
+        
+        var cell4 = row.insertCell(3);
+        cell4.textContent = customer.address;
+        
+        var cell5 = row.insertCell(4);
+        cell5.textContent = customer.memberNumber;
+        
+        var cell6 = row.insertCell(5);
+        cell6.textContent = customer.panNo;
+        
+        var cell7 = row.insertCell(6);
+        cell7.textContent = customer.aadharNo;
+        
+        var cell8 = row.insertCell(7);
+        var btn = document.createElement('button');
+        btn.className = 'action-btn';
+        btn.textContent = 'View Customer';
+        btn.onclick = (function(id) {
+            return function() {
+                viewCustomer(id);
+                return false;
+            };
+        })(customer.customerId);
+        cell8.appendChild(btn);
     }
     
     updatePaginationControls(customers.length, page);
@@ -329,14 +402,15 @@ try (Connection conn = DBConnection.getConnection()) {
         String panNo = rs.getString("PANNO");
         String aadharNo = rs.getString("AADHAR_CARD_NO");
         
+        // ✅ FIXED: Safe JavaScript generation
         out.println("<script>");
         out.println("allCustomers.push({");
-        out.println("  customerId: '" + (customerId != null ? customerId : "") + "',");
-        out.println("  name: '" + (name != null ? name.replace("'", "\\'") : "") + "',");
-        out.println("  address: '" + (address != null ? address.replace("'", "\\'") : "") + "',");
-        out.println("  memberNumber: '" + (memberNumber != null ? memberNumber : "") + "',");
-        out.println("  panNo: '" + (panNo != null ? panNo : "") + "',");
-        out.println("  aadharNo: '" + (aadharNo != null ? aadharNo : "") + "'");
+        out.println("  customerId: '" + escapeJavaScript(customerId) + "',");
+        out.println("  name: '" + escapeJavaScript(name) + "',");
+        out.println("  address: '" + escapeJavaScript(address) + "',");
+        out.println("  memberNumber: '" + escapeJavaScript(memberNumber) + "',");
+        out.println("  panNo: '" + escapeJavaScript(panNo) + "',");
+        out.println("  aadharNo: '" + escapeJavaScript(aadharNo) + "'");
         out.println("});");
         out.println("</script>");
         
@@ -349,7 +423,7 @@ try (Connection conn = DBConnection.getConnection()) {
             out.println("<td>" + (memberNumber != null ? memberNumber : "") + "</td>");
             out.println("<td>" + (panNo != null ? panNo : "") + "</td>");
             out.println("<td>" + (aadharNo != null ? aadharNo : "") + "</td>");
-            out.println("<td><button class='action-btn' onclick=\"viewCustomer('" + (customerId != null ? customerId : "") + "'); return false;\">View Customer</button></td>");
+            out.println("<td><button class='action-btn' onclick=\"viewCustomer('" + escapeJavaScript(customerId) + "'); return false;\">View Customer</button></td>");
             out.println("</tr>");
             displayCount++;
             srNo++;
