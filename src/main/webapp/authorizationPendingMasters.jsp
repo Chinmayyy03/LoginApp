@@ -32,22 +32,55 @@ if ("success".equals(msg)) {
 <title>Authorization Pending Masters</title>
 
 <style>
-body { font-family: Arial; background:#f5f7fa; padding:20px; }
+body {
+    font-family: Arial, sans-serif;
+    background: #eeecff;
+    margin: 0;
+    padding: 20px;
+}
 
+/* Page title */
+.page-title {
+    text-align: center;
+    color: #2b0d73;
+    margin: 10px 0 20px;
+}
+
+/* Search bar */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.search-container input {
+    width: 420px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #cfcfe8;
+    font-size: 14px;
+}
+
+/* Scroll container */
 .table-wrapper {
     width: 100%;
-    overflow-x: auto;
+    max-height: 420px;     /* vertical scroll */
+    overflow-y: auto;
+    overflow-x: auto;      /* horizontal scroll */
     background: #fff;
     border: 1px solid #ddd;
 }
 
+/* Table */
 .auth-table {
-    width: 100%;
+    width: max-content;     /* IMPORTANT: allows horizontal scroll */
+    min-width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
     font-size: 13px;
 }
 
+/* Header */
 .auth-table th {
     background: #373279;
     color: white;
@@ -55,25 +88,23 @@ body { font-family: Arial; background:#f5f7fa; padding:20px; }
     border: 1px solid #ccc;
     text-align: center;
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
+/* Cells – ONE LINE, NO CUTTING */
 .auth-table td {
     padding: 8px;
     border: 1px solid #ccc;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;   /* keep one line */
 }
 
-.auth-table th:nth-child(1),
-.auth-table td:nth-child(1) {
-    width: 60px !important;
-    text-align: center;
-}
-
+/* Status */
 .status-pending { color: orange; font-weight: bold; }
 .status-rejected { color: red; font-weight: bold; }
 
+/* Buttons */
 .btn {
     display:inline-block;
     padding:4px 8px;
@@ -93,9 +124,25 @@ setTimeout(() => {
     const msg = document.getElementById("msgBox");
     if (msg) msg.style.display = "none";
 }, 2000);
+
+function searchTable() {
+    let filter = document.getElementById("searchInput").value.toLowerCase();
+    let rows = document.querySelectorAll(".auth-table tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        let rowText = rows[i].innerText.toLowerCase();
+        rows[i].style.display = rowText.includes(filter) ? "" : "none";
+    }
+}
 </script>
 
-<h2>Authorization Pending Masters</h2>
+<h2 class="page-title">Authorization Pending Masters</h2>
+
+<div class="search-container">
+    <input type="text" id="searchInput"
+           placeholder="🔍 Search by Master, Table, Record Key, Field, Value"
+           onkeyup="searchTable()">
+</div>
 
 <div class="table-wrapper">
 <table class="auth-table">
@@ -116,12 +163,10 @@ setTimeout(() => {
 Connection con = null;
 PreparedStatement ps = null;
 ResultSet rs = null;
-
 boolean found = false;
 
 try {
     con = DBConnection.getConnection();
-
     ps = con.prepareStatement(
         "SELECT MASTER_NAME, TABLE_NAME, RECORD_KEY, FIELD_NAME, " +
         "ORIGINAL_VALUE, MODIFIED_VALUE, CREATED_DATE, STATUS " +
@@ -173,7 +218,6 @@ try {
 </tr>
 <%
     }
-
 } catch (Exception e) {
     e.printStackTrace();
 } finally {
