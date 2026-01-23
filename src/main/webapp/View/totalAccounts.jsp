@@ -402,6 +402,28 @@ function updateBranchDescription() {
 try {
     conn = DBConnection.getConnection();
     
+    // ✅ OPTIMIZATION: Load all branch names and product descriptions ONCE
+    java.util.Map<String, String> branchNames = new java.util.HashMap<>();
+    java.util.Map<String, String> productDescs = new java.util.HashMap<>();
+    
+    // Load all branch names
+    PreparedStatement psBranches = conn.prepareStatement("SELECT BRANCH_CODE, NAME FROM HEADOFFICE.BRANCH");
+    ResultSet rsBranches = psBranches.executeQuery();
+    while (rsBranches.next()) {
+        branchNames.put(rsBranches.getString("BRANCH_CODE"), rsBranches.getString("NAME"));
+    }
+    rsBranches.close();
+    psBranches.close();
+    
+    // Load all product descriptions
+    PreparedStatement psProducts = conn.prepareStatement("SELECT PRODUCT_CODE, DESCRIPTION FROM HEADOFFICE.PRODUCT");
+    ResultSet rsProducts = psProducts.executeQuery();
+    while (rsProducts.next()) {
+        productDescs.put(rsProducts.getString("PRODUCT_CODE"), rsProducts.getString("DESCRIPTION"));
+    }
+    rsProducts.close();
+    psProducts.close();
+    
     // Query to get all accounts for the branch
     ps = conn.prepareStatement(
         "SELECT ACCOUNT_CODE, NAME " +
@@ -415,7 +437,7 @@ try {
     boolean hasData = false;
     int displayCount = 0;
     int srNo = 1;
-
+    
     while (rs.next()) {
         hasData = true;
         String accountCode = rs.getString("ACCOUNT_CODE");
@@ -427,11 +449,17 @@ try {
             productCode = accountCode.substring(4, 7);
         }
         
+        // Get branch name from HashMap (instant lookup!)
+        String branchName = branchNames.getOrDefault(branchCode, branchCode);
+        
+        // Get product description from HashMap (instant lookup!)
+        String productDesc = productDescs.getOrDefault(productCode, productCode);
+        
         // Add to JavaScript array for client-side operations
         out.println("<script>");
         out.println("allAccounts.push({");
-        out.println("  branchCode: '" + branchCode + "',");
-        out.println("  productCode: '" + productCode + "',");
+        out.println("  branchCode: '" + (branchName != null ? branchName.replace("'", "\\'") : branchCode) + "',");
+        out.println("  productCode: '" + (productDesc != null ? productDesc.replace("'", "\\'") : productCode) + "',");
         out.println("  accountCode: '" + accountCode + "',");
         out.println("  name: '" + (name != null ? name.replace("'", "\\'") : "") + "'");
         out.println("});");
@@ -441,8 +469,8 @@ try {
         if (displayCount < recordsPerPage) {
             out.println("<tr>");
             out.println("<td>" + srNo + "</td>");
-            out.println("<td>" + branchCode + "</td>");
-            out.println("<td>" + productCode + "</td>");
+            out.println("<td>" + (branchName != null ? branchName : branchCode) + "</td>");
+            out.println("<td>" + (productDesc != null ? productDesc : productCode) + "</td>");
             out.println("<td>" + accountCode + "</td>");
             out.println("<td>" + (name != null ? name : "") + "</td>");
             
