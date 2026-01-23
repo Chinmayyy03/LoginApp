@@ -1277,6 +1277,8 @@ function handleTransactionTypeChange() {
     const transactionAmountDiv = document.querySelector('#transactionamount') ? document.querySelector('#transactionamount').closest('div') : null;
     
     if (transactionType === 'closing') {
+        // ========== CLOSING MODE ==========
+        
         // Hide elements for closing transaction
         if (operationTypeSection) operationTypeSection.style.display = 'none';
         if (transferFieldsSection) transferFieldsSection.style.display = 'none';
@@ -1301,15 +1303,49 @@ function handleTransactionTypeChange() {
         creditAccountsData = [];
         refreshCreditAccountsTable();
         
+        // Clear loan fields if they were active
+        clearLoanFields();
+        resetLoanReceivedFields();
+        
     } else {
-        // Show elements for regular transaction
+        // ========== REGULAR MODE ==========
+        
+        // Show operation type section
         if (operationTypeSection) operationTypeSection.style.display = '';
+        
+        // Show add button and transaction amount
         if (addButtonParent) addButtonParent.style.display = '';
         if (transactionAmountDiv) transactionAmountDiv.style.display = '';
         
-        // Let other functions handle conditional visibility
+        // Show credit accounts container
+        if (creditAccountsContainer) creditAccountsContainer.style.display = '';
+        
+        // Clear inputs when switching back to regular
+        document.getElementById('accountCode').value = '';
+        document.getElementById('accountName').value = '';
+        if (document.getElementById('transactionamount')) {
+            document.getElementById('transactionamount').value = '';
+        }
+        document.getElementById('particular').value = '';
+        previousAccountCode = '';
+        
+        // Clear iframe
+        clearIframe();
+        
+        // Clear transaction data
+        creditAccountsData = [];
+        refreshCreditAccountsTable();
+        updateTotals();
+        
+        // Clear loan fields
+        clearLoanFields();
+        resetLoanReceivedFields();
+        
+        // ✅ IMPORTANT: Let other functions handle conditional visibility based on operation type
+        // This ensures deposit/withdrawal/transfer modes work correctly
         updateLabelsBasedOnOperation();
         toggleLoanFields();
         toggleTransferFields();
+        updateParticularField();
     }
 }
