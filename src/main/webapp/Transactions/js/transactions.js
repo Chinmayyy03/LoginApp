@@ -1281,8 +1281,8 @@ function handleTransactionTypeChange() {
         
         // Hide elements for closing transaction
         if (operationTypeSection) operationTypeSection.style.display = 'none';
-        if (transferFieldsSection) transferFieldsSection.style.display = 'none';
-        if (loanFieldsSection) loanFieldsSection.style.display = 'none';
+        if (transferFieldsSection) transferFieldsSection.classList.remove('active');
+        if (loanFieldsSection) loanFieldsSection.classList.remove('active');
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
         if (addButtonParent) addButtonParent.style.display = 'none';
         if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
@@ -1311,14 +1311,14 @@ function handleTransactionTypeChange() {
         // ========== REGULAR MODE ==========
         
         // Show operation type section
-        if (operationTypeSection) operationTypeSection.style.display = '';
+        if (operationTypeSection) operationTypeSection.style.display = 'flex';
         
         // Show add button and transaction amount
-        if (addButtonParent) addButtonParent.style.display = '';
-        if (transactionAmountDiv) transactionAmountDiv.style.display = '';
+        if (addButtonParent) addButtonParent.style.display = 'flex';
+        if (transactionAmountDiv) transactionAmountDiv.style.display = 'block';
         
         // Show credit accounts container
-        if (creditAccountsContainer) creditAccountsContainer.style.display = '';
+        if (creditAccountsContainer) creditAccountsContainer.style.display = 'block';
         
         // Clear inputs when switching back to regular
         document.getElementById('accountCode').value = '';
@@ -1341,11 +1341,26 @@ function handleTransactionTypeChange() {
         clearLoanFields();
         resetLoanReceivedFields();
         
-        // ✅ IMPORTANT: Let other functions handle conditional visibility based on operation type
-        // This ensures deposit/withdrawal/transfer modes work correctly
+        // ✅ IMPORTANT: Re-evaluate visibility based on current selections
+        const currentOperationType = document.querySelector("input[name='operationType']:checked").value;
+        const accountCategory = document.getElementById('accountCategory').value;
+        
+        // Show/hide transfer fields based on operation type
+        if (currentOperationType === 'transfer') {
+            if (transferFieldsSection) transferFieldsSection.classList.add('active');
+        } else {
+            if (transferFieldsSection) transferFieldsSection.classList.remove('active');
+        }
+        
+        // Show/hide loan fields based on account category
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
+            if (loanFieldsSection) loanFieldsSection.classList.add('active');
+        } else {
+            if (loanFieldsSection) loanFieldsSection.classList.remove('active');
+        }
+        
+        // Update labels and other UI elements
         updateLabelsBasedOnOperation();
-        toggleLoanFields();
-        toggleTransferFields();
         updateParticularField();
     }
 }
