@@ -193,12 +193,21 @@ function selectAccountFromSearch(code, name) {
     setTimeout(function() { 
         submitTransactionForm(); 
         
-        // ✅ ADD THIS: Fetch loan data if category is loan
+        const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
         const accountCategory = document.getElementById('accountCategory').value;
-        if (accountCategory === 'loan'|| accountCategory === 'cc') {
+        
+        // ✅ Populate closing fields if in closing mode
+        if (transactionType === 'closing') {
+            setTimeout(() => {
+                populateClosingFieldsFromIframe();
+            }, 1500);
+        }
+        
+        // ✅ Fetch loan data if category is loan
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
-            }, 1500); // Wait a bit longer for iframe load
+            }, 1500);
         }
     }, 500);
 }
@@ -554,9 +563,18 @@ function setValueFromLookup(code, desc, type) {
     setTimeout(function() { 
         submitTransactionForm(); 
         
-        // ✅ ADD THIS: Fetch loan data if category is loan
+        const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
         const accountCategory = document.getElementById('accountCategory').value;
-        if (accountCategory === 'loan'|| accountCategory === 'cc') {
+        
+        // ✅ Populate closing fields if in closing mode
+        if (transactionType === 'closing') {
+            setTimeout(() => {
+                populateClosingFieldsFromIframe();
+            }, 1500);
+        }
+        
+        // ✅ Fetch loan data if category is loan
+        if (accountCategory === 'loan' || accountCategory === 'cc') {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
             }, 1500);
@@ -1275,6 +1293,7 @@ function handleTransactionTypeChange() {
     const creditAccountsContainer = document.getElementById('creditAccountsContainer');
     const addButtonParent = document.querySelector('.add-btn') ? document.querySelector('.add-btn').parentElement : null;
     const transactionAmountDiv = document.querySelector('#transactionamount') ? document.querySelector('#transactionamount').closest('div') : null;
+    const closingFieldsSection = document.getElementById('closingFieldsSection');
     
     if (transactionType === 'closing') {
         // ========== CLOSING MODE ==========
@@ -1286,6 +1305,9 @@ function handleTransactionTypeChange() {
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
         if (addButtonParent) addButtonParent.style.display = 'none';
         if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
+        
+        // Show closing fields section
+        if (closingFieldsSection) closingFieldsSection.style.display = 'block';
         
         // Clear iframe
         clearIframe();
@@ -1307,6 +1329,9 @@ function handleTransactionTypeChange() {
         clearLoanFields();
         resetLoanReceivedFields();
         
+        // Clear closing fields
+        clearClosingFields();
+        
     } else {
         // ========== REGULAR MODE ==========
         
@@ -1319,6 +1344,9 @@ function handleTransactionTypeChange() {
         
         // Show credit accounts container
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'block';
+        
+        // Hide closing fields section
+        if (closingFieldsSection) closingFieldsSection.style.display = 'none';
         
         // Clear inputs when switching back to regular
         document.getElementById('accountCode').value = '';
@@ -1362,5 +1390,66 @@ function handleTransactionTypeChange() {
         // Update labels and other UI elements
         updateLabelsBasedOnOperation();
         updateParticularField();
+    }
+}
+
+
+
+// Clear closing fields
+function clearClosingFields() {
+    const closingFields = [
+        'closingLedgerBalance',
+        'closingAvailableBalance',
+        'closingTransactionAmount',
+        'closingInterest',
+        'closingBalance',
+        'againstEffectInt',
+        'todInterest',
+        'serviceCharges',
+        'otherCharges',
+        'serviceTax'
+    ];
+    
+    closingFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = '';
+        }
+    });
+}
+
+// Populate closing fields from iframe
+function populateClosingFieldsFromIframe() {
+    const accountCode = document.getElementById('accountCode').value;
+    
+    if (!accountCode) {
+        showToast('Please select an account first', 'error');
+        return;
+    }
+    
+    const iframe = document.getElementById('resultFrame');
+    
+    try {
+        const iframeWindow = iframe.contentWindow;
+        const iframeDoc = iframeWindow.document;
+        
+        const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+        const availableBalanceField = iframeDoc.getElementById('availableBalance');
+        
+        if (ledgerBalanceField && availableBalanceField) {
+            const ledgerBalance = ledgerBalanceField.value || '0.00';
+            const availableBalance = availableBalanceField.value || '0.00';
+            
+            document.getElementById('closingLedgerBalance').value = ledgerBalance;
+            document.getElementById('closingAvailableBalance').value = availableBalance;
+            
+            
+            showToast('Account details loaded successfully', 'success');
+        } else {
+            showToast('Could not fetch account details from iframe', 'error');
+        }
+    } catch (e) {
+        console.error('Error reading iframe:', e);
+        showToast('Error reading account details. Please wait for the page to load completely.', 'error');
     }
 }
