@@ -937,4 +937,8 @@
 	#opType option:hover {
 	    filter: brightness(0.9);
 	}
-		
+	
+	/* Hide elements when closing transaction is selected */
+	.hide-on-closing {
+	    display: none !important;
+	}	

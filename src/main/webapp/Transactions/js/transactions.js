@@ -396,6 +396,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize transaction table
     refreshCreditAccountsTable();
     
+    // Transaction type change handler - NEW
+    const transactionTypeRadios = document.querySelectorAll("input[name='transactionTypeRadio']");
+    transactionTypeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            handleTransactionTypeChange();
+        });
+    });
+    
+    // Initial call to set proper visibility
+    handleTransactionTypeChange();
     
     // Operation type change handler
     const operationRadios = document.querySelectorAll("input[name='operationType']");
@@ -432,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('particular').value = '';
             previousAccountCode = '';
             clearIframe();
-			updateParticularField()
+			updateParticularField();
         });
     }
     
@@ -458,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        toggleLoanFields();
 	    });
 	}
+    
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
     
@@ -467,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
         transactionAmountInput.addEventListener('input', updateTotals);
     }
     
-    // Initial call to set visibility
+    // Initial calls to set visibility
     updateLabelsBasedOnOperation();
     toggleLoanFields();
     toggleTransferFields();
@@ -1250,5 +1261,55 @@ function handleTransactionAmountFinalized() {
         } else	if (opType === 'Credit') {
 			 particularField.value = 'By Transfer';
 		}
+    }
+}
+
+// ========== HANDLE TRANSACTION TYPE CHANGE (REGULAR/CLOSING) ==========
+function handleTransactionTypeChange() {
+    const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+    
+    // Get elements to hide/show
+    const operationTypeSection = document.querySelector('.radio-group-inline:has(input[name="operationType"])');
+    const transferFieldsSection = document.getElementById('transferFieldsSection');
+    const loanFieldsSection = document.getElementById('loanFieldsSection');
+    const creditAccountsContainer = document.getElementById('creditAccountsContainer');
+    const addButtonParent = document.querySelector('.add-btn') ? document.querySelector('.add-btn').parentElement : null;
+    const transactionAmountDiv = document.querySelector('#transactionamount') ? document.querySelector('#transactionamount').closest('div') : null;
+    
+    if (transactionType === 'closing') {
+        // Hide elements for closing transaction
+        if (operationTypeSection) operationTypeSection.style.display = 'none';
+        if (transferFieldsSection) transferFieldsSection.style.display = 'none';
+        if (loanFieldsSection) loanFieldsSection.style.display = 'none';
+        if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
+        if (addButtonParent) addButtonParent.style.display = 'none';
+        if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
+        
+        // Clear iframe
+        clearIframe();
+        
+        // Clear inputs
+        document.getElementById('accountCode').value = '';
+        document.getElementById('accountName').value = '';
+        if (document.getElementById('transactionamount')) {
+            document.getElementById('transactionamount').value = '';
+        }
+        document.getElementById('particular').value = '';
+        previousAccountCode = '';
+        
+        // Clear transaction data
+        creditAccountsData = [];
+        refreshCreditAccountsTable();
+        
+    } else {
+        // Show elements for regular transaction
+        if (operationTypeSection) operationTypeSection.style.display = '';
+        if (addButtonParent) addButtonParent.style.display = '';
+        if (transactionAmountDiv) transactionAmountDiv.style.display = '';
+        
+        // Let other functions handle conditional visibility
+        updateLabelsBasedOnOperation();
+        toggleLoanFields();
+        toggleTransferFields();
     }
 }
