@@ -56,32 +56,28 @@
                 break;
                 
             case "view":
-                // View page cards
+                // View page cards - ALL accounts/customers for logged in branch
                 if ("total_accounts".equals(cardId)) {
-                    if (workingDate != null) {
-                        ps = conn.prepareStatement(
-                            "SELECT COUNT(*) as TOTAL " +
-                            "FROM ACCOUNT.ACCOUNT " +
-                            "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
-                            "AND TRUNC(DATEACCOUNTOPEN) = TRUNC(?)"
-                        );
-                        ps.setString(1, branchCode);
-                        ps.setDate(2, workingDate);
-                        rs = ps.executeQuery();
-                        
-                        if (rs.next()) {
-                            value = String.valueOf(rs.getInt("TOTAL"));
-                        } else {
-                            value = "0";
-                        }
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) as TOTAL " +
+                        "FROM ACCOUNT.ACCOUNT " +
+                        "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ?"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        value = String.valueOf(rs.getInt("TOTAL"));
                     } else {
-                        value = "N/A";
+                        value = "0";
                     }
                 } else if ("all_customers".equals(cardId)) {
-                    // ✅ UPDATED: ALL customers in entire database (removed branch filter)
+                    // All customers for logged in branch
                     ps = conn.prepareStatement(
-                        "SELECT COUNT(*) as TOTAL FROM CUSTOMER.CUSTOMER"
+                        "SELECT COUNT(*) as TOTAL FROM CUSTOMER.CUSTOMER " +
+                        "WHERE SUBSTR(CUSTOMER_ID, 1, 4) = ?"
                     );
+                    ps.setString(1, branchCode);
                     rs = ps.executeQuery();
                     
                     if (rs.next()) {

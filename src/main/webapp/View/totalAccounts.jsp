@@ -2,14 +2,20 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <%
-    // Get branch code from session
+    // Get branch code from session or filter
     HttpSession sess = request.getSession(false);
     if (sess == null || sess.getAttribute("branchCode") == null) {
         response.sendRedirect("../login.jsp");
         return;
     }
 
-    String branchCode = (String) sess.getAttribute("branchCode");
+    String sessionBranchCode = (String) sess.getAttribute("branchCode");
+    String filterBranchCode = request.getParameter("branchCode");
+    
+    // Use filter if provided, otherwise use session branch
+    String branchCode = (filterBranchCode != null && !filterBranchCode.trim().isEmpty()) 
+                        ? filterBranchCode.trim() 
+                        : sessionBranchCode;
     
     int recordsPerPage = 15;
 %>
@@ -23,6 +29,82 @@
 
 <link rel="stylesheet" href="../css/totalCustomers.css">
 <style>
+.branch-filter-container {
+    background: #ffffff;
+    padding: 10px 30px 10px 30px;
+    margin: 20px 20px 0px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.filter-row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.filter-group {
+    flex: 1;
+}
+
+.label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #3D316F;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-box select,
+.input-box input {
+    padding: 10px;
+    border: 2px solid #C8B7F6;
+    border-radius: 8px;
+    background-color: #F4EDFF;
+    outline: none;
+    font-size: 14px;
+    width: 100%;
+}
+
+.input-box select:focus,
+.input-box input:focus {
+    border-color: #8066E8;
+}
+
+.input-box input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.filter-btn-container {
+    display: flex;
+    align-items: flex-end;
+}
+
+.filter-btn {
+    background: #2D2B80;
+    color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s;
+    margin-top: 14px;
+}
+
+.filter-btn:hover {
+    background: #1a0548;
+}
+
 .pagination-container {
     display: flex;
     justify-content: center;
@@ -55,6 +137,18 @@
     color: #2b0d73;
     font-weight: bold;
     padding: 0 15px;
+}
+
+@media (max-width: 1000px) {
+    .filter-row {
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .input-box {
+        width: 100%;
+    }
 }
 </style>
 <script>
@@ -191,6 +285,9 @@ window.onload = function() {
         currentPage = parseInt(savedPage);
         displayAccounts(allAccounts, currentPage);
     }
+    
+    // Set initial branch description
+    updateBranchDescription();
 };
 
 function viewAccount(accountCode) {
@@ -202,11 +299,87 @@ function viewAccount(accountCode) {
     window.location.href = '<%= request.getContextPath() %>/View/viewAccount.jsp?accountCode=' + accountCode + '&returnPage=View/totalAccounts.jsp';
 }
 
+function filterByBranch() {
+    var branchSelect = document.getElementById("branchInput");
+    var branchCode = branchSelect.value.trim();
+    
+    if (branchCode.length === 0) {
+        alert("Please select a branch");
+        return;
+    }
+    
+    window.location.href = 'totalAccounts.jsp?branchCode=' + encodeURIComponent(branchCode);
+}
+
+function updateBranchDescription() {
+    var branchSelect = document.getElementById("branchInput");
+    var descField = document.getElementById("branchDescription");
+    var selectedOption = branchSelect.options[branchSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        descField.value = selectedOption.getAttribute("data-name");
+    } else {
+        descField.value = "";
+    }
+}
+
 </script>
 </head>
 <body>
 
 <h2>Total Accounts for Branch: <%= branchCode %></h2>
+
+<div class="branch-filter-container">
+    <div class="filter-row">
+        <!-- Branch Dropdown -->
+        <div class="filter-group">
+            <label class="label" for="branchInput">Branch</label>
+            <div class="input-box">
+                <select id="branchInput" onchange="updateBranchDescription()">
+                    <option value="">Select Branch</option>
+                    <%
+                    Connection conn = null;
+                    PreparedStatement ps = null;
+                    ResultSet rs = null;
+                    try {
+                        conn = DBConnection.getConnection();
+                        ps = conn.prepareStatement("SELECT BRANCH_CODE, NAME FROM HEADOFFICE.BRANCH ORDER BY BRANCH_CODE");
+                        rs = ps.executeQuery();
+                        
+                        while (rs.next()) {
+                            String code = rs.getString("BRANCH_CODE");
+                            String name = rs.getString("NAME");
+                            String selected = code.equals(branchCode) ? "selected" : "";
+                    %>
+                            <option value="<%= code %>" data-name="<%= name %>" <%= selected %>><%= code %></option>
+                    <%
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try { if (rs != null) rs.close(); } catch (Exception e) {}
+                        try { if (ps != null) ps.close(); } catch (Exception e) {}
+                        try { if (conn != null) conn.close(); } catch (Exception e) {}
+                    }
+                    %>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Branch Description -->
+        <div class="filter-group">
+            <label class="label" for="branchDescription">Description</label>
+            <div class="input-box">
+                <input type="text" id="branchDescription" placeholder="Branch Name" readonly>
+            </div>
+        </div>
+        
+        <!-- Filter Button -->
+        <div class="filter-btn-container">
+            <button type="button" class="filter-btn" onclick="filterByBranch()">Filter</button>
+        </div>
+    </div>
+</div>
 
 <div class="search-container">
      <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Product Code, Branch">
@@ -226,27 +399,18 @@ function viewAccount(accountCode) {
 </thead>
 <tbody>
 <%
-try (Connection conn = DBConnection.getConnection()) {
+try {
+    conn = DBConnection.getConnection();
     
-    // Get working date from session
-    Date workingDate = (Date) session.getAttribute("workingDate");
-    
-    if (workingDate == null) {
-        out.println("<tr><td colspan='6' class='no-data'>Working date not available. Please refresh the page.</td></tr>");
-        return;
-    }
-    
-    // Query to get accounts opened on working date
-    PreparedStatement ps = conn.prepareStatement(
+    // Query to get all accounts for the branch
+    ps = conn.prepareStatement(
         "SELECT ACCOUNT_CODE, NAME " +
         "FROM ACCOUNT.ACCOUNT " +
         "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ? " +
-        "AND TRUNC(DATEACCOUNTOPEN) = TRUNC(?) " +
         "ORDER BY ACCOUNT_CODE");
 
     ps.setString(1, branchCode);
-    ps.setDate(2, workingDate);
-    ResultSet rs = ps.executeQuery();
+    rs = ps.executeQuery();
 
     boolean hasData = false;
     int displayCount = 0;
@@ -293,12 +457,16 @@ try (Connection conn = DBConnection.getConnection()) {
     }
 
     if (!hasData) {
-        out.println("<tr><td colspan='6' class='no-data'>No accounts found for today's working date.</td></tr>");
+        out.println("<tr><td colspan='6' class='no-data'>No accounts found for branch code: " + branchCode + "</td></tr>");
     }
 
 } catch (Exception e) {
     out.println("<tr><td colspan='6' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
     e.printStackTrace();
+} finally {
+    try { if (rs != null) rs.close(); } catch (Exception e) {}
+    try { if (ps != null) ps.close(); } catch (Exception e) {}
+    try { if (conn != null) conn.close(); } catch (Exception e) {}
 }
 %>
 </tbody>

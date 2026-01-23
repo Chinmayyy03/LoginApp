@@ -426,6 +426,9 @@ window.onload = function() {
         currentPage = parseInt(savedPage);
         displayCustomers(allCustomers, currentPage);
     }
+    
+    // Set initial branch description
+    updateBranchDescription();
 };
 
 function viewCustomer(customerId) {
@@ -475,7 +478,7 @@ function updateBranchDescription() {
 </head>
 <body>
 
-<h2>All Customers</h2>
+<h2>All Customers for Branch: <%= branchCode %></h2>
 
 <div class="branch-filter-container">
     <div class="filter-row">
@@ -651,9 +654,6 @@ try {
     document.getElementById("pageInfo").textContent = "Page 1 of " + totalPages;
     
     sessionStorage.setItem('allCustomersPage', '1');
-    
-    // Set initial branch description
-    updateBranchDescription();
 })();
 </script>
 
