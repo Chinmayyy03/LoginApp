@@ -172,9 +172,29 @@
 				            </tbody>
 				        </table>
 				    </div>
+				    
+				</div>
+				
+				<!-- CLOSING SPECIFIC FIELDS (Hidden by default) -->
+				<div id="closingFieldsSection" class="loan-fields-section">    
+				    <div id="closingFieldsLoader" style="text-align: center; padding: 20px;">
+				        <div class="loading-spinner"></div>
+				        <div style="margin-top: 10px; color: #8066E8;">Loading closing fields...</div>
+				    </div>
+				    <div id="closingFieldsTableContainer" style="display: none;">
+				        <table class="compact-loan-table" id="closingFieldsTable">
+				            <thead id="closingTableHeader">
+				                <!-- Headers will be dynamically generated -->
+				            </thead>
+				            <tbody id="closingTableBody">
+				                <!-- Rows will be dynamically generated -->
+				            </tbody>
+				        </table>
+				    </div>
 				</div>
 				
 				<div id="creditAccountsContainer"></div>
+				
 				
 				
             </fieldset>

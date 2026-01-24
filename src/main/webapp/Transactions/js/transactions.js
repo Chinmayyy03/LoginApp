@@ -402,6 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Fetch loan recovery columns from database
     fetchLoanRecoveryColumns();
 	
+	// Fetch closing sequence columns from database
+	    fetchClosingSequenceColumns();
+		
     // Initialize transaction table
     refreshCreditAccountsTable();
     
@@ -885,6 +888,7 @@ function updateTotals() {
 	
 	// ========== DYNAMIC LOAN FIELDS ==========
 	let loanRecoveryColumns = [];
+	let closingSequenceColumns = [];
 
 	// Fetch loan recovery columns from database
 	function fetchLoanRecoveryColumns() {
@@ -984,6 +988,75 @@ function buildLoanFieldsTable() {
     
     tableBody.innerHTML = receivableRow + receivedRow + remainingRow;
 }
+function buildClosingFieldsTable() {
+    const loader = document.getElementById('closingFieldsLoader');
+    const tableContainer = document.getElementById('closingFieldsTableContainer');
+    const headerRow = document.getElementById('closingTableHeader');
+    const tableBody = document.getElementById('closingTableBody');
+    
+    if (!closingSequenceColumns || closingSequenceColumns.length === 0) {
+        loader.innerHTML = '<p style="color: #f44336;">No closing sequence columns configured</p>';
+        return;
+    }
+    
+    // Hide loader and show table
+    loader.style.display = 'none';
+    tableContainer.style.display = 'block';
+    
+    // Build table headers
+    let headerHTML = '<tr><th>Type</th>';
+    closingSequenceColumns.forEach(col => {
+        if (!col || !col.description) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        const displayName = col.description.length > 10 
+            ? col.description.substring(0, 20) 
+            : col.description;
+        headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
+    });
+    headerHTML += '</tr>';
+    headerRow.innerHTML = headerHTML;
+    
+    // Build table rows (Receivable, Received, Remaining)
+    let receivableRow = '<tr class="receivable-row"><td>Receivable</td>';
+    let receivedRow   = '<tr class="received-row"><td>Received</td>';
+    let remainingRow  = '<tr class="remaining-row"><td>Remaining</td>';
+    
+    closingSequenceColumns.forEach(col => {
+        if (!col || !col.columnName) {
+            console.warn('Skipping invalid column:', col);
+            return;
+        }
+        
+        const fieldName = col.columnName.toLowerCase().trim();
+        
+        if (!fieldName) {
+            console.warn('Empty fieldName for column:', col);
+            return;
+        }
+        
+        // Receivable row (readonly)
+        receivableRow += '<td><input type="text" name="' + fieldName + 'Receivable" ' +
+                        'id="closing_' + fieldName + 'Receivable" placeholder="0.00" readonly></td>';
+        
+        // Received row (editable)
+        receivedRow += '<td><input type="text" name="' + fieldName + 'Received" ' +
+                      'id="closing_' + fieldName + 'Received" placeholder="0.00" ' +
+                      'oninput="calculateClosingRemaining(\'' + fieldName + '\')"></td>';
+        
+        // Remaining row (readonly)
+        remainingRow += '<td><input type="text" id="closing_' + fieldName + 'Remaining" ' +
+                       'placeholder="0.00" readonly></td>';
+    });
+    
+    receivableRow += '</tr>';
+    receivedRow += '</tr>';
+    remainingRow += '</tr>';
+    
+    tableBody.innerHTML = receivableRow + receivedRow + remainingRow;
+}
 
 // Helper function to escape HTML (add this if not already present)
 function escapeHtml(text) {
@@ -1016,6 +1089,24 @@ function fetchLoanReceivableData(accountCode) {
         .catch(error => {
             console.error('Error fetching loan receivable data:', error);
             showToast('Failed to fetch loan receivable data', 'error');
+        });
+}
+
+function fetchClosingSequenceColumns() {
+    fetch('GetClosingSequenceColumns.jsp')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.columns && data.columns.length > 0) {
+                closingSequenceColumns = data.columns;
+                buildClosingFieldsTable();
+            } else {
+                showToast('Failed to load closing sequence columns', 'error');
+                console.error('Error:', data.error || 'No columns found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching closing sequence columns:', error);
+            showToast('Failed to load closing sequence columns', 'error');
         });
 }
 
@@ -1293,7 +1384,6 @@ function handleTransactionTypeChange() {
     const creditAccountsContainer = document.getElementById('creditAccountsContainer');
     const addButtonParent = document.querySelector('.add-btn') ? document.querySelector('.add-btn').parentElement : null;
     const transactionAmountDiv = document.querySelector('#transactionamount') ? document.querySelector('#transactionamount').closest('div') : null;
-    const closingFieldsSection = document.getElementById('closingFieldsSection');
     
     if (transactionType === 'closing') {
         // ========== CLOSING MODE ==========
@@ -1304,10 +1394,16 @@ function handleTransactionTypeChange() {
         if (loanFieldsSection) loanFieldsSection.classList.remove('active');
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
         if (addButtonParent) addButtonParent.style.display = 'none';
-        //if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
-        
-        // Show closing fields section
-        if (closingFieldsSection) closingFieldsSection.style.display = 'block';
+		// Show closing fields section
+		    const closingFieldsSection = document.getElementById('closingFieldsSection');
+		    if (closingFieldsSection) {
+		        closingFieldsSection.classList.add('active');
+		        
+		        // Fetch columns if not already loaded
+		        if (closingSequenceColumns.length === 0) {
+		            fetchClosingSequenceColumns();
+		        }
+		    }
         
         // Clear iframe
         clearIframe();
@@ -1345,8 +1441,8 @@ function handleTransactionTypeChange() {
         // Show credit accounts container
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'block';
         
-        // Hide closing fields section
-        if (closingFieldsSection) closingFieldsSection.style.display = 'none';
+		const closingFieldsSection = document.getElementById('closingFieldsSection');
+		   if (closingFieldsSection) closingFieldsSection.classList.remove('active');
         
         // Clear inputs when switching back to regular
         document.getElementById('accountCode').value = '';
