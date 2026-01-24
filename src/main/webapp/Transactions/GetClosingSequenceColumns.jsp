@@ -5,6 +5,12 @@
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
 
+    String accountType = request.getParameter("accountType");
+    
+    // ✅ ADD LOGGING
+    System.out.println("=== GetClosingSequenceColumns DEBUG ===");
+    System.out.println("Received accountType parameter: [" + accountType + "]");
+
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
@@ -12,12 +18,25 @@
     try {
         con = DBConnection.getConnection();
         
-        // Query to get loan recovery sequence columns ordered by SEQUENCE_NO
-        String query = "SELECT SR_NO, DISCRIPTATION, SEQUENCE_NO, COLUMN_NAME " +
-                       "FROM HEADOFFICE.CLOUSING_SEQ " +
-                       "ORDER BY SEQUENCE_NO";
+        String query = "SELECT SR_NO, DISCRIPTATION, SEQUENCE_NO, COLUMN_NAME, ACCOUNT_TYPE " +
+                       "FROM HEADOFFICE.CLOUSING_SEQ ";
+        
+        if (accountType != null && !accountType.trim().isEmpty()) {
+            query += "WHERE UPPER(ACCOUNT_TYPE) = UPPER(?) ";
+        }
+        
+        query += "ORDER BY SEQUENCE_NO";
+        
+        // ✅ ADD LOGGING
+        System.out.println("Query: " + query);
         
         ps = con.prepareStatement(query);
+        
+        if (accountType != null && !accountType.trim().isEmpty()) {
+            ps.setString(1, accountType.trim());
+            System.out.println("Set parameter 1 to: [" + accountType.trim() + "]");
+        }
+        
         rs = ps.executeQuery();
         
         JSONObject jsonResponse = new JSONObject();
@@ -25,12 +44,18 @@
         
         JSONArray columnsArray = new JSONArray();
         
+        int rowCount = 0;
         while (rs.next()) {
+            rowCount++;
             JSONObject column = new JSONObject();
             column.put("srNo", rs.getInt("SR_NO"));
             
             String description = rs.getString("DISCRIPTATION");
             String columnName = rs.getString("COLUMN_NAME");
+            String dbAccountType = rs.getString("ACCOUNT_TYPE");
+            
+            // ✅ ADD LOGGING
+            System.out.println("Row " + rowCount + ": ACCOUNT_TYPE=[" + dbAccountType + "], COLUMN_NAME=[" + columnName + "]");
             
             // Skip rows with null or empty column names
             if (columnName == null || columnName.trim().isEmpty()) {
@@ -44,6 +69,11 @@
             columnsArray.put(column);
         }
         
+        // ✅ ADD LOGGING
+        System.out.println("Total rows found: " + rowCount);
+        System.out.println("Valid columns after filtering: " + columnsArray.length());
+        System.out.println("=====================================");
+        
         jsonResponse.put("columns", columnsArray);
         jsonResponse.put("count", columnsArray.length());
         
@@ -51,6 +81,7 @@
         
     } catch (SQLException e) {
         e.printStackTrace();
+        System.out.println("SQL Error: " + e.getMessage());
         
         JSONObject errorResponse = new JSONObject();
         errorResponse.put("success", false);

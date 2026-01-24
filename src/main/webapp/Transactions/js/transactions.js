@@ -470,18 +470,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	const categoryDropdown = document.getElementById('accountCategory');
 	if (categoryDropdown) {
 	    categoryDropdown.addEventListener('change', function() {
-	        document.getElementById("accountCode").value = '';
-	        document.getElementById("accountName").value = '';
-	        document.getElementById("transactionamount").value = '';
-	        previousAccountCode = '';
-	        document.getElementById('searchResults').classList.remove('active');
-	        currentCategory = this.value;
+	        // ... existing code ...
 	        
-	        // ✅ Clear loan fields when switching away from loan/cc
-	        const oldCategory = currentCategory;
-	        if (oldCategory === 'loan' || oldCategory === 'cc') {
-	            clearLoanFields();
-	            resetLoanReceivedFields();
+	        // ✅ ADD THIS - Refetch closing columns if in closing mode
+	        const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+	        if (transactionType === 'closing') {
+	            fetchClosingSequenceColumns();
 	        }
 	        
 	        // Toggle loan fields visibility
@@ -1101,7 +1095,11 @@ function fetchLoanReceivableData(accountCode) {
 }
 
 function fetchClosingSequenceColumns() {
-    fetch('GetClosingSequenceColumns.jsp')
+    // ✅ ADD THIS - Get current account type
+    const accountCategory = document.getElementById('accountCategory').value;
+    
+    // ✅ MODIFY FETCH URL - Add accountType parameter
+    fetch('GetClosingSequenceColumns.jsp?accountType=' + encodeURIComponent(accountCategory))
         .then(response => response.json())
         .then(data => {
             if (data.success && data.columns && data.columns.length > 0) {
