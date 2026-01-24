@@ -693,35 +693,64 @@ function calculateNewBalanceInIframe() {
 	    const transactionAmount = document.getElementById('transactionamount').value.trim();
 	    const particular = document.getElementById('particular').value.trim();
 	    const opType = document.getElementById('opType').value;
-	
+	    const accountCategory = document.getElementById('accountCategory').value;
+
 	    // Validate inputs
 	    if (!accountCode) {
 	        showToast('Please enter or select an account code', 'error');
 	        return;
 	    }
-	
+
 	    if (!accountName) {
 	        showToast('Please select an account', 'error');
 	        return;
 	    }
-	
+
 	    if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
 	        showToast('Please enter a valid transaction amount', 'error');
 	        return;
 	    }
-	
+
 	    const finalAmount = parseFloat(transactionAmount).toFixed(2);
-	
-	    // ✅ Add to data array (NO duplicate check now)
+
+	    // ✅ NEW: Collect loan field values if it's a loan account
+	    let loanFieldsData = {};
+	    if (accountCategory === 'loan' || accountCategory === 'cc') {
+	        loanRecoveryColumns.forEach(col => {
+	            if (!col || !col.columnName) return;
+	            const fieldName = col.columnName.toLowerCase().trim();
+	            if (!fieldName) return;
+	            
+	            const receivableEl = document.getElementById(fieldName + 'Receivable');
+	            const receivedEl = document.getElementById(fieldName + 'Received');
+	            const remainingEl = document.getElementById(fieldName + 'Remaining');
+	            
+	            loanFieldsData[fieldName] = {
+	                receivable: receivableEl ? receivableEl.value : '',
+	                received: receivedEl ? receivedEl.value : '',
+	                remaining: remainingEl ? remainingEl.value : ''
+	            };
+	        });
+	        
+	        // Add principal field
+	        loanFieldsData['principal'] = {
+	            receivable: document.getElementById('principalReceivable')?.value || '',
+	            received: document.getElementById('principalReceived')?.value || '',
+	            remaining: document.getElementById('principalRemaining')?.value || ''
+	        };
+	    }
+
+	    // ✅ Add to data array WITH loan fields data
 	    creditAccountsData.push({
 	        id: Date.now(),
 	        code: accountCode,
 	        name: accountName,
 	        amount: finalAmount,
 	        particular: particular,
-	        opType: opType
+	        opType: opType,
+	        loanFields: loanFieldsData  // ✅ NEW: Store loan field values
 	    });
-	
+
 	    // Clear input fields
 	    document.getElementById('accountCode').value = '';
 	    document.getElementById('accountName').value = '';
@@ -729,12 +758,16 @@ function calculateNewBalanceInIframe() {
 	    document.getElementById('particular').value = '';
 	    previousAccountCode = '';
 	    clearIframe();
-	
+
+	    // Clear loan fields
+	    if (accountCategory === 'loan' || accountCategory === 'cc') {
+	        clearLoanFields();
+	        resetLoanReceivedFields();
+	    }
+
 	    // Refresh table + totals
 	    refreshCreditAccountsTable();
 	    updateTotals();
-	
-	    
 	}
 
 
@@ -843,36 +876,69 @@ function updateTotals() {
     }
 }
 
-	function loadAccountInTransferForm(accountCode, accountName, opType) {
-	    const operationType = document.querySelector("input[name='operationType']:checked").value;
-	    const accountCategory = document.getElementById('accountCategory').value;
-	    
-	    if (operationType !== 'transfer') {
-	        showToast('This feature only works in transfer mode', 'warning');
-	        return;
-	    }
-	    
-	    // Build URL with parameters
-	    let url = 'transferForm.jsp?';
-	    url += 'operationType=' + encodeURIComponent(operationType);
-	    url += '&accountCategory=' + encodeURIComponent(accountCategory);
-	    
-	    if (opType === 'Debit') {
-	        url += '&accountCode=' + encodeURIComponent(accountCode);
-	        url += '&accountName=' + encodeURIComponent(accountName);
-	        url += '&creditAccountCode=';
-	        url += '&creditAccountName=';
-	    } else {
-	        url += '&accountCode=';
-	        url += '&accountName=';
-	        url += '&creditAccountCode=' + encodeURIComponent(accountCode);
-	        url += '&creditAccountName=' + encodeURIComponent(accountName);
-	    }
-	    
-	    // Load in iframe
-	    document.getElementById('resultFrame').src = url;
+function loadAccountInTransferForm(accountCode, accountName, opType) {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const accountCategory = document.getElementById('accountCategory').value;
+    
+    if (operationType !== 'transfer') {
+        showToast('This feature only works in transfer mode', 'warning');
+        return;
+    }
+    
+    // Build URL with parameters
+    let url = 'transferForm.jsp?';
+    url += 'operationType=' + encodeURIComponent(operationType);
+    url += '&accountCategory=' + encodeURIComponent(accountCategory);
+    
+    if (opType === 'Debit') {
+        url += '&accountCode=' + encodeURIComponent(accountCode);
+        url += '&accountName=' + encodeURIComponent(accountName);
+        url += '&creditAccountCode=';
+        url += '&creditAccountName=';
+    } else {
+        url += '&accountCode=';
+        url += '&accountName=';
+        url += '&creditAccountCode=' + encodeURIComponent(accountCode);
+        url += '&creditAccountName=' + encodeURIComponent(accountName);
+    }
+    
+    // Load in iframe
+    document.getElementById('resultFrame').src = url;
 
-	}
+    // ✅ UPDATED: Restore loan data and values
+    if (accountCategory === 'loan' || accountCategory === 'cc') {
+        // Find the transaction in creditAccountsData
+        const transaction = creditAccountsData.find(acc => acc.code === accountCode);
+        
+        if (transaction) {
+            // Set transaction amount
+            document.getElementById('transactionamount').value = transaction.amount;
+            
+            // Fetch loan receivable data first
+            setTimeout(() => {
+                fetchLoanReceivableData(accountCode);
+                
+                // ✅ RESTORE saved loan field values
+                setTimeout(() => {
+                    if (transaction.loanFields) {
+                        // Restore all loan field values
+                        for (const fieldName in transaction.loanFields) {
+                            const fieldData = transaction.loanFields[fieldName];
+                            
+                            const receivableEl = document.getElementById(fieldName + 'Receivable');
+                            const receivedEl = document.getElementById(fieldName + 'Received');
+                            const remainingEl = document.getElementById(fieldName + 'Remaining');
+                            
+                            if (receivableEl) receivableEl.value = fieldData.receivable || '';
+                            if (receivedEl) receivedEl.value = fieldData.received || '';
+                            if (remainingEl) remainingEl.value = fieldData.remaining || '';
+                        }
+                    }
+                }, 500);
+            }, 1000);
+        }
+    }
+}
 	const opTypeSelect = document.getElementById('opType');
 
 	function updateOpTypeBackground() {
