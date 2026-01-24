@@ -329,7 +329,15 @@ function updateLabelsBasedOnOperation() {
 function toggleLoanFields() {
     const accountCategory = document.getElementById('accountCategory').value;
     const loanFieldsSection = document.getElementById('loanFieldsSection');
-    
+	const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+	
+	// ✅ ADD THIS CHECK - Don't show loan fields in closing mode
+	    if (transactionType === 'closing') {
+	        loanFieldsSection.classList.remove('active');
+	        clearLoanFields();
+	        return;
+	    }
+		
     if (accountCategory === 'loan' || accountCategory === 'cc') {
         loanFieldsSection.classList.add('active');
         
