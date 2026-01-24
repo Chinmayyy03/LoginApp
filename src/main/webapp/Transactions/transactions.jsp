@@ -175,60 +175,7 @@
 				</div>
 				
 				<div id="creditAccountsContainer"></div>
-				<!-- CLOSING TRANSACTION FIELDS (Hidden by default) -->
-<div id="closingFieldsSection" class="closing-fields-section" style="display: none;">
-    <fieldset>
-        
-        <div class="form-grid" style="grid-template-columns: repeat(5, 1fr);">
-            
-            <div>
-                <label>Ledger Balance</label>
-                <input type="text" id="closingLedgerBalance" name="closingLedgerBalance" readonly>
-            </div>
-            
-            <div>
-                <label>Available Balance</label>
-                <input type="text" id="closingAvailableBalance" name="closingAvailableBalance" readonly>
-            </div>
-            
-            <div>
-                <label>Closing Interest</label>
-                <input type="text" id="closingInterest" name="closingInterest" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>Closing Balance</label>
-                <input type="text" id="closingBalance" name="closingBalance" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>Against Effect Int.</label>
-                <input type="text" id="againstEffectInt" name="againstEffectInt" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>TOD Interest</label>
-                <input type="text" id="todInterest" name="todInterest" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>Service Charges</label>
-                <input type="text" id="serviceCharges" name="serviceCharges" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>Other Charges</label>
-                <input type="text" id="otherCharges" name="otherCharges" placeholder="0.00">
-            </div>
-            
-            <div>
-                <label>Service Tax</label>
-                <input type="text" id="serviceTax" name="serviceTax" placeholder="0.00">
-            </div>
-            
-        </div>
-    </fieldset>
-</div>
+				
 				
             </fieldset>
 
