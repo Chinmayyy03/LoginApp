@@ -385,7 +385,7 @@
   
   
 <!------------------------------------------------------------------ Personal Info --------------------------------------------------------------------------------->
-    <fieldset>
+  <fieldset>
   <legend>Personal Information</legend>
   <div class="personal-grid">
 
@@ -1047,6 +1047,5 @@ window.onload = function() {
 
 </body>
 </html>
-
 
 
