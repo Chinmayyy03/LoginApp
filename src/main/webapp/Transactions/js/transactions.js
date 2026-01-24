@@ -1299,12 +1299,12 @@ function handleTransactionTypeChange() {
         // ========== CLOSING MODE ==========
         
         // Hide elements for closing transaction
-        if (operationTypeSection) operationTypeSection.style.display = 'none';
+        //if (operationTypeSection) operationTypeSection.style.display = 'none';
         if (transferFieldsSection) transferFieldsSection.classList.remove('active');
         if (loanFieldsSection) loanFieldsSection.classList.remove('active');
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
         if (addButtonParent) addButtonParent.style.display = 'none';
-        if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
+        //if (transactionAmountDiv) transactionAmountDiv.style.display = 'none';
         
         // Show closing fields section
         if (closingFieldsSection) closingFieldsSection.style.display = 'block';
