@@ -139,10 +139,11 @@ function searchTable() {
     let filteredAccounts = allAccounts;
     if (filter) {
         filteredAccounts = allAccounts.filter(function(account) {
-            return account.branchCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.productCode.toLowerCase().indexOf(filter) > -1 ||
+            return account.branchName.toLowerCase().indexOf(filter) > -1 ||
+                   account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.name.toLowerCase().indexOf(filter) > -1;
+                   account.openDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -158,7 +159,7 @@ function displayAccounts(accounts, page) {
     tbody.innerHTML = "";
     
     if (accounts.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6' class='no-data'>No accounts found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No accounts found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
@@ -174,10 +175,12 @@ function displayAccounts(accounts, page) {
         var row = tbody.insertRow();
         row.innerHTML = 
             "<td>" + srNo + "</td>" +
-            "<td>" + account.branchCode + "</td>" +
-            "<td>" + account.productCode + "</td>" +
+            "<td>" + account.branchName + "</td>" +
+            "<td>" + account.productDesc + "</td>" +
             "<td>" + account.accountCode + "</td>" +
-            "<td>" + account.name + "</td>" +
+            "<td>" + account.openDate + "</td>" +
+            "<td>" + account.maturityDate + "</td>" +
+            "<td>" + account.maturityAmount + "</td>" +
             "<td><a href='#' onclick=\"viewAccount('" + account.accountCode + "'); return false;\" " +
             "style='background:#2b0d73;color:white;padding:4px 10px;" +
             "border-radius:4px;text-decoration:none;'>View Details</a></td>";
@@ -207,10 +210,11 @@ function previousPage() {
     
     if (filter) {
         accounts = allAccounts.filter(function(account) {
-            return account.branchCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.productCode.toLowerCase().indexOf(filter) > -1 ||
+            return account.branchName.toLowerCase().indexOf(filter) > -1 ||
+                   account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.name.toLowerCase().indexOf(filter) > -1;
+                   account.openDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -226,10 +230,11 @@ function nextPage() {
     
     if (filter) {
         accounts = allAccounts.filter(function(account) {
-            return account.branchCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.productCode.toLowerCase().indexOf(filter) > -1 ||
+            return account.branchName.toLowerCase().indexOf(filter) > -1 ||
+                   account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
-                   account.name.toLowerCase().indexOf(filter) > -1;
+                   account.openDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -309,7 +314,7 @@ function viewAccount(accountCode) {
 </div>
 
 <div class="search-container">
-     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Name, Product Code, Branch">
+     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by Account Code, Branch, Product Code">
 </div>
 
 <div class="table-container">
@@ -320,15 +325,39 @@ function viewAccount(accountCode) {
         <th>BRANCH CODE</th>
         <th>PRODUCT CODE</th>
         <th>ACCOUNT CODE</th>
-        <th>NAME</th>
+        <th>ACCOUNT OPEN DATE</th>
+        <th>MATURITY DATE</th>
+        <th>MATURITY AMOUNT</th>
         <th>ACTION</th>
     </tr>
 </thead>
 <tbody>
 <%
+        // Load all branch names and product descriptions ONCE (optimization)
+        java.util.Map<String, String> branchNames = new java.util.HashMap<>();
+        java.util.Map<String, String> productDescs = new java.util.HashMap<>();
+        
+        // Load all branch names
+        PreparedStatement psBranches = conn.prepareStatement("SELECT BRANCH_CODE, NAME FROM HEADOFFICE.BRANCH");
+        ResultSet rsBranches = psBranches.executeQuery();
+        while (rsBranches.next()) {
+            branchNames.put(rsBranches.getString("BRANCH_CODE"), rsBranches.getString("NAME"));
+        }
+        rsBranches.close();
+        psBranches.close();
+        
+        // Load all product descriptions
+        PreparedStatement psProducts = conn.prepareStatement("SELECT PRODUCT_CODE, DESCRIPTION FROM HEADOFFICE.PRODUCT");
+        ResultSet rsProducts = psProducts.executeQuery();
+        while (rsProducts.next()) {
+            productDescs.put(rsProducts.getString("PRODUCT_CODE"), rsProducts.getString("DESCRIPTION"));
+        }
+        rsProducts.close();
+        psProducts.close();
+        
         // Get all accounts for this customer
         psAccounts = conn.prepareStatement(
-            "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT WHERE CUSTOMER_ID = ? ORDER BY ACCOUNT_CODE"
+            "SELECT ACCOUNT_CODE, DATEACCOUNTOPEN FROM ACCOUNT.ACCOUNT WHERE CUSTOMER_ID = ? ORDER BY ACCOUNT_CODE"
         );
         psAccounts.setString(1, customerId);
         rsAccounts = psAccounts.executeQuery();
@@ -340,9 +369,16 @@ function viewAccount(accountCode) {
         while (rsAccounts.next()) {
             hasAccounts = true;
             String accountCode = rsAccounts.getString("ACCOUNT_CODE");
-            String name = rsAccounts.getString("NAME");
+            java.sql.Timestamp openDateTs = rsAccounts.getTimestamp("DATEACCOUNTOPEN");
             
-            // Extract product code (5th, 6th, 7th digits)
+            // Format open date
+            String openDate = "";
+            if (openDateTs != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MMM-yyyy");
+                openDate = sdf.format(new java.util.Date(openDateTs.getTime()));
+            }
+            
+            // Extract product code and branch code
             String productCode = "";
             String accountBranchCode = "";
             if (accountCode != null && accountCode.length() >= 7) {
@@ -350,13 +386,60 @@ function viewAccount(accountCode) {
                 productCode = accountCode.substring(4, 7);
             }
             
+            // Get branch name and product description from HashMaps
+            String branchName = branchNames.getOrDefault(accountBranchCode, accountBranchCode);
+            String productDesc = productDescs.getOrDefault(productCode, productCode);
+            
+            // Get maturity date using function
+            String maturityDate = "";
+            PreparedStatement psMatDate = null;
+            ResultSet rsMatDate = null;
+            try {
+                psMatDate = conn.prepareStatement("SELECT FN_GET_MAT_DATE(?) FROM DUAL");
+                psMatDate.setString(1, accountCode);
+                rsMatDate = psMatDate.executeQuery();
+                if (rsMatDate.next()) {
+                    java.sql.Timestamp matDateTs = rsMatDate.getTimestamp(1);
+                    if (matDateTs != null) {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MMM-yyyy");
+                        maturityDate = sdf.format(new java.util.Date(matDateTs.getTime()));
+                    }
+                }
+            } catch (Exception e) {
+                maturityDate = "";
+            } finally {
+                try { if (rsMatDate != null) rsMatDate.close(); } catch (Exception ex) {}
+                try { if (psMatDate != null) psMatDate.close(); } catch (Exception ex) {}
+            }
+            
+            // Get maturity amount using function
+            String maturityAmount = "";
+            PreparedStatement psMatAmount = null;
+            ResultSet rsMatAmount = null;
+            try {
+                psMatAmount = conn.prepareStatement("SELECT FN_GET_MAT_AMOUNT(?) FROM DUAL");
+                psMatAmount.setString(1, accountCode);
+                rsMatAmount = psMatAmount.executeQuery();
+                if (rsMatAmount.next()) {
+                    maturityAmount = rsMatAmount.getString(1);
+                    if (maturityAmount == null) maturityAmount = "";
+                }
+            } catch (Exception e) {
+                maturityAmount = "";
+            } finally {
+                try { if (rsMatAmount != null) rsMatAmount.close(); } catch (Exception ex) {}
+                try { if (psMatAmount != null) psMatAmount.close(); } catch (Exception ex) {}
+            }
+            
             // Add to JavaScript array for client-side operations
             out.println("<script>");
             out.println("allAccounts.push({");
-            out.println("  branchCode: '" + accountBranchCode + "',");
-            out.println("  productCode: '" + productCode + "',");
+            out.println("  branchName: '" + (branchName != null ? branchName.replace("'", "\\'") : accountBranchCode) + "',");
+            out.println("  productDesc: '" + (productDesc != null ? productDesc.replace("'", "\\'") : productCode) + "',");
             out.println("  accountCode: '" + accountCode + "',");
-            out.println("  name: '" + (name != null ? name.replace("'", "\\'") : "") + "'");
+            out.println("  openDate: '" + openDate.replace("'", "\\'") + "',");
+            out.println("  maturityDate: '" + maturityDate.replace("'", "\\'") + "',");
+            out.println("  maturityAmount: '" + maturityAmount.replace("'", "\\'") + "'");
             out.println("});");
             out.println("</script>");
             
@@ -364,10 +447,12 @@ function viewAccount(accountCode) {
             if (displayCount < recordsPerPage) {
                 out.println("<tr>");
                 out.println("<td>" + srNo + "</td>");
-                out.println("<td>" + accountBranchCode + "</td>");
-                out.println("<td>" + productCode + "</td>");
+                out.println("<td>" + (branchName != null ? branchName : accountBranchCode) + "</td>");
+                out.println("<td>" + (productDesc != null ? productDesc : productCode) + "</td>");
                 out.println("<td>" + accountCode + "</td>");
-                out.println("<td>" + (name != null ? name : "") + "</td>");
+                out.println("<td>" + openDate + "</td>");
+                out.println("<td>" + maturityDate + "</td>");
+                out.println("<td>" + maturityAmount + "</td>");
                 
                 out.println("<td><a href='#' onclick=\"viewAccount('" + accountCode + "'); return false;\" ");
                 out.println("style='background:#2b0d73;color:white;padding:4px 10px;");
@@ -380,7 +465,7 @@ function viewAccount(accountCode) {
         }
         
         if (!hasAccounts) {
-            out.println("<tr><td colspan='6' class='no-data'>No accounts found for this customer.</td></tr>");
+            out.println("<tr><td colspan='8' class='no-data'>No accounts found for this customer.</td></tr>");
         }
 %>
 </tbody>
