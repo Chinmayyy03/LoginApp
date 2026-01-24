@@ -114,9 +114,9 @@ For production deployment, consider implementing:
 
 ## 👥 Authors
 
-Chinmay Ghevade
+Chinmay Ghevade , 
 Aditya Suryawanshi
 
 ## 📧 Contact
 
-For questions or support, please contact - chinmayghevade@gmail.com, adityasuryawanshi5749@gmail.com
+For questions or support, please contact - ghevadechinmay@gmail.com, adityasuryawanshi5749@gmail.com
