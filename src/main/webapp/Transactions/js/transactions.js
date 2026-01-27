@@ -354,10 +354,10 @@ function toggleLoanFields() {
 //Calculate remaining amount (Receivable - Received)
 function calculateRemaining(fieldName) {
 	
-	if (fieldName === 'principal') {
-	        const r = document.getElementById('principalReceivable');
-	        const g = document.getElementById('principalReceived');
-	        const m = document.getElementById('principalRemaining');
+	if (fieldName === 'total') {
+	        const r = document.getElementById('totalReceivable');
+	        const g = document.getElementById('totalReceived');
+	        const m = document.getElementById('totalRemaining');
 
 	        if (!r || !g || !m) return;
 
@@ -508,16 +508,16 @@ if (transactionAmountInput) {
         const txnAmount = parseFloat(this.value) || 0;
 
         // ✅ LOAN / CC PRINCIPAL HANDLING (LAST)
-        if (accountCategory === 'loan' || accountCategory === 'cc') {
-            resetLoanReceivedFields();
+		if (accountCategory === 'loan' || accountCategory === 'cc') {
+		    resetLoanReceivedFields();
 
-            const principalReceived = document.getElementById('principalReceived');
-            if (principalReceived) {
-                principalReceived.value = txnAmount.toFixed(2);
-            }
+		    const totalReceived = document.getElementById('totalReceived');
+		    if (totalReceived) {
+		        totalReceived.value = txnAmount.toFixed(2);
+		    }
 
-            calculateRemaining('principal');
-        }
+		    calculateRemaining('total');
+		}
 
         // ✅ EXISTING FLOW
         calculateNewBalanceInIframe();
@@ -732,16 +732,16 @@ function calculateNewBalanceInIframe() {
 	            };
 	        });
 	        
-	        // ✅ FIXED: Add principal field without optional chaining
-	        const principalReceivableEl = document.getElementById('principalReceivable');
-	        const principalReceivedEl = document.getElementById('principalReceived');
-	        const principalRemainingEl = document.getElementById('principalRemaining');
-	        
-	        loanFieldsData['principal'] = {
-	            receivable: principalReceivableEl ? principalReceivableEl.value : '',
-	            received: principalReceivedEl ? principalReceivedEl.value : '',
-	            remaining: principalRemainingEl ? principalRemainingEl.value : ''
-	        };
+			// ✅ Add total field
+			const totalReceivableEl = document.getElementById('totalReceivable');
+			const totalReceivedEl = document.getElementById('totalReceived');
+			const totalRemainingEl = document.getElementById('totalRemaining');
+
+			loanFieldsData['total'] = {
+			    receivable: totalReceivableEl ? totalReceivableEl.value : '',
+			    received: totalReceivedEl ? totalReceivedEl.value : '',
+			    remaining: totalRemainingEl ? totalRemainingEl.value : ''
+			};
 	    }
 
 	    // ✅ Add to data array WITH loan fields data
@@ -1031,7 +1031,7 @@ function buildLoanFieldsTable() {
             : col.description;
         headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
     });
-	headerHTML += '<th>Principal</th>';
+	headerHTML += '<th>Total</th>';
     headerHTML += '</tr>';
     headerRow.innerHTML = headerHTML;
     
@@ -1069,9 +1069,9 @@ function buildLoanFieldsTable() {
                        'placeholder="0.00" readonly></td>';
     });
     
-	receivableRow += '<td><input type="text" id="principalReceivable" placeholder="0.00" readonly></td>';
-	    receivedRow   += '<td><input type="text" id="principalReceived" placeholder="0.00"></td>';
-	    remainingRow  += '<td><input type="text" id="principalRemaining"  placeholder="0.00" readonly></td>';
+	receivableRow += '<td><input type="text" id="totalReceivable" placeholder="0.00" readonly></td>';
+	receivedRow   += '<td><input type="text" id="totalReceived" placeholder="0.00"></td>';
+	remainingRow  += '<td><input type="text" id="totalRemaining"  placeholder="0.00" readonly></td>';
 		
     receivableRow += '</tr>';
     receivedRow += '</tr>';
@@ -1222,13 +1222,12 @@ function populateLoanReceivableFields(receivableData) {
         calculateRemaining(fieldName);
     }
 
-    // ✅ SET PRINCIPAL RECEIVABLE
-    const principalReceivable = document.getElementById('principalReceivable');
-    if (principalReceivable) {
-        principalReceivable.value = totalReceivable.toFixed(2);
-    }
+	const totalReceivableField = document.getElementById('totalReceivable');
+	if (totalReceivableField) {
+	    totalReceivableField.value = totalReceivable.toFixed(2);
+	}
 
-    calculateRemaining('principal');
+	calculateRemaining('total');
 }
 
 
