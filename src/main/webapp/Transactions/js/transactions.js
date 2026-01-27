@@ -819,26 +819,46 @@ function refreshCreditAccountsTable() {
     container.innerHTML = tableHTML;
 	}
 	
-function removeCreditAccount(accountId) {
-    // Find the account being removed
-    const removedAccount = creditAccountsData.find(acc => acc.id === accountId);
-    
-    // Remove from array
-    creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
-    refreshCreditAccountsTable();
-    updateTotals();
-    
-    // ✅ Only clear iframe if the removed account is in the current iframe URL
-    if (removedAccount) {
-        const iframe = document.getElementById('resultFrame');
-        const iframeSrc = iframe.src || '';
-        
-        // Check if the removed account code is in the iframe URL
-        if (iframeSrc.includes(encodeURIComponent(removedAccount.code))) {
-            clearIframe();
-        }
-    }
-}
+	function removeCreditAccount(accountId) {
+	    // Find the account being removed
+	    const removedAccount = creditAccountsData.find(acc => acc.id === accountId);
+	    
+	    // Remove from array
+	    creditAccountsData = creditAccountsData.filter(acc => acc.id !== accountId);
+	    refreshCreditAccountsTable();
+	    updateTotals();
+	    
+	    // ✅ Check if removed account's data is currently displayed
+	    if (removedAccount) {
+	        const currentAccountCode = document.getElementById('accountCode').value;
+	        const iframe = document.getElementById('resultFrame');
+	        const iframeSrc = iframe.src || '';
+	        const accountCategory = document.getElementById('accountCategory').value;
+	        
+	        // ✅ Clear transaction form AND loan fields if removed account matches current account
+	        if (currentAccountCode === removedAccount.code) {
+	            // Clear main transaction form fields
+	            document.getElementById('accountCode').value = '';
+	            document.getElementById('accountName').value = '';
+	            document.getElementById('transactionamount').value = '';
+	            document.getElementById('particular').value = '';
+	            previousAccountCode = '';
+	            
+	            // Clear loan fields if it's a loan/cc account
+	            if (accountCategory === 'loan' || accountCategory === 'cc') {
+	                clearLoanFields();
+	                resetLoanReceivedFields();
+	            }
+	            
+	            // Clear iframe
+	            clearIframe();
+	        }
+	        // ✅ Also clear iframe if the removed account code is in the iframe URL (but not current form)
+	        else if (iframeSrc.includes(encodeURIComponent(removedAccount.code))) {
+	            clearIframe();
+	        }
+	    }
+	}
 
 
 function updateTotals() {
