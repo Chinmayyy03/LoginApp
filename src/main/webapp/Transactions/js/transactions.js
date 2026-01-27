@@ -713,10 +713,10 @@ function calculateNewBalanceInIframe() {
 
 	    const finalAmount = parseFloat(transactionAmount).toFixed(2);
 
-	    // ✅ NEW: Collect loan field values if it's a loan account
+	    // ✅ FIXED: Collect loan field values if it's a loan account
 	    let loanFieldsData = {};
 	    if (accountCategory === 'loan' || accountCategory === 'cc') {
-	        loanRecoveryColumns.forEach(col => {
+	        loanRecoveryColumns.forEach(function(col) {
 	            if (!col || !col.columnName) return;
 	            const fieldName = col.columnName.toLowerCase().trim();
 	            if (!fieldName) return;
@@ -732,11 +732,15 @@ function calculateNewBalanceInIframe() {
 	            };
 	        });
 	        
-	        // Add principal field
+	        // ✅ FIXED: Add principal field without optional chaining
+	        const principalReceivableEl = document.getElementById('principalReceivable');
+	        const principalReceivedEl = document.getElementById('principalReceived');
+	        const principalRemainingEl = document.getElementById('principalRemaining');
+	        
 	        loanFieldsData['principal'] = {
-	            receivable: document.getElementById('principalReceivable')?.value || '',
-	            received: document.getElementById('principalReceived')?.value || '',
-	            remaining: document.getElementById('principalRemaining')?.value || ''
+	            receivable: principalReceivableEl ? principalReceivableEl.value : '',
+	            received: principalReceivedEl ? principalReceivedEl.value : '',
+	            remaining: principalRemainingEl ? principalRemainingEl.value : ''
 	        };
 	    }
 
@@ -748,7 +752,7 @@ function calculateNewBalanceInIframe() {
 	        amount: finalAmount,
 	        particular: particular,
 	        opType: opType,
-	        loanFields: loanFieldsData  // ✅ NEW: Store loan field values
+	        loanFields: loanFieldsData
 	    });
 
 	    // Clear input fields
@@ -769,7 +773,6 @@ function calculateNewBalanceInIframe() {
 	    refreshCreditAccountsTable();
 	    updateTotals();
 	}
-
 
 function refreshCreditAccountsTable() {
     const container = document.getElementById('creditAccountsContainer');
