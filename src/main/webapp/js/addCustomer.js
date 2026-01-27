@@ -1,6 +1,6 @@
 function toggleMinorFields() {
   const isMinorRadio = document.querySelector('input[name="isMinor"]:checked');
-  if (!isMinorRadio) return; // Exit if no radio button is checked
+  if (!isMinorRadio) return;
   
   const isMinor = isMinorRadio.value;
   const guardianName = document.getElementById('guardianName');
@@ -12,39 +12,34 @@ function toggleMinorFields() {
   } else {
     guardianName.disabled = true;
     relationGuardian.disabled = true;
-
-    // Optional: clear fields when disabled
     guardianName.value = '';
     relationGuardian.value = 'NOT SPECIFIED';
   }
 }
 
 function toggleMarriedFields() {
-	  const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked').value;
-	  const noOFChildren = document.getElementById('children');
-	  const noOfDependents = document.getElementById('dependents');
+  const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked').value;
+  const noOFChildren = document.getElementById('children');
+  const noOfDependents = document.getElementById('dependents');
 
-	  if (maritalStatus === 'Single') {
-		  noOFChildren.disabled = true;
-		  noOfDependents.disabled = true;
-	  } else {
-		  noOFChildren.disabled = false;
-		  noOfDependents.disabled = false;
+  if (maritalStatus === 'Single') {
+    noOFChildren.disabled = true;
+    noOfDependents.disabled = true;
+  } else {
+    noOFChildren.disabled = false;
+    noOfDependents.disabled = false;
+    noOFChildren.value = '';
+    noOfDependents.value = 'NOT SPECIFIED';
+  }
+}
 
-	    // Optional: clear fields when disabled
-	    noOFChildren.value = '';
-	    noOfDependents.value = 'NOT SPECIFIED';
-	  }
-	}
-
-// ✅ NEW: Auto-detect minor status based on birth date
+// Auto-detect minor status based on birth date
 function checkMinorStatus() {
     const birthDateInput = document.getElementById('birthDate');
     const isMinorYes = document.getElementById('isMinor1');
     const isMinorNo = document.getElementById('isMinor2');
     
     if (!birthDateInput || !birthDateInput.value) {
-        // If birth date is cleared, make radio buttons editable again
         if (isMinorYes) {
             isMinorYes.disabled = false;
             isMinorYes.style.cursor = 'pointer';
@@ -59,16 +54,13 @@ function checkMinorStatus() {
     const birthDate = new Date(birthDateInput.value);
     const today = new Date();
     
-    // Calculate age
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     
-    // Adjust age if birthday hasn't occurred this year
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
     }
     
-    // Auto-select radio button based on age
     if (age < 18) {
         isMinorYes.checked = true;
         isMinorNo.checked = false;
@@ -77,54 +69,42 @@ function checkMinorStatus() {
         isMinorNo.checked = true;
     }
     
-    // Make radio buttons readonly (disabled) after auto-selection
     isMinorYes.disabled = true;
     isMinorNo.disabled = true;
-    
-    // Add visual styling to indicate readonly state
     isMinorYes.style.cursor = 'not-allowed';
     isMinorNo.style.cursor = 'not-allowed';
     
-    // Add readonly attribute to parent labels for better UX
     const radioGroup = isMinorYes.closest('.radio-group');
     if (radioGroup) {
         radioGroup.style.opacity = '0.7';
         radioGroup.title = 'Is Minor is auto-calculated from Birth Date';
     }
     
-    // Trigger the toggle function to enable/disable guardian fields
     toggleMinorFields();
-    
     console.log(`Age calculated: ${age} years - Minor: ${age < 18 ? 'Yes' : 'No'} [READONLY]`);
 }
 
-
 document.addEventListener("DOMContentLoaded", function() {
-  // Select all rows inside the KYC tables
+  // Toggle KYC document fields based on checkboxes
   document.querySelectorAll(".kyc-section table tr").forEach(row => {
     const checkbox = row.querySelector('input[type="checkbox"]');
     const inputs = row.querySelectorAll('input[id="date"], input[type="text"]');
     
     if (checkbox) {
-      // Initially disable all input fields
       inputs.forEach(input => input.disabled = true);
-
-      // Toggle enable/disable based on checkbox status
       checkbox.addEventListener("change", () => {
         inputs.forEach(input => input.disabled = !checkbox.checked);
       });
     }
   });
   
-  // ✅ NEW: Add event listener to birth date field
+  // Birth date change listener
   const birthDateField = document.getElementById('birthDate');
   if (birthDateField) {
       birthDateField.addEventListener('change', checkMinorStatus);
       
-      // Also handle when date is cleared/changed
       birthDateField.addEventListener('input', function() {
           if (!this.value) {
-              // Reset Is Minor radio buttons to editable state when date is cleared
               const isMinorYes = document.getElementById('isMinor1');
               const isMinorNo = document.getElementById('isMinor2');
               const radioGroup = isMinorYes?.closest('.radio-group');
@@ -146,9 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-
-
-//Validation patterns
+// Validation patterns
 const validationPatterns = {
     gstin: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
     pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
@@ -179,9 +157,6 @@ function setupFieldValidations() {
             }
         });
     }
-
-    // Member Number validation (only 2 digits)
-  
 
     // Mobile Number validation
     const mobileField = document.querySelector('input[name="mobileNo"]');
@@ -317,7 +292,6 @@ function setupFieldValidations() {
         nregaField.maxLength = 22;
         nregaField.addEventListener('input', function(e) {
             let value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
-            // Auto-format: AB-12-345-678-901234
             if (value.length > 2 && value[2] !== '-') {
                 value = value.slice(0, 2) + '-' + value.slice(2);
             }
@@ -383,19 +357,17 @@ function clearError(field) {
     }
 }
 
-//Enhanced form validation before submit
+// Form validation before submit
 function validateForm() {
     let isValid = true;
     const errors = [];
 
-    // Validate GSTIN if filled
     const gstin = document.querySelector('input[name="gstinNo"]').value;
     if (gstin && !validationPatterns.gstin.test(gstin)) {
         errors.push('• Invalid GSTIN number');
         isValid = false;
     }
 
-    // Validate Mobile Number (required)
     const mobile = document.querySelector('input[name="mobileNo"]').value;
     if (!mobile) {
         errors.push('• Mobile number is required');
@@ -405,82 +377,56 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate ZIP if filled
     const zip = document.querySelector('input[name="zip"]').value;
     if (zip && !validationPatterns.zip.test(zip)) {
         errors.push('• Invalid ZIP code');
         isValid = false;
     }
 
-    // Validate PAN if filled
     const pan = document.getElementById('pan').value;
     if (pan && !validationPatterns.pan.test(pan)) {
         errors.push('• Invalid PAN card number');
         isValid = false;
     }
 
-    // Validate Aadhar if filled
     const aadhar = document.querySelector('input[name="aadhar"]').value;
     if (aadhar && !validationPatterns.aadhar.test(aadhar)) {
         errors.push('• Invalid Aadhar number');
         isValid = false;
     }
 
-    // Validate Passport if filled
     const passport = document.getElementById('passportNumber').value;
     if (passport && !validationPatterns.passport.test(passport)) {
         errors.push('• Invalid Passport number');
         isValid = false;
     }
 
-    // Validate Voter ID if filled
     const voterId = document.getElementById('voterid').value;
     if (voterId && !validationPatterns.voterId.test(voterId)) {
         errors.push('• Invalid Voter ID');
         isValid = false;
     }
 
-    // Validate Driving License if filled
     const dl = document.getElementById('dl').value;
     if (dl && !validationPatterns.drivingLicense.test(dl)) {
         errors.push('• Invalid Driving License number');
         isValid = false;
     }
 
-    // ✅ Validate at least one ID Proof document is filled
-    const idProofFilled = 
-        (document.querySelector('input[name="passport_check"]').checked && document.querySelector('input[name="passport_expiry"]').value && document.querySelector('input[name="passportNumber"]').value.trim()) ||
-        (document.querySelector('input[name="pan_check"]').checked && document.getElementById('pan').value.trim()) ||
-        (document.querySelector('input[name="voterid_check"]').checked && document.getElementById('voterid').value.trim()) ||
-        (document.querySelector('input[name="dl_check"]').checked && document.querySelector('input[name="dl_expiry"]').value && document.getElementById('dl').value.trim()) ||
-        (document.querySelector('input[name="aadhar_check"]').checked && document.querySelector('input[name="aadhar"]').value.trim()) ||
-        (document.querySelector('input[name="nrega_check"]').checked && document.getElementById('nrega').value.trim());
+    const photoData = document.getElementById('photoData').value;
+    if (!photoData || photoData.trim() === '') {
+        errors.push('• Customer photo is required');
+        isValid = false;
+    }
 
-    // ✅ Validate at least one Address Proof document is filled
-    const addressProofFilled = 
-        (document.querySelector('input[name="telephone_check"]').checked && document.querySelector('input[name="telephone_expiry"]').value && document.querySelector('input[name="telephone"]').value.trim()) ||
-        (document.querySelector('input[name="bank_check"]').checked && document.querySelector('input[name="bank_expiry"]').value && document.querySelector('input[name="bank_statement"]').value.trim()) ||
-        (document.querySelector('input[name="govt_check"]').checked && document.querySelector('input[name="govt_expiry"]').value && document.querySelector('input[name="govt_doc"]').value.trim()) ||
-        (document.querySelector('input[name="electricity_check"]').checked && document.querySelector('input[name="electricity_expiry"]').value && document.querySelector('input[name="electricity"]').value.trim()) ||
-        (document.querySelector('input[name="ration_check"]').checked && document.getElementById('ration').value.trim());
-	
-	// ✅ Validate Photo Upload (required)
-	    const photoData = document.getElementById('photoData').value;
-	    if (!photoData || photoData.trim() === '') {
-	        errors.push('• Customer photo is required');
-	        isValid = false;
-	    }
+    const signatureData = document.getElementById('signatureData').value;
+    if (!signatureData || signatureData.trim() === '') {
+        errors.push('• Customer signature is required');
+        isValid = false;
+    }
 
-	    // ✅ Validate Signature Upload (required)
-	    const signatureData = document.getElementById('signatureData').value;
-	    if (!signatureData || signatureData.trim() === '') {
-	        errors.push('• Customer signature is required');
-	        isValid = false;
-	    }
-
-    if (!isValid) {
-        // Show toast notification with all errors
-        showValidationToast(errors);
+    if (!isValid && errors.length > 0) {
+        showToast('❌ Validation Errors:\n' + errors.join('\n'), 'error');
     }
 
     return isValid;
@@ -491,167 +437,72 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidations();
 });
 
-
-// for add name in customer name from input fields
+// Update customer name from input fields
 function updateCustomerName() {
     const first = document.getElementById("firstName").value.trim();
     const middle = document.getElementById("middleName").value.trim();
     const surname = document.getElementById("surname").value.trim();
-
-    // Build full name (only include non-empty parts)
     const fullName = [first, middle, surname].filter(Boolean).join(" ");
-
     document.getElementById("customerName").value = fullName;
-  }
-  
-  
-  
-// Update breadcrumb on page load
-window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Add Customer');
-    }
-};
+}
 
-//Add custom CSS for toast overlay positioning
-const toastStyle = document.createElement('style');
-toastStyle.textContent = `
-    .toastify {
-        position: fixed !important;
-        z-index: 9999 !important;
-        pointer-events: auto !important;
+// Reset form including uploads
+function resetFormWithUploads() {
+  setTimeout(() => {
+    const photoPreview = document.getElementById('photoPreviewIcon');
+    if (photoPreview) {
+      photoPreview.src = 'images/photo-icon.png';
+      photoPreview.classList.remove('preview-image');
+    }
+    document.getElementById('photoData').value = '';
+    document.getElementById('photoInput').value = '';
+    
+    const photoCard = photoPreview?.closest('.upload-card');
+    if (photoCard) {
+      const photoBadge = photoCard.querySelector('.upload-success-badge');
+      if (photoBadge) photoBadge.remove();
     }
     
-    .toastify.on {
-        position: fixed !important;
+    const signaturePreview = document.getElementById('signaturePreviewIcon');
+    if (signaturePreview) {
+      signaturePreview.src = 'images/signature-icon.png';
+      signaturePreview.classList.remove('preview-image');
     }
-`;
-document.head.appendChild(toastStyle);
-
-// Check URL parameters for success/error messages
-window.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
-    const customerId = urlParams.get('customerId');
-    const message = urlParams.get('message');
+    document.getElementById('signatureData').value = '';
+    document.getElementById('signatureInput').value = '';
     
-    if (status === 'success') {
-        const toast = Toastify({
-            text: "✅ Customer added successfully!\nCustomer ID: " + customerId,
-            duration: 5000,
-            close: true,
-            gravity: "top", // top or bottom
-            position: "center", // left, center or right
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px"
-            },
-            stopOnFocus: true,
-            onClick: function(){} // Callback after click
-        }).showToast();
-        
-        // Add progress bar animation
-        const toastElement = toast.toastElement;
-        const progressBar = document.createElement('div');
-        progressBar.style.cssText = `
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            width: 100%;
-            background-color: #4caf50;
-            animation: shrink 5s linear forwards;
-        `;
-        
-        // Add keyframe animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shrink {
-                from { width: 100%; }
-                to { width: 0%; }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        toastElement.style.position = 'relative';
-        toastElement.style.overflow = 'hidden';
-        toastElement.appendChild(progressBar);
-        
-        // Clear URL parameters after showing toast
-        setTimeout(function() {
-            window.history.replaceState({}, document.title, "addCustomer.jsp");
-        }, 100);
-        
-    } else if (status === 'error') {
-        const toast = Toastify({
-            text: "❌ Error: " + (message || "Failed to add customer"),
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #f44336",
-                marginTop: "20px"
-            },
-            stopOnFocus: true
-        }).showToast();
-        
-        // Add progress bar animation for error
-        const toastElement = toast.toastElement;
-        const progressBar = document.createElement('div');
-        progressBar.style.cssText = `
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            width: 100%;
-            background-color: #f44336;
-            animation: shrink 5s linear forwards;
-        `;
-        
-        toastElement.style.position = 'relative';
-        toastElement.style.overflow = 'hidden';
-        toastElement.appendChild(progressBar);
-        
-        // Clear URL parameters after showing toast
-        setTimeout(function() {
-            window.history.replaceState({}, document.title, "addCustomer.jsp");
-        }, 100);
+    const signatureCard = signaturePreview?.closest('.upload-card');
+    if (signatureCard) {
+      const signatureBadge = signatureCard.querySelector('.upload-success-badge');
+      if (signatureBadge) signatureBadge.remove();
     }
-});
-
-
-
-// ========== PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========
+    
+    document.querySelectorAll('.error-message').forEach(err => err.remove());
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+      field.style.borderColor = '';
+      field.style.backgroundColor = '';
+    });
+    
+    showToast('🔄 Form has been reset including photo and signature', 'info');
+  }, 10);
+}
 
 // ========== IMAGE UPLOAD CONFIGURATION ==========
 const IMAGE_CONFIG = {
     photo: {
-        maxSize: 5 * 1024 * 1024, // 5MB max upload
-        targetSize: 500 * 1024,   // 500KB target after compression
-        width: 413,               // Passport size width (3.5cm at 300 DPI)
-        height: 531,              // Passport size height (4.5cm at 300 DPI)
+        maxSize: 5 * 1024 * 1024,
+        targetSize: 500 * 1024,
+        width: 413,
+        height: 531,
         aspectRatio: 3.5 / 4.5,
         quality: 0.85,
         name: 'Photo'
     },
     signature: {
-        maxSize: 5 * 1024 * 1024, // 5MB max upload
-        targetSize: 500 * 1024,   // 500KB target after compression
-        width: 600,               // Signature width
-        height: 200,              // Signature height
+        maxSize: 5 * 1024 * 1024,
+        targetSize: 500 * 1024,
+        width: 600,
+        height: 200,
         aspectRatio: 3,
         quality: 0.85,
         name: 'Signature'
@@ -661,11 +512,7 @@ const IMAGE_CONFIG = {
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg'];
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg'];
 
-// ========== UTILITY FUNCTIONS ==========
-
-/**
- * Validate file type
- */
+// Validate file type
 function validateFileType(file, configType) {
     const fileType = file.type.toLowerCase();
     const fileName = file.name.toLowerCase();
@@ -674,28 +521,24 @@ function validateFileType(file, configType) {
     const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(ext));
     
     if (!hasValidType && !hasValidExtension) {
-        showErrorToast(`❌ Invalid file type for ${configType}!\nOnly JPG/JPEG files are allowed.`);
+        showToast(`❌ Invalid file type for ${configType}!\nOnly JPG/JPEG files are allowed.`, 'error');
         return false;
     }
     return true;
 }
 
-/**
- * Validate file size
- */
+// Validate file size
 function validateFileSize(file, config) {
     if (file.size > config.maxSize) {
         const maxSizeMB = (config.maxSize / (1024 * 1024)).toFixed(1);
         const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-        showErrorToast(`❌ ${config.name} file size (${fileSizeMB}MB) exceeds maximum allowed size of ${maxSizeMB}MB!`);
+        showToast(`❌ ${config.name} file size (${fileSizeMB}MB) exceeds maximum allowed size of ${maxSizeMB}MB!`, 'error');
         return false;
     }
     return true;
 }
 
-/**
- * Compress and resize image to target dimensions
- */
+// Compress and resize image
 function compressImage(imageData, config) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -704,15 +547,12 @@ function compressImage(imageData, config) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Set canvas to target dimensions
             canvas.width = config.width;
             canvas.height = config.height;
             
-            // Fill white background
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Calculate dimensions to maintain aspect ratio and fit
             let sourceWidth = img.width;
             let sourceHeight = img.height;
             let sourceX = 0;
@@ -722,23 +562,19 @@ function compressImage(imageData, config) {
             const targetAspect = config.width / config.height;
             
             if (sourceAspect > targetAspect) {
-                // Image is wider - crop width
                 sourceWidth = sourceHeight * targetAspect;
                 sourceX = (img.width - sourceWidth) / 2;
             } else {
-                // Image is taller - crop height
                 sourceHeight = sourceWidth / targetAspect;
                 sourceY = (img.height - sourceHeight) / 2;
             }
             
-            // Draw image centered and cropped
             ctx.drawImage(
                 img,
                 sourceX, sourceY, sourceWidth, sourceHeight,
                 0, 0, canvas.width, canvas.height
             );
             
-            // Try different quality levels to achieve target size
             compressToTargetSize(canvas, config.quality, config.targetSize)
                 .then(resolve)
                 .catch(reject);
@@ -752,9 +588,7 @@ function compressImage(imageData, config) {
     });
 }
 
-/**
- * Compress image to target file size
- */
+// Compress to target size
 function compressToTargetSize(canvas, initialQuality, targetSize) {
     return new Promise((resolve) => {
         let quality = initialQuality;
@@ -771,7 +605,6 @@ function compressToTargetSize(canvas, initialQuality, targetSize) {
                 return;
             }
             
-            // Reduce quality and try again
             quality -= 0.1;
             attempts++;
             tryCompress();
@@ -781,9 +614,7 @@ function compressToTargetSize(canvas, initialQuality, targetSize) {
     });
 }
 
-/**
- * Process image file
- */
+// Process image file
 function processImageFile(file, config, previewElementId, dataFieldId) {
     return new Promise((resolve, reject) => {
         if (!validateFileType(file, config.name)) {
@@ -799,34 +630,31 @@ function processImageFile(file, config, previewElementId, dataFieldId) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
-            showInfoToast(`⏳ Processing ${config.name.toLowerCase()}...`);
+            showToast(`⏳ Processing ${config.name.toLowerCase()}...`, 'info');
             
             compressImage(e.target.result, config)
                 .then(compressedImage => {
-                    // Update preview
                     const preview = document.getElementById(previewElementId);
                     preview.src = compressedImage;
                     preview.classList.add('preview-image');
                     
-                    // Store compressed data
                     document.getElementById(dataFieldId).value = compressedImage;
                     
-                    // Show success
                     markFieldAsComplete(previewElementId);
                     
                     const finalSize = Math.round((compressedImage.length * 3) / 4);
-                    showSuccessToast(`✅ ${config.name} uploaded successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${config.width}x${config.height}px)`);
+                    showToast(`✅ ${config.name} uploaded successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${config.width}x${config.height}px)`, 'success');
                     
                     resolve(compressedImage);
                 })
                 .catch(error => {
-                    showErrorToast(`❌ Failed to process ${config.name.toLowerCase()}: ${error.message}`);
+                    showToast(`❌ Failed to process ${config.name.toLowerCase()}: ${error.message}`, 'error');
                     reject(error);
                 });
         };
         
         reader.onerror = function() {
-            showErrorToast(`❌ Failed to read ${config.name.toLowerCase()} file`);
+            showToast(`❌ Failed to read ${config.name.toLowerCase()} file`, 'error');
             reject(new Error('File read error'));
         };
         
@@ -835,27 +663,21 @@ function processImageFile(file, config, previewElementId, dataFieldId) {
 }
 
 // ========== PHOTO UPLOAD HANDLERS ==========
-
 let photoStream = null;
 
-// Photo Upload - Browse
 document.getElementById('photoInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         processImageFile(file, IMAGE_CONFIG.photo, 'photoPreviewIcon', 'photoData')
-            .catch(() => {
-                this.value = ''; // Reset input
-            });
+            .catch(() => { this.value = ''; });
     }
 });
 
-// Handle Photo File
 function handlePhotoFile(file) {
     processImageFile(file, IMAGE_CONFIG.photo, 'photoPreviewIcon', 'photoData')
         .catch(() => {});
 }
 
-// Open Photo Camera
 function openPhotoCamera() {
     const modal = document.getElementById('photoCameraModal');
     const video = document.getElementById('photoVideo');
@@ -874,12 +696,11 @@ function openPhotoCamera() {
         video.srcObject = stream;
     })
     .catch(function(err) {
-        showErrorToast('❌ Error accessing camera: ' + err.message);
+        showToast('❌ Error accessing camera: ' + err.message, 'error');
         closePhotoCamera();
     });
 }
 
-// Close Photo Camera
 function closePhotoCamera() {
     const modal = document.getElementById('photoCameraModal');
     const video = document.getElementById('photoVideo');
@@ -893,7 +714,6 @@ function closePhotoCamera() {
     modal.style.display = 'none';
 }
 
-// Capture Photo
 function capturePhoto() {
     const video = document.getElementById('photoVideo');
     const canvas = document.getElementById('photoCanvas');
@@ -905,7 +725,7 @@ function capturePhoto() {
     
     const imageData = canvas.toDataURL('image/jpeg', 0.95);
     
-    showInfoToast('⏳ Processing photo...');
+    showToast('⏳ Processing photo...', 'info');
     
     compressImage(imageData, IMAGE_CONFIG.photo)
         .then(compressedImage => {
@@ -918,35 +738,29 @@ function capturePhoto() {
             markFieldAsComplete('photoPreviewIcon');
             
             const finalSize = Math.round((compressedImage.length * 3) / 4);
-            showSuccessToast(`✅ Photo captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.photo.width}x${IMAGE_CONFIG.photo.height}px)`);
+            showToast(`✅ Photo captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.photo.width}x${IMAGE_CONFIG.photo.height}px)`, 'success');
         })
         .catch(error => {
-            showErrorToast('❌ Failed to process photo: ' + error.message);
+            showToast('❌ Failed to process photo: ' + error.message, 'error');
         });
 }
 
 // ========== SIGNATURE UPLOAD HANDLERS ==========
-
 let signatureStream = null;
 
-// Signature Upload - Browse
 document.getElementById('signatureInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         processImageFile(file, IMAGE_CONFIG.signature, 'signaturePreviewIcon', 'signatureData')
-            .catch(() => {
-                this.value = ''; // Reset input
-            });
+            .catch(() => { this.value = ''; });
     }
 });
 
-// Handle Signature File
 function handleSignatureFile(file) {
     processImageFile(file, IMAGE_CONFIG.signature, 'signaturePreviewIcon', 'signatureData')
         .catch(() => {});
 }
 
-// Open Signature Camera
 function openSignatureCamera() {
     const modal = document.getElementById('signatureCameraModal');
     const video = document.getElementById('signatureVideo');
@@ -965,12 +779,11 @@ function openSignatureCamera() {
         video.srcObject = stream;
     })
     .catch(function(err) {
-        showErrorToast('❌ Error accessing camera: ' + err.message);
+        showToast('❌ Error accessing camera: ' + err.message, 'error');
         closeSignatureCamera();
     });
 }
 
-// Close Signature Camera
 function closeSignatureCamera() {
     const modal = document.getElementById('signatureCameraModal');
     const video = document.getElementById('signatureVideo');
@@ -984,7 +797,6 @@ function closeSignatureCamera() {
     modal.style.display = 'none';
 }
 
-// Capture Signature
 function captureSignature() {
     const video = document.getElementById('signatureVideo');
     const canvas = document.getElementById('signatureCanvas');
@@ -996,7 +808,7 @@ function captureSignature() {
     
     const imageData = canvas.toDataURL('image/jpeg', 0.95);
     
-    showInfoToast('⏳ Processing signature...');
+    showToast('⏳ Processing signature...', 'info');
     
     compressImage(imageData, IMAGE_CONFIG.signature)
         .then(compressedImage => {
@@ -1009,16 +821,14 @@ function captureSignature() {
             markFieldAsComplete('signaturePreviewIcon');
             
             const finalSize = Math.round((compressedImage.length * 3) / 4);
-            showSuccessToast(`✅ Signature captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.signature.width}x${IMAGE_CONFIG.signature.height}px)`);
+            showToast(`✅ Signature captured successfully!\nSize: ${(finalSize / 1024).toFixed(1)}KB (${IMAGE_CONFIG.signature.width}x${IMAGE_CONFIG.signature.height}px)`, 'success');
         })
         .catch(error => {
-            showErrorToast('❌ Failed to process signature: ' + error.message);
+            showToast('❌ Failed to process signature: ' + error.message, 'error');
         });
 }
 
 // ========== DRAG AND DROP ==========
-
-// Drag and Drop for Photo
 const photoCard = document.querySelector('.upload-card:first-child');
 if (photoCard) {
     photoCard.addEventListener('dragover', function(e) {
@@ -1041,7 +851,6 @@ if (photoCard) {
     });
 }
 
-// Drag and Drop for Signature
 const signatureCard = document.querySelector('.upload-card:last-child');
 if (signatureCard) {
     signatureCard.addEventListener('dragover', function(e) {
@@ -1064,8 +873,6 @@ if (signatureCard) {
     });
 }
 
-// ========== MODAL CLOSE HANDLERS ==========
-
 // Close camera modals when clicking outside
 window.addEventListener('click', function(event) {
     if (event.target.id === 'photoCameraModal') {
@@ -1076,75 +883,34 @@ window.addEventListener('click', function(event) {
     }
 });
 
-// ========== TOAST NOTIFICATIONS ==========
-
-function showSuccessToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 4000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #4caf50",
-                marginTop: "20px",
-                whiteSpace: "pre-line"
-            }
-        }).showToast();
-    }
-}
-
-function showErrorToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #f44336",
-                marginTop: "20px",
-                whiteSpace: "pre-line"
-            }
-        }).showToast();
-    }
-}
-
-function showInfoToast(message) {
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: message,
-            duration: 2000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            style: {
-                background: "#fff",
-                color: "#333",
-                borderRadius: "8px",
-                fontSize: "14px",
-                padding: "16px 24px",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                borderLeft: "5px solid #2196F3",
-                marginTop: "20px",
-                whiteSpace: "pre-line"
-            }
-        }).showToast();
-    }
+// Unified toast notification function
+function showToast(message, type = 'info') {
+    if (typeof Toastify === 'undefined') return;
+    
+    const colors = {
+        success: '#4caf50',
+        error: '#f44336',
+        info: '#2196F3'
+    };
+    
+    Toastify({
+        text: message,
+        duration: type === 'error' ? 5000 : 4000,
+        close: true,
+        gravity: "top",
+        position: "center",
+        style: {
+            background: "#fff",
+            color: "#333",
+            borderRadius: "8px",
+            fontSize: "14px",
+            padding: "16px 24px",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+            borderLeft: `5px solid ${colors[type]}`,
+            marginTop: "20px",
+            whiteSpace: "pre-line"
+        }
+    }).showToast();
 }
 
 // Add visual indicator for successful upload
@@ -1178,11 +944,24 @@ function markFieldAsComplete(fieldId) {
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
+// Check URL parameters for success/error messages
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const customerId = urlParams.get('customerId');
+    const message = urlParams.get('message');
+    
+    if (status === 'success') {
+        showToast("✅ Customer added successfully!\nCustomer ID: " + customerId, 'success');
+        setTimeout(function() {
+            window.history.replaceState({}, document.title, "addCustomer.jsp");
+        }, 100);
+    } else if (status === 'error') {
+        showToast("❌ Error: " + (message || "Failed to add customer"), 'error');
+        setTimeout(function() {
+            window.history.replaceState({}, document.title, "addCustomer.jsp");
+        }, 100);
+    }
+    
     console.log('✅ Image upload handlers initialized');
-    console.log('📸 Photo config:', IMAGE_CONFIG.photo);
-    console.log('✍️ Signature config:', IMAGE_CONFIG.signature);
 });
-
-// ========== END PHOTO & SIGNATURE UPLOAD FUNCTIONALITY ==========

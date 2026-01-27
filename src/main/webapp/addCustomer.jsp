@@ -424,12 +424,12 @@
     <!-- Row 2 -->
     <div>
       <label for="children">No. of Children</label>
-		<input type="number" id="children" name="children" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled>
+		<input type="number" id="children" name="children" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled required>
     </div>
 
     <div>
       <label for="dependents">No. of Dependents</label>
-      <input type="number" id="dependents" name="dependents" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled>
+      <input type="number" id="dependents" name="dependents" value="" min="0" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" disabled required>
     </div>
     
 </fieldset>

@@ -318,7 +318,6 @@
 <body>
 
 <div class="container">
-    <h1>LIST OF PRODUCT</h1>
 
     <form id="productForm" method="post" target="resultFrame">
         <div class="card">

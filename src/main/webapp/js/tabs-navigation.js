@@ -283,6 +283,11 @@
         // Tab 4: Validate KYC Documents (at least one ID proof and one Address proof)
         if (currentTab === 4) {
             // Check ID Proof documents
+            const idProofCheckboxes = [
+                'passport_check', 'pan_check', 'voterid_check', 
+                'dl_check', 'aadhar_check', 'nrega_check'
+            ];
+            
             const idProofFilled = 
                 (document.querySelector('input[name="passport_check"]').checked && 
                  document.querySelector('input[name="passport_expiry"]').value && 
@@ -302,12 +307,26 @@
             if (!idProofFilled) {
                 isValid = false;
                 errors.push('At least one ID Proof document must be selected and filled');
-                // Highlight ID Proof section
+                // Mark only checkboxes as error in ID Proof section
                 const idProofSection = document.querySelector('.kyc-section:first-child');
-                if (idProofSection) idProofSection.classList.add('field-error');
+                if (idProofSection) {
+                    idProofSection.classList.add('field-error');
+                    // Mark individual checkboxes
+                    idProofCheckboxes.forEach(name => {
+                        const checkbox = document.querySelector(`input[name="${name}"]`);
+                        if (checkbox && !checkbox.checked) {
+                            checkbox.classList.add('field-error');
+                        }
+                    });
+                }
             }
 
             // Check Address Proof documents
+            const addressProofCheckboxes = [
+                'telephone_check', 'bank_check', 'govt_check', 
+                'electricity_check', 'ration_check'
+            ];
+            
             const addressProofFilled = 
                 (document.querySelector('input[name="telephone_check"]').checked && 
                  document.querySelector('input[name="telephone_expiry"]').value && 
@@ -327,9 +346,18 @@
             if (!addressProofFilled) {
                 isValid = false;
                 errors.push('At least one Address Proof document must be selected and filled');
-                // Highlight Address Proof section
+                // Mark only checkboxes as error in Address Proof section
                 const addressProofSections = document.querySelectorAll('.kyc-section');
-                if (addressProofSections[1]) addressProofSections[1].classList.add('field-error');
+                if (addressProofSections[1]) {
+                    addressProofSections[1].classList.add('field-error');
+                    // Mark individual checkboxes
+                    addressProofCheckboxes.forEach(name => {
+                        const checkbox = document.querySelector(`input[name="${name}"]`);
+                        if (checkbox && !checkbox.checked) {
+                            checkbox.classList.add('field-error');
+                        }
+                    });
+                }
             }
 
             // Show specific KYC validation toast if errors exist
@@ -561,11 +589,21 @@
                 }
             }
             
-            // Clear KYC section error when checkbox is checked
+            // Clear KYC section error and checkbox error when checkbox is checked
             if (e.target.type === 'checkbox' && e.target.closest('.kyc-section')) {
                 const kycSection = e.target.closest('.kyc-section');
                 if (kycSection && e.target.checked) {
-                    kycSection.classList.remove('field-error');
+                    e.target.classList.remove('field-error');
+                    
+                    // Check if all checkboxes in this section have been addressed
+                    const allCheckboxes = kycSection.querySelectorAll('input[type="checkbox"]');
+                    const anyChecked = Array.from(allCheckboxes).some(cb => cb.checked);
+                    
+                    if (anyChecked) {
+                        kycSection.classList.remove('field-error');
+                        // Remove error class from all checkboxes in this section
+                        allCheckboxes.forEach(cb => cb.classList.remove('field-error'));
+                    }
                 }
             }
         });
