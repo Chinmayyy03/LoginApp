@@ -29,6 +29,8 @@
   <meta charset="UTF-8">
   <title>Complete Bank Customer Form</title>
   <link rel="stylesheet" href="css/addCustomer.css">
+  <!-- ✅ NEW: Tab Navigation CSS -->
+  <link rel="stylesheet" href="css/tabs-navigation.css">
   <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
   
  <!-- Add Toastify CSS -->
@@ -56,7 +58,7 @@
 
       <div>
         <label>Gender</label>
-        <select name="gender" id="gender">
+        <select name="gender" id="gender" required>
           <option value="">-- Select Gender --</option>
           <option>Male</option>
           <option>Female</option>
@@ -65,7 +67,7 @@
       </div>
 
 <div>
-    <label>Salutation Code 2</label>
+    <label>Salutation Code</label>
     <select name="salutationCode" id="salutationCode" required>
         <option value="">-- Select Salutation Code --</option>
         <%
@@ -98,7 +100,7 @@
         .replace(/[^A-Za-z]/g, '')       /* Allow only alphabets */
         .replace(/^./, c => c.toUpperCase())  /* Capitalize first letter */
         .replace(/(.{1})(.*)/, (m,p1,p2) => p1 + p2.toLowerCase()); /* Rest lowercase */
-      updateCustomerName();">
+      updateCustomerName();" required>
 	</div>
 
 <!-- Row 2 -->
@@ -108,7 +110,7 @@
         .replace(/[^A-Za-z]/g, '')       /* Allow only alphabets */
         .replace(/^./, c => c.toUpperCase())  /* Capitalize first letter */
         .replace(/(.{1})(.*)/, (m,p1,p2) => p1 + p2.toLowerCase()); /* Rest lowercase */
-      updateCustomerName();">
+      updateCustomerName();" required>
 	</div>
 
       <div>
@@ -117,7 +119,7 @@
         .replace(/[^A-Za-z]/g, '')       /* Allow only alphabets */
         .replace(/^./, c => c.toUpperCase())  /* Capitalize first letter */
         .replace(/(.{1})(.*)/, (m,p1,p2) => p1 + p2.toLowerCase()); /* Rest lowercase */
-      updateCustomerName();">
+      updateCustomerName();" required>
 	</div>
       
       <div>
@@ -127,12 +129,12 @@
 
       <div>
         <label>Birth Date</label>
-        <input type="date" name="birthDate" id="birthDate">
+        <input type="date" name="birthDate" id="birthDate" required>
       </div>
 <!-- Row 3 -->
       <div>
         <label>Registration Date</label>
-        <input type="date" name="registrationDate" >
+        <input type="date" name="registrationDate" required>
       </div>
       
       <div>
@@ -155,7 +157,7 @@
 
       <div>
         <label>Relation with Guardian</label>
-        <select name="relationGuardian" id="relationGuardian" disabled>
+        <select name="relationGuardian" id="relationGuardian" disabled required>
     <option value="">-- Select Relation with Guardian --</option>
     <%
       PreparedStatement psRelationWithGuardian = null;
@@ -267,7 +269,7 @@
       
       <div>
         <label>Sub Category Code</label>
-        <input type="text" name="subCategoryCode" value="1">
+        <input type="text" name="subCategoryCode" required>
       </div>
 
       
@@ -330,7 +332,7 @@
 
       <div>
         <label>Vehicle Owned</label>
-        <select name="vehicleOwned">
+        <select name="vehicleOwned" required>
           <option>NOT APPLICABLE</option>
           <option>CAR</option>
           <option>BIKE</option>
@@ -340,7 +342,7 @@
 
        <div>
         <label>Member Type</label>
-        <select name="memberType">
+        <select name="memberType" required>
           <option>A</option>
           <option>B</option>
           <option>O</option>
@@ -351,12 +353,12 @@
 <!-- Row 6 -->
       <div>
         <label>Email ID</label>
-        <input type="email" name="email">
+        <input type="email" name="email" required>
       </div>
 
       <div>
         <label>GSTIN No</label>
-        <input type="text" name="gstinNo" id="gstinNo">
+        <input type="text" name="gstinNo" id="gstinNo" required>
       </div>
       
 	<div>
@@ -367,14 +369,14 @@
 
       <div>
         <label>CKYC No</label>
-        <input type="text" name="ckyNo">
+        <input type="text" name="ckyNo" required>
       </div>
 
       
 <!-- Row 7 -->
      <div>
         <label>Risk Category</label>
-        <select name="riskCategory">
+        <select name="riskCategory" required>
           <option>LOW</option>
           <option>MEDIUM</option>
           <option>HIGH</option>
@@ -473,7 +475,7 @@
 
     <div>
       <label>Residence Status</label>
-      <select name="residenceStatus">
+      <select name="residenceStatus" required>
         <option>NOT APPLICABLE</option>
         <option>BANGLOW</option>
         <option>ROW HOUSE</option>
@@ -485,17 +487,17 @@
     <!-- Row 2 -->
     <div>
       <label>Address 1</label>
-      <input type="text" name="address1">
+      <input type="text" name="address1" required>
     </div>
 
     <div>
       <label>Address 2</label>
-      <input type="text" name="address2">
+      <input type="text" name="address2" required>
     </div>
 
     <div>
       <label>Address 3</label>
-      <input type="text" name="address3">
+      <input type="text" name="address3" required>
     </div>
 
     <!-- Row 3 -->
@@ -593,7 +595,7 @@
     <!-- Row 4 -->
     <div>
   		<label>Zip</label>
-  		<input type="text" id="zip" name="zip" maxlength="6" oninput="validateZipLive(this)" />
+  		<input type="text" id="zip" name="zip" maxlength="6" oninput="validateZipLive(this)" required>
   		<span id="zipError" style="color:red;"></span>
 	</div>
 <script>
@@ -646,19 +648,19 @@ if (zipField) {
     <div>
       <label>Mobile No</label>
       <div style="display: flex; gap: 5px;">
-        <input type="text" name="mobileNo">
+        <input type="text" name="mobileNo" required>
       </div>
     </div>
 
     <div>
       <label>Residence Phone</label>
-      <input type="text" name="residencePhone" value="">
+      <input type="text" name="residencePhone" value="" required>
     </div>
 
     <!-- Row 5 -->
     <div>
       <label>Office Phone</label>
-      <input type="text" name="officePhone" value="">
+      <input type="text" name="officePhone" value="" required>
     </div>
   </div>
 </fieldset>
@@ -924,6 +926,9 @@ if (zipField) {
 </div>
 
 <script src="js/addCustomer.js"></script>
+<!-- ✅ NEW: Tab Navigation JavaScript - Load AFTER addCustomer.js -->
+<script src="js/tabs-navigation.js"></script>
+
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function () {
     function toggleFieldsByIndividual(isIndividual) {
@@ -1047,5 +1052,3 @@ window.onload = function() {
 
 </body>
 </html>
-
-

@@ -143,7 +143,8 @@ function searchTable() {
                    account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    account.openDate.toLowerCase().indexOf(filter) > -1 ||
-                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.installmentAmount.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -159,7 +160,7 @@ function displayAccounts(accounts, page) {
     tbody.innerHTML = "";
     
     if (accounts.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='no-data'>No accounts found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='8' class='no-data'>No accounts found.</td></tr>";
         updatePaginationControls(0, page);
         return;
     }
@@ -181,6 +182,7 @@ function displayAccounts(accounts, page) {
             "<td>" + account.openDate + "</td>" +
             "<td>" + account.maturityDate + "</td>" +
             "<td>" + account.maturityAmount + "</td>" +
+            "<td>" + account.installmentAmount + "</td>" +
             "<td><a href='#' onclick=\"viewAccount('" + account.accountCode + "'); return false;\" " +
             "style='background:#2b0d73;color:white;padding:4px 10px;" +
             "border-radius:4px;text-decoration:none;'>View Details</a></td>";
@@ -214,7 +216,8 @@ function previousPage() {
                    account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    account.openDate.toLowerCase().indexOf(filter) > -1 ||
-                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.installmentAmount.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -234,7 +237,8 @@ function nextPage() {
                    account.productDesc.toLowerCase().indexOf(filter) > -1 ||
                    account.accountCode.toLowerCase().indexOf(filter) > -1 ||
                    account.openDate.toLowerCase().indexOf(filter) > -1 ||
-                   account.maturityDate.toLowerCase().indexOf(filter) > -1;
+                   account.maturityDate.toLowerCase().indexOf(filter) > -1 ||
+                   account.installmentAmount.toLowerCase().indexOf(filter) > -1;
         });
     }
     
@@ -328,6 +332,7 @@ function viewAccount(accountCode) {
         <th>ACCOUNT OPEN DATE</th>
         <th>MATURITY DATE</th>
         <th>MATURITY AMOUNT</th>
+        <th>INSTALLMENT AMOUNT</th>
         <th>ACTION</th>
     </tr>
 </thead>
@@ -431,6 +436,25 @@ function viewAccount(accountCode) {
                 try { if (psMatAmount != null) psMatAmount.close(); } catch (Exception ex) {}
             }
             
+            // Get installment amount using function
+            String installmentAmount = "";
+            PreparedStatement psInstAmount = null;
+            ResultSet rsInstAmount = null;
+            try {
+                psInstAmount = conn.prepareStatement("SELECT FN_GET_LOAN_INST(?) FROM DUAL");
+                psInstAmount.setString(1, accountCode);
+                rsInstAmount = psInstAmount.executeQuery();
+                if (rsInstAmount.next()) {
+                    installmentAmount = rsInstAmount.getString(1);
+                    if (installmentAmount == null) installmentAmount = "";
+                }
+            } catch (Exception e) {
+                installmentAmount = "";
+            } finally {
+                try { if (rsInstAmount != null) rsInstAmount.close(); } catch (Exception ex) {}
+                try { if (psInstAmount != null) psInstAmount.close(); } catch (Exception ex) {}
+            }
+            
             // Add to JavaScript array for client-side operations
             out.println("<script>");
             out.println("allAccounts.push({");
@@ -439,7 +463,8 @@ function viewAccount(accountCode) {
             out.println("  accountCode: '" + accountCode + "',");
             out.println("  openDate: '" + openDate.replace("'", "\\'") + "',");
             out.println("  maturityDate: '" + maturityDate.replace("'", "\\'") + "',");
-            out.println("  maturityAmount: '" + maturityAmount.replace("'", "\\'") + "'");
+            out.println("  maturityAmount: '" + maturityAmount.replace("'", "\\'") + "',");
+            out.println("  installmentAmount: '" + installmentAmount.replace("'", "\\'") + "'");
             out.println("});");
             out.println("</script>");
             
@@ -453,6 +478,7 @@ function viewAccount(accountCode) {
                 out.println("<td>" + openDate + "</td>");
                 out.println("<td>" + maturityDate + "</td>");
                 out.println("<td>" + maturityAmount + "</td>");
+                out.println("<td>" + installmentAmount + "</td>");
                 
                 out.println("<td><a href='#' onclick=\"viewAccount('" + accountCode + "'); return false;\" ");
                 out.println("style='background:#2b0d73;color:white;padding:4px 10px;");
@@ -465,7 +491,7 @@ function viewAccount(accountCode) {
         }
         
         if (!hasAccounts) {
-            out.println("<tr><td colspan='8' class='no-data'>No accounts found for this customer.</td></tr>");
+            out.println("<tr><td colspan='9' class='no-data'>No accounts found for this customer.</td></tr>");
         }
 %>
 </tbody>
