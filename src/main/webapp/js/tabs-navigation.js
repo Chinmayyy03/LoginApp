@@ -232,7 +232,14 @@
                 switchToTab(currentTab + 1);
             }
         } else {
-            showValidationToast('Please fill all required fields correctly before proceeding.');
+            // Validation failed - errors are already highlighted in the form
+            console.log('Validation failed for tab', currentTab);
+            
+            // Scroll to first error field
+            const firstError = document.querySelector('.field-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 
@@ -411,31 +418,6 @@
     function getFieldLabel(field) {
         const label = field.closest('div')?.querySelector('label');
         return label ? label.textContent.trim() : field.name || 'Field';
-    }
-
-    // Show validation toast
-    function showValidationToast(message) {
-        if (typeof Toastify !== 'undefined') {
-            Toastify({
-                text: '❌ ' + message,
-                duration: 4000,
-                close: true,
-                gravity: "top",
-                position: "center",
-                style: {
-                    background: "#fff",
-                    color: "#333",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    padding: "16px 24px",
-                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                    borderLeft: "5px solid #f44336",
-                    marginTop: "20px"
-                }
-            }).showToast();
-        } else {
-            alert(message);
-        }
     }
 
     // Clear errors on input change

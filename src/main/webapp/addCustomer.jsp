@@ -51,7 +51,7 @@
       <div>
         <label>Is Individual</label>
         <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="isIndividual" value="yes" required> Yes</label>
+          <label><input type="radio" name="isIndividual" value="yes" checked required> Yes</label>
           <label><input type="radio" name="isIndividual" value="no"> No</label>
         </div>
       </div>
@@ -141,7 +141,7 @@
         <label>Is Minor</label>
         <div style="flex-direction: row;" class="radio-group">
           <label><input type="radio" name="isMinor" id="isMinor1" value="yes" required onclick="toggleMinorFields()"> Yes</label>
-          <label><input type="radio" name="isMinor" id="isMinor2" value="no" onclick="toggleMinorFields()"> No</label>
+          <label><input type="radio" name="isMinor" id="isMinor2" value="no" checked onclick="toggleMinorFields()"> No</label>
         </div>
       </div>
 
@@ -415,7 +415,7 @@
     <div>
       <label>Marital Status</label>
       <div class="radio-group">
-        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" required onclick="toggleMarriedFields()"> Married</label>
+        <label><input type="radio" name="maritalStatus" id="maritalStatus" value="Married" checked required onclick="toggleMarriedFields()"> Married</label>
         <label><input type="radio" name="maritalStatus" id="maritalStatus1" value="Single" onclick="toggleMarriedFields()"> Single</label>
         <label><input type="radio" name="maritalStatus" id="maritalStatus2" value="Other" onclick="toggleMarriedFields()"> Other</label>
       </div>
@@ -442,7 +442,7 @@
     <!-- Row 1 -->
     <div>
       <label>Nationality</label>
-      <input type="text" name="nationality" value="INDIAN">
+      <input type="text" name="nationality" value="INDIAN" readonly>
     </div>
 
     <div>

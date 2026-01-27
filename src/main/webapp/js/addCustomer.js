@@ -1,5 +1,8 @@
 function toggleMinorFields() {
-  const isMinor = document.querySelector('input[name="isMinor"]:checked').value;
+  const isMinorRadio = document.querySelector('input[name="isMinor"]:checked');
+  if (!isMinorRadio) return; // Exit if no radio button is checked
+  
+  const isMinor = isMinorRadio.value;
   const guardianName = document.getElementById('guardianName');
   const relationGuardian = document.getElementById('relationGuardian');
 
@@ -34,6 +37,67 @@ function toggleMarriedFields() {
 	  }
 	}
 
+// ✅ NEW: Auto-detect minor status based on birth date
+function checkMinorStatus() {
+    const birthDateInput = document.getElementById('birthDate');
+    const isMinorYes = document.getElementById('isMinor1');
+    const isMinorNo = document.getElementById('isMinor2');
+    
+    if (!birthDateInput || !birthDateInput.value) {
+        // If birth date is cleared, make radio buttons editable again
+        if (isMinorYes) {
+            isMinorYes.disabled = false;
+            isMinorYes.style.cursor = 'pointer';
+        }
+        if (isMinorNo) {
+            isMinorNo.disabled = false;
+            isMinorNo.style.cursor = 'pointer';
+        }
+        return;
+    }
+    
+    const birthDate = new Date(birthDateInput.value);
+    const today = new Date();
+    
+    // Calculate age
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    
+    // Auto-select radio button based on age
+    if (age < 18) {
+        isMinorYes.checked = true;
+        isMinorNo.checked = false;
+    } else {
+        isMinorYes.checked = false;
+        isMinorNo.checked = true;
+    }
+    
+    // Make radio buttons readonly (disabled) after auto-selection
+    isMinorYes.disabled = true;
+    isMinorNo.disabled = true;
+    
+    // Add visual styling to indicate readonly state
+    isMinorYes.style.cursor = 'not-allowed';
+    isMinorNo.style.cursor = 'not-allowed';
+    
+    // Add readonly attribute to parent labels for better UX
+    const radioGroup = isMinorYes.closest('.radio-group');
+    if (radioGroup) {
+        radioGroup.style.opacity = '0.7';
+        radioGroup.title = 'Is Minor is auto-calculated from Birth Date';
+    }
+    
+    // Trigger the toggle function to enable/disable guardian fields
+    toggleMinorFields();
+    
+    console.log(`Age calculated: ${age} years - Minor: ${age < 18 ? 'Yes' : 'No'} [READONLY]`);
+}
+
 
 document.addEventListener("DOMContentLoaded", function() {
   // Select all rows inside the KYC tables
@@ -51,6 +115,35 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     }
   });
+  
+  // ✅ NEW: Add event listener to birth date field
+  const birthDateField = document.getElementById('birthDate');
+  if (birthDateField) {
+      birthDateField.addEventListener('change', checkMinorStatus);
+      
+      // Also handle when date is cleared/changed
+      birthDateField.addEventListener('input', function() {
+          if (!this.value) {
+              // Reset Is Minor radio buttons to editable state when date is cleared
+              const isMinorYes = document.getElementById('isMinor1');
+              const isMinorNo = document.getElementById('isMinor2');
+              const radioGroup = isMinorYes?.closest('.radio-group');
+              
+              if (isMinorYes) {
+                  isMinorYes.disabled = false;
+                  isMinorYes.style.cursor = 'pointer';
+              }
+              if (isMinorNo) {
+                  isMinorNo.disabled = false;
+                  isMinorNo.style.cursor = 'pointer';
+              }
+              if (radioGroup) {
+                  radioGroup.style.opacity = '1';
+                  radioGroup.title = '';
+              }
+          }
+      });
+  }
 });
 
 
