@@ -456,11 +456,6 @@ function validateForm() {
         (document.querySelector('input[name="aadhar_check"]').checked && document.querySelector('input[name="aadhar"]').value.trim()) ||
         (document.querySelector('input[name="nrega_check"]').checked && document.getElementById('nrega').value.trim());
 
-    if (!idProofFilled) {
-        errors.push('• At least one ID Proof document must be selected and filled');
-        isValid = false;
-    }
-
     // ✅ Validate at least one Address Proof document is filled
     const addressProofFilled = 
         (document.querySelector('input[name="telephone_check"]').checked && document.querySelector('input[name="telephone_expiry"]').value && document.querySelector('input[name="telephone"]').value.trim()) ||
@@ -468,11 +463,6 @@ function validateForm() {
         (document.querySelector('input[name="govt_check"]').checked && document.querySelector('input[name="govt_expiry"]').value && document.querySelector('input[name="govt_doc"]').value.trim()) ||
         (document.querySelector('input[name="electricity_check"]').checked && document.querySelector('input[name="electricity_expiry"]').value && document.querySelector('input[name="electricity"]').value.trim()) ||
         (document.querySelector('input[name="ration_check"]').checked && document.getElementById('ration').value.trim());
-
-    if (!addressProofFilled) {
-        errors.push('• At least one Address Proof document must be selected and filled');
-        isValid = false;
-    }
 	
 	// ✅ Validate Photo Upload (required)
 	    const photoData = document.getElementById('photoData').value;
@@ -494,33 +484,6 @@ function validateForm() {
     }
 
     return isValid;
-}
-
-// Function to show validation errors as toast
-function showValidationToast(errors) {
-    const errorMessage = '❌ Please fix the following errors:\n\n' + errors.join('\n');
-    
-    Toastify({
-        text: errorMessage,
-        duration: 6000, 
-        close: true,
-        gravity: "top",
-        position: "center",
-        style: {
-            background: "#fff",
-            color: "#333",
-            borderRadius: "8px",
-            fontSize: "14px",
-            padding: "20px 30px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            borderLeft: "5px solid #f44336",
-            marginTop: "20px",
-            maxWidth: "500px",
-            whiteSpace: "pre-line"
-        },
-        stopOnFocus: true,
-        onClick: function(){} 
-    }).showToast();
 }
 
 // Initialize validations when page loads

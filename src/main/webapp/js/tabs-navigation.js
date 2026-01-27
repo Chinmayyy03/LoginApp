@@ -280,6 +280,64 @@
             }
         }
 
+        // Tab 4: Validate KYC Documents (at least one ID proof and one Address proof)
+        if (currentTab === 4) {
+            // Check ID Proof documents
+            const idProofFilled = 
+                (document.querySelector('input[name="passport_check"]').checked && 
+                 document.querySelector('input[name="passport_expiry"]').value && 
+                 document.querySelector('input[name="passportNumber"]').value.trim()) ||
+                (document.querySelector('input[name="pan_check"]').checked && 
+                 document.getElementById('pan').value.trim()) ||
+                (document.querySelector('input[name="voterid_check"]').checked && 
+                 document.getElementById('voterid').value.trim()) ||
+                (document.querySelector('input[name="dl_check"]').checked && 
+                 document.querySelector('input[name="dl_expiry"]').value && 
+                 document.getElementById('dl').value.trim()) ||
+                (document.querySelector('input[name="aadhar_check"]').checked && 
+                 document.querySelector('input[name="aadhar"]').value.trim()) ||
+                (document.querySelector('input[name="nrega_check"]').checked && 
+                 document.getElementById('nrega').value.trim());
+
+            if (!idProofFilled) {
+                isValid = false;
+                errors.push('At least one ID Proof document must be selected and filled');
+                // Highlight ID Proof section
+                const idProofSection = document.querySelector('.kyc-section:first-child');
+                if (idProofSection) idProofSection.classList.add('field-error');
+            }
+
+            // Check Address Proof documents
+            const addressProofFilled = 
+                (document.querySelector('input[name="telephone_check"]').checked && 
+                 document.querySelector('input[name="telephone_expiry"]').value && 
+                 document.querySelector('input[name="telephone"]').value.trim()) ||
+                (document.querySelector('input[name="bank_check"]').checked && 
+                 document.querySelector('input[name="bank_expiry"]').value && 
+                 document.querySelector('input[name="bank_statement"]').value.trim()) ||
+                (document.querySelector('input[name="govt_check"]').checked && 
+                 document.querySelector('input[name="govt_expiry"]').value && 
+                 document.querySelector('input[name="govt_doc"]').value.trim()) ||
+                (document.querySelector('input[name="electricity_check"]').checked && 
+                 document.querySelector('input[name="electricity_expiry"]').value && 
+                 document.querySelector('input[name="electricity"]').value.trim()) ||
+                (document.querySelector('input[name="ration_check"]').checked && 
+                 document.getElementById('ration').value.trim());
+
+            if (!addressProofFilled) {
+                isValid = false;
+                errors.push('At least one Address Proof document must be selected and filled');
+                // Highlight Address Proof section
+                const addressProofSections = document.querySelectorAll('.kyc-section');
+                if (addressProofSections[1]) addressProofSections[1].classList.add('field-error');
+            }
+
+            // Show specific KYC validation toast if errors exist
+            if (!isValid && errors.length > 0) {
+                showKYCValidationToast(errors);
+            }
+        }
+
         // Tab 5: Validate photo and signature uploads
         if (currentTab === 5) {
             const photoData = document.getElementById('photoData');
@@ -297,6 +355,11 @@
                 errors.push('Customer signature is required');
                 const signatureCard = document.querySelector('.upload-card:last-child');
                 if (signatureCard) signatureCard.classList.add('field-error');
+            }
+
+            // Show specific Photo/Signature validation toast if errors exist
+            if (!isValid && errors.length > 0) {
+                showPhotoSignatureValidationToast(errors);
             }
         }
 
@@ -412,12 +475,72 @@
         container.querySelectorAll('.error-message').forEach(el => {
             el.remove();
         });
+        // Clear KYC section errors
+        container.querySelectorAll('.kyc-section').forEach(el => {
+            el.classList.remove('field-error');
+        });
+        // Clear upload card errors
+        container.querySelectorAll('.upload-card').forEach(el => {
+            el.classList.remove('field-error');
+        });
     }
 
     // Get field label
     function getFieldLabel(field) {
         const label = field.closest('div')?.querySelector('label');
         return label ? label.textContent.trim() : field.name || 'Field';
+    }
+
+    // Show KYC validation toast
+    function showKYCValidationToast(errors) {
+        if (typeof Toastify !== 'undefined') {
+            const errorMessage = '📋 KYC Document Validation\n\n' + errors.join('\n• ');
+            Toastify({
+                text: errorMessage,
+                duration: 5000,
+                close: true,
+                gravity: "top",
+                position: "center",
+                style: {
+                    background: "#fff",
+                    color: "#333",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    padding: "20px 30px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    borderLeft: "5px solid #ff9800",
+                    marginTop: "20px",
+                    whiteSpace: "pre-line",
+                    maxWidth: "500px"
+                }
+            }).showToast();
+        }
+    }
+
+    // Show Photo/Signature validation toast
+    function showPhotoSignatureValidationToast(errors) {
+        if (typeof Toastify !== 'undefined') {
+            const errorMessage = '📸 Photo & Signature Required\n\n• ' + errors.join('\n• ');
+            Toastify({
+                text: errorMessage,
+                duration: 5000,
+                close: true,
+                gravity: "top",
+                position: "center",
+                style: {
+                    background: "#fff",
+                    color: "#333",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    padding: "20px 30px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    borderLeft: "5px solid #2196f3",
+                    marginTop: "20px",
+                    whiteSpace: "pre-line",
+                    maxWidth: "500px"
+                }
+            }).showToast();
+        }
     }
 
     // Clear errors on input change
@@ -437,7 +560,33 @@
                     container.classList.remove('field-error');
                 }
             }
+            
+            // Clear KYC section error when checkbox is checked
+            if (e.target.type === 'checkbox' && e.target.closest('.kyc-section')) {
+                const kycSection = e.target.closest('.kyc-section');
+                if (kycSection && e.target.checked) {
+                    kycSection.classList.remove('field-error');
+                }
+            }
         });
+        
+        // Clear upload card errors when files are uploaded
+        const photoInput = document.getElementById('photoInput');
+        const signatureInput = document.getElementById('signatureInput');
+        
+        if (photoInput) {
+            photoInput.addEventListener('change', function() {
+                const photoCard = document.querySelector('.upload-card:first-child');
+                if (photoCard) photoCard.classList.remove('field-error');
+            });
+        }
+        
+        if (signatureInput) {
+            signatureInput.addEventListener('change', function() {
+                const signatureCard = document.querySelector('.upload-card:last-child');
+                if (signatureCard) signatureCard.classList.remove('field-error');
+            });
+        }
     }
 
     // Initialize on DOM ready
