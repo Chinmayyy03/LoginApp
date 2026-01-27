@@ -286,11 +286,11 @@ function updateLabelsBasedOnOperation() {
     refreshCreditAccountsTable();
     updateTotals();
 	if (accountCategory === 'loan' || accountCategory === 'cc') {
-	    const principalReceived = document.getElementById('principalReceived');
-	    if (principalReceived) {
-	        principalReceived.value = (parseFloat(this.value) || 0).toFixed(2);
+	    const principleReceived = document.getElementById('principleReceived');
+	    if (principleReceived) {
+	        principleReceived.value = (parseFloat(this.value) || 0).toFixed(2);
 	    }
-	    calculateRemaining('principal');
+	    calculateRemaining('principle');
 	}
 
 
@@ -351,6 +351,24 @@ function toggleLoanFields() {
     }
 }
 
+// ✅ NEW FUNCTION: Calculate and update Principle Received
+function updatePrincipleReceived() {
+    const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
+    const totalReceivable = parseFloat(document.getElementById('totalReceivable').value) || 0;
+    const principleReceivedField = document.getElementById('principleReceived');
+    
+    if (!principleReceivedField) return;
+    
+    // If transaction amount > total receivable, show the difference
+    // Otherwise show 0.00
+    if (transactionAmount > totalReceivable) {
+        const extraAmount = transactionAmount - totalReceivable;
+        principleReceivedField.value = extraAmount.toFixed(2);
+    } else {
+        principleReceivedField.value = '0.00';
+    }
+}
+
 //Calculate remaining amount (Receivable - Received)
 function calculateRemaining(fieldName) {
 	
@@ -365,6 +383,9 @@ function calculateRemaining(fieldName) {
 	        const received = parseFloat(g.value) || 0;
 
 	        m.value = (receivable - received).toFixed(2);
+			
+			// ✅ UPDATE PRINCIPLE RECEIVED WHEN TOTAL CHANGES
+			updatePrincipleReceived();
 	        return;
 	    }
 
@@ -517,6 +538,8 @@ if (transactionAmountInput) {
 		    }
 
 		    calculateRemaining('total');
+			// ✅ UPDATE PRINCIPLE RECEIVED
+			updatePrincipleReceived();
 		}
 
         // ✅ EXISTING FLOW
@@ -741,6 +764,12 @@ function calculateNewBalanceInIframe() {
 			    receivable: totalReceivableEl ? totalReceivableEl.value : '',
 			    received: totalReceivedEl ? totalReceivedEl.value : '',
 			    remaining: totalRemainingEl ? totalRemainingEl.value : ''
+			};
+			
+			// ✅ Add principle field
+			const principleReceivedEl = document.getElementById('principleReceived');
+			loanFieldsData['principle'] = {
+			    received: principleReceivedEl ? principleReceivedEl.value : ''
 			};
 	    }
 
@@ -1016,7 +1045,7 @@ function buildLoanFieldsTable() {
     loader.style.display = 'none';
     tableContainer.style.display = 'block';
     
-    // Build table headers
+    // Build table headers - ADD PRINCIPLE COLUMN
     let headerHTML = '<tr><th>Type</th>';
     loanRecoveryColumns.forEach(col => {
         // Safety check for undefined/null values
@@ -1031,6 +1060,7 @@ function buildLoanFieldsTable() {
             : col.description;
         headerHTML += '<th title="' + escapeHtml(col.description) + '">' + escapeHtml(displayName) + '</th>';
     });
+	headerHTML += '<th>Principle</th>'; // ✅ NEW: Principle column header
 	headerHTML += '<th>Total</th>';
     headerHTML += '</tr>';
     headerRow.innerHTML = headerHTML;
@@ -1069,6 +1099,12 @@ function buildLoanFieldsTable() {
                        'placeholder="0.00" readonly></td>';
     });
     
+	// ✅ ADD PRINCIPLE COLUMN CELLS (before Total column)
+	receivableRow += '<td><input type="text" id="principleReceivable" placeholder="0.00" readonly style="background-color: #e6ffe6;"></td>';
+	receivedRow   += '<td><input type="text" id="principleReceived" placeholder="0.00" readonly style="background-color: #e6ffe6; font-weight: bold; color: #2e7d32;"></td>';
+	remainingRow  += '<td><input type="text" id="principleRemaining" placeholder="0.00" readonly style="background-color: #e6ffe6;"></td>';
+	
+	// ADD TOTAL COLUMN CELLS
 	receivableRow += '<td><input type="text" id="totalReceivable" placeholder="0.00" readonly></td>';
 	receivedRow   += '<td><input type="text" id="totalReceived" placeholder="0.00"></td>';
 	remainingRow  += '<td><input type="text" id="totalRemaining"  placeholder="0.00" readonly></td>';
@@ -1228,6 +1264,9 @@ function populateLoanReceivableFields(receivableData) {
 	}
 
 	calculateRemaining('total');
+	
+	// ✅ UPDATE PRINCIPLE RECEIVED AFTER POPULATING
+	updatePrincipleReceived();
 }
 
 
@@ -1259,6 +1298,12 @@ function clearLoanFields() {
             }
         });
     });
+	
+	// ✅ Clear principle received field
+	const principleReceivedField = document.getElementById('principleReceived');
+	if (principleReceivedField) {
+	    principleReceivedField.value = '';
+	}
 }
 
 
@@ -1423,6 +1468,12 @@ function resetLoanReceivedFields() {
         
         calculateRemaining(fieldName);
     });
+	
+	// ✅ Clear principle received field when resetting
+	const principleReceivedField = document.getElementById('principleReceived');
+	if (principleReceivedField) {
+	    principleReceivedField.value = '0.00';
+	}
 }
 
 // Call this when transaction amount is cleared or changed significantly
