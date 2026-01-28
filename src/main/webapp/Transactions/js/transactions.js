@@ -658,7 +658,75 @@ document.addEventListener('keydown', function(event) {
 });
 
 function handleSaveTransaction() {
-    showToast('Save transaction functionality not yet implemented', 'warning');
+    const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const accountCode = document.getElementById('accountCode').value.trim();
+    const transactionAmount = document.getElementById('transactionamount').value.trim();
+    
+    // Validation checks
+    if (!accountCode) {
+        showToast('Please enter or select an account code', 'error');
+        return;
+    }
+    
+    if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
+        showToast('Please enter a valid transaction amount', 'error');
+        return;
+    }
+    
+    // Use working date from session (defined in JSP)
+    const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
+        new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
+    
+    // Determine transaction indicator
+    let transactionIndicator = '';
+    
+    if (operationType === 'deposit') {
+        transactionIndicator = 'CSCR';
+    } else if (operationType === 'withdrawal') {
+        transactionIndicator = 'CSDR';
+    } else if (operationType === 'transfer') {
+        const opType = document.getElementById('opType').value;
+        transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
+    }
+    
+    if (!transactionIndicator) {
+        showToast('Invalid operation type', 'error');
+        return;
+    }
+    
+    // Show loading toast
+    showToast('Validating transaction...', 'info');
+    
+    // Call validation
+    const params = new URLSearchParams({
+        accountCode: accountCode,
+        workingDate: sessionWorkingDate,
+        transactionIndicator: transactionIndicator,
+        transactionAmount: transactionAmount
+    });
+    
+    fetch('ValidateTransaction.jsp?' + params.toString())
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('Error: ' + data.error, 'error');
+            } else if (data.success) {
+                showToast(data.message, 'success');
+                proceedWithSave();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Validation error:', error);
+            showToast('Failed to validate transaction', 'error');
+        });
+}
+
+function proceedWithSave() {
+    // Implement actual save logic
+    showToast('Transaction validated and ready to save', 'success');
 }
 
 function calculateNewBalanceInIframe() {

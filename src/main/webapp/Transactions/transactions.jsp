@@ -19,7 +19,12 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="css/transactions.css">
-
+<script>
+    // Store working date from session
+    const workingDate = '<%= sess.getAttribute("workingDate") != null ? 
+        new java.text.SimpleDateFormat("dd/MM/yyyy").format((java.util.Date)sess.getAttribute("workingDate")) : 
+        new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date()) %>';
+</script>
    
 </head>
 <body>
