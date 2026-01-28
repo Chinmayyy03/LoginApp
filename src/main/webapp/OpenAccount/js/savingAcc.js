@@ -416,15 +416,14 @@ function toggleNomineeCustomerID(radio) {
     const input = nomineeBlock.querySelector('.nomineeCustomerIDInput');
 
     if (radio.value === 'yes') {
-        container.style.display = 'block';
+        container.style.display = 'flex'; // Changed from 'block' to 'flex'
         input.required = true;
     } else {
         container.style.display = 'none';
         input.required = false;
         input.value = '';
         clearNomineeFields(nomineeBlock);
-		// ✅ Re-enable fields when switching to "No"
-		        makeFieldsEditable(nomineeBlock);
+        makeFieldsEditable(nomineeBlock);
     }
 }
 
@@ -573,15 +572,14 @@ function toggleJointCustomerID(radio) {
     const input = jointBlock.querySelector('.jointCustomerIDInput');
 
     if (radio.value === 'yes') {
-        container.style.display = 'block';
+        container.style.display = 'flex'; // Changed from 'block' to 'flex'
         input.required = true;
     } else {
         container.style.display = 'none';
         input.required = false;
         input.value = '';
         clearJointFields(jointBlock);
-		// ✅ Re-enable fields when switching to "No"
-		        makeFieldsEditable(jointBlock);
+        makeFieldsEditable(jointBlock);
     }
 }
 
@@ -730,15 +728,14 @@ function toggleCoBorrowerCustomerID(radio) {
     const input = coBorrowerBlock.querySelector('.coBorrowerCustomerIDInput');
 
     if (radio.value === 'yes') {
-        container.style.display = 'block';
+        container.style.display = 'flex'; // Changed from 'block' to 'flex'
         input.required = true;
     } else {
         container.style.display = 'none';
         input.required = false;
         input.value = '';
         clearCoBorrowerFields(coBorrowerBlock);
-		// ✅ Re-enable fields when switching to "No"
-		        makeFieldsEditable(coBorrowerBlock);
+        makeFieldsEditable(coBorrowerBlock);
     }
 }
 
@@ -894,15 +891,14 @@ function toggleGuarantorCustomerID(radio) {
     const input = guarantorBlock.querySelector('.guarantorCustomerIDInput');
 
     if (radio.value === 'yes') {
-        container.style.display = 'block';
+        container.style.display = 'flex'; // Changed from 'block' to 'flex'
         input.required = true;
     } else {
         container.style.display = 'none';
         input.required = false;
         input.value = '';
         clearGuarantorFields(guarantorBlock);
-		// ✅ Re-enable fields when switching to "No"
-		        makeFieldsEditable(guarantorBlock);
+        makeFieldsEditable(guarantorBlock);
     }
 }
 
