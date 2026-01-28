@@ -660,24 +660,112 @@ document.addEventListener('keydown', function(event) {
 function handleSaveTransaction() {
     const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
     const operationType = document.querySelector("input[name='operationType']:checked").value;
-    const accountCode = document.getElementById('accountCode').value.trim();
-    const transactionAmount = document.getElementById('transactionamount').value.trim();
-    
-    // Validation checks
-    if (!accountCode) {
-        showToast('Please enter or select an account code', 'error');
-        return;
-    }
-    
-    if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
-        showToast('Please enter a valid transaction amount', 'error');
-        return;
-    }
     
     // Use working date from session (defined in JSP)
     const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
         new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
     
+    // ✅ HANDLE TRANSFER MODE - Validate from creditAccountsData list
+    if (operationType === 'transfer') {
+        // Validation for transfer mode
+        if (creditAccountsData.length === 0) {
+            showToast('Please add at least one transaction to the list', 'error');
+            return;
+        }
+        
+        // Check if transactions are tallied
+        const totalDebit = parseFloat(document.getElementById('totalDebit').value) || 0;
+        const totalCredit = parseFloat(document.getElementById('totalCredit').value) || 0;
+        
+        if (totalDebit !== totalCredit || totalDebit === 0) {
+            showToast('Transactions must be tallied (Debit = Credit) before saving', 'error');
+            return;
+        }
+        
+        // Show loading toast
+        showToast('Validating ' + creditAccountsData.length + ' transaction(s)...', 'info');
+        
+        // ✅ Validate each account from creditAccountsData array
+        validateTransactionsSequentially(0, sessionWorkingDate);
+        
+    } else {
+        // VALIDATION FOR NON-TRANSFER (DEPOSIT/WITHDRAWAL)
+        const accountCode = document.getElementById('accountCode').value.trim();
+        const transactionAmount = document.getElementById('transactionamount').value.trim();
+        
+        if (!accountCode) {
+            showToast('Please enter or select an account code', 'error');
+            return;
+        }
+        
+        if (!transactionAmount || parseFloat(transactionAmount) <= 0) {
+            showToast('Please enter a valid transaction amount', 'error');
+            return;
+        }
+        
+        // Validate single transaction
+        validateSingleTransaction(accountCode, sessionWorkingDate, operationType, transactionAmount);
+    }
+}
+
+// ✅ VALIDATE TRANSACTIONS FROM creditAccountsData ARRAY
+function validateTransactionsSequentially(index, sessionWorkingDate) {
+    if (index >= creditAccountsData.length) {
+        // All validations passed
+        showToast('All ' + creditAccountsData.length + ' transaction(s) validated successfully!', 'success');
+        proceedWithSave();
+        return;
+    }
+    
+    // ✅ Get transaction data from creditAccountsData array
+    const transaction = creditAccountsData[index];
+    const accountCode = transaction.code;
+    const accountName = transaction.name;
+    const amount = transaction.amount;
+    const opType = transaction.opType;
+    
+    // Determine transaction indicator based on opType
+    const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
+    
+    // Show progress
+    showToast('Validating ' + opType + ' account (' + (index + 1) + '/' + creditAccountsData.length + '): ' + accountCode, 'info');
+    
+    const params = new URLSearchParams({
+        accountCode: accountCode,
+        workingDate: sessionWorkingDate,
+        transactionIndicator: transactionIndicator,
+        transactionAmount: amount
+    });
+    
+    fetch('ValidateTransaction.jsp?' + params.toString())
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('❌ Validation failed for ' + opType + ' account ' + accountCode + ': ' + data.error, 'error');
+                return; // Stop validation
+            } else if (data.success) {
+                // Validation passed for this account
+                showToast('✓ Account ' + accountCode + ' (' + accountName + ') validated', 'success');
+                
+                // Continue to next account after a short delay
+                setTimeout(() => {
+                    validateTransactionsSequentially(index + 1, sessionWorkingDate);
+                }, 500);
+            } else {
+                // Validation failed
+                showToast('❌ Validation failed for ' + opType + ' account ' + accountCode + ': ' + data.message, 'error');
+                return; // Stop validation
+            }
+        })
+        .catch(error => {
+            console.error('Validation error for account ' + accountCode + ':', error);
+            showToast('❌ Network error validating account ' + accountCode, 'error');
+            return; // Stop validation
+        });
+}
+
+// VALIDATE SINGLE TRANSACTION (for non-transfer)
+function validateSingleTransaction(accountCode, sessionWorkingDate, operationType, transactionAmount) {
     // Determine transaction indicator
     let transactionIndicator = '';
     
@@ -685,12 +773,7 @@ function handleSaveTransaction() {
         transactionIndicator = 'CSCR';
     } else if (operationType === 'withdrawal') {
         transactionIndicator = 'CSDR';
-    } else if (operationType === 'transfer') {
-        const opType = document.getElementById('opType').value;
-        transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
-    }
-    
-    if (!transactionIndicator) {
+    } else {
         showToast('Invalid operation type', 'error');
         return;
     }
@@ -698,7 +781,6 @@ function handleSaveTransaction() {
     // Show loading toast
     showToast('Validating transaction...', 'info');
     
-    // Call validation
     const params = new URLSearchParams({
         accountCode: accountCode,
         workingDate: sessionWorkingDate,
@@ -725,8 +807,11 @@ function handleSaveTransaction() {
 }
 
 function proceedWithSave() {
-    // Implement actual save logic
-    showToast('Transaction validated and ready to save', 'success');
+    // Implement actual save logic here
+    showToast('Ready to save transaction(s)!', 'success');
+    
+    // You can add your actual save logic here
+    // For example, submit the form or make an AJAX call to save
 }
 
 function calculateNewBalanceInIframe() {
