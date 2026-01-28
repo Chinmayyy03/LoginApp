@@ -682,9 +682,6 @@ function handleSaveTransaction() {
             return;
         }
         
-        // Show loading toast
-        showToast('Validating ' + creditAccountsData.length + ' transaction(s)...', 'info');
-        
         // ✅ Validate each account from creditAccountsData array
         validateTransactionsSequentially(0, sessionWorkingDate);
         
@@ -712,7 +709,7 @@ function handleSaveTransaction() {
 function validateTransactionsSequentially(index, sessionWorkingDate) {
     if (index >= creditAccountsData.length) {
         // All validations passed
-        showToast('All ' + creditAccountsData.length + ' transaction(s) validated successfully!', 'success');
+        
         proceedWithSave();
         return;
     }
@@ -727,8 +724,7 @@ function validateTransactionsSequentially(index, sessionWorkingDate) {
     // Determine transaction indicator based on opType
     const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
     
-    // Show progress
-    showToast('Validating ' + opType + ' account (' + (index + 1) + '/' + creditAccountsData.length + '): ' + accountCode, 'info');
+    
     
     const params = new URLSearchParams({
         accountCode: accountCode,
@@ -744,9 +740,7 @@ function validateTransactionsSequentially(index, sessionWorkingDate) {
                 showToast('❌ Validation failed for ' + opType + ' account ' + accountCode + ': ' + data.error, 'error');
                 return; // Stop validation
             } else if (data.success) {
-                // Validation passed for this account
-                showToast('✓ Account ' + accountCode + ' (' + accountName + ') validated', 'success');
-                
+               
                 // Continue to next account after a short delay
                 setTimeout(() => {
                     validateTransactionsSequentially(index + 1, sessionWorkingDate);
@@ -778,8 +772,7 @@ function validateSingleTransaction(accountCode, sessionWorkingDate, operationTyp
         return;
     }
     
-    // Show loading toast
-    showToast('Validating transaction...', 'info');
+   
     
     const params = new URLSearchParams({
         accountCode: accountCode,
