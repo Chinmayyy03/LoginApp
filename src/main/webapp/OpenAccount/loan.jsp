@@ -155,19 +155,20 @@
 	  <meta charset="UTF-8">
 	  <title>Loan Account Application</title>
 	  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+	  <link rel="stylesheet" href="../css/application-tabs.css">
 	  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 	<style>
 	body {
 	      background-color: #e8e4fc;
 	      font-family: Arial, sans-serif;
-	      margin: 20px;
+	      margin: 0px 20px 20px 20px;
 	      padding: 0;
 	    }
 	
 	    fieldset {
 	      background: #e8e4fc;
 	      border: 2px solid #aaa;
-	      margin: 32px 0;
+	      margin: 14px 0px 0px 0px;
 	      padding: 15px 20px;
 	      min-width: 320px;
 	      border-radius: 9px;
@@ -3359,6 +3360,7 @@
 	</div>
 	<script src="js/application.js"></script>
 	<script src="js/savingAcc.js"></script>
+	<script src="../js/application-tabs.js"></script>
 	<script>
 	// Validation function
 	function validateForm() {

@@ -127,7 +127,7 @@
     
     <style>
         body {
-            margin: 0;
+            margin: -10px 0px 0px 0px;
             font-family: Arial, sans-serif;
             background-color: #e8e4fc;
         }
@@ -176,7 +176,6 @@
             background-color: white;
             border: 2px solid #BBADED;
             border-radius: 12px;
-            padding: 20px;
         }
 
         legend {

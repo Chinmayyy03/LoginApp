@@ -75,6 +75,7 @@
   <title>Shares Account Application</title>
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <link rel="stylesheet" href="css/savingAcc.css">
+  <link rel="stylesheet" href="../css/application-tabs.css">
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
 <body>
@@ -637,6 +638,7 @@
 </div>
 
 <script src="js/savingAcc.js"></script>
+<script src="../js/application-tabs.js"></script>
 <script>
 // Validation function
 function validateForm() {
