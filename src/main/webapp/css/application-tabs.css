@@ -32,41 +32,42 @@
 .app-tab-item {
   flex: 1;
   position: relative;
-  min-width: 120px;
+  min-width: 100px;
 }
 
 .app-tab-button {
   width: 100%;
-  padding: 10px 15px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: #666;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: not-allowed;
   transition: all 0.3s ease;
   position: relative;
   text-align: center;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* Tab number circle */
 .app-tab-number {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #ccc;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   transition: all 0.3s ease;
-  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 /* Active tab */
@@ -78,7 +79,7 @@
 
 .app-tab-button.active .app-tab-number {
   background: #373279;
-  transform: scale(1.15);
+  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(55, 50, 121, 0.3);
 }
 
@@ -105,7 +106,7 @@
 .app-tab-button.completed .app-tab-number::after {
   content: '✓';
   position: absolute;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: #fff;
 }
@@ -255,7 +256,7 @@ fieldset {
   top: 50%;
   transform: translateY(-50%);
   width: 1px;
-  height: 30px;
+  height: 24px;
   background: rgba(55, 50, 121, 0.2);
 }
 
@@ -266,15 +267,15 @@ fieldset {
   }
   
   .app-tab-button {
-    padding: 14px 12px;
+    padding: 10px 8px;
     font-size: 13px;
-    min-width: 100px;
+    min-width: 90px;
   }
   
   .app-tab-number {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
   
   .app-tab-navigation-buttons {
@@ -296,16 +297,23 @@ fieldset {
 @media (max-width: 480px) {
   .app-tab-button {
     font-size: 11px;
-    padding: 12px 8px;
-    min-width: 80px;
+    padding: 8px 6px;
+    min-width: 70px;
+    gap: 6px;
   }
   
   .app-tab-label {
-    display: none;
+    font-size: 10px;
   }
   
   .app-tab-number {
-    margin-bottom: 0;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+  
+  .app-tab-item:not(:last-child)::after {
+    height: 20px;
   }
 }
 

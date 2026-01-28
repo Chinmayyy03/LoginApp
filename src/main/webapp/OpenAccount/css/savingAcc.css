@@ -284,6 +284,6 @@ body {
     .inline-fields {
     display: flex;
     align-items: center;
-    gap: 20px;   /* space between the two blocks */
+    gap: 20px;   
 }
     

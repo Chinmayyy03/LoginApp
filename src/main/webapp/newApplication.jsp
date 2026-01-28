@@ -322,8 +322,6 @@
         <div class="card">
 
             <fieldset>
-                <legend>Product Details</legend>
-
                 <div class="row">
 
                     <!-- Account Type -->
