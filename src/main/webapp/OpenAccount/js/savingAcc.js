@@ -15,7 +15,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentNomineeInput = null;
         window.currentNomineeBlock = null;
         closeCustomerLookup();
-        showToast('Loading nominee customer data...');
         return;
     }
 
@@ -32,7 +31,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentJointInput = null;
         window.currentJointBlock = null;
         closeCustomerLookup();
-        showToast('Loading joint holder customer data...');
         return;
     }
 
@@ -49,7 +47,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentCoBorrowerInput = null;
         window.currentCoBorrowerBlock = null;
         closeCustomerLookup();
-        showToast('Loading co-borrower customer data...');
         return;
     }
 
@@ -66,7 +63,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
         window.currentGuarantorInput = null;
         window.currentGuarantorBlock = null;
         closeCustomerLookup();
-        showToast('Loading guarantor customer data...');
         return;
     }
 
@@ -87,7 +83,6 @@ window.setCustomerData = function(customerId, customerName, categoryCode, riskCa
     document.getElementById('riskCategory').value = riskCategory || '';
 
     closeCustomerLookup();
-    showToast('Customer data loaded successfully!');
 };
 
 //Fetch customer details from database
@@ -109,7 +104,6 @@ function fetchCustomerDetails(customerId, type, block) {
                 } else if (type === 'guarantor') {
                     populateGuarantorFields(block, data.customer);
                 }
-                showToast('Customer data loaded successfully!');
             } else {
                 showToast('❌ Error: ' + (data.message || 'Failed to load customer data'), 'error');
             }
@@ -1373,4 +1367,3 @@ function showToast(message, type) {
 	        return;
 	    }
 	}
-

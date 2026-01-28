@@ -268,7 +268,6 @@
         clearAllErrors(tabContent);
 
         let isValid = true;
-        const errors = [];
 
         // Get all inputs in current tab
         const inputs = tabContent.querySelectorAll('input, select, textarea');
@@ -285,7 +284,6 @@
                 if (!validateField(input)) {
                     isValid = false;
                     markFieldAsError(input);
-                    errors.push(getFieldLabel(input));
                 }
             }
 
@@ -295,7 +293,6 @@
                 if (!fieldValidation.valid) {
                     isValid = false;
                     markFieldAsError(input, fieldValidation.message);
-                    errors.push(fieldValidation.message);
                 }
             }
         }
@@ -309,14 +306,8 @@
                 if (!isChecked) {
                     isValid = false;
                     radios.forEach(r => markFieldAsError(r));
-                    errors.push(getFieldLabel(firstRadio));
                 }
             }
-        }
-
-        // Show validation toast if errors exist
-        if (!isValid && errors.length > 0) {
-            showValidationToast(errors);
         }
 
         return isValid;
@@ -438,42 +429,6 @@
         container.querySelectorAll('.app-error-message').forEach(el => {
             el.remove();
         });
-    }
-
-    // Get field label
-    function getFieldLabel(field) {
-        const label = field.closest('div')?.querySelector('label');
-        return label ? label.textContent.trim() : field.name || 'Field';
-    }
-
-    // Show validation toast
-    function showValidationToast(errors) {
-        if (typeof Toastify !== 'undefined') {
-            const tabName = TABS[currentTab - 1].name;
-            const errorMessage = `❌ Please complete ${tabName}\n\n` + 
-                                errors.slice(0, 5).map(e => '• ' + e).join('\n') +
-                                (errors.length > 5 ? `\n• ... and ${errors.length - 5} more fields` : '');
-            
-            Toastify({
-                text: errorMessage,
-                duration: 5000,
-                close: true,
-                gravity: "top",
-                position: "center",
-                style: {
-                    background: "#fff",
-                    color: "#333",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    padding: "20px 30px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                    borderLeft: "5px solid #f44336",
-                    marginTop: "20px",
-                    whiteSpace: "pre-line",
-                    maxWidth: "500px"
-                }
-            }).showToast();
-        }
     }
 
     // Clear errors on input change

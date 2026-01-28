@@ -411,24 +411,13 @@ window.onload = function() {
         );
     }
 };
-// ========== TOAST UTILITY FUNCTION ==========
+
+// ========== TOAST UTILITY FUNCTION (Only for errors) ==========
 function showToast(message, type = 'error') {
     const styles = {
-        success: {
-            borderColor: '#4caf50',
-            icon: '✅'
-        },
         error: {
             borderColor: '#f44336',
             icon: '❌'
-        },
-        warning: {
-            borderColor: '#ff9800',
-            icon: '⚠️'
-        },
-        info: {
-            borderColor: '#2196F3',
-            icon: 'ℹ️'
         }
     };
     
@@ -538,7 +527,7 @@ function fetchProductCodeDescription(productCode, accountType) {
     }
     
     if (!accountType || accountType.length !== 2) {
-        showToast('Please enter a valid Account Type first', 'warning');
+        // Don't show toast - just silently return since this is automatic validation
         return;
     }
     
@@ -575,32 +564,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Account Type input validation and fetch
     accountTypeInput.addEventListener('input', function(e) {
-    let value = e.target.value.toUpperCase();
-    e.target.value = value;
+        let value = e.target.value.toUpperCase();
+        e.target.value = value;
+        
+        // Remove non-alphabetic characters
+        if (!/^[A-Z]*$/.test(value)) {
+            e.target.value = value.replace(/[^A-Z]/g, '');
+            // Don't show toast for every keystroke - just prevent the input
+            return;
+        }
+        
+        validateAccountType(e.target.value);
+        
+        // Clear product code and iframe when account type changes
+        document.getElementById('productCode').value = '';
+        document.getElementById('prodDescription').value = '';
+        document.getElementById('resultFrame').src = '';
+        
+        // Fetch immediately when 2 characters entered
+        if (e.target.value.length === 2) {
+            fetchAccountTypeDescription(e.target.value);
+        } else if (e.target.value.length < 2) {
+            document.getElementById('accDescription').value = '';
+        }
+    });
     
-    // Remove non-alphabetic characters
-    if (!/^[A-Z]*$/.test(value)) {
-        e.target.value = value.replace(/[^A-Z]/g, '');
-        showToast('Only alphabetic characters allowed', 'warning');
-        return;
-    }
-    
-    validateAccountType(e.target.value);
-    
-    // Clear product code and iframe when account type changes
-    document.getElementById('productCode').value = '';
-    document.getElementById('prodDescription').value = '';
-    document.getElementById('resultFrame').src = '';
-    
-    // Fetch immediately when 2 characters entered
-    if (e.target.value.length === 2) {
-        fetchAccountTypeDescription(e.target.value);
-    } else if (e.target.value.length < 2) {
-        document.getElementById('accDescription').value = '';
-    }
-});
-    
- // ✅ ADD THIS - Handle Enter/Tab key press
+    // ✅ Handle Enter/Tab key press
     accountTypeInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === 'Tab') {
             const value = e.target.value.trim();
@@ -614,7 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    
     // Product Code input validation and fetch
     productCodeInput.addEventListener('input', function(e) {
         let value = e.target.value;
@@ -622,13 +610,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove non-numeric characters
         if (!/^\d*$/.test(value)) {
             e.target.value = value.replace(/\D/g, '');
-            showToast('Only numeric digits allowed', 'warning');
+            // Don't show toast for every keystroke - just prevent the input
             return;
         }
         
         validateProductCode(e.target.value);
         
-        // ✅ ADD THIS - Clear iframe when product code changes or is removed
+        // Clear iframe when product code changes or is removed
         document.getElementById('resultFrame').src = '';
         
         // Fetch only when 3 digits are entered
@@ -708,28 +696,26 @@ function autoSubmitForm() {
     let accType = document.getElementById("accountType").value.trim();
     let prodCode = document.getElementById("productCode").value.trim();
 
-    // Validate fields are filled
+    // Validate fields are filled (silent validation - no toasts)
     if (!accType || accType.length !== 2) {
-        showToast('Please enter a valid Account Type (2 alphabetic characters)', 'warning');
         return;
     }
     
     if (!prodCode) {
-        showToast('Please enter a Product Code', 'warning');
         return;
     }
 
     // Mapping based on Account Type
     const pageMap = {
-    "SB": "OpenAccount/savingAcc.jsp",
-    "CA": "OpenAccount/savingAcc.jsp",
-    "TD": "OpenAccount/deposit.jsp",
-    "CC": "OpenAccount/loan.jsp",
-    "TL": "OpenAccount/loan.jsp",
-    "PG": "OpenAccount/pigmy.jsp",
-    "SH": "OpenAccount/shares.jsp",
-    "FA": "OpenAccount/fAApplication.jsp"
-};
+        "SB": "OpenAccount/savingAcc.jsp",
+        "CA": "OpenAccount/savingAcc.jsp",
+        "TD": "OpenAccount/deposit.jsp",
+        "CC": "OpenAccount/loan.jsp",
+        "TL": "OpenAccount/loan.jsp",
+        "PG": "OpenAccount/pigmy.jsp",
+        "SH": "OpenAccount/shares.jsp",
+        "FA": "OpenAccount/fAApplication.jsp"
+    };
 
     console.log("Account Type =", accType);
 
@@ -737,7 +723,6 @@ function autoSubmitForm() {
     if (pageMap[accType]) {
         document.getElementById("productForm").action = pageMap[accType];
         document.getElementById("productForm").submit();
-        showToast('Loading application form...', 'success');
     } else {
         showToast('No page found for Account Type: ' + accType, 'error');
     }
