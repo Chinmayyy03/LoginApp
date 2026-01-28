@@ -157,7 +157,7 @@
 	  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 	  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 	  <link rel="stylesheet" type="text/css" href="css/savingAcc.css">
-	  <link rel="stylesheet" href="../css/application-tabs.css">
+	  <link rel="stylesheet" href="css/application-tabs.css">
 	</head>
 	<body>
 	<form action="LoanServlet" method="post">
@@ -3011,7 +3011,7 @@
 	</div>
 	<script src="js/application.js"></script>
 	<script src="js/savingAcc.js"></script>
-	<script src="../js/application-tabs.js"></script>
+	<script src="js/application-tabs.js"></script>
 	<script>
 	// Validation function
 	function validateForm() {
