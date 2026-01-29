@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="cashBalance" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="489bbd6d-0d66-4992-966c-1058b709cd8a">
+	<property name="ireport.zoom" value="1.4641000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="as_on_date" class="java.lang.String"/>
+	<parameter name="bank_code" class="java.lang.String"/>
+	<parameter name="branch_code" class="java.lang.String"/>
+	<parameter name="session_date" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[-- If date equals session_date (current date)
+SELECT 'CSOB' AS TRANSACTIONINDICATOR_CODE,
+       'Cash Opening Balance' AS DESCRIPTION,
+       ABS(OPENINGBALANCE) AS AMOUNT,
+       1 AS SORT_ORDER
+FROM BALANCE.BRANCHGL BRANCHGL
+JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
+WHERE BRANCHGL.BRANCH_CODE = $P{branch_code}
+AND BRANCHGL.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
+AND $P{as_on_date} = $P{session_date}
+
+UNION ALL
+
+-- If date not equals session_date (historical date)
+SELECT 'CSOB' AS TRANSACTIONINDICATOR_CODE,
+       'Cash Opening Balance' AS DESCRIPTION,
+       ABS(OPENINGBALANCE) AS OPENINGAMOUNT,
+       1 AS SORT_ORDER
+FROM BALANCE.BRANCHGLHISTORY BRANCHGLHISTORY
+JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
+WHERE BRANCHGLHISTORY.BRANCH_CODE = $P{branch_code}
+AND BRANCHGLHISTORY.TXN_DATE = $P{as_on_date}
+AND BRANCHGLHISTORY.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
+AND $P{as_on_date} <> $P{session_date}
+
+UNION ALL
+
+-- Cash Closing Balance (Fixed calculation)
+SELECT  'CSCB' AS TRANSACTIONINDICATOR_CODE,
+        'Cash Closing Balance' AS DESCRIPTION,
+        SUM(
+            CASE
+                WHEN TRANSACTIONINDICATOR_CODE = 'CSDR' THEN AMOUNT
+                WHEN TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -AMOUNT
+                ELSE 0
+            END
+        ) AS AMOUNT,
+        2 AS SORT_ORDER
+FROM TRANSACTION.TRANSACTION_HT_VIEW
+WHERE TXN_DATE = $P{as_on_date}
+AND BRANCH_CODE = $P{branch_code}
+AND TRANSACTIONSTATUS='A'
+AND TXN_NUMBER > 0
+
+UNION ALL
+
+-- Grand Total Calculation
+SELECT  'GRAND' AS TRANSACTIONINDICATOR_CODE,
+        'Grand Total' AS DESCRIPTION,
+        (
+            -- Opening Balance (from either BRANCHGL or BRANCHGLHISTORY)
+            COALESCE(
+                (SELECT ABS(OPENINGBALANCE)
+                 FROM BALANCE.BRANCHGL BRANCHGL
+                 JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
+                 WHERE BRANCHGL.BRANCH_CODE = $P{branch_code}
+                 AND BRANCHGL.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
+                 AND $P{as_on_date} = $P{session_date}),
+
+                (SELECT ABS(OPENINGBALANCE)
+                 FROM BALANCE.BRANCHGLHISTORY BRANCHGLHISTORY
+                 JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
+                 WHERE BRANCHGLHISTORY.BRANCH_CODE = $P{branch_code}
+                 AND BRANCHGLHISTORY.TXN_DATE = $P{as_on_date}
+                 AND BRANCHGLHISTORY.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
+                 AND $P{as_on_date} <> $P{session_date}),
+                0
+            )
+            +
+            -- Closing Balance (Net cash flow)
+            COALESCE(
+                (SELECT SUM(
+                    CASE
+                        WHEN TRANSACTIONINDICATOR_CODE = 'CSDR' THEN AMOUNT
+                        WHEN TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -AMOUNT
+                        ELSE 0
+                    END)
+                 FROM TRANSACTION.TRANSACTION_HT_VIEW
+                 WHERE TXN_DATE = $P{as_on_date}
+                 AND BRANCH_CODE = $P{branch_code}
+                 AND TRANSACTIONSTATUS='A'
+                 AND TXN_NUMBER > 0),
+                0
+            )
+        ) AS AMOUNT,
+        3 AS SORT_ORDER
+FROM DUAL
+
+ORDER BY SORT_ORDER]]>
+	</queryString>
+	<field name="TRANSACTIONINDICATOR_CODE" class="java.lang.String"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<field name="SORT_ORDER" class="java.math.BigDecimal"/>
+	<columnHeader>
+		<band height="30">
+			<line>
+				<reportElement x="0" y="29" width="235" height="1" uuid="ba27dea1-4ce9-4dc0-9e53-81415c1d6b0d"/>
+			</line>
+			<staticText>
+				<reportElement x="100" y="0" width="96" height="29" uuid="bb3f8647-fe70-4390-9f08-abb97986290c"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="29" uuid="58188b1f-b931-4da4-9118-9446b4c959fc"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="35">
+			<textField>
+				<reportElement x="0" y="-1" width="100" height="21" uuid="f59ad7ed-744f-4d56-9c8d-74461bc6cbbd"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="0" width="96" height="20" uuid="364e36a1-3ab4-48a4-9391-5de5644340c2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="6">
+			<line>
+				<reportElement x="0" y="0" width="235" height="1" uuid="929758dd-67cb-4985-bf9b-257b880157d8"/>
+			</line>
+		</band>
+	</summary>
+</jasperReport>
