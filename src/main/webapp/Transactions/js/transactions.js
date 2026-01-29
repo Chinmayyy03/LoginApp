@@ -833,6 +833,13 @@ function proceedWithSave() {
 
 // Save transactions from creditAccountsData array sequentially
 function saveTransactionsSequentially(index, sessionWorkingDate) {
+    // ✅ FIX 1: Initialize scroll number tracking on first call
+    if (index === 0) {
+        window.currentTransferScrollNumber = null;
+        window.transferBatchInProgress = true;
+        console.log('=== Starting new transfer batch ===');
+    }
+    
     if (index >= creditAccountsData.length) {
         // All transactions saved successfully
         showToast('✅ All transactions saved successfully!', 'success');
@@ -850,6 +857,11 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
         previousAccountCode = '';
         clearIframe();
         
+        // Reset the global scroll number
+        window.currentTransferScrollNumber = null;
+        window.transferBatchInProgress = false;
+        console.log('=== Transfer batch completed ===');
+        
         return;
     }
     
@@ -858,6 +870,9 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     const amount = transaction.amount;
     const particular = transaction.particular;
     const opType = transaction.opType;
+    
+    console.log('Processing transaction ' + (index + 1) + '/' + creditAccountsData.length + 
+                ': ' + opType + ' for account ' + accountCode);
     
     // Determine transaction indicator based on opType
     const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
@@ -877,6 +892,25 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     formData.append('operationType', 'transfer');
     formData.append('forAccountCode', forAccountCode);
     
+    // ✅ FIX 2: Handle scroll number parameters correctly
+    if (index === 0) {
+        // First transaction - servlet will generate new scroll number
+        console.log('→ First transaction - servlet will generate new scroll number');
+        // DO NOT send scrollNumber or subscrollNumber parameters
+    } else if (window.currentTransferScrollNumber !== null) {
+        // Subsequent transactions - reuse the scroll number from first transaction
+        formData.append('scrollNumber', window.currentTransferScrollNumber.toString());
+        formData.append('subscrollNumber', (index + 1).toString());
+        console.log('→ Transaction #' + (index + 1) + ' - Reusing scroll number: ' + 
+                    window.currentTransferScrollNumber + ', subscroll: ' + (index + 1));
+    } else {
+        // This should not happen - means first transaction response wasn't received
+        console.error('ERROR: Scroll number not available for transaction ' + (index + 1));
+        showToast('❌ Error: Previous transaction not completed', 'error');
+        window.transferBatchInProgress = false;
+        return;
+    }
+    
     // Call servlet
     fetch('SaveTransactionServlet', {
         method: 'POST',
@@ -888,23 +922,55 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     .then(response => response.json())
     .then(data => {
         if (data.error) {
-            showToast('❌ Failed to save ' + opType + ' transaction for account ' + accountCode + ': ' + data.error, 'error');
+            console.error('❌ Save failed:', data.error);
+            showToast('❌ Failed to save ' + opType + ' transaction for account ' + 
+                     accountCode + ': ' + data.error, 'error');
+            // Reset scroll number on error
+            window.currentTransferScrollNumber = null;
+            window.transferBatchInProgress = false;
             return; // Stop saving
         } else if (data.success) {
-            showToast('✅ Saved ' + opType + ' transaction for account ' + accountCode + ' (Scroll #' + data.scrollNumber + ')', 'success');
+            // ✅ FIX 3: Store scroll number from FIRST transaction response
+            if (index === 0 && data.scrollNumber) {
+                window.currentTransferScrollNumber = data.scrollNumber;
+                console.log('✓ Stored scroll number from first transaction: ' + 
+                           window.currentTransferScrollNumber);
+            }
             
-            // Continue to next transaction after a short delay
+            // Verify scroll number consistency
+            if (index > 0 && data.scrollNumber !== window.currentTransferScrollNumber) {
+                console.warn('WARNING: Scroll number mismatch! Expected ' + 
+                           window.currentTransferScrollNumber + ', got ' + data.scrollNumber);
+            }
+            
+            // Show success message with scroll and subscroll numbers
+            const scrollDisplay = data.scrollNumber + '-' + data.subscrollNumber;
+            showToast('✅ Saved ' + opType + ' for ' + accountCode + 
+                     ' (Scroll #' + scrollDisplay + ')', 'success');
+            
+            console.log('✓ Transaction saved: Scroll ' + data.scrollNumber + 
+                       ', Subscroll ' + data.subscrollNumber);
+            
+            // ✅ FIX 4: Continue to next transaction after adequate delay
+            // This ensures scroll number is properly stored before proceeding
             setTimeout(() => {
                 saveTransactionsSequentially(index + 1, sessionWorkingDate);
-            }, 500);
+            }, 800); // 800ms delay to prevent race conditions
         } else {
+            console.error('❌ Save failed:', data.message);
             showToast('❌ Failed to save transaction: ' + data.message, 'error');
+            // Reset scroll number on error
+            window.currentTransferScrollNumber = null;
+            window.transferBatchInProgress = false;
             return; // Stop saving
         }
     })
     .catch(error => {
-        console.error('Save error for account ' + accountCode + ':', error);
+        console.error('❌ Network error for account ' + accountCode + ':', error);
         showToast('❌ Network error saving account ' + accountCode, 'error');
+        // Reset scroll number on error
+        window.currentTransferScrollNumber = null;
+        window.transferBatchInProgress = false;
         return; // Stop saving
     });
 }

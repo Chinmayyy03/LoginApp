@@ -90,6 +90,10 @@ public class SaveTransactionServlet extends HttpServlet {
             String chequeDate = request.getParameter("chequeDate");
             String forAccountCode = request.getParameter("forAccountCode");
             
+            // Get scroll number and subscroll number for transfer grouping
+            String scrollNumberParam = request.getParameter("scrollNumber");
+            String subscrollNumberParam = request.getParameter("subscrollNumber");
+            
             // Validate required parameters
             if (accountCode == null || accountCode.trim().isEmpty() ||
                 transactionAmount == null || transactionAmount.trim().isEmpty() ||
@@ -139,13 +143,31 @@ public class SaveTransactionServlet extends HttpServlet {
                 }
             }
             
-            // Step 2: Get scroll number
-            long scrollNumber = getNextScrollNumber(con);
+            // Step 2: Get scroll number and subscroll number
+            long scrollNumber;
+            int subscrollNumber;
             
-            // Step 3: Get GL Account Code
+            if ("transfer".equals(operationType) && scrollNumberParam != null && !scrollNumberParam.isEmpty()) {
+                // For transfer, use provided scroll number and subscroll number
+                scrollNumber = Long.parseLong(scrollNumberParam);
+                subscrollNumber = subscrollNumberParam != null ? Integer.parseInt(subscrollNumberParam) : 1;
+            } else {
+                // For deposit/withdrawal, get new scroll number
+                scrollNumber = getNextScrollNumber(con);
+                subscrollNumber = 1;
+            }
+            
+            // Step 3: Set forAccountCode based on operation type
+            if ("deposit".equals(operationType) || "withdrawal".equals(operationType)) {
+                // For deposit/withdrawal, set forAccountCode to same account
+                forAccountCode = accountCode;
+            }
+            // For transfer, use the provided forAccountCode parameter
+            
+            // Step 4: Get GL Account Code
             String glAccountCode = getGLAccountCode(con, accountCode);
             
-            // Step 4: Get current balances
+            // Step 5: Get current balances
             BigDecimal accountBalance = getAccountBalance(con, accountCode);
             BigDecimal glAccountBalance = BigDecimal.ZERO;
             
@@ -153,15 +175,15 @@ public class SaveTransactionServlet extends HttpServlet {
                 glAccountBalance = getAccountBalance(con, glAccountCode);
             }
             
-            // Step 5: Calculate new balance
+            // Step 6: Calculate new balance
             BigDecimal newAccountBalance = calculateNewBalance(accountBalance, txnAmount, 
                                                               transactionIndicator);
             
-            // Step 6: Insert transaction
-            insertTransaction(con, branchCode, workingDate, scrollNumber, accountCode, 
-                            glAccountCode, forAccountCode, transactionIndicator, txnAmount, 
-                            newAccountBalance, glAccountBalance, chequeType, chequeSeries, 
-                            chequeNumber, chequeDate, particular, userId);
+            // Step 7: Insert transaction
+            insertTransaction(con, branchCode, workingDate, scrollNumber, subscrollNumber, 
+                            accountCode, glAccountCode, forAccountCode, transactionIndicator, 
+                            txnAmount, newAccountBalance, glAccountBalance, chequeType, 
+                            chequeSeries, chequeNumber, chequeDate, particular, userId);
             
             // Commit transaction
             con.commit();
@@ -170,6 +192,7 @@ public class SaveTransactionServlet extends HttpServlet {
             jsonResponse.put("success", true);
             jsonResponse.put("message", "Transaction saved successfully");
             jsonResponse.put("scrollNumber", scrollNumber);
+            jsonResponse.put("subscrollNumber", subscrollNumber);
             jsonResponse.put("newBalance", newAccountBalance.toString());
             
             out.print(jsonResponse.toString());
@@ -346,10 +369,11 @@ public class SaveTransactionServlet extends HttpServlet {
     
     /**
      * Insert transaction into DAILYSCROLL table
+     * UPDATED: Added subscrollNumber parameter and set OFFICER_ID to NULL
      */
     private void insertTransaction(Connection con, String branchCode, Date workingDate,
-                                  long scrollNumber, String accountCode, String glAccountCode,
-                                  String forAccountCode, String transactionIndicator,
+                                  long scrollNumber, int subscrollNumber, String accountCode, 
+                                  String glAccountCode, String forAccountCode, String transactionIndicator,
                                   BigDecimal amount, BigDecimal accountBalance,
                                   BigDecimal glAccountBalance, String chequeType,
                                   String chequeSeries, String chequeNumber, String chequeDate,
@@ -385,8 +409,8 @@ public class SaveTransactionServlet extends HttpServlet {
             // SCROLL_NUMBER
             ps.setLong(paramIndex++, scrollNumber);
             
-            // SUBSCROLL_NUMBER
-            ps.setInt(paramIndex++, 1);
+            // SUBSCROLL_NUMBER - UPDATED to use parameter
+            ps.setInt(paramIndex++, subscrollNumber);
             
             // ACCOUNT_CODE
             ps.setString(paramIndex++, accountCode);
@@ -464,8 +488,8 @@ public class SaveTransactionServlet extends HttpServlet {
             // TRANSACTIONSTATUS (use 'E' - database default, likely allowed by constraint)
             ps.setString(paramIndex++, STATUS_ENTERED);
             
-            // OFFICER_ID
-            ps.setString(paramIndex++, userId);
+            // OFFICER_ID - UPDATED to NULL instead of userId
+            ps.setNull(paramIndex++, Types.VARCHAR);
             
             // AUTHORISE_DATE
             ps.setNull(paramIndex++, Types.DATE);
