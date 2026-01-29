@@ -94,6 +94,9 @@ public class SaveTransactionServlet extends HttpServlet {
             String scrollNumberParam = request.getParameter("scrollNumber");
             String subscrollNumberParam = request.getParameter("subscrollNumber");
             
+            // ✅ NEW: Get new account balance from frontend
+            String newBalanceParam = request.getParameter("newAccountBalance");
+            
             // Validate required parameters
             if (accountCode == null || accountCode.trim().isEmpty() ||
                 transactionAmount == null || transactionAmount.trim().isEmpty() ||
@@ -167,19 +170,30 @@ public class SaveTransactionServlet extends HttpServlet {
             // Step 4: Get GL Account Code
             String glAccountCode = getGLAccountCode(con, accountCode);
             
-            // Step 5: Get current balances
-            BigDecimal accountBalance = getAccountBalance(con, accountCode);
-            BigDecimal glAccountBalance = BigDecimal.ZERO;
+            // ✅ MODIFIED Step 5: Get new account balance from frontend
+            // Frontend will pass the New Ledger Balance from iframe, or Ledger Balance if new balance is null
+            BigDecimal newAccountBalance;
             
+            if (newBalanceParam != null && !newBalanceParam.trim().isEmpty()) {
+                try {
+                    newAccountBalance = new BigDecimal(newBalanceParam);
+                } catch (NumberFormatException e) {
+                    jsonResponse.put("error", "Invalid new account balance format");
+                    out.print(jsonResponse.toString());
+                    return;
+                }
+            } else {
+                // Fallback: get current ledger balance if new balance not provided
+                newAccountBalance = getAccountBalance(con, accountCode);
+            }
+            
+            // Get GL account balance (not modified by this transaction)
+            BigDecimal glAccountBalance = BigDecimal.ZERO;
             if (glAccountCode != null && !glAccountCode.isEmpty()) {
                 glAccountBalance = getAccountBalance(con, glAccountCode);
             }
             
-            // Step 6: Calculate new balance
-            BigDecimal newAccountBalance = calculateNewBalance(accountBalance, txnAmount, 
-                                                              transactionIndicator);
-            
-            // Step 7: Insert transaction
+            // Step 6: Insert transaction
             insertTransaction(con, branchCode, workingDate, scrollNumber, subscrollNumber, 
                             accountCode, glAccountCode, forAccountCode, transactionIndicator, 
                             txnAmount, newAccountBalance, glAccountBalance, chequeType, 
@@ -348,23 +362,6 @@ public class SaveTransactionServlet extends HttpServlet {
                 try { ps.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
         }
-    }
-    
-    /**
-     * Calculate new balance based on transaction type
-     */
-    private BigDecimal calculateNewBalance(BigDecimal currentBalance, BigDecimal amount,
-                                          String transactionIndicator) {
-        
-        if (transactionIndicator.contains("DR")) {
-            // Debit - subtract amount
-            return currentBalance.subtract(amount);
-        } else if (transactionIndicator.contains("CR")) {
-            // Credit - add amount
-            return currentBalance.add(amount);
-        }
-        
-        return currentBalance;
     }
     
     /**

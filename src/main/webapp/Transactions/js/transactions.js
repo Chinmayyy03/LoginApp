@@ -831,7 +831,91 @@ function proceedWithSave() {
     }
 }
 
-// Save transactions from creditAccountsData array sequentially
+// ✅ NEW FUNCTION: Get new account balance from iframe
+function getNewAccountBalanceFromIframe() {
+    const iframe = document.getElementById('resultFrame');
+    
+    try {
+        const iframeWindow = iframe.contentWindow;
+        const iframeDoc = iframeWindow.document;
+        
+        const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+        const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+        
+        // Priority: New Ledger Balance > Ledger Balance > 0.00
+        if (newLedgerBalanceField && newLedgerBalanceField.value && newLedgerBalanceField.value.trim() !== '') {
+            return newLedgerBalanceField.value.trim();
+        } else if (ledgerBalanceField && ledgerBalanceField.value && ledgerBalanceField.value.trim() !== '') {
+            return ledgerBalanceField.value.trim();
+        } else {
+            return '0.00';
+        }
+    } catch (e) {
+        console.error('Error reading balance from iframe:', e);
+        return null;
+    }
+}
+
+// Save single transaction (deposit/withdrawal) - MODIFIED
+function saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate) {
+    // ✅ Get new account balance from iframe
+    const newAccountBalance = getNewAccountBalanceFromIframe();
+    
+    if (newAccountBalance === null) {
+        showToast('❌ Could not read account balance from iframe. Please wait for the page to load.', 'error');
+        return;
+    }
+    
+    // Create form data for POST request
+    const formData = new URLSearchParams();
+    formData.append('accountCode', accountCode);
+    formData.append('transactionAmount', transactionAmount);
+    formData.append('transactionIndicator', transactionIndicator);
+    formData.append('particular', particular || '');
+    formData.append('operationType', operationType);
+    formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
+    
+    // Call servlet
+    fetch('SaveTransactionServlet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showToast('❌ Error: ' + data.error, 'error');
+        } else if (data.success) {
+            showToast('✅ Transaction saved successfully! (Scroll #' + data.scrollNumber + ')', 'success');
+            showToast('New Balance: ₹' + data.newBalance, 'info');
+            
+            // Clear form fields
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('transactionamount').value = '';
+            document.getElementById('particular').value = '';
+            previousAccountCode = '';
+            clearIframe();
+            
+            // Clear loan fields if applicable
+            const accountCategory = document.getElementById('accountCategory').value;
+            if (accountCategory === 'loan' || accountCategory === 'cc') {
+                clearLoanFields();
+                resetLoanReceivedFields();
+            }
+        } else {
+            showToast('❌ ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+        showToast('❌ Failed to save transaction', 'error');
+    });
+}
+
+// Save transactions from creditAccountsData array sequentially - MODIFIED
 function saveTransactionsSequentially(index, sessionWorkingDate) {
     // ✅ FIX 1: Initialize scroll number tracking on first call
     if (index === 0) {
@@ -883,6 +967,15 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     );
     const forAccountCode = oppositeTransaction ? oppositeTransaction.code : '';
     
+    // ✅ Get new account balance from iframe
+    const newAccountBalance = getNewAccountBalanceFromIframe();
+    
+    if (newAccountBalance === null) {
+        showToast('❌ Could not read account balance from iframe. Please wait for the page to load.', 'error');
+        window.transferBatchInProgress = false;
+        return;
+    }
+    
     // Create form data for POST request
     const formData = new URLSearchParams();
     formData.append('accountCode', accountCode);
@@ -891,6 +984,7 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     formData.append('particular', particular || '');
     formData.append('operationType', 'transfer');
     formData.append('forAccountCode', forAccountCode);
+    formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
     
     // ✅ FIX 2: Handle scroll number parameters correctly
     if (index === 0) {
@@ -972,56 +1066,6 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
         window.currentTransferScrollNumber = null;
         window.transferBatchInProgress = false;
         return; // Stop saving
-    });
-}
-
-// Save single transaction (deposit/withdrawal)
-function saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate) {
-    // Create form data for POST request
-    const formData = new URLSearchParams();
-    formData.append('accountCode', accountCode);
-    formData.append('transactionAmount', transactionAmount);
-    formData.append('transactionIndicator', transactionIndicator);
-    formData.append('particular', particular || '');
-    formData.append('operationType', operationType);
-    
-    // Call servlet
-    fetch('SaveTransactionServlet', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString()
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showToast('❌ Error: ' + data.error, 'error');
-        } else if (data.success) {
-            showToast('✅ Transaction saved successfully! (Scroll #' + data.scrollNumber + ')', 'success');
-            showToast('New Balance: ₹' + data.newBalance, 'info');
-            
-            // Clear form fields
-            document.getElementById('accountCode').value = '';
-            document.getElementById('accountName').value = '';
-            document.getElementById('transactionamount').value = '';
-            document.getElementById('particular').value = '';
-            previousAccountCode = '';
-            clearIframe();
-            
-            // Clear loan fields if applicable
-            const accountCategory = document.getElementById('accountCategory').value;
-            if (accountCategory === 'loan' || accountCategory === 'cc') {
-                clearLoanFields();
-                resetLoanReceivedFields();
-            }
-        } else {
-            showToast('❌ ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Save error:', error);
-        showToast('❌ Failed to save transaction', 'error');
     });
 }
 
