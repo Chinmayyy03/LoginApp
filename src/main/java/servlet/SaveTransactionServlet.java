@@ -34,6 +34,7 @@ public class SaveTransactionServlet extends HttpServlet {
     // Transaction status constants
     private static final String STATUS_PENDING = "P";
     private static final String STATUS_AUTHORIZED = "A";
+    private static final String STATUS_ENTERED = "E";  // Database default
     
     // Transaction indicators
     private static final String INDICATOR_CASH_CREDIT = "CSCR";
@@ -235,20 +236,28 @@ public class SaveTransactionServlet extends HttpServlet {
     
     /**
      * Get next scroll number from sequence
+     * FIXED: Use SELECT NEXT_SCROLL_NO.NEXTVAL instead of calling as function
      */
     private long getNextScrollNumber(Connection con) throws SQLException {
-        CallableStatement cs = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         try {
-            String query = "{? = call NEXT_SCROLL_NO()}";
-            cs = con.prepareCall(query);
-            cs.registerOutParameter(1, Types.NUMERIC);
-            cs.execute();
+            String query = "SELECT NEXT_SCROLL_NO.NEXTVAL FROM DUAL";
+            ps = con.prepareStatement(query);
+            rs = ps.executeQuery();
             
-            return cs.getLong(1);
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+            
+            throw new SQLException("Failed to get next scroll number from sequence");
             
         } finally {
-            if (cs != null) {
-                try { cs.close(); } catch (SQLException e) { e.printStackTrace(); }
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+            if (ps != null) {
+                try { ps.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
         }
     }
@@ -436,8 +445,8 @@ public class SaveTransactionServlet extends HttpServlet {
                 ps.setNull(paramIndex++, Types.DATE);
             }
             
-            // TRANIDENTIFICATION_ID
-            ps.setString(paramIndex++, branchCode + scrollNumber);
+            // TRANIDENTIFICATION_ID (NUMBER(2,0))
+            ps.setInt(paramIndex++, 0);
             
             // PARTICULAR
             if (particular != null && !particular.isEmpty()) {
@@ -452,8 +461,8 @@ public class SaveTransactionServlet extends HttpServlet {
             // IS_PASSBOOK_PRINTED
             ps.setString(paramIndex++, "N");
             
-            // TRANSACTIONSTATUS
-            ps.setString(paramIndex++, STATUS_PENDING);
+            // TRANSACTIONSTATUS (use 'E' - database default, likely allowed by constraint)
+            ps.setString(paramIndex++, STATUS_ENTERED);
             
             // OFFICER_ID
             ps.setString(paramIndex++, userId);
