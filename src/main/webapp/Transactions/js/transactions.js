@@ -799,12 +799,164 @@ function validateSingleTransaction(accountCode, sessionWorkingDate, operationTyp
         });
 }
 
+
+
 function proceedWithSave() {
-    // Implement actual save logic here
-    showToast('Ready to save transaction(s)!', 'success');
+    const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const accountCategory = document.getElementById('accountCategory').value;
     
-    // You can add your actual save logic here
-    // For example, submit the form or make an AJAX call to save
+    // Use working date from session (defined in JSP)
+    const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
+        new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
+    
+    if (operationType === 'transfer') {
+        // Save all transactions from creditAccountsData array
+        saveTransactionsSequentially(0, sessionWorkingDate);
+    } else {
+        // Save single transaction (deposit/withdrawal)
+        const accountCode = document.getElementById('accountCode').value.trim();
+        const transactionAmount = document.getElementById('transactionamount').value.trim();
+        const particular = document.getElementById('particular').value.trim();
+        
+        // Determine transaction indicator
+        let transactionIndicator = '';
+        if (operationType === 'deposit') {
+            transactionIndicator = 'CSCR';
+        } else if (operationType === 'withdrawal') {
+            transactionIndicator = 'CSDR';
+        }
+        
+        saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate);
+    }
+}
+
+// Save transactions from creditAccountsData array sequentially
+function saveTransactionsSequentially(index, sessionWorkingDate) {
+    if (index >= creditAccountsData.length) {
+        // All transactions saved successfully
+        showToast('✅ All transactions saved successfully!', 'success');
+        
+        // Clear the transaction list and reset the form
+        creditAccountsData = [];
+        refreshCreditAccountsTable();
+        updateTotals();
+        
+        // Clear form fields
+        document.getElementById('accountCode').value = '';
+        document.getElementById('accountName').value = '';
+        document.getElementById('transactionamount').value = '';
+        document.getElementById('particular').value = '';
+        previousAccountCode = '';
+        clearIframe();
+        
+        return;
+    }
+    
+    const transaction = creditAccountsData[index];
+    const accountCode = transaction.code;
+    const amount = transaction.amount;
+    const particular = transaction.particular;
+    const opType = transaction.opType;
+    
+    // Determine transaction indicator based on opType
+    const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
+    
+    // For transfer, get the opposite account code as forAccountCode
+    const oppositeTransaction = creditAccountsData.find(t => 
+        t.opType !== opType && t.id !== transaction.id
+    );
+    const forAccountCode = oppositeTransaction ? oppositeTransaction.code : '';
+    
+    // Create form data for POST request
+    const formData = new URLSearchParams();
+    formData.append('accountCode', accountCode);
+    formData.append('transactionAmount', amount);
+    formData.append('transactionIndicator', transactionIndicator);
+    formData.append('particular', particular || '');
+    formData.append('operationType', 'transfer');
+    formData.append('forAccountCode', forAccountCode);
+    
+    // Call servlet
+    fetch('SaveTransactionServlet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showToast('❌ Failed to save ' + opType + ' transaction for account ' + accountCode + ': ' + data.error, 'error');
+            return; // Stop saving
+        } else if (data.success) {
+            showToast('✅ Saved ' + opType + ' transaction for account ' + accountCode + ' (Scroll #' + data.scrollNumber + ')', 'success');
+            
+            // Continue to next transaction after a short delay
+            setTimeout(() => {
+                saveTransactionsSequentially(index + 1, sessionWorkingDate);
+            }, 500);
+        } else {
+            showToast('❌ Failed to save transaction: ' + data.message, 'error');
+            return; // Stop saving
+        }
+    })
+    .catch(error => {
+        console.error('Save error for account ' + accountCode + ':', error);
+        showToast('❌ Network error saving account ' + accountCode, 'error');
+        return; // Stop saving
+    });
+}
+
+// Save single transaction (deposit/withdrawal)
+function saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate) {
+    // Create form data for POST request
+    const formData = new URLSearchParams();
+    formData.append('accountCode', accountCode);
+    formData.append('transactionAmount', transactionAmount);
+    formData.append('transactionIndicator', transactionIndicator);
+    formData.append('particular', particular || '');
+    formData.append('operationType', operationType);
+    
+    // Call servlet
+    fetch('SaveTransactionServlet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showToast('❌ Error: ' + data.error, 'error');
+        } else if (data.success) {
+            showToast('✅ Transaction saved successfully! (Scroll #' + data.scrollNumber + ')', 'success');
+            showToast('New Balance: ₹' + data.newBalance, 'info');
+            
+            // Clear form fields
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('transactionamount').value = '';
+            document.getElementById('particular').value = '';
+            previousAccountCode = '';
+            clearIframe();
+            
+            // Clear loan fields if applicable
+            const accountCategory = document.getElementById('accountCategory').value;
+            if (accountCategory === 'loan' || accountCategory === 'cc') {
+                clearLoanFields();
+                resetLoanReceivedFields();
+            }
+        } else {
+            showToast('❌ ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+        showToast('❌ Failed to save transaction', 'error');
+    });
 }
 
 function calculateNewBalanceInIframe() {
