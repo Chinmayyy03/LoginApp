@@ -27,7 +27,7 @@ import db.DBConnection;
  * Servlet for saving transactions to TRANSACTION.DAILYSCROLL table
  * Handles validation, scroll number generation, and transaction persistence
  */
-@WebServlet("/SaveTransactionServlet")
+@WebServlet("/Transactions/SaveTransactionServlet")
 public class SaveTransactionServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
