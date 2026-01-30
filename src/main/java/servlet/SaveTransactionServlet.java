@@ -26,6 +26,7 @@ import db.DBConnection;
 /**
  * Servlet for saving transactions to TRANSACTION.DAILYSCROLL table
  * Handles validation, scroll number generation, and transaction persistence
+ * Includes special handling for loan recovery transactions
  */
 @WebServlet("/Transactions/SaveTransactionServlet")
 public class SaveTransactionServlet extends HttpServlet {
@@ -82,6 +83,7 @@ public class SaveTransactionServlet extends HttpServlet {
             String transactionIndicator = request.getParameter("transactionIndicator");
             String particular = request.getParameter("particular");
             String operationType = request.getParameter("operationType");
+            String accountCategory = request.getParameter("accountCategory");
             
             // Optional parameters
             String chequeType = request.getParameter("chequeType");
@@ -94,12 +96,38 @@ public class SaveTransactionServlet extends HttpServlet {
             String scrollNumberParam = request.getParameter("scrollNumber");
             String subscrollNumberParam = request.getParameter("subscrollNumber");
             
-            // ✅ NEW: Get new account balance from frontend
+            // Get new account balance from frontend
             String newBalanceParam = request.getParameter("newAccountBalance");
             
             // Validate required parameters
-            if (accountCode == null || accountCode.trim().isEmpty() ||
-                transactionAmount == null || transactionAmount.trim().isEmpty() ||
+            if (accountCode == null || accountCode.trim().isEmpty()) {
+                jsonResponse.put("error", "Missing account code");
+                out.print(jsonResponse.toString());
+                return;
+            }
+            
+            // Get database connection
+            con = DBConnection.getConnection();
+            con.setAutoCommit(false); // Start transaction
+            
+            // ✅ NEW: Handle loan/CC accounts differently
+            if ("loan".equals(accountCategory) || "cc".equals(accountCategory)) {
+                // For loan/CC, save multiple transactions from loan recovery data
+                saveLoanRecoveryTransactions(con, branchCode, workingDate, accountCode, 
+                                            userId, request, jsonResponse);
+                
+                // Commit transaction
+                con.commit();
+                
+                // Return success response (already set in saveLoanRecoveryTransactions)
+                out.print(jsonResponse.toString());
+                return;
+            }
+            
+            // ========== REGULAR TRANSACTION PROCESSING ==========
+            
+            // Validate transaction amount
+            if (transactionAmount == null || transactionAmount.trim().isEmpty() ||
                 transactionIndicator == null || transactionIndicator.trim().isEmpty() ||
                 operationType == null || operationType.trim().isEmpty()) {
                 
@@ -122,10 +150,6 @@ public class SaveTransactionServlet extends HttpServlet {
                 out.print(jsonResponse.toString());
                 return;
             }
-            
-            // Get database connection
-            con = DBConnection.getConnection();
-            con.setAutoCommit(false); // Start transaction
             
             // Step 1: Validate transaction
             String validationResult = validateTransaction(con, accountCode, workingDate, 
@@ -170,8 +194,7 @@ public class SaveTransactionServlet extends HttpServlet {
             // Step 4: Get GL Account Code
             String glAccountCode = getGLAccountCode(con, accountCode);
             
-            // ✅ MODIFIED Step 5: Get new account balance from frontend
-            // Frontend will pass the New Ledger Balance from iframe, or Ledger Balance if new balance is null
+            // Step 5: Get new account balance from frontend
             BigDecimal newAccountBalance;
             
             if (newBalanceParam != null && !newBalanceParam.trim().isEmpty()) {
@@ -240,6 +263,216 @@ public class SaveTransactionServlet extends HttpServlet {
     }
     
     /**
+     * Save multiple transactions for loan recovery
+     * Each non-zero received amount creates a separate transaction record
+     */
+    private void saveLoanRecoveryTransactions(Connection con, String branchCode, 
+                                             Date workingDate, String accountCode,
+                                             String userId, HttpServletRequest request,
+                                             JSONObject jsonResponse) 
+            throws SQLException {
+        
+        // Get scroll number once for all transactions
+        long scrollNumber = getNextScrollNumber(con);
+        int subscrollNumber = 1;
+        int savedCount = 0;
+        
+        // Get loan recovery columns from database
+        PreparedStatement psColumns = null;
+        ResultSet rsColumns = null;
+        
+        try {
+            String query = "SELECT COLUMN_NAME, LINK_GLCODE FROM HEADOFFICE.LOAN_RECOV_SEQ " +
+                          "ORDER BY SEQUENCE_NO";
+            psColumns = con.prepareStatement(query);
+            rsColumns = psColumns.executeQuery();
+            
+            while (rsColumns.next()) {
+                String columnName = rsColumns.getString("COLUMN_NAME");
+                String linkGlCode = rsColumns.getString("LINK_GLCODE");
+                
+                if (columnName == null || columnName.trim().isEmpty()) {
+                    continue;
+                }
+                
+                if (linkGlCode == null || linkGlCode.trim().isEmpty()) {
+                    continue;
+                }
+                
+                String fieldName = columnName.toLowerCase().trim();
+                
+                // Get received amount for this field
+                String receivedParam = request.getParameter(fieldName + "Received");
+                
+                if (receivedParam == null || receivedParam.trim().isEmpty()) {
+                    continue;
+                }
+                
+                BigDecimal receivedAmount;
+                try {
+                    receivedAmount = new BigDecimal(receivedParam);
+                    
+                    // Skip if amount is zero
+                    if (receivedAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                        continue;
+                    }
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+                
+                // Insert transaction for this recovery type
+                insertLoanRecoveryTransaction(con, branchCode, workingDate, scrollNumber,
+                                             subscrollNumber, linkGlCode.trim(), accountCode,
+                                             receivedAmount, userId, columnName);
+                
+                subscrollNumber++;
+                savedCount++;
+            }
+            
+            if (savedCount == 0) {
+                jsonResponse.put("error", "No loan recovery amounts to save");
+            } else {
+                jsonResponse.put("success", true);
+                jsonResponse.put("message", "Loan recovery transactions saved successfully (" + savedCount + " records)");
+                jsonResponse.put("scrollNumber", scrollNumber);
+                jsonResponse.put("count", savedCount);
+            }
+            
+        } finally {
+            if (rsColumns != null) {
+                try { rsColumns.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+            if (psColumns != null) {
+                try { psColumns.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+    }
+    
+    /**
+     * Insert single loan recovery transaction
+     * ACCOUNT_CODE = LINK_GLCODE from LOAN_RECOV_SEQ
+     * GLACCOUNT_CODE = LINK_GLCODE from LOAN_RECOV_SEQ
+     * FORACCOUNT_CODE = Selected account code
+     * ACCOUNTBALANCE = 0
+     * GLACCOUNTBALANCE = 0
+     */
+    private void insertLoanRecoveryTransaction(Connection con, String branchCode,
+                                              Date workingDate, long scrollNumber,
+                                              int subscrollNumber, String linkGlCode,
+                                              String forAccountCode, BigDecimal amount,
+                                              String userId, String recoveryType) 
+            throws SQLException {
+        
+        PreparedStatement ps = null;
+        
+        try {
+            String query = "INSERT INTO TRANSACTION.DAILYSCROLL (" +
+                          "BRANCH_CODE, SCROLL_DATE, SCROLL_NUMBER, SUBSCROLL_NUMBER, " +
+                          "ACCOUNT_CODE, GLACCOUNT_CODE, FORACCOUNT_CODE, " +
+                          "TRANSACTIONINDICATOR_CODE, AMOUNT, ACCOUNTBALANCE, " +
+                          "GLACCOUNTBALANCE, CHEQUE_TYPE, CHEQUESERIES, " +
+                          "CHEQUENUMBER, CHEQUEDATE, TRANIDENTIFICATION_ID, " +
+                          "PARTICULAR, USER_ID, IS_PASSBOOK_PRINTED, " +
+                          "TRANSACTIONSTATUS, OFFICER_ID, AUTHORISE_DATE, " +
+                          "CASHHANDLING_NUMBER, GLBRANCH_CODE, CREATED_DATE, " +
+                          "MODIFIED_DATE, RECON_CODE" +
+                          ") VALUES (" +
+                          "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, SYSDATE, ?" +
+                          ")";
+            
+            ps = con.prepareStatement(query);
+            
+            int paramIndex = 1;
+            
+            // BRANCH_CODE
+            ps.setString(paramIndex++, branchCode);
+            
+            // SCROLL_DATE
+            ps.setDate(paramIndex++, new java.sql.Date(workingDate.getTime()));
+            
+            // SCROLL_NUMBER
+            ps.setLong(paramIndex++, scrollNumber);
+            
+            // SUBSCROLL_NUMBER
+            ps.setInt(paramIndex++, subscrollNumber);
+            
+            // ACCOUNT_CODE = LINK_GLCODE
+            ps.setString(paramIndex++, linkGlCode);
+            
+            // GLACCOUNT_CODE = LINK_GLCODE
+            ps.setString(paramIndex++, linkGlCode);
+            
+            // FORACCOUNT_CODE = selected account
+            ps.setString(paramIndex++, forAccountCode);
+            
+            // TRANSACTIONINDICATOR_CODE (Credit for loan recovery)
+            ps.setString(paramIndex++, INDICATOR_TRANSFER_CREDIT);
+            
+            // AMOUNT
+            ps.setBigDecimal(paramIndex++, amount);
+            
+            // ACCOUNTBALANCE = 0
+            ps.setBigDecimal(paramIndex++, BigDecimal.ZERO);
+            
+            // GLACCOUNTBALANCE = 0
+            ps.setBigDecimal(paramIndex++, BigDecimal.ZERO);
+            
+            // CHEQUE_TYPE
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            // CHEQUESERIES
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            // CHEQUENUMBER
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            // CHEQUEDATE
+            ps.setNull(paramIndex++, Types.DATE);
+            
+            // TRANIDENTIFICATION_ID
+            ps.setInt(paramIndex++, 0);
+            
+            // PARTICULAR
+            ps.setString(paramIndex++, "Loan Recovery - " + recoveryType);
+            
+            // USER_ID
+            ps.setString(paramIndex++, userId);
+            
+            // IS_PASSBOOK_PRINTED
+            ps.setString(paramIndex++, "N");
+            
+            // TRANSACTIONSTATUS
+            ps.setString(paramIndex++, STATUS_ENTERED);
+            
+            // OFFICER_ID
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            // AUTHORISE_DATE
+            ps.setNull(paramIndex++, Types.DATE);
+            
+            // CASHHANDLING_NUMBER
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            // GLBRANCH_CODE
+            ps.setString(paramIndex++, branchCode);
+            
+            // RECON_CODE
+            ps.setNull(paramIndex++, Types.VARCHAR);
+            
+            int rowsInserted = ps.executeUpdate();
+            
+            if (rowsInserted == 0) {
+                throw new SQLException("Failed to insert loan recovery transaction for " + recoveryType);
+            }
+            
+        } finally {
+            if (ps != null) {
+                try { ps.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+    }
+    
+    /**
      * Validate transaction using database function
      */
     private String validateTransaction(Connection con, String accountCode, Date workingDate,
@@ -273,7 +506,6 @@ public class SaveTransactionServlet extends HttpServlet {
     
     /**
      * Get next scroll number from sequence
-     * FIXED: Use SELECT NEXT_SCROLL_NO.NEXTVAL instead of calling as function
      */
     private long getNextScrollNumber(Connection con) throws SQLException {
         PreparedStatement ps = null;
@@ -366,7 +598,6 @@ public class SaveTransactionServlet extends HttpServlet {
     
     /**
      * Insert transaction into DAILYSCROLL table
-     * UPDATED: Added subscrollNumber parameter and set OFFICER_ID to NULL
      */
     private void insertTransaction(Connection con, String branchCode, Date workingDate,
                                   long scrollNumber, int subscrollNumber, String accountCode, 
@@ -406,7 +637,7 @@ public class SaveTransactionServlet extends HttpServlet {
             // SCROLL_NUMBER
             ps.setLong(paramIndex++, scrollNumber);
             
-            // SUBSCROLL_NUMBER - UPDATED to use parameter
+            // SUBSCROLL_NUMBER
             ps.setInt(paramIndex++, subscrollNumber);
             
             // ACCOUNT_CODE
@@ -482,10 +713,10 @@ public class SaveTransactionServlet extends HttpServlet {
             // IS_PASSBOOK_PRINTED
             ps.setString(paramIndex++, "N");
             
-            // TRANSACTIONSTATUS (use 'E' - database default, likely allowed by constraint)
+            // TRANSACTIONSTATUS
             ps.setString(paramIndex++, STATUS_ENTERED);
             
-            // OFFICER_ID - UPDATED to NULL instead of userId
+            // OFFICER_ID
             ps.setNull(paramIndex++, Types.VARCHAR);
             
             // AUTHORISE_DATE

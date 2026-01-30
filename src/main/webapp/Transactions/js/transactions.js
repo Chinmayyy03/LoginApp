@@ -860,7 +860,12 @@ function getNewAccountBalanceFromIframe() {
 function saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate) {
     // ✅ Get new account balance from iframe
     const newAccountBalance = getNewAccountBalanceFromIframe();
-    
+	const accountCategory = document.getElementById('accountCategory').value;
+	if (accountCategory === 'loan' || accountCategory === 'cc') {
+	        saveLoanRecoveryTransactions(accountCode, sessionWorkingDate);
+	        return;
+	    }
+		
     if (newAccountBalance === null) {
         showToast('❌ Could not read account balance from iframe. Please wait for the page to load.', 'error');
         return;
@@ -2100,4 +2105,54 @@ function populateClosingFieldsFromIframe() {
         console.error('Error reading iframe:', e);
         showToast('Error reading account details. Please wait for the page to load completely.', 'error');
     }
+}
+
+// Save loan recovery transactions
+function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
+    const formData = new URLSearchParams();
+    formData.append('accountCode', accountCode);
+    formData.append('accountCategory', 'loan');
+    formData.append('operationType', 'deposit');
+    
+    // Add all loan received fields
+    loanRecoveryColumns.forEach(function(col) {
+        if (!col || !col.columnName) return;
+        const fieldName = col.columnName.toLowerCase().trim();
+        if (!fieldName) return;
+        
+        const receivedEl = document.getElementById(fieldName + 'Received');
+        if (receivedEl && receivedEl.value) {
+            formData.append(fieldName + 'Received', receivedEl.value);
+        }
+    });
+    
+    // Call servlet
+    fetch('SaveTransactionServlet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showToast('❌ Error: ' + data.error, 'error');
+        } else if (data.success) {
+            showToast('✅ ' + data.message, 'success');
+            
+            // Clear form
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('transactionamount').value = '';
+            previousAccountCode = '';
+            clearIframe();
+            clearLoanFields();
+            resetLoanReceivedFields();
+        }
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+        showToast('❌ Failed to save transactions', 'error');
+    });
 }
