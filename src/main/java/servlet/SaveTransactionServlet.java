@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;        // ✅ ADDED
+import java.util.HashSet;    // ✅ ADDED
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -265,6 +267,9 @@ public class SaveTransactionServlet extends HttpServlet {
     /**
      * Save multiple transactions for loan recovery
      * Each non-zero received amount creates a separate transaction record
+     * ✅ FIXED: Uses DISCRIPTATION for PARTICULAR field instead of COLUMN_NAME
+     * ✅ FIXED: Prevents duplicate transactions for same LINK_GLCODE
+     * ✅ FIXED: Added principle amount handling
      */
     private void saveLoanRecoveryTransactions(Connection con, String branchCode, 
                                              Date workingDate, String accountCode,
@@ -277,12 +282,16 @@ public class SaveTransactionServlet extends HttpServlet {
         int subscrollNumber = 1;
         int savedCount = 0;
         
+        // ✅ Use a Set to track already-processed LINK_GLCODE values
+        Set<String> processedGlCodes = new HashSet<>();
+        
         // Get loan recovery columns from database
         PreparedStatement psColumns = null;
         ResultSet rsColumns = null;
         
         try {
-            String query = "SELECT COLUMN_NAME, LINK_GLCODE FROM HEADOFFICE.LOAN_RECOV_SEQ " +
+            // ✅ CHANGED: Now also fetch DISCRIPTATION column
+            String query = "SELECT COLUMN_NAME, LINK_GLCODE, DISCRIPTATION FROM HEADOFFICE.LOAN_RECOV_SEQ " +
                           "ORDER BY SEQUENCE_NO";
             psColumns = con.prepareStatement(query);
             rsColumns = psColumns.executeQuery();
@@ -290,12 +299,21 @@ public class SaveTransactionServlet extends HttpServlet {
             while (rsColumns.next()) {
                 String columnName = rsColumns.getString("COLUMN_NAME");
                 String linkGlCode = rsColumns.getString("LINK_GLCODE");
+                String description = rsColumns.getString("DISCRIPTATION"); // ✅ NEW
                 
                 if (columnName == null || columnName.trim().isEmpty()) {
                     continue;
                 }
                 
                 if (linkGlCode == null || linkGlCode.trim().isEmpty()) {
+                    continue;
+                }
+                
+                // ✅ CRITICAL FIX: Skip if we've already processed this LINK_GLCODE
+                String glCodeKey = linkGlCode.trim();
+                if (processedGlCodes.contains(glCodeKey)) {
+                    System.out.println("Skipping duplicate LINK_GLCODE: " + glCodeKey + 
+                                     " for column: " + columnName);
                     continue;
                 }
                 
@@ -320,14 +338,58 @@ public class SaveTransactionServlet extends HttpServlet {
                     continue;
                 }
                 
+                // ✅ Mark this LINK_GLCODE as processed BEFORE inserting
+                processedGlCodes.add(glCodeKey);
+                
+                // ✅ CHANGED: Use description instead of columnName for the recovery type
+                String recoveryType = (description != null && !description.trim().isEmpty()) 
+                                    ? description.trim() 
+                                    : columnName;
+                
                 // Insert transaction for this recovery type
                 insertLoanRecoveryTransaction(con, branchCode, workingDate, scrollNumber,
-                                             subscrollNumber, linkGlCode.trim(), accountCode,
-                                             receivedAmount, userId, columnName);
+                                             subscrollNumber, glCodeKey, accountCode,
+                                             receivedAmount, userId, recoveryType);
                 
                 subscrollNumber++;
                 savedCount++;
             }
+            
+            // ✅ HANDLE PRINCIPLE AMOUNT
+            String principleReceivedParam = request.getParameter("principleReceived");
+            if (principleReceivedParam != null && !principleReceivedParam.trim().isEmpty()) {
+                try {
+                    BigDecimal principleAmount = new BigDecimal(principleReceivedParam);
+                    
+                    if (principleAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        // Insert principle as a separate transaction
+                        // Use the same GL code as the main account for principle
+                        String accountGlCode = getGLAccountCode(con, accountCode);
+                        
+                        if (accountGlCode != null && !accountGlCode.isEmpty()) {
+                            // Check if this GL code was already used
+                            if (!processedGlCodes.contains(accountGlCode.trim())) {
+                                insertLoanRecoveryTransaction(con, branchCode, workingDate, scrollNumber,
+                                                             subscrollNumber, accountGlCode, accountCode,
+                                                             principleAmount, userId, "PRINCIPLE");
+                                
+                                processedGlCodes.add(accountGlCode.trim());
+                                subscrollNumber++;
+                                savedCount++;
+                            } else {
+                                System.out.println("WARNING: Principle GL code " + accountGlCode + 
+                                                 " already used, skipping principle transaction");
+                            }
+                        } else {
+                            System.out.println("WARNING: GL code not found for account " + accountCode + 
+                                             ", skipping principle amount");
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("WARNING: Invalid principle amount format: " + principleReceivedParam);
+                }
+            }
+            // ✅ END OF PRINCIPLE HANDLING
             
             if (savedCount == 0) {
                 jsonResponse.put("error", "No loan recovery amounts to save");
@@ -433,7 +495,7 @@ public class SaveTransactionServlet extends HttpServlet {
             ps.setInt(paramIndex++, 0);
             
             // PARTICULAR
-            ps.setString(paramIndex++, "Loan Recovery - " + recoveryType);
+            ps.setString(paramIndex++, recoveryType);
             
             // USER_ID
             ps.setString(paramIndex++, userId);

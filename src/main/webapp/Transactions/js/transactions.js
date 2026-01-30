@@ -2108,6 +2108,7 @@ function populateClosingFieldsFromIframe() {
 }
 
 // Save loan recovery transactions
+// ✅ FIXED: Added principle received amount handling
 function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
     const formData = new URLSearchParams();
     formData.append('accountCode', accountCode);
@@ -2125,6 +2126,13 @@ function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
             formData.append(fieldName + 'Received', receivedEl.value);
         }
     });
+    
+    // ✅ NEW: ADD PRINCIPLE RECEIVED AMOUNT
+    const principleReceivedEl = document.getElementById('principleReceived');
+    if (principleReceivedEl && principleReceivedEl.value && parseFloat(principleReceivedEl.value) > 0) {
+        formData.append('principleReceived', principleReceivedEl.value);
+        console.log('Adding principle amount to save:', principleReceivedEl.value);
+    }
     
     // Call servlet
     fetch('SaveTransactionServlet', {

@@ -74,10 +74,10 @@
             double value = 0.0;
             boolean valueSet = false;
             
-            // Check if function column has 'N' value or is null
+            // ✅ FIXED: Check if function column has 'N' value or is null
             if (function == null || function.trim().isEmpty() || 
                 "N".equalsIgnoreCase(function.trim()) || "(null)".equalsIgnoreCase(function.trim())) {
-                // Direct column fetch from ACCOUNTLOAN table
+                // Direct column fetch from ACCOUNTLOAN table ONLY
                 try {
                     value = rsLoan.getDouble(columnName);
                     valueSet = true;
@@ -86,100 +86,106 @@
                     value = 0.0;
                     valueSet = true;
                 }
-            } else {
-                // Try to call function with different parameter combinations
-                String functionName = function.trim();
                 
-                // Try different function call patterns
-                boolean functionSuccess = false;
-                
-                // Pattern 1: Function with account_code and date (VARCHAR2, DATE)
-                if (!functionSuccess) {
-                    try {
-                        String functionCall = "{? = call " + functionName + "(?, ?)}";
-                        csFunction = con.prepareCall(functionCall);
-                        csFunction.registerOutParameter(1, Types.NUMERIC);
-                        csFunction.setString(2, accountCode);
-                        csFunction.setDate(3, new java.sql.Date(workingDate.getTime()));
-                        csFunction.execute();
-                        value = csFunction.getDouble(1);
+                // ✅ IMPORTANT: Put value in response and continue to next column
+                // Do NOT try to call functions for this field
+                receivableData.put(fieldName, String.format("%.2f", value));
+                continue; // Skip all function calling logic below
+            }
+            
+            // ✅ Only reach here if FUNCATION is NOT 'N'
+            // Try to call function with different parameter combinations
+            String functionName = function.trim();
+            
+            // Try different function call patterns
+            boolean functionSuccess = false;
+            
+            // Pattern 1: Function with account_code and date (VARCHAR2, DATE)
+            if (!functionSuccess) {
+                try {
+                    String functionCall = "{? = call " + functionName + "(?, ?)}";
+                    csFunction = con.prepareCall(functionCall);
+                    csFunction.registerOutParameter(1, Types.NUMERIC);
+                    csFunction.setString(2, accountCode);
+                    csFunction.setDate(3, new java.sql.Date(workingDate.getTime()));
+                    csFunction.execute();
+                    value = csFunction.getDouble(1);
+                    valueSet = true;
+                    functionSuccess = true;
+                    csFunction.close();
+                    csFunction = null;
+                } catch (SQLException e) {
+                    // Try next pattern
+                }
+            }
+            
+            // Pattern 2: Procedure that takes account_code, date, and OUT parameter
+            if (!functionSuccess) {
+                try {
+                    String functionCall = "{call " + functionName + "(?, ?, ?)}";
+                    csFunction = con.prepareCall(functionCall);
+                    csFunction.setString(1, accountCode);
+                    csFunction.setDate(2, new java.sql.Date(workingDate.getTime()));
+                    csFunction.registerOutParameter(3, Types.NUMERIC);
+                    csFunction.execute();
+                    value = csFunction.getDouble(3);
+                    valueSet = true;
+                    functionSuccess = true;
+                    csFunction.close();
+                    csFunction = null;
+                } catch (SQLException e) {
+                    // Try next pattern
+                }
+            }
+            
+            // Pattern 3: Function with only account_code
+            if (!functionSuccess) {
+                try {
+                    String functionCall = "{? = call " + functionName + "(?)}";
+                    csFunction = con.prepareCall(functionCall);
+                    csFunction.registerOutParameter(1, Types.NUMERIC);
+                    csFunction.setString(2, accountCode);
+                    csFunction.execute();
+                    value = csFunction.getDouble(1);
+                    valueSet = true;
+                    functionSuccess = true;
+                    csFunction.close();
+                    csFunction = null;
+                } catch (SQLException e) {
+                    // Try next pattern
+                }
+            }
+            
+            // Pattern 4: Try direct SELECT from function
+            if (!functionSuccess) {
+                try {
+                    String selectQuery = "SELECT " + functionName + "(?, ?) FROM DUAL";
+                    PreparedStatement psFunc = con.prepareStatement(selectQuery);
+                    psFunc.setString(1, accountCode);
+                    psFunc.setDate(2, new java.sql.Date(workingDate.getTime()));
+                    ResultSet rsFunc = psFunc.executeQuery();
+                    if (rsFunc.next()) {
+                        value = rsFunc.getDouble(1);
                         valueSet = true;
                         functionSuccess = true;
-                        csFunction.close();
-                        csFunction = null;
-                    } catch (SQLException e) {
-                        // Try next pattern
                     }
+                    rsFunc.close();
+                    psFunc.close();
+                } catch (SQLException e) {
+                    // Function call failed completely
                 }
-                
-                // Pattern 2: Procedure that takes account_code, date, and OUT parameter
-                if (!functionSuccess) {
-                    try {
-                        String functionCall = "{call " + functionName + "(?, ?, ?)}";
-                        csFunction = con.prepareCall(functionCall);
-                        csFunction.setString(1, accountCode);
-                        csFunction.setDate(2, new java.sql.Date(workingDate.getTime()));
-                        csFunction.registerOutParameter(3, Types.NUMERIC);
-                        csFunction.execute();
-                        value = csFunction.getDouble(3);
-                        valueSet = true;
-                        functionSuccess = true;
-                        csFunction.close();
-                        csFunction = null;
-                    } catch (SQLException e) {
-                        // Try next pattern
-                    }
-                }
-                
-                // Pattern 3: Function with only account_code
-                if (!functionSuccess) {
-                    try {
-                        String functionCall = "{? = call " + functionName + "(?)}";
-                        csFunction = con.prepareCall(functionCall);
-                        csFunction.registerOutParameter(1, Types.NUMERIC);
-                        csFunction.setString(2, accountCode);
-                        csFunction.execute();
-                        value = csFunction.getDouble(1);
-                        valueSet = true;
-                        functionSuccess = true;
-                        csFunction.close();
-                        csFunction = null;
-                    } catch (SQLException e) {
-                        // Try next pattern
-                    }
-                }
-                
-                // Pattern 4: Try direct SELECT from function
-                if (!functionSuccess) {
-                    try {
-                        String selectQuery = "SELECT " + functionName + "(?, ?) FROM DUAL";
-                        PreparedStatement psFunc = con.prepareStatement(selectQuery);
-                        psFunc.setString(1, accountCode);
-                        psFunc.setDate(2, new java.sql.Date(workingDate.getTime()));
-                        ResultSet rsFunc = psFunc.executeQuery();
-                        if (rsFunc.next()) {
-                            value = rsFunc.getDouble(1);
-                            valueSet = true;
-                            functionSuccess = true;
-                        }
-                        rsFunc.close();
-                        psFunc.close();
-                    } catch (SQLException e) {
-                        // Function call failed completely
-                    }
-                }
-                
-                // If all function calls failed, try to get from ACCOUNTLOAN table
-                if (!functionSuccess) {
-                    try {
-                        value = rsLoan.getDouble(columnName);
-                        valueSet = true;
-                        errors.put("Function " + functionName + " failed for column " + columnName + ", using table value");
-                    } catch (SQLException e) {
-                        value = 0.0;
-                        valueSet = true;
-                        errors.put("Function " + functionName + " and column " + columnName + " both failed");
-                    }
+            }
+            
+            // If all function calls failed, try to get from ACCOUNTLOAN table as fallback
+            if (!functionSuccess) {
+                try {
+                    value = rsLoan.getDouble(columnName);
+                    valueSet = true;
+                    errors.put("Function " + functionName + " failed for column " + columnName + ", using table value");
+                } catch (SQLException e) {
+                    value = 0.0;
+                    valueSet = true;
+                    errors.put("Function " + functionName + " and column " + columnName + " both failed");
                 }
             }
             
