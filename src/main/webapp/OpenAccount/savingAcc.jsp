@@ -284,7 +284,7 @@
 
         <div>
           <label>Address 1</label>
-          <input type="text" name="nomineeAddress1[]">
+          <input type="text" name="nomineeAddress1[]" required>
         </div>
 
         <div>
@@ -299,7 +299,7 @@
 
         <div>
           <label>Country</label>
-          <select name="nomineeCountry[]">
+          <select name="nomineeCountry[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryNominee = null;
@@ -327,7 +327,7 @@
 
         <div>
           <label>State</label>
-          <select name="nomineeState[]">
+          <select name="nomineeState[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateNominee = null;
@@ -356,7 +356,7 @@
 
         <div>
           <label>City</label>
-          <select name="nomineeCity[]">
+          <select name="nomineeCity[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityNominee = null;
@@ -385,7 +385,7 @@
 
         <div>
           <label>Zip</label>
-          <input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+          <input type="text" name="nomineeZip[]" class="zip-input" maxlength="6" required>
           <small class="zipError"></small>
         </div>
 
@@ -507,7 +507,7 @@
 
         <div>
           <label>Address 1</label>
-          <input type="text" name="jointAddress1[]">
+          <input type="text" name="jointAddress1[]" required>
         </div>
 
         <div>
@@ -522,7 +522,7 @@
 
         <div>
           <label>Country</label>
-          <select name="jointCountry[]">
+          <select name="jointCountry[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryJoint = null;
@@ -550,7 +550,7 @@
 
         <div>
           <label>State</label>
-          <select name="jointState[]">
+          <select name="jointState[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateJoint = null;
@@ -579,7 +579,7 @@
 
         <div>
           <label>City</label>
-          <select name="jointCity[]">
+          <select name="jointCity[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityJoint = null;
@@ -608,7 +608,7 @@
 
         <div>
           <label>Zip</label>
-          <input type="text" name="jointZip[]" class="zip-input" maxlength="6">
+          <input type="text" name="jointZip[]" class="zip-input" maxlength="6" required>
           <small class="zipError"></small>
         </div>
       </div>

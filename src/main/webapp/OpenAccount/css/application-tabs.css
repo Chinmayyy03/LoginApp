@@ -347,10 +347,3 @@ fieldset {
   border-color: #4caf50 !important;
   background-color: #f1f8f4 !important;
 }
-
-/* Special styling for nominee/joint holder cards */
-.nominee-card.app-field-error,
-.joint-block.app-field-error {
-  border: 2px solid #f44336 !important;
-  background-color: #ffebee !important;
-}

@@ -107,12 +107,12 @@
 
       <div>
         <label>Description</label>
-        <input type="text" name="description" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')">
+        <input type="text" name="description" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')" required>
       </div>
 
       <div>
         <label>Bill Number</label>
-        <input type="text" name="billNumber" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')">
+        <input type="text" name="billNumber" required oninput="this.value = this.value.replace(/[^A-Za-z0-9 ]/g, '')" required>
       </div>
 
       <div>

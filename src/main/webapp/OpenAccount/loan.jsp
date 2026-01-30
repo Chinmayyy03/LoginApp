@@ -195,7 +195,7 @@
 	      <div>
 	  		<label>Introduer A/c Code</label>
 	  		<input type="text" name="introducerAccCode" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
-	    	title="Introduer Account Code must be exactly 14 digits">
+	    	title="Introduer Account Code must be exactly 14 digits" required>
 		</div>
 	
 	      <div>
@@ -286,47 +286,47 @@
 	  
 	    <div>
 	    	<label>Submission Date</label>
-	    	<input type="date" name="submissionDate" id="submissionDate" value="<%= workingDateStr %>">
+	    	<input type="date" name="submissionDate" id="submissionDate" value="<%= workingDateStr %>" required>
 		</div>
-	
+	  
 	    <div>
 	      <label>Resolution No</label>
-	      <input type="text" name="resolutionNo">
+	      <input type="text" name="resolutionNo" required>
 	    </div>
 	
 		<div>
 	  		<label>Registration Date</label>
-	  		<input type="date" name="registrationDate" id="registrationDate">
+	  		<input type="date" name="registrationDate" id="registrationDate" required>
 		</div>
 	
 	    <div>
 	      <label>Register Amount</label>
-	      <input type="number" step="0.01" name="registerAmount" >
+	      <input type="number" step="0.01" name="registerAmount" required >
 	    </div>
 	
 		<div>
 	  		<label>Limit Amount</label>
-	  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" >
+	  		<input type="number" step="0.01" name="limitAmount" id="limitAmount" required>
 		</div>
 	
 		<div>
 		  <label>Drawing Power</label>
-		  <input type="number" step="0.01" name="drawingPower" id="drawingPower" >
+		  <input type="number" step="0.01" name="drawingPower" id="drawingPower" required>
 		</div>
 	
 	    <div>
 			<label for="sanctionDate">Sanction Date</label>
-			<input type="date" id="sanctionDate" name="sanctionDate">  
+			<input type="date" id="sanctionDate" name="sanctionDate" required>  
 		</div>
 	
 		<div>
 		  <label>Sanction Amount</label>
-		  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" >
+		  <input type="number" step="0.01" name="sanctionAmount" id="sanctionAmount" required>
 		</div>
 	
 	    <div>
 			<label for="loanPeriod">Period of Loan (months)</label>
-	  		<input type="number" id="loanPeriod" name="loanPeriod" min="1">
+	  		<input type="number" id="loanPeriod" name="loanPeriod" min="1" required>
 	    </div>
 	
 	    <div>
@@ -353,7 +353,7 @@
 	
 	    <div>
 	      <label>Repayment Freq.</label>
-	      <select name="repaymentFreq">
+	      <select name="repaymentFreq" required>
 	        <option value="">-- Select --</option>
 	        <option value="M">Monthly</option>
 	        <option value="Q">Quarterly</option>
@@ -365,7 +365,7 @@
 	
 	    <div>
 	      <label>Int. Calculation Method</label>
-	      <select name="intCalcMethod">
+	      <select name="intCalcMethod" required>
 	        <option value="">-- Select --</option>
 	        <option value="S">Simple</option>
 	        <option value="R">Reducing</option>
@@ -375,27 +375,27 @@
 	
 	    <div>
 	      <label>Interest Rate</label>
-	      <input type="number" step="0.01" name="interestRate">
+	      <input type="number" step="0.01" name="interestRate" required>
 	    </div>
 	
 	    <div>
 	      <label>Penal Int. Rate</label>
-	      <input type="number" step="0.01" name="penalIntRate" value="0">
+	      <input type="number" step="0.01" name="penalIntRate" value="0" required>
 	    </div>
 	
 	    <div>
 	      <label>Mor. Int. Rate</label>
-	      <input type="number" step="0.01" name="morIntRate" value="0">
+	      <input type="number" step="0.01" name="morIntRate" value="0" required>
 	    </div>
 	
 	    <div>
 	      <label>Overdue Int. Rate</label>
-	      <input type="number" step="0.01" name="overdueIntRate" value="0">
+	      <input type="number" step="0.01" name="overdueIntRate" value="0" required>
 	    </div>
 	
 	    <div>
 	      <label>Mor. Period Month</label>
-	      <input type="number" name="morPeriodMonth" value="0">
+	      <input type="number" name="morPeriodMonth" value="0" required>
 	    </div>
 	
 	    <div>
@@ -416,7 +416,7 @@
 	  <label>Area Code</label>
 	  <div class="input-icon-box">
 	    <input type="text" id="areaCode" name="areaCode" 
-	           onclick="openAreaLookup()" readonly>
+	           onclick="openAreaLookup()" readonly required>
 	    <button type="button" class="inside-icon-btn" 
 	            onclick="openAreaLookup()" title="Search Area">🔍</button>
 	  </div>
@@ -463,7 +463,7 @@
 	  <label>Sub Area Code</label>
 	  <div class="input-icon-box">
 	    <input type="text" id="subAreaCode" name="subAreaCode" 
-	           onclick="openSubAreaLookup()" readonly>
+	           onclick="openSubAreaLookup()" readonly required>
 	    <button type="button" class="inside-icon-btn" 
 	            onclick="openSubAreaLookup()" title="Search Sub Area">🔍</button>
 	  </div>
@@ -476,7 +476,7 @@
 	    
 	    <div>
 	  <label>LBR Code</label>
-	  <select name="lbrCode">
+	  <select name="lbrCode" required>
 	    <option value="">-- Select --</option>
 	    <%
 	      PreparedStatement psMIS = null;
@@ -568,7 +568,7 @@
 	
 	    <div>
 	  <label>Classification Id</label>
-	  <select name="classificationId">
+	  <select name="classificationId" required>
 	    <option value="">-- Select --</option>
 	    <%
 	      PreparedStatement psClass = null;
@@ -600,7 +600,7 @@
 	
 	    <div>
 	  <label>Mode Of San. Id</label>
-	  <select name="modeOfSanId">
+	  <select name="modeOfSanId" required>
 	    <option value="">-- Select --</option>
 	    <%
 	      PreparedStatement psMOS = null;
@@ -631,7 +631,7 @@
 	
 	    <div>
 	  <label>Sanction Authority Id</label>
-	  <select name="sanctionAuthorityId">
+	  <select name="sanctionAuthorityId" required>
 	    <option value="">-- Select --</option>
 	    <%
 	      PreparedStatement psSA = null;
@@ -662,7 +662,7 @@
 	
 	    <div>
 	  <label>Industry Id</label>
-	  <select name="industryId">
+	  <select name="industryId" required>
 	    <option value="">-- Select --</option>
 	    <%
 	      PreparedStatement psInd = null;
@@ -701,12 +701,12 @@
 	
 	<div>
 	  <label>Director Id</label>
-	  <input type="text" name="directorId" id="directorId">
+	  <input type="text" name="directorId" id="directorId" required>
 	</div>
 	
 	<div>
 	  <label>Director Name</label>
-	  <input type="text" name="directorName" id="directorName">
+	  <input type="text" name="directorName" id="directorName" required>
 	</div>
 	
 	  </div> <!-- end .form-grid -->
@@ -794,7 +794,7 @@
 	
 	      <div>
 	        <label>Address 1</label>
-	        <input type="text" name="nomineeAddress1[]">
+	        <input type="text" name="nomineeAddress1[]" required>
 	      </div>
 	
 	      <div>
@@ -809,7 +809,7 @@
 	
 	      <div>
 	        <label>Country</label>
-	        <select name="nomineeCountry[]">
+	        <select name="nomineeCountry[]" required>
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psCountryNominee = null;
@@ -837,7 +837,7 @@
 	
 	      <div>
 	        <label>State</label>
-	        <select name="nomineeState[]">
+	        <select name="nomineeState[]" required> 
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psStateNominee = null;
@@ -866,7 +866,7 @@
 	
 	      <div>
 	        <label>City</label>
-	        <select name="nomineeCity[]">
+	        <select name="nomineeCity[]" required>
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psCityNominee = null;
@@ -895,7 +895,7 @@
 	
 		<div>
 	  		<label>Zip</label>
-	  		<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+	  		<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6" required>
 	  		<small class="zipError"></small>
 		</div>
 	
@@ -1014,7 +1014,7 @@
 	
 	      <div>
 	        <label>Address 1</label>
-	        <input type="text" name="coBorrowerAddress1[]">
+	        <input type="text" name="coBorrowerAddress1[]" required>
 	      </div>
 	
 	      <div>
@@ -1116,7 +1116,7 @@
 	
 		<div>
 	  		<label>Zip</label>
-	  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6">
+	  		<input type="text" name="coBorrowerZip[]" class="zip-input" maxlength="6" required>
 	  		<small class="zipError"></small>
 		</div>
 	    </div>
@@ -1206,7 +1206,7 @@
 	
 	      <div>
 	        <label>Address 1</label>
-	        <input type="text" name="guarantorAddress1[]">
+	        <input type="text" name="guarantorAddress1[]" required>
 	      </div>
 	
 	      <div>
@@ -1222,7 +1222,7 @@
 	      <!-- ✅ FIXED: Changed from jointCountry[] to guarantorCountry[] -->
 	      <div>
 	        <label>Country</label>
-	        <select name="guarantorCountry[]">
+	        <select name="guarantorCountry[]" required>
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psCountryGuarantor = null;
@@ -1251,7 +1251,7 @@
 	      <!-- ✅ FIXED: Changed from jointState[] to guarantorState[] -->
 	      <div>
 	        <label>State</label>
-	        <select name="guarantorState[]">
+	        <select name="guarantorState[]" required>
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psStateGuarantor = null;
@@ -1281,7 +1281,7 @@
 	      <!-- ✅ FIXED: Changed from jointCity[] to guarantorCity[] -->
 	      <div>
 	        <label>City</label>
-	        <select name="guarantorCity[]">
+	        <select name="guarantorCity[]" required>
 	          <option value="">-- Select --</option>
 	          <% 
 	            PreparedStatement psCityGuarantor = null;
@@ -1310,7 +1310,7 @@
 	
 		<div>
 	  		<label>Zip</label>
-	  		<input type="text" name="guarantorZip[]" class="zip-input" maxlength="6">
+	  		<input type="text" name="guarantorZip[]" class="zip-input" maxlength="6" required>
 	  		<small class="zipError"></small>
 		</div>
 	
@@ -1322,18 +1322,18 @@
 	
 	      <div>
 	        <label>Employee Id</label>
-	        <input type="number" name="guarantorEmployeeId[]">
+	        <input type="number" name="guarantorEmployeeId[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Birth Date</label>
-	        <input type="date" name="guarantorBirthDate[]">
+	        <input type="date" name="guarantorBirthDate[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Phone No</label>
 	        <input type="text" name="guarantorPhoneNo[]" maxlength="10"
-	   		oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+	   		oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
 	      </div>
 	
 	      <div>
@@ -1398,42 +1398,42 @@
 	
 	      <div>
 	        <label>Submi. Date</label>
-	        <input type="date" name="lbSubmiDate[]">
+	        <input type="date" name="lbSubmiDate[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Amt. Valued</label>
-	        <input type="number" step="0.01" name="lbAmtValued[]" value="0">
+	        <input type="number" step="0.01" name="lbAmtValued[]" value="0" required>
 	      </div>
 	
 	      <div>
 	        <label>Margin %</label>
-	        <input type="number" step="0.01" name="lbMargin[]" value="0">
+	        <input type="number" step="0.01" name="lbMargin[]" value="0" required>
 	      </div>
 	
 	      <div>
 	        <label>Area</label>
-	        <input type="number" step="0.01" name="lbArea[]" value="0">
+	        <input type="number" step="0.01" name="lbArea[]" value="0" required>
 	      </div>
 	
 	      <div>
 	        <label>Unit Of Area</label>
-	        <input type="text" name="lbUnitOfArea[]">
+	        <input type="text" name="lbUnitOfArea[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Location</label>
-	        <input type="text" name="lbLocation[]">
+	        <input type="text" name="lbLocation[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Security Value</label>
-	        <input type="number" step="0.01" name="lbSecurityValue[]" value="0">
-	      </div>
+	        <input type="number" step="0.01" name="lbSecurityValue[]" value="0" required>
+	      </div> 
 	
 	      <div>
 	        <label>Remark</label>
-	        <input type="text" name="lbRemark[]">
+	        <input type="text" name="lbRemark[]" required>
 	      </div>
 	      
 	      <div>
@@ -1499,7 +1499,7 @@
 	
 	      <div>
 	        <label>Submission Date</label>
-	        <input type="date" name="submissionDate[]">
+	        <input type="date" name="submissionDate[]" required>
 	      </div>
 	
 	      <div>
@@ -1511,17 +1511,17 @@
 	  		<label>Deposit A/c Code</label>
 	  		<input type="text" name="depositAccCode[]" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" minlength="14" required
 	         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,14);"
-	         title="Enter exactly 14 digits">
+	         title="Enter exactly 14 digits" required>
 	</div>
 	
 	      <div>
 	        <label>Maturity Date</label>
-	        <input type="date" name="maturityDate[]">
+	        <input type="date" name="maturityDate[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Security Value</label>
-	        <input type="number" step="0.01" name="securityValue[]">
+	        <input type="number" step="0.01" name="securityValue[]" required>
 	      </div>
 	
 	      <div>
@@ -1591,35 +1591,35 @@
 	
 	      <div>
 	        <label>Submission Date</label>
-	        <input type="date" name="gsSubmissionDate[]">
+	        <input type="date" name="gsSubmissionDate[]" required>
 	      </div>
 	
 	      <!-- ✅ FIXED: Changed from number to text for GOLDBAGNO (VARCHAR2) -->
 	      <div>
 	        <label>Gold Bag No.</label>
-	        <input type="text" name="gsGoldBagNo[]" maxlength="10">
+	        <input type="text" name="gsGoldBagNo[]" maxlength="10" required>
 	      </div>
 	
 	      <div>
 	        <label>Total Wt.In Grm</label>
 	        <input type="number" step="0.001" name="gsTotalWeight[]" 
-	               title="Weight in total grams (up to 3 decimal places)">
+	               title="Weight in total grams (up to 3 decimal places)" required>
 	      </div>
 	
 	      <div>
 	        <label>Margin %</label>
-	        <input type="number" step="0.01" name="gsMargin[]">
+	        <input type="number" step="0.01" name="gsMargin[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Rate/Grams</label>
-	        <input type="number" step="0.01" name="gsRatePerGram[]">
+	        <input type="number" step="0.01" name="gsRatePerGram[]" required>
 	      </div>
 	
 	      <div>
 	        <label>Total Value</label>
 	        <input type="number" step="0.01" name="gsTotalValue[]"
-	               onchange="calculateSecurityValue(this)">
+	               onchange="calculateSecurityValue(this)" required>
 	      </div>
 	
 	      <div>
@@ -1699,32 +1699,32 @@
 
       <div>
         <label>No. of Shares</label>
-        <input type="number" name="sharesHolderNoShares[]" value="0">
+        <input type="number" name="sharesHolderNoShares[]" value="0" required>
       </div>
 
       <div>
         <label>Share Certificate No</label>
-        <input type="text" name="sharesHolderCertNo[]">
+        <input type="text" name="sharesHolderCertNo[]" required>
       </div>
 
       <div>
         <label>Issue Date</label>
-        <input type="date" name="sharesHolderIssueDate[]">
+        <input type="date" name="sharesHolderIssueDate[]" required>
       </div>
 
       <div>
         <label>Face Value</label>
-        <input type="number" step="0.01" name="sharesHolderFaceValue[]" value="0">
+        <input type="number" step="0.01" name="sharesHolderFaceValue[]" value="0" required>
       </div>
 
       <div>
         <label>Margin%</label>
-        <input type="number" step="0.01" name="sharesHolderMargin[]" value="0">
+        <input type="number" step="0.01" name="sharesHolderMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="sharesHolderSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="sharesHolderSecurityValue[]" value="0" required>
       </div>
 
       <div>
@@ -1786,7 +1786,7 @@
 
       <div>
         <label>IsNewEquip(Y/N)</label>
-        <select name="plantIsNewEquip[]">
+        <select name="plantIsNewEquip[]" required>
           <option value="N" selected>N</option>
           <option value="Y">Y</option>
         </select>
@@ -1794,52 +1794,52 @@
 
       <div>
         <label>Machine Type</label>
-        <input type="text" name="plantMachineType[]">
+        <input type="text" name="plantMachineType[]" required>
       </div>
 
       <div>
         <label>Machine Name</label>
-        <input type="text" name="plantMachineName[]">
+        <input type="text" name="plantMachineName[]" required>
       </div>
 
       <div>
         <label>Distinctive No.</label>
-        <input type="text" name="plantDistinctiveNo[]" maxlength="20">
+        <input type="text" name="plantDistinctiveNo[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="plantSubmissionDate[]">
+        <input type="date" name="plantSubmissionDate[]" required>
       </div>
 
       <div>
         <label>Specification</label>
-        <input type="text" name="plantSpecification[]">
+        <input type="text" name="plantSpecification[]" required>
       </div>
 
       <div>
         <label>Aquisition Date</label>
-        <input type="date" name="plantAquisitionDate[]">
+        <input type="date" name="plantAquisitionDate[]" required>
       </div>
 
       <div>
         <label>Supplier Name</label>
-        <input type="text" name="plantSupplierName[]">
+        <input type="text" name="plantSupplierName[]" required>
       </div>
 
       <div>
         <label>Purchase Price</label>
-        <input type="number" step="0.01" name="plantPurchasePrice[]" value="0">
+        <input type="number" step="0.01" name="plantPurchasePrice[]" value="0" required>
       </div>
 
       <div>
         <label>Margin%</label>
-        <input type="number" step="0.01" name="plantMargin[]" value="0">
+        <input type="number" step="0.01" name="plantMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="plantSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="plantSecurityValue[]" value="0" required>
       </div>
 
       <div>
@@ -1923,32 +1923,32 @@
 
       <div>
         <label>Margin%</label>
-        <input type="number" step="0.01" name="marketSharesMargin[]" value="0">
+        <input type="number" step="0.01" name="marketSharesMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="marketSharesSubmissionDate[]">
+        <input type="date" name="marketSharesSubmissionDate[]" required>
       </div>
 
       <div>
         <label>Issue Date</label>
-        <input type="date" name="marketSharesIssueDate[]">
+        <input type="date" name="marketSharesIssueDate[]" required>
       </div>
 
       <div>
         <label>Market Value</label>
-        <input type="number" step="0.01" name="marketSharesMarketValue[]" value="0">
+        <input type="number" step="0.01" name="marketSharesMarketValue[]" value="0" required>
       </div>
 
       <div>
         <label>No.of Shares</label>
-        <input type="number" name="marketSharesNoOfShares[]" value="0">
+        <input type="number" name="marketSharesNoOfShares[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="marketSharesSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="marketSharesSecurityValue[]" value="0" required>
       </div>
 
       <div>
@@ -2010,32 +2010,32 @@
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="stockSubmissionDate[]">
+        <input type="date" name="stockSubmissionDate[]" required>
       </div>
 
       <div>
         <label>Statement Date</label>
-        <input type="date" name="stockStatementDate[]">
+        <input type="date" name="stockStatementDate[]" required>
       </div>
 
       <div>
         <label>Raw Mat.Mar.%</label>
-        <input type="number" step="0.01" name="stockRawMatMargin[]" value="0">
+        <input type="number" step="0.01" name="stockRawMatMargin[]" value="0" required>
       </div>
 
       <div>
         <label>WorkInPro.Mar.%</label>
-        <input type="number" step="0.01" name="stockWorkInProMargin[]" value="0">
+        <input type="number" step="0.01" name="stockWorkInProMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Fini.Goods.Mar.%</label>
-        <input type="number" step="0.01" name="stockFiniGoodsMargin[]" value="0">
+        <input type="number" step="0.01" name="stockFiniGoodsMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="stockSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="stockSecurityValue[]" value="0" required>
       </div>
 
       <div>
@@ -2148,7 +2148,7 @@
 
       <div>
         <label>Country Code</label>
-        <select name="salaryCountry[]">
+        <select name="salaryCountry[]" required>
           <option value="">-- Select --</option>
           <% 
             PreparedStatement psCountrySal = null;
@@ -2176,12 +2176,12 @@
 
       <div>
         <label>Employee Name</label>
-        <input type="text" name="salaryEmployeeName[]">
+        <input type="text" name="salaryEmployeeName[]" required>
       </div>
 
       <div>
         <label>State Code</label>
-        <select name="salaryState[]">
+        <select name="salaryState[]" required>
           <option value="">-- Select --</option>
           <% 
             PreparedStatement psStateSal = null;
@@ -2209,12 +2209,12 @@
 
       <div>
         <label>Address1</label>
-        <input type="text" name="salaryAddress1[]">
+        <input type="text" name="salaryAddress1[]" required>
       </div>
 
       <div>
         <label>City Code</label>
-        <select name="salaryCity[]">
+        <select name="salaryCity[]" required>
           <option value="">-- Select --</option>
           <% 
             PreparedStatement psCitySal = null;
@@ -2247,7 +2247,7 @@
 
       <div>
         <label>Zip Number</label>
-        <input type="text" name="salaryZip[]" maxlength="6" pattern="[0-9]{6}">
+        <input type="text" name="salaryZip[]" maxlength="6" pattern="[0-9]{6}" required>
       </div>
 
       <div>
@@ -2257,12 +2257,12 @@
 
       <div>
         <label>Gross Salary</label>
-        <input type="number" step="0.01" name="salaryGross[]" value="0">
+        <input type="number" step="0.01" name="salaryGross[]" value="0" required>
       </div>
 
       <div>
         <label>Phone Number</label>
-        <input type="text" name="salaryPhone[]" maxlength="10" pattern="[0-9]{10}">
+        <input type="text" name="salaryPhone[]" maxlength="10" pattern="[0-9]{10}" required>
       </div>
 
       <div>
@@ -2272,17 +2272,17 @@
 
       <div>
         <label>Net Salary</label>
-        <input type="number" step="0.01" name="salaryNet[]" value="0">
+        <input type="number" step="0.01" name="salaryNet[]" value="0" required>
       </div>
 
       <div>
         <label>Pan Number</label>
-        <input type="text" name="salaryPan[]" maxlength="10" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
+        <input type="text" name="salaryPan[]" maxlength="10" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
       </div>
 
       <div>
         <label>PF Account Number</label>
-        <input type="text" name="salaryPFAccount[]">
+        <input type="text" name="salaryPFAccount[]" required>
       </div>
 
       <div>
@@ -2295,7 +2295,7 @@
 
       <div>
         <label>Department</label>
-        <input type="text" name="salaryDepartment[]">
+        <input type="text" name="salaryDepartment[]" required>
       </div>
 
       <div>
@@ -2377,7 +2377,7 @@
 
       <div>
         <label>IsNewArticle(Y/N)</label>
-        <select name="officeIsNewArticle[]">
+        <select name="officeIsNewArticle[]" required>
           <option value="N" selected>N</option>
           <option value="Y">Y</option>
         </select>
@@ -2385,57 +2385,57 @@
 
       <div>
         <label>Make serial</label>
-        <input type="text" name="officeMakeSerial[]" maxlength="20">
+        <input type="text" name="officeMakeSerial[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Make Model</label>
-        <input type="text" name="officeMakeModel[]">
+        <input type="text" name="officeMakeModel[]" required>
       </div>
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="officeSubmissionDate[]">
+        <input type="date" name="officeSubmissionDate[]" required>
       </div>
 
       <div>
         <label>Date Of Acquisition</label>
-        <input type="date" name="officeAcquisitionDate[]">
+        <input type="date" name="officeAcquisitionDate[]" required>
       </div>
 
       <div>
         <label>Warrenty Card Number</label>
-        <input type="text" name="officeWarrentyCard[]" maxlength="20">
+        <input type="text" name="officeWarrentyCard[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Purchase Price</label>
-        <input type="number" step="0.01" name="officePurchasePrice[]" value="0">
+        <input type="number" step="0.01" name="officePurchasePrice[]" value="0" required>
       </div>
 
       <div>
         <label>Margin%</label>
-        <input type="number" step="0.01" name="officeMargin[]" value="0">
+        <input type="number" step="0.01" name="officeMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Name Of Article</label>
-        <input type="text" name="officeArticleName[]">
+        <input type="text" name="officeArticleName[]" required>
       </div>
 
       <div>
         <label>Warrenty In Months</label>
-        <input type="number" name="officeWarrentyMonths[]" value="0">
+        <input type="number" name="officeWarrentyMonths[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="officeSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="officeSecurityValue[]" value="0" required>
       </div>
 
       <div>
         <label>Supplier Name</label>
-        <input type="text" name="officeSupplierName[]">
+        <input type="text" name="officeSupplierName[]" required>
       </div>
 
       <div>
@@ -2507,12 +2507,12 @@
 
       <div>
         <label>Policy Amount</label>
-        <input type="number" step="0.01" name="insPolicyAmount[]" value="0">
+        <input type="number" step="0.01" name="insPolicyAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Premium Period</label>
-        <select name="insPremiumPeriod[]">
+        <select name="insPremiumPeriod[]" required>
           <option value="">-- Select --</option>
           <option value="Monthly">Monthly</option>
           <option value="Quarterly">Quarterly</option>
@@ -2523,17 +2523,17 @@
 
       <div>
         <label>Premium Amount</label>
-        <input type="number" step="0.01" name="insPremiumAmount[]" value="0">
+        <input type="number" step="0.01" name="insPremiumAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Assured Amount</label>
-        <input type="number" step="0.01" name="insAssuredAmount[]" value="0">
+        <input type="number" step="0.01" name="insAssuredAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Security Value</label>
-        <input type="number" step="0.01" name="insSecurityValue[]" value="0">
+        <input type="number" step="0.01" name="insSecurityValue[]" value="0" required>
       </div>
 
       <div>
@@ -2568,7 +2568,7 @@
     <div class="form-grid">
       <div>
         <label>Type Of Vehicle</label>
-        <select name="motorVehicleType[]">
+        <select name="motorVehicleType[]" required>
           <option value="">-- Select --</option>
           <option value="NOT APPLICABLE">NOT APPLICABLE</option>
           <option value="TWO WHEELER">TWO WHEELER</option>
@@ -2580,7 +2580,7 @@
 
       <div>
         <label>RTO Location</label>
-        <input type="text" name="motorRTOLocation[]">
+        <input type="text" name="motorRTOLocation[]" required>
       </div>
 
       <div>
@@ -2628,107 +2628,107 @@
 
       <div>
         <label>Make Model</label>
-        <input type="text" name="motorMakeModel[]" maxlength="50">
+        <input type="text" name="motorMakeModel[]" maxlength="50" required>
       </div>
 
       <div>
         <label>Model Year</label>
-        <input type="text" name="motorModelYear[]" maxlength="4" pattern="[0-9]{4}">
+        <input type="text" name="motorModelYear[]" maxlength="4" pattern="[0-9]{4}" required>
       </div>
 
       <div>
         <label>CC</label>
-        <input type="number" name="motorCC[]" value="0">
+        <input type="number" name="motorCC[]" value="0" required>
       </div>
 
       <div>
         <label>Submission Date</label>
-        <input type="date" name="motorSubmissionDate[]">
+        <input type="date" name="motorSubmissionDate[]" required>
       </div>
 
       <div>
         <label>Manufacture Date</label>
-        <input type="date" name="motorManufactureDate[]">
+        <input type="date" name="motorManufactureDate[]" required>
       </div>
 
       <div>
         <label>Acquisition Date</label>
-        <input type="date" name="motorAcquisitionDate[]">
+        <input type="date" name="motorAcquisitionDate[]" required>
       </div>
 
       <div>
         <label>Registration Date</label>
-        <input type="date" name="motorRegistrationDate[]">
+        <input type="date" name="motorRegistrationDate[]" required>
       </div>
 
       <div>
         <label>Registration Number</label>
-        <input type="text" name="motorRegistrationNo[]" maxlength="20">
+        <input type="text" name="motorRegistrationNo[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Chasis No.</label>
-        <input type="text" name="motorChasisNo[]" maxlength="20">
+        <input type="text" name="motorChasisNo[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Margin%</label>
-        <input type="number" step="0.01" name="motorMargin[]" value="0">
+        <input type="number" step="0.01" name="motorMargin[]" value="0" required>
       </div>
 
       <div>
         <label>Purchase Price</label>
-        <input type="number" step="0.01" name="motorPurchasePrice[]" value="0">
+        <input type="number" step="0.01" name="motorPurchasePrice[]" value="0" required>
       </div>
 
       <div>
         <label>Supplier Name</label>
-        <input type="text" name="motorSupplierName[]">
+        <input type="text" name="motorSupplierName[]" required>
       </div>
 
       <div>
         <label>Seating Capacity</label>
-        <input type="number" name="motorSeatingCapacity[]" value="0">
+        <input type="number" name="motorSeatingCapacity[]" value="0" required>
       </div>
 
       <div>
         <label>Carrying Capacity</label>
-        <input type="number" step="0.01" name="motorCarryingCapacity[]" value="0">
+        <input type="number" step="0.01" name="motorCarryingCapacity[]" value="0" required>
       </div>
 
       <div>
         <label>Insurance Deelesed Value</label>
-        <input type="number" step="0.01" name="motorInsuranceValue[]" value="0">
+        <input type="number" step="0.01" name="motorInsuranceValue[]" value="0" required>
       </div>
 
       <div>
         <label>Insurance Name</label>
-        <input type="text" name="motorInsuranceName[]">
+        <input type="text" name="motorInsuranceName[]" required>
       </div>
 
       <div>
         <label>No Claim BOU%</label>
-        <input type="number" step="0.01" name="motorNoClaimBOU[]" value="0">
+        <input type="number" step="0.01" name="motorNoClaimBOU[]" value="0" required>
       </div>
 
       <div>
         <label>Policy Number</label>
-        <input type="text" name="motorPolicyNo[]" maxlength="20">
+        <input type="text" name="motorPolicyNo[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Premium Amount</label>
-        <input type="number" step="0.01" name="motorPremiumAmount[]" value="0">
+        <input type="number" step="0.01" name="motorPremiumAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Total Insured Amount</label>
-        <input type="number" step="0.01" name="motorTotalInsured[]" value="0">
+        <input type="number" step="0.01" name="motorTotalInsured[]" value="0" required>
       </div>
 
       <div>
         <label>Premium Frequency</label>
-        <select name="motorPremiumFreq[]">
+        <select name="motorPremiumFreq[]" required>
           <option value="">-- Select --</option>
           <option value="Monthly">Monthly</option>
           <option value="Quarterly">Quarterly</option>
@@ -2739,17 +2739,17 @@
 
       <div>
         <label>Policy Start Date</label>
-        <input type="date" name="motorPolicyStartDate[]">
+        <input type="date" name="motorPolicyStartDate[]" required>
       </div>
 
       <div>
         <label>Policy End Date</label>
-        <input type="date" name="motorPolicyEndDate[]">
+        <input type="date" name="motorPolicyEndDate[]" required>
       </div>
 
       <div>
         <label>Policy Type</label>
-        <input type="text" name="motorPolicyType[]">
+        <input type="text" name="motorPolicyType[]" required>
       </div>
 
       <div>
@@ -2804,7 +2804,7 @@
 
       <div>
         <label>City</label>
-        <select name="nonmotorCity[]">
+        <select name="nonmotorCity[]" required>
           <option value="">-- Select --</option>
           <% 
             PreparedStatement psCityNM = null;
@@ -2832,42 +2832,42 @@
 
       <div>
         <label>Policy Start Date</label>
-        <input type="date" name="nonmotorPolicyStartDate[]">
+        <input type="date" name="nonmotorPolicyStartDate[]" required>
       </div>
 
       <div>
         <label>Policy End Date</label>
-        <input type="date" name="nonmotorPolicyEndDate[]">
+        <input type="date" name="nonmotorPolicyEndDate[]" required>
       </div>
 
       <div>
         <label>Village</label>
-        <input type="text" name="nonmotorVillage[]">
+        <input type="text" name="nonmotorVillage[]" required>
       </div>
 
       <div>
         <label>Valuation of Property</label>
-        <input type="number" step="0.01" name="nonmotorPropertyValuation[]" value="0">
+        <input type="number" step="0.01" name="nonmotorPropertyValuation[]" value="0" required>
       </div>
 
       <div>
         <label>Name of Insurance Company</label>
-        <input type="text" name="nonmotorInsuranceCompany[]">
+        <input type="text" name="nonmotorInsuranceCompany[]" required>
       </div>
 
       <div>
         <label>Existing Policy Start Date</label>
-        <input type="date" name="nonmotorExistingPolicyStart[]">
+        <input type="date" name="nonmotorExistingPolicyStart[]" required>
       </div>
 
       <div>
         <label>Existing Policy End Date</label>
-        <input type="date" name="nonmotorExistingPolicyEnd[]">
+        <input type="date" name="nonmotorExistingPolicyEnd[]" required>
       </div>
 
       <div>
         <label>Type Of Mortagage</label>
-        <input type="text" name="nonmotorMortgageType[]">
+        <input type="text" name="nonmotorMortgageType[]" required>
       </div>
 
       <div style="grid-column: span 2;">
@@ -2877,12 +2877,12 @@
 
       <div>
         <label>Premium Amount</label>
-        <input type="number" step="0.01" name="nonmotorPremiumAmount[]" value="0">
+        <input type="number" step="0.01" name="nonmotorPremiumAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Valuation Of Mortagage</label>
-        <input type="number" step="0.01" name="nonmotorMortgageValuation[]" value="0">
+        <input type="number" step="0.01" name="nonmotorMortgageValuation[]" value="0" required>
       </div>
     </div>
   </div>
@@ -2912,37 +2912,37 @@
     <div class="form-grid">
       <div>
         <label>Terms</label>
-        <input type="text" name="govSecTerms[]">
+        <input type="text" name="govSecTerms[]" required>
       </div>
 
       <div>
         <label>Certificate No</label>
-        <input type="text" name="govSecCertNo[]" maxlength="20">
+        <input type="text" name="govSecCertNo[]" maxlength="20" required>
       </div>
 
       <div>
         <label>Certificate Date</label>
-        <input type="date" name="govSecCertDate[]">
+        <input type="date" name="govSecCertDate[]" required>
       </div>
 
       <div>
         <label>Maturity Date</label>
-        <input type="date" name="govSecMaturityDate[]">
+        <input type="date" name="govSecMaturityDate[]" required>
       </div>
 
       <div>
         <label>Maturity Amount</label>
-        <input type="number" step="0.01" name="govSecMaturityAmount[]" value="0">
+        <input type="number" step="0.01" name="govSecMaturityAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Certificate Amount</label>
-        <input type="number" step="0.01" name="govSecCertAmount[]" value="0">
+        <input type="number" step="0.01" name="govSecCertAmount[]" value="0" required>
       </div>
 
       <div>
         <label>Nominee</label>
-        <input type="text" name="govSecNominee[]">
+        <input type="text" name="govSecNominee[]" required>
       </div>
 
       <div>

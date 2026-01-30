@@ -243,7 +243,7 @@
 
       <div>
         <label>Period Of Deposit</label>
-        <input type="number" id="pigmyPeriodOfDeposit" name="periodOfDeposit" min="0" onchange="calculatePigmyMaturityDate()">
+        <input type="number" id="pigmyPeriodOfDeposit" name="periodOfDeposit" min="0" onchange="calculatePigmyMaturityDate()" required>
       </div>
 
       <div>
@@ -253,7 +253,7 @@
 
       <div>
         <label>Agent ID</label>
-        <input type="text" name="agentId">
+        <input type="text" name="agentId" required>
       </div>
 
       <div>
@@ -280,32 +280,32 @@
     </legend>
 
     <div class="nominee-card nominee-block">
-<button type="button" class="nominee-remove" onclick="removeNominee(this)">✖</button>
+		<button type="button" class="nominee-remove" onclick="removeNominee(this)">✖</button>
 
-      <div class="nominee-title" 
-           style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
-        Nominee <span class="nominee-serial">1</span>
-      </div>
+      	<div class="nominee-title" 
+           	style="font-weight:bold; font-size:15px; margin-bottom:10px; color:#373279;">
+        	Nominee <span class="nominee-serial">1</span>
+      	</div>
       
-<div class="inline-fields">
+		<div class="inline-fields">
 
-    <div>
-        <label>Has Customer ID ?</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
-          <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
-        </div>
-    </div>
+		    <div>
+		        <label>Has Customer ID ?</label>
+		        <div style="flex-direction: row;" class="radio-group">
+			        <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="yes" onchange="toggleNomineeCustomerID(this)"> Yes</label>
+			        <label><input type="radio" name="nomineeHasCustomerID_1" class="nomineeHasCustomerRadio" value="no" onchange="toggleNomineeCustomerID(this)" checked> No</label>
+		        </div>
+		    </div>
 
-    <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
-        <label>Customer ID</label>
-        <div class="input-icon-box">
-          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
-          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
-        </div>
-    </div>
+		    <div class="nomineeCustomerIDContainer" style="display:none; margin-top:10px;">
+		        <label>Customer ID</label>
+		        <div class="input-icon-box">
+		          <input type="text" class="nomineeCustomerIDInput" name="nomineeCustomerID[]" onclick="openNomineeCustomerLookup(this)" readonly>
+		          <button type="button" class="inside-icon-btn" onclick="openNomineeCustomerLookup(this)" title="Search Customer">🔍</button>
+		        </div>
+		    </div>
 
-</div>
+		</div>
 
       <br>
 
@@ -350,7 +350,7 @@
 
         <div>
           <label>Address 1</label>
-          <input type="text" name="nomineeAddress1[]">
+          <input type="text" name="nomineeAddress1[]" required>
         </div>
 
         <div>
@@ -365,7 +365,7 @@
 
         <div>
           <label>Country</label>
-          <select name="nomineeCountry[]">
+          <select name="nomineeCountry[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryNominee = null;
@@ -393,7 +393,7 @@
 
         <div>
           <label>State</label>
-          <select name="nomineeState[]">
+          <select name="nomineeState[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateNominee = null;
@@ -422,7 +422,7 @@
 
         <div>
           <label>City</label>
-          <select name="nomineeCity[]">
+          <select name="nomineeCity[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityNominee = null;
@@ -451,7 +451,7 @@
 
         <div>
   			<label>Zip</label>
-  			<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6">
+  			<input type="text" name="nomineeZip[]" class="zip-input" maxlength="6" required>
   			<small class="zipError"></small>
 		</div>
 
@@ -568,7 +568,7 @@
 
         <div>
           <label>Address 1</label>
-          <input type="text" name="jointAddress1[]">
+          <input type="text" name="jointAddress1[]" required>
         </div>
 
         <div>
@@ -583,7 +583,7 @@
 
         <div>
           <label>Country</label>
-          <select name="jointCountry[]">
+          <select name="jointCountry[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCountryJoint = null;
@@ -610,7 +610,7 @@
         </div>
        <div>
           <label>State</label>
-          <select name="jointState[]">
+          <select name="jointState[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psStateJoint = null;
@@ -639,7 +639,7 @@
 
         <div>
           <label>City</label>
-          <select name="jointCity[]">
+          <select name="jointCity[]" required>
             <option value="">-- Select --</option>
             <% 
               PreparedStatement psCityJoint = null;
@@ -668,7 +668,7 @@
 
         <div>
   			<label>Zip</label>
-  			<input type="text" name="jointZip[]" class="zip-input" maxlength="6">
+  			<input type="text" name="jointZip[]" class="zip-input" maxlength="6" required>
   			<small class="zipError"></small>
 		</div>
       </div>
