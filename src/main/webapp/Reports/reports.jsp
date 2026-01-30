@@ -11,6 +11,7 @@
 
     Connection conn = null;
     PreparedStatement ps = null;
+    PreparedStatement countPs = null;
     ResultSet rs = null;
 
     List<Map<String, String>> cards = new ArrayList<>();
@@ -18,34 +19,48 @@
     try {
         conn = DBConnection.getConnection();
 
-        // ✅ SINGLE DYNAMIC QUERY (matches your verified SELECT)
+        /* ==============================
+           1️⃣ MAIN QUERY – Load Reports
+           ============================== */
         ps = conn.prepareStatement(
-            "SELECT r.SR_NUMBER, " +
-            "       r.DESCRIPTION, " +
-            "       r.PAGE_LINK, " +
-            "       COUNT(p.PROGRAM_ID) AS REPORT_COUNT " +
+            "SELECT r.SR_NUMBER, r.DESCRIPTION, r.PAGE_LINK " +
             "FROM GLOBALCONFIG.REPORTS r " +
-            "LEFT JOIN ACL.PROGRAM p " +
-            "  ON p.PROGRAM_TYPE = 'R' " +
-            " AND UPPER(p.CAPTION) LIKE '%' || UPPER(r.DESCRIPTION) || '%' " +
             "WHERE r.DESCRIPTION IS NOT NULL " +
-            "GROUP BY r.SR_NUMBER, r.DESCRIPTION, r.PAGE_LINK " +
             "ORDER BY r.SR_NUMBER"
         );
 
         rs = ps.executeQuery();
 
+        /* =====================================
+           2️⃣ COUNT QUERY – DYNAMIC REPORT COUNT
+           ===================================== */
+        countPs = conn.prepareStatement(
+            "SELECT COUNT(*) AS total_count " +
+            "FROM ACL.PROGRAM " +
+            "WHERE UPPER(\"SCHEMA\") LIKE ?"
+        );
+
         while (rs.next()) {
+
             Map<String, String> card = new HashMap<>();
 
             String srNumber = rs.getString("SR_NUMBER");
             String description = rs.getString("DESCRIPTION");
-            String count = rs.getString("REPORT_COUNT");
-
             String pageLink = rs.getString("PAGE_LINK");
+
             if (pageLink == null || pageLink.trim().isEmpty()) {
                 pageLink = "reports.jsp";
             }
+
+            /* 🔢 Bind dynamic value (DAILY / MONTHLY / etc.) */
+            countPs.setString(1, "%" + description.toUpperCase() + "%");
+
+            ResultSet countRs = countPs.executeQuery();
+            String count = "0";
+            if (countRs.next()) {
+                count = countRs.getString("total_count");
+            }
+            countRs.close();
 
             card.put("srNumber", srNumber);
             card.put("description", description);
@@ -60,6 +75,7 @@
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ex) {}
         try { if (ps != null) ps.close(); } catch (Exception ex) {}
+        try { if (countPs != null) countPs.close(); } catch (Exception ex) {}
         try { if (conn != null) conn.close(); } catch (Exception ex) {}
     }
 %>
@@ -74,6 +90,7 @@
 </head>
 
 <body>
+
 <div class="dashboard-container">
     <div class="cards-wrapper">
 
@@ -81,7 +98,6 @@
     if (cards != null && !cards.isEmpty()) {
         for (Map<String, String> card : cards) {
 
-            String srNumber = card.get("srNumber");
             String description = card.get("description");
             String count = card.get("count");
 
