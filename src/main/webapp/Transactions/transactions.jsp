@@ -146,7 +146,7 @@
 					</div>
 					<div>
 					    <div class="label">Particular</div>
-					    <textarea name="particular" id="particular" placeholder="Enter particular details" style="width: 250px; height: 40px; padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; resize: vertical;"></textarea>
+					    <textarea name="particular" id="particular" placeholder="Enter particular details" style="width: 250px; height: 40px; padding: 10px; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF; resize: vertical;" required></textarea>
 					</div>
 					
 					<div class="save-button-container">
