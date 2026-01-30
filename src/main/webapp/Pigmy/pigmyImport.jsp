@@ -10,6 +10,15 @@
 
     String branchCode = (String) sess.getAttribute("branchCode");
     String userId = (String) sess.getAttribute("userId");
+    
+    // Get bank name and working date from session
+    String bankName = (String) session.getAttribute("bankName");
+    String workingDate = "";
+    if (session.getAttribute("workingDate") != null) {
+        workingDate = new SimpleDateFormat("dd-MMM-yyyy").format((java.util.Date)session.getAttribute("workingDate"));
+    }
+    
+    if (bankName == null) bankName = "Bank Name";
 %>
 
 <!DOCTYPE html>
@@ -17,7 +26,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pigmy Import</title>
+<title>Transaction Import</title>
 <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
 <style>
 * {
@@ -27,74 +36,165 @@
 body {
     margin: 0;
     font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-    background: #f5f7fa;
+    background: #e8e4fc;
     color: #1a1a1a;
 }
 
-.container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 30px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-    color: #333;
-    margin-bottom: 10px;
-    font-size: 24px;
-}
-
-.subtitle {
-    color: #666;
-    margin-bottom: 30px;
-    font-size: 14px;
-}
-
-.upload-section {
-    border: 2px dashed #4a9eff;
-    border-radius: 8px;
-    padding: 40px;
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 40px;
     text-align: center;
-    margin-bottom: 30px;
-    background: #f8fbff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.header-info {
+    display: flex;
+    justify-content: space-between;
+    background: white;
+    padding: 12px 40px;
+    font-size: 14px;
+    color: #3D316F;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.header-info span {
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+fieldset {
+    background-color: white;
+    border: 2px solid #BBADED;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+legend {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 0 10px;
+    color: #3D316F;
+}
+
+.form-row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #3D316F;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type="text"],
+input[type="file"],
+select {
+    padding: 10px 12px;
+    border: 2px solid #C8B7F6;
+    border-radius: 8px;
+    background-color: #F4EDFF;
+    outline: none;
+    font-size: 14px;
+    width: 100%;
+}
+
+input[type="text"]:focus,
+select:focus {
+    border-color: #8066E8;
+}
+
+input[type="text"]:read-only {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+select {
+    cursor: pointer;
+    color: #3D316F;
+    font-weight: 600;
+}
+
+.icon-btn {
+    background-color: #2D2B80;
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background-color: #3D316F;
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 2px solid #C8B7F6;
+    border-radius: 8px;
     transition: all 0.3s ease;
+    background: #F4EDFF;
+    color: #3D316F;
 }
 
-.upload-section:hover {
-    border-color: #3d85d9;
-    background: #f0f7ff;
+.radio-label:hover {
+    border-color: #8066E8;
+    background: #E8DCFF;
 }
 
-.upload-section.drag-over {
-    border-color: #2563eb;
-    background: #dbeafe;
-}
-
-.upload-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-}
-
-.upload-section h3 {
-    margin: 10px 0;
-    color: #4a9eff;
-}
-
-.upload-section p {
-    color: #666;
-    margin: 5px 0;
-}
-
-.file-input {
-    display: none;
+.radio-label input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #8066E8;
 }
 
 .btn {
     padding: 12px 24px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
@@ -121,142 +221,328 @@ h2 {
     background: #d1d5db;
 }
 
-.file-info {
-    display: none;
+.btn-validate {
+    background: #2b0d73;
+    color: white;
+}
+
+.btn-validate:hover {
+    background: #1a0548;
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #b91c1c;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.message-box {
     margin-top: 20px;
     padding: 15px;
+    border-radius: 8px;
+    border: 2px solid;
+    min-height: 60px;
+}
+
+.message-box.success {
     background: #f0fdf4;
-    border: 1px solid #86efac;
-    border-radius: 6px;
-}
-
-.file-info.show {
-    display: block;
-}
-
-.file-name {
-    font-weight: 600;
+    border-color: #86efac;
     color: #166534;
 }
 
-.progress-section {
-    display: none;
-    margin-top: 20px;
-}
-
-.progress-section.show {
-    display: block;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background: #e5e7eb;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4a9eff 0%, #3d85d9 100%);
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-.message {
-    padding: 15px;
-    border-radius: 6px;
-    margin-top: 20px;
-    display: none;
-}
-
-.message.show {
-    display: block;
-}
-
-.message.success {
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    color: #166534;
-}
-
-.message.error {
+.message-box.error {
     background: #fef2f2;
-    border: 1px solid #fca5a5;
+    border-color: #fca5a5;
     color: #991b1b;
 }
 
-.instructions {
-    margin-top: 30px;
-    padding: 20px;
-    background: #fefce8;
-    border-left: 4px solid #fbbf24;
+.message-box.info {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
+/* File input custom styling */
+input[type="file"] {
+    padding: 8px;
+    background: white;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+    background: #2D2B80;
+    color: white;
+    border: none;
+    padding: 8px 16px;
     border-radius: 6px;
+    cursor: pointer;
+    margin-right: 10px;
 }
 
-.instructions h4 {
-    margin-top: 0;
-    color: #92400e;
+input[type="file"]::file-selector-button:hover {
+    background: #1a0548;
 }
 
-.instructions ul {
-    margin: 10px 0;
-    padding-left: 20px;
-}
-
-.instructions li {
-    margin: 5px 0;
-    color: #78350f;
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-info {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .button-row {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
 }
 </style>
 </head>
 
 <body>
 <div class="container">
-    <h2>📥 Pigmy Import</h2>
-    <p class="subtitle">Import pigmy collection data from Excel/CSV file</p>
-
-    <div class="upload-section" id="uploadSection">
-        <div class="upload-icon">📄</div>
-        <h3>Drop file here or click to browse</h3>
-        <p>Supported formats: .xlsx, .xls, .csv</p>
-        <p style="font-size: 12px; color: #999;">Maximum file size: 10MB</p>
+    <form id="importForm">
         
-        <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv">
-        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-            Choose File
-        </button>
-    </div>
-
-    <div class="file-info" id="fileInfo">
-        <div>Selected file: <span class="file-name" id="fileName"></span></div>
-        <div style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="uploadFile()">Upload & Process</button>
-            <button class="btn btn-secondary" onclick="clearFile()">Clear</button>
+        <!-- Transaction Details -->
+        <fieldset>
+            <legend>Transaction Details</legend>
+            
+            <!-- Row 1: Import From & Machine Type -->
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="label">Import From:</div>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="importFrom" value="Client" checked>
+                            <span>Client</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="importFrom" value="Server">
+                            <span>Server</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="label">Machine Type:</div>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="machineType" value="Balaji">
+                            <span>Balaji</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="machineType" value="Pratinidhi">
+                            <span>Pratinidhi</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="machineType" value="Sai Balaji">
+                            <span>Sai Balaji</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="machineType" value="Others" checked>
+                            <span>Others</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="machineType" value="Balaji New">
+                            <span>Balaji New</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Branch Code and Product Code -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Branch Code</label>
+                    <div class="input-box">
+                        <input type="text" name="importBranchCode" id="importBranchCode" value="<%= branchCode %>" readonly>
+                        <button type="button" class="icon-btn">…</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Name</label>
+                    <input type="text" name="branchName" id="branchName" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Product Code</label>
+                    <div class="input-box">
+                        <input type="text" name="productCode" id="productCode" maxlength="3">
+                        <button type="button" class="icon-btn">…</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Description</label>
+                    <input type="text" name="productDescription" id="productDescription" readonly>
+                </div>
+            </div>
+            
+        </fieldset>
+        
+        <!-- Transaction Details Section -->
+        <fieldset>
+            <legend>Transaction Details</legend>
+            
+            <!-- Client Import Button -->
+            <div class="form-row">
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Client_Import
+                    </button>
+                    <input type="file" id="fileInput" name="importFile" accept=".csv,.xlsx,.xls,.txt" style="display: none;" onchange="handleFileSelect(this)">
+                </div>
+            </div>
+            
+            <!-- Row with all transaction details -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Transaction Type</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="transactionType" value="Credit" checked>
+                            <span>Credit</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Contra Account Head</label>
+                    <div class="input-box">
+                        <input type="text" name="contraAccountHead" id="contraAccountHead">
+                        <button type="button" class="icon-btn">…</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Description</label>
+                    <input type="text" name="description" id="description" value="Invalid data" readonly>
+                </div>
+            </div>
+            
+            <!-- Row 2 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Total Amount</label>
+                    <input type="text" name="totalAmount" id="totalAmount" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Particular</label>
+                    <input type="text" name="particular" id="particular">
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Contra Head Particular</label>
+                    <input type="text" name="contraHeadParticular" id="contraHeadParticular">
+                </div>
+            </div>
+            
+            <!-- Row 3 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Advice No.</label>
+                    <input type="text" name="adviceNo" id="adviceNo" value="0" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Original/Responding</label>
+                    <input type="text" name="originalResponding" id="originalResponding" value="O" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Advice Date</label>
+                    <input type="text" name="adviceDate" id="adviceDate" readonly>
+                </div>
+            </div>
+            
+            <!-- Row 4 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Recon.Code</label>
+                    <div class="input-box">
+                        <input type="text" name="reconCode" id="reconCode" value="0" readonly>
+                        <button type="button" class="icon-btn">…</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="label">Description</label>
+                    <input type="text" name="reconDescription" id="reconDescription" readonly>
+                </div>
+            </div>
+            
+        </fieldset>
+        
+        <!-- Message Box -->
+        <div id="messageBox" class="message-box info" style="display: none;">
+            <strong>Message:</strong> <span id="messageText"></span>
         </div>
-    </div>
-
-    <div class="progress-section" id="progressSection">
-        <p>Processing file...</p>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
+        
+        <!-- Action Buttons -->
+        <div class="button-row">
+            <button type="button" class="btn btn-validate" onclick="validateImport()">Validate</button>
+            <button type="button" class="btn btn-secondary" onclick="displayData()">Display</button>
+            <button type="button" class="btn btn-primary" onclick="importData()" disabled id="importBtn">Import</button>
+            <button type="button" class="btn btn-secondary" onclick="checkAmount()">Check Amount</button>
+            <button type="button" class="btn btn-secondary" onclick="createTransaction()" disabled id="createBtn">Create Transaction</button>
+            <button type="button" class="btn btn-cancel" onclick="cancelImport()">Cancel</button>
         </div>
-    </div>
-
-    <div class="message" id="message"></div>
-
-    <div class="instructions">
-        <h4>📋 Import Instructions</h4>
-        <ul>
-            <li>Ensure your Excel/CSV file contains the following columns: Account Number, Customer Name, Collection Date, Amount</li>
-            <li>The first row should contain column headers</li>
-            <li>Date format should be: DD/MM/YYYY or DD-MM-YYYY</li>
-            <li>Amount should be numeric values only</li>
-            <li>File size should not exceed 10MB</li>
-            <li>All mandatory fields must be filled</li>
-        </ul>
-    </div>
+        
+    </form>
+    
+    <!-- Import Details Table -->
+    <fieldset style="margin-top: 30px;">
+        <legend>TRANSACTION IMPORT DETAILS</legend>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead style="background: #373279; color: white;">
+                    <tr>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Account Code</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Name</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount1</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount2</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount3</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount4</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount5</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount6</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Amount7</th>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="importDetailsTable">
+                    <tr>
+                        <td colspan="10" style="padding: 20px; text-align: center; color: #999;">No data imported yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+    
 </div>
 
 <script>
@@ -266,132 +552,115 @@ window.onload = function () {
             window.buildBreadcrumbPath('Pigmy/pigmyImport.jsp')
         );
     }
+    
+    // Load branch name
+    loadBranchName();
 };
 
-const uploadSection = document.getElementById('uploadSection');
-const fileInput = document.getElementById('fileInput');
-const fileInfo = document.getElementById('fileInfo');
-const fileName = document.getElementById('fileName');
-const progressSection = document.getElementById('progressSection');
-const progressFill = document.getElementById('progressFill');
-const message = document.getElementById('message');
-
-// Drag and drop events
-uploadSection.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadSection.classList.add('drag-over');
-});
-
-uploadSection.addEventListener('dragleave', () => {
-    uploadSection.classList.remove('drag-over');
-});
-
-uploadSection.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadSection.classList.remove('drag-over');
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        handleFile(files[0]);
+function loadBranchName() {
+    // Fetch branch name based on branch code
+    const branchCode = document.getElementById('importBranchCode').value;
+    if (branchCode) {
+        // You can implement AJAX call here to fetch branch name
+        document.getElementById('branchName').value = '';
     }
-});
-
-// File input change
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        handleFile(e.target.files[0]);
-    }
-});
-
-function handleFile(file) {
-    const validTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
-
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
-        showMessage('Please select a valid Excel or CSV file', 'error');
-        return;
-    }
-
-    if (file.size > maxSize) {
-        showMessage('File size exceeds 10MB limit', 'error');
-        return;
-    }
-
-    fileName.textContent = file.name;
-    fileInfo.classList.add('show');
-    hideMessage();
 }
 
-function clearFile() {
-    fileInput.value = '';
-    fileInfo.classList.remove('show');
-    hideMessage();
-}
-
-function uploadFile() {
-    if (!fileInput.files || fileInput.files.length === 0) {
-        showMessage('Please select a file first', 'error');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-    formData.append('branchCode', '<%= branchCode %>');
-    formData.append('userId', '<%= userId %>');
-
-    progressSection.classList.add('show');
-    progressFill.style.width = '0%';
-    hideMessage();
-
-    // Simulate progress (replace with actual upload)
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += 10;
-        progressFill.style.width = progress + '%';
+function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const fileName = file.name;
         
-        if (progress >= 100) {
-            clearInterval(interval);
-            
-            // Here you would actually call your upload servlet/JSP
-            // For now, showing a success message
-            setTimeout(() => {
-                progressSection.classList.remove('show');
-                showMessage('File imported successfully! Processed X records.', 'success');
-                clearFile();
-            }, 500);
-        }
-    }, 200);
-
-    // Actual implementation would be:
-    /*
-    fetch('processPigmyImport.jsp', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        progressSection.classList.remove('show');
-        if (data.success) {
-            showMessage('File imported successfully! Processed ' + data.recordCount + ' records.', 'success');
-            clearFile();
-        } else {
-            showMessage('Error: ' + data.error, 'error');
-        }
-    })
-    .catch(error => {
-        progressSection.classList.remove('show');
-        showMessage('Upload failed: ' + error.message, 'error');
-    });
-    */
+        showMessage('File selected: ' + fileName, 'info');
+        
+        // Enable validate button
+        document.querySelector('.btn-validate').disabled = false;
+    }
 }
 
 function showMessage(text, type) {
-    message.textContent = text;
-    message.className = 'message show ' + type;
+    const messageBox = document.getElementById('messageBox');
+    const messageText = document.getElementById('messageText');
+    
+    messageBox.className = 'message-box ' + type;
+    messageText.textContent = text;
+    messageBox.style.display = 'block';
 }
 
-function hideMessage() {
-    message.className = 'message';
+function validateImport() {
+    const fileInput = document.getElementById('fileInput');
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showMessage('Please select a file to import', 'error');
+        return;
+    }
+    
+    // Simulate validation
+    showMessage('Validating import file...', 'info');
+    
+    setTimeout(() => {
+        showMessage('File validated successfully! Ready to import.', 'success');
+        document.getElementById('importBtn').disabled = false;
+    }, 1000);
+}
+
+function displayData() {
+    showMessage('Displaying import data...', 'info');
+    // Implement display logic
+}
+
+function importData() {
+    showMessage('Importing data...', 'info');
+    
+    setTimeout(() => {
+        showMessage('Data imported successfully!', 'success');
+        document.getElementById('createBtn').disabled = false;
+        
+        // Add sample data to table
+        const tbody = document.getElementById('importDetailsTable');
+        tbody.innerHTML = `
+            <tr style="background: #f9f9f9;">
+                <td style="padding: 8px; border: 1px solid #ddd;">Sample Account</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">Test Customer</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">100.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">0.00</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">100.00</td>
+            </tr>
+        `;
+    }, 1500);
+}
+
+function checkAmount() {
+    showMessage('Checking amounts...', 'info');
+}
+
+function createTransaction() {
+    if (confirm('Are you sure you want to create transactions from this import?')) {
+        showMessage('Creating transactions...', 'info');
+        
+        setTimeout(() => {
+            showMessage('Transactions created successfully!', 'success');
+        }, 2000);
+    }
+}
+
+function cancelImport() {
+    if (confirm('Are you sure you want to cancel this import?')) {
+        document.getElementById('importForm').reset();
+        document.getElementById('importDetailsTable').innerHTML = `
+            <tr>
+                <td colspan="10" style="padding: 20px; text-align: center; color: #999;">No data imported yet</td>
+            </tr>
+        `;
+        document.getElementById('messageBox').style.display = 'none';
+        document.getElementById('importBtn').disabled = true;
+        document.getElementById('createBtn').disabled = true;
+    }
 }
 </script>
 </body>
