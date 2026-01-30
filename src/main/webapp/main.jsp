@@ -108,6 +108,14 @@
 	        <span>Reports</span>
 	    </a>
 	</li>
+
+	<!-- Pigmy -->
+	<li data-page="Pigmy/pigmy.jsp">
+	    <a href="#" onclick="loadPage('Pigmy/pigmy.jsp', 'Pigmy', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Pigmy</span>
+	    </a>
+	</li>
 </ul>
 
     <div class="logout">
@@ -463,3 +471,5 @@ function navigateToBreadcrumbByIndex(index) {
 }
 
 </script>
+</body>
+</html>
