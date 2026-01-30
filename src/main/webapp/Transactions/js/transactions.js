@@ -787,7 +787,7 @@ function validateSingleTransaction(accountCode, sessionWorkingDate, operationTyp
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else if (data.success) {
-                showToast(data.message, 'success');
+                //showToast(data.message, 'success');
                 proceedWithSave();
             } else {
                 showToast(data.message, 'error');
@@ -888,8 +888,7 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
         if (data.error) {
             showToast('❌ Error: ' + data.error, 'error');
         } else if (data.success) {
-            showToast('✅ Transaction saved successfully! (Scroll #' + data.scrollNumber + ')', 'success');
-            showToast('New Balance: ₹' + data.newBalance, 'info');
+            showToast(' Transaction saved successfully! (Scroll ' + data.scrollNumber + ')', 'success');
             
             // Clear form fields
             document.getElementById('accountCode').value = '';
@@ -1040,7 +1039,7 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
             // Show success message with scroll and subscroll numbers
             const scrollDisplay = data.scrollNumber + '-' + data.subscrollNumber;
             showToast('✅ Saved ' + opType + ' for ' + accountCode + 
-                     ' (Scroll #' + scrollDisplay + ')', 'success');
+                     ' (Scroll ' + scrollDisplay + ')', 'success');
             
             console.log('✓ Transaction saved: Scroll ' + data.scrollNumber + 
                        ', Subscroll ' + data.subscrollNumber);
