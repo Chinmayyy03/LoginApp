@@ -270,6 +270,7 @@ public class SaveTransactionServlet extends HttpServlet {
      * ✅ FIXED: Uses DISCRIPTATION for PARTICULAR field instead of COLUMN_NAME
      * ✅ FIXED: Prevents duplicate transactions for same LINK_GLCODE
      * ✅ FIXED: Added principle amount handling
+     * ✅ CRITICAL FIX: Properly validates and skips empty/zero received amounts
      */
     private void saveLoanRecoveryTransactions(Connection con, String branchCode, 
                                              Date workingDate, String accountCode,
@@ -290,7 +291,6 @@ public class SaveTransactionServlet extends HttpServlet {
         ResultSet rsColumns = null;
         
         try {
-            // ✅ CHANGED: Now also fetch DISCRIPTATION column
             String query = "SELECT COLUMN_NAME, LINK_GLCODE, DISCRIPTATION FROM HEADOFFICE.LOAN_RECOV_SEQ " +
                           "ORDER BY SEQUENCE_NO";
             psColumns = con.prepareStatement(query);
@@ -299,7 +299,7 @@ public class SaveTransactionServlet extends HttpServlet {
             while (rsColumns.next()) {
                 String columnName = rsColumns.getString("COLUMN_NAME");
                 String linkGlCode = rsColumns.getString("LINK_GLCODE");
-                String description = rsColumns.getString("DISCRIPTATION"); // ✅ NEW
+                String description = rsColumns.getString("DISCRIPTATION");
                 
                 if (columnName == null || columnName.trim().isEmpty()) {
                     continue;
@@ -322,26 +322,30 @@ public class SaveTransactionServlet extends HttpServlet {
                 // Get received amount for this field
                 String receivedParam = request.getParameter(fieldName + "Received");
                 
+                // ✅ CRITICAL FIX: Skip if parameter is null, empty, or whitespace
                 if (receivedParam == null || receivedParam.trim().isEmpty()) {
+                    System.out.println("Skipping field " + fieldName + " - parameter is null or empty");
                     continue;
                 }
                 
                 BigDecimal receivedAmount;
                 try {
-                    receivedAmount = new BigDecimal(receivedParam);
+                    receivedAmount = new BigDecimal(receivedParam.trim());
                     
-                    // Skip if amount is zero
+                    // ✅ CRITICAL FIX: Skip if amount is zero or negative
                     if (receivedAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                        System.out.println("Skipping field " + fieldName + " - amount is zero or negative: " + receivedAmount);
                         continue;
                     }
                 } catch (NumberFormatException e) {
+                    System.out.println("Skipping field " + fieldName + " - invalid number format: " + receivedParam);
                     continue;
                 }
                 
                 // ✅ Mark this LINK_GLCODE as processed BEFORE inserting
                 processedGlCodes.add(glCodeKey);
                 
-                // ✅ CHANGED: Use description instead of columnName for the recovery type
+                // ✅ Use description instead of columnName for the recovery type
                 String recoveryType = (description != null && !description.trim().isEmpty()) 
                                     ? description.trim() 
                                     : columnName;
@@ -359,8 +363,9 @@ public class SaveTransactionServlet extends HttpServlet {
             String principleReceivedParam = request.getParameter("principleReceived");
             if (principleReceivedParam != null && !principleReceivedParam.trim().isEmpty()) {
                 try {
-                    BigDecimal principleAmount = new BigDecimal(principleReceivedParam);
+                    BigDecimal principleAmount = new BigDecimal(principleReceivedParam.trim());
                     
+                    // ✅ CRITICAL FIX: Only process if principle amount is greater than zero
                     if (principleAmount.compareTo(BigDecimal.ZERO) > 0) {
                         // Insert principle as a separate transaction
                         // Use the same GL code as the main account for principle
@@ -384,12 +389,13 @@ public class SaveTransactionServlet extends HttpServlet {
                             System.out.println("WARNING: GL code not found for account " + accountCode + 
                                              ", skipping principle amount");
                         }
+                    } else {
+                        System.out.println("Skipping principle - amount is zero or negative: " + principleAmount);
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("WARNING: Invalid principle amount format: " + principleReceivedParam);
                 }
             }
-            // ✅ END OF PRINCIPLE HANDLING
             
             if (savedCount == 0) {
                 jsonResponse.put("error", "No loan recovery amounts to save");
