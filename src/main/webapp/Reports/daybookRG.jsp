@@ -61,7 +61,7 @@
             String tallyMessage = checkTransferClearingTally(conn, oracleDate, bankCode, branchCode);
             
             // Store tally message in session to show on page
-            session.setAttribute("tallyMessage", tallyMessage);
+            //session.setAttribute("tallyMessage", tallyMessage);
 
             String reportPath = application.getRealPath("/Reports/daybookRG.jrxml");
             
@@ -128,6 +128,13 @@
                 
                 exporter.exportReport();
             }
+            
+            if ("pdf".equalsIgnoreCase(reporttype)) {
+                session.setAttribute("successMessage", "PDF report downloaded successfully.");
+            } else if ("xls".equalsIgnoreCase(reporttype)) {
+                session.setAttribute("successMessage", "Excel report downloaded successfully.");
+            }
+
 
             outStream.flush();
             response.flushBuffer();
@@ -436,7 +443,7 @@
         
         Statement stmt = null;
         ResultSet rs = null;
-        String tallyMessage = " Day Book Tallied.";
+        String tallyMessage = null;
         
         try {
             stmt = conn.createStatement();
@@ -538,7 +545,7 @@ if (!"download".equals(action)) {
 <html>
 <head>
     <title>DayBookRG Report</title>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/Reports/common-report.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/Reports/common-report.css?v=4">
     
 </head>
 
@@ -586,7 +593,7 @@ if (!"download".equals(action)) {
             }
         %>
         
-        <h1 class="report-title">DayBookRG Report</h1>
+        <h1 class="report-title">DayBook Report</h1>
         
         <!-- REMOVE ONSUBMIT - Let form submit directly -->
 <form method="post"

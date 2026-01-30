@@ -64,9 +64,9 @@ body {
     font-size: 14px;
     font-weight: 700;
     text-align: center;
-    height: 42px;
-    line-height: 42px;
-    padding: 0 10px;
+    height: auto;
+    line-height: 1.2;
+    padding: 8px 10px;
     border-right: 1px solid #ffffff33;
 }
 
@@ -76,18 +76,19 @@ body {
 
 /* TABLE BODY ROWS (FIXED HEIGHT) */
 .table tbody td {
-    height: 40px;
-    line-height: 40px;
-    padding: 0 12px;
-    font-size: 14px;
+    height: auto;              /* 🔥 remove forced height */
+    line-height: 1.2;          /* 🔥 natural text height */
+    padding: 6px 10px;         /* 🔥 compact spacing */
+    font-size: 13px;
     border-top: 1px solid #dcd8ff;
-    vertical-align: middle;
+    vertical-align: top;       /* 🔥 text aligns naturally */
 
-    /* SINGLE LINE TEXT */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+
 
 /* ZEBRA */
 .table tbody tr:nth-child(even) {

@@ -296,6 +296,32 @@
         .card p.size-6 { font-size: 8px; }
         .card p.size-7 { font-size: 7px; }
     }
+    
+    /* CARD TITLE */
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+    z-index: 1;
+}
+
+/* BIG COUNT (LIKE SAMPLE IMAGE) */
+.card-count {
+    margin-top: 10px;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+    z-index: 1;
+}
+
+/* Loading state */
+.card-count.loading {
+    font-size: 20px;
+    opacity: 0.7;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+    
 </style>
 </head>
 
@@ -311,10 +337,12 @@
         %>
 
         <div class="card" id="card-<%= srNumber %>"
-             onclick="openInParentFrame('<%= pageLink %>', 'Reports > <%= description %>')">
-            <h3><%= description %></h3>
-            <p class="loading" id="value-<%= srNumber %>">Loading...</p>
-        </div>
+            onclick="openInParentFrame(
+    'Reports/programList.jsp?schema=<%= description %>',
+    'Reports > <%= description %>')">
+
+            <h3 class="card-title"><%= description %></h3>
+<div class="card-count loading" id="value-<%= srNumber %>">0</div>
 
         <%
                 }
