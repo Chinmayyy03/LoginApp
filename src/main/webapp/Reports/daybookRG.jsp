@@ -61,7 +61,7 @@
             String tallyMessage = checkTransferClearingTally(conn, oracleDate, bankCode, branchCode);
             
             // Store tally message in session to show on page
-            //session.setAttribute("tallyMessage", tallyMessage);
+request.setAttribute("tallyMessage", tallyMessage);
 
             String reportPath = application.getRealPath("/Reports/daybookRG.jrxml");
             
@@ -84,8 +84,9 @@
             parameters.put("SUBREPORT_DIR", application.getRealPath("/Reports/"));
             
             // Add tally message as parameter for the report
-            parameters.put("TALLY_MESSAGE", tallyMessage);
-
+            parameters.put("TALLY_MESSAGE", tallyMessage);		
+            parameters.put("report_title", "DAY BOOK REPORT");
+		
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, conn);
 
             ServletOutputStream outStream = response.getOutputStream();
@@ -128,13 +129,6 @@
                 
                 exporter.exportReport();
             }
-            
-            if ("pdf".equalsIgnoreCase(reporttype)) {
-                session.setAttribute("successMessage", "PDF report downloaded successfully.");
-            } else if ("xls".equalsIgnoreCase(reporttype)) {
-                session.setAttribute("successMessage", "Excel report downloaded successfully.");
-            }
-
 
             outStream.flush();
             response.flushBuffer();
@@ -443,7 +437,7 @@
         
         Statement stmt = null;
         ResultSet rs = null;
-        String tallyMessage = null;
+        String tallyMessage = " Day Book Tallied.";
         
         try {
             stmt = conn.createStatement();
@@ -560,7 +554,7 @@ if (!"download".equals(action)) {
             // Check for success/error messages in session
             String successMessage = (String) session.getAttribute("successMessage");
             String errorMessage = (String) session.getAttribute("errorMessage");
-            String tallyMessage = (String) session.getAttribute("tallyMessage");
+            String tallyMessage = (String) request.getAttribute("tallyMessage");
             
             if (successMessage != null) {
         %>

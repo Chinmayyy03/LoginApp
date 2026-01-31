@@ -9,29 +9,35 @@
 	<summary>
 		<band height="50">
 			<staticText>
-				<reportElement x="0" y="5" width="120" height="18" uuid="a3a5868e-092f-4dca-8e7c-da3a7c347921"/>
+				<reportElement x="24" y="5" width="120" height="18" uuid="a3a5868e-092f-4dca-8e7c-da3a7c347921"/>
 				<textElement textAlignment="Center">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Clerk]]></text>
 			</staticText>
 			<line>
-				<reportElement x="0" y="29" width="841" height="1" uuid="be727403-be53-4c14-9c6f-43c37ff6cf17"/>
+				<reportElement x="14" y="30" width="168" height="1" uuid="be727403-be53-4c14-9c6f-43c37ff6cf17"/>
 			</line>
 			<staticText>
-				<reportElement x="383" y="5" width="120" height="18" uuid="f66b0cac-4128-4bd2-b620-07f8878fb7a2"/>
+				<reportElement x="395" y="5" width="120" height="18" uuid="f66b0cac-4128-4bd2-b620-07f8878fb7a2"/>
 				<textElement textAlignment="Center">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Officer]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="719" y="5" width="120" height="18" uuid="a1652f9e-5de3-49c8-aeff-6876e7e8b383"/>
+				<reportElement x="691" y="5" width="120" height="18" uuid="a1652f9e-5de3-49c8-aeff-6876e7e8b383"/>
 				<textElement textAlignment="Center">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Manager]]></text>
 			</staticText>
+			<line>
+				<reportElement x="375" y="30" width="170" height="1" uuid="2cd6184e-cd7d-40d5-a90d-5b374b9b85b4"/>
+			</line>
+			<line>
+				<reportElement x="670" y="30" width="163" height="1" uuid="5ce3a9df-2b64-402e-b22c-1a13863c74ca"/>
+			</line>
 		</band>
 	</summary>
 </jasperReport>

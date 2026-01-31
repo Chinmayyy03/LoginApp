@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="daybookRG" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="eb397dc2-6066-4b5b-b355-dffd9ad91a99">
-	<property name="ireport.zoom" value="1.610510000000001"/>
+	<property name="ireport.zoom" value="1.4641000000000013"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="294"/>
+	<property name="ireport.y" value="246"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -13,13 +13,13 @@
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
-    <defaultValueExpression><![CDATA[
-"D:/apache-tomcat-8.5.99/apache-tomcat-8.5.99/webapps/ENTERPROJECT/Reports/"
-]]></defaultValueExpression>
-</parameter>
-
+		<defaultValueExpression><![CDATA["D:/apache-tomcat-8.5.99/apache-tomcat-8.5.99/webapps/ENTERPROJECT/Reports/"]]></defaultValueExpression>
+	</parameter>
 	<parameter name="session_date" class="java.lang.String"/>
 	<parameter name="TALLY_MESSAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="report_title" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<queryString>
@@ -98,40 +98,26 @@ INDEXER,
 	<background>
 		<band splitType="Stretch"/>
 	</background>
-	<title>
-		<band height="71" splitType="Stretch">
-			<staticText>
-				<reportElement x="0" y="1" width="819" height="20" uuid="cda9eff8-b46e-40f8-b6c4-bd0240313bc3"/>
-				<textElement textAlignment="Center">
-					<font size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[BHEDASGAON NAGARI SAHAKARI PATH SANSTHA.LTD
-]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="0" y="26" width="819" height="20" uuid="f57c5adf-647d-4952-8742-f30f6564bb1d"/>
-				<textElement textAlignment="Center">
-					<font isBold="true"/>
-				</textElement>
-				<text><![CDATA[Branch : BHEDASGAON.
-]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="331" y="44" width="148" height="22" uuid="a271d206-0f72-4153-94c6-35fb5fcdcd70"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="9" isBold="true"/>
-				</textElement>
-				<text><![CDATA[DAY/CASH BOOK As On Date]]></text>
-			</staticText>
-			<textField pattern="dd/MM/yyyy">
-				<reportElement x="479" y="46" width="92" height="20" uuid="9aeead21-b567-442b-888b-410fc8422ff2"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{as_on_date}]]></textFieldExpression>
-			</textField>
+	<pageHeader>
+		<band height="60">
+			<subreport>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1" y="0" width="802" height="60" isPrintWhenDetailOverflows="true" uuid="bf52bb12-1472-4285-89e2-bcd934b564ab"/>
+				<subreportParameter name="as_on_date">
+					<subreportParameterExpression><![CDATA[$P{as_on_date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="branch_code">
+					<subreportParameterExpression><![CDATA[$P{branch_code}
+]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="report_title">
+					<subreportParameterExpression><![CDATA[$P{report_title}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "subReportHeader.jasper"
+]]></subreportExpression>
+			</subreport>
 		</band>
-	</title>
+	</pageHeader>
 	<columnHeader>
 		<band height="61" splitType="Stretch">
 			<line>
@@ -342,7 +328,7 @@ INDEXER,
 		<band height="4" splitType="Stretch"/>
 	</pageFooter>
 	<summary>
-		<band height="357" splitType="Stretch">
+		<band height="324" splitType="Stretch">
 			<line>
 				<reportElement x="2" y="0" width="800" height="1" uuid="a3b1f932-34a2-466d-b365-f1dbf354a489"/>
 			</line>
@@ -417,25 +403,25 @@ INDEXER,
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "cashBalance.jasper"]]></subreportExpression>
 			</subreport>
 			<textField pattern="">
-				<reportElement x="4" y="168" width="799" height="20" uuid="2025b243-e844-437f-96b0-8a4a8d12b541"/>
+				<reportElement x="4" y="185" width="799" height="20" uuid="2025b243-e844-437f-96b0-8a4a8d12b541"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{TALLY_MESSAGE}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="0" y="335" width="60" height="20" uuid="05806e8a-0e59-4aa8-898e-5099fecf3cbf"/>
+				<reportElement x="0" y="303" width="60" height="20" uuid="05806e8a-0e59-4aa8-898e-5099fecf3cbf"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="61" y="335" width="35" height="20" uuid="f68fa6d8-d124-407b-84ad-fdc6f56a67f8"/>
+				<reportElement x="61" y="304" width="35" height="20" uuid="f68fa6d8-d124-407b-84ad-fdc6f56a67f8"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<subreport>
-				<reportElement x="2" y="254" width="800" height="56" uuid="9ba8a5e9-c9f1-4e2a-809e-ed8445c6f733"/>
+				<reportElement x="2" y="228" width="800" height="56" uuid="9ba8a5e9-c9f1-4e2a-809e-ed8445c6f733"/>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "clerk_manager.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "clerk_manager.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</summary>
