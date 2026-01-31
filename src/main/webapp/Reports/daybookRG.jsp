@@ -116,7 +116,7 @@ request.setAttribute("tallyMessage", tallyMessage);
                 exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
                 
                 // CRITICAL FIX: Add these parameters to ensure all text appears in Excel
-                exporter.setParameter(JRXlsExporterParameter.IS_IGNORE_GRAPHICS, Boolean.FALSE);
+exporter.setParameter(JRXlsExporterParameter.IS_IGNORE_GRAPHICS, Boolean.TRUE);
                 exporter.setParameter(JRXlsExporterParameter.IS_COLLAPSE_ROW_SPAN, Boolean.FALSE);
                 exporter.setParameter(JRXlsExporterParameter.IS_IGNORE_CELL_BORDER, Boolean.FALSE);
                 exporter.setParameter(JRXlsExporterParameter.IS_IGNORE_CELL_BACKGROUND, Boolean.FALSE);
@@ -587,7 +587,7 @@ if (!"download".equals(action)) {
             }
         %>
         
-        <h1 class="report-title">DayBook Report</h1>
+        <h1 class="report-title">DAYBOOK REPORT</h1>
         
         <!-- REMOVE ONSUBMIT - Let form submit directly -->
 <form method="post"
@@ -636,7 +636,7 @@ if (!"download".equals(action)) {
             </div>
             
             <button type="button" class="download-button" id="downloadBtn" onclick="submitForm()">
-                Download Report
+                Generate Report
             </button>
         </form>
     </div>
