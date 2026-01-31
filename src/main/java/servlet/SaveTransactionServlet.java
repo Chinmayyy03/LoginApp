@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Set;        // ✅ ADDED
-import java.util.HashSet;    // ✅ ADDED
+import java.util.Set;
+import java.util.HashSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -269,7 +269,7 @@ public class SaveTransactionServlet extends HttpServlet {
      * Each non-zero received amount creates a separate transaction record
      * ✅ FIXED: Uses DISCRIPTATION for PARTICULAR field instead of COLUMN_NAME
      * ✅ FIXED: Prevents duplicate transactions for same LINK_GLCODE
-     * ✅ FIXED: Added principle amount handling
+     * ✅ FIXED: Added principle amount handling with selected account code
      * ✅ CRITICAL FIX: Properly validates and skips empty/zero received amounts
      */
     private void saveLoanRecoveryTransactions(Connection con, String branchCode, 
@@ -351,15 +351,16 @@ public class SaveTransactionServlet extends HttpServlet {
                                     : columnName;
                 
                 // Insert transaction for this recovery type
+                // For regular recovery: ACCOUNT_CODE = LINK_GLCODE, GLACCOUNT_CODE = LINK_GLCODE
                 insertLoanRecoveryTransaction(con, branchCode, workingDate, scrollNumber,
-                                             subscrollNumber, glCodeKey, accountCode,
+                                             subscrollNumber, glCodeKey, glCodeKey, accountCode,
                                              receivedAmount, userId, recoveryType);
                 
                 subscrollNumber++;
                 savedCount++;
             }
             
-            // ✅ HANDLE PRINCIPLE AMOUNT
+            // ✅ HANDLE PRINCIPLE AMOUNT - USE SELECTED ACCOUNT CODE
             String principleReceivedParam = request.getParameter("principleReceived");
             if (principleReceivedParam != null && !principleReceivedParam.trim().isEmpty()) {
                 try {
@@ -367,22 +368,24 @@ public class SaveTransactionServlet extends HttpServlet {
                     
                     // ✅ CRITICAL FIX: Only process if principle amount is greater than zero
                     if (principleAmount.compareTo(BigDecimal.ZERO) > 0) {
-                        // Insert principle as a separate transaction
-                        // Use the same GL code as the main account for principle
+                        // Get GL code for the selected account
                         String accountGlCode = getGLAccountCode(con, accountCode);
                         
                         if (accountGlCode != null && !accountGlCode.isEmpty()) {
-                            // Check if this GL code was already used
-                            if (!processedGlCodes.contains(accountGlCode.trim())) {
+                            // Check if this account code was already used
+                            if (!processedGlCodes.contains(accountCode.trim())) {
+                                // ACCOUNT_CODE = selected account code
+                                // GLACCOUNT_CODE = GL code of selected account
+                                // FORACCOUNT_CODE = selected account code
                                 insertLoanRecoveryTransaction(con, branchCode, workingDate, scrollNumber,
-                                                             subscrollNumber, accountGlCode, accountCode,
+                                                             subscrollNumber, accountCode, accountGlCode, accountCode,
                                                              principleAmount, userId, "PRINCIPLE");
                                 
-                                processedGlCodes.add(accountGlCode.trim());
+                                processedGlCodes.add(accountCode.trim());
                                 subscrollNumber++;
                                 savedCount++;
                             } else {
-                                System.out.println("WARNING: Principle GL code " + accountGlCode + 
+                                System.out.println("WARNING: Principle account code " + accountCode + 
                                                  " already used, skipping principle transaction");
                             }
                         } else {
@@ -418,17 +421,17 @@ public class SaveTransactionServlet extends HttpServlet {
     
     /**
      * Insert single loan recovery transaction
-     * ACCOUNT_CODE = LINK_GLCODE from LOAN_RECOV_SEQ
-     * GLACCOUNT_CODE = LINK_GLCODE from LOAN_RECOV_SEQ
-     * FORACCOUNT_CODE = Selected account code
+     * ACCOUNT_CODE = accountCode parameter
+     * GLACCOUNT_CODE = glAccountCode parameter
+     * FORACCOUNT_CODE = forAccountCode parameter
      * ACCOUNTBALANCE = 0
      * GLACCOUNTBALANCE = 0
      */
     private void insertLoanRecoveryTransaction(Connection con, String branchCode,
                                               Date workingDate, long scrollNumber,
-                                              int subscrollNumber, String linkGlCode,
-                                              String forAccountCode, BigDecimal amount,
-                                              String userId, String recoveryType) 
+                                              int subscrollNumber, String accountCode,
+                                              String glAccountCode, String forAccountCode, 
+                                              BigDecimal amount, String userId, String recoveryType) 
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -464,13 +467,13 @@ public class SaveTransactionServlet extends HttpServlet {
             // SUBSCROLL_NUMBER
             ps.setInt(paramIndex++, subscrollNumber);
             
-            // ACCOUNT_CODE = LINK_GLCODE
-            ps.setString(paramIndex++, linkGlCode);
+            // ACCOUNT_CODE
+            ps.setString(paramIndex++, accountCode);
             
-            // GLACCOUNT_CODE = LINK_GLCODE
-            ps.setString(paramIndex++, linkGlCode);
+            // GLACCOUNT_CODE
+            ps.setString(paramIndex++, glAccountCode);
             
-            // FORACCOUNT_CODE = selected account
+            // FORACCOUNT_CODE
             ps.setString(paramIndex++, forAccountCode);
             
             // TRANSACTIONINDICATOR_CODE (Credit for loan recovery)
