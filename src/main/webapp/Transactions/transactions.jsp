@@ -213,7 +213,66 @@
     </iframe>
 
 </div>
-
+<!-- Success Modal -->
+<div id="authorizationModal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+">
+    <div style="
+        background: white;
+        width: 500px;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        text-align: center;
+    ">
+        <div style="
+            color: #2ecc71;
+            font-size: 48px;
+            margin-bottom: 20px;
+        ">✓</div>
+        
+        <div id="authMessage" style="
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        ">
+            Transaction saved successfully!
+        </div>
+        
+        <div id="authScrollNumber" style="
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        ">
+            Scroll Number: 12345
+        </div>
+        
+        <button onclick="closeAuthorizationModal()" style="
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 50px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        " onmouseover="this.style.background='#27ae60'" 
+           onmouseout="this.style.background='#2ecc71'">
+            OK
+        </button>
+    </div>
+</div>
 <!-- SINGLE LOOKUP MODAL -->
 <div id="lookupModal" style="
     display:none; 

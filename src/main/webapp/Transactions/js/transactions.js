@@ -519,6 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTransferFields();
 	updateParticularField(); 
 });
+
 // ================= FINAL & ONLY TRANSACTION AMOUNT HANDLER =================
 const transactionAmountInput = document.getElementById('transactionamount');
 if (transactionAmountInput) {
@@ -856,7 +857,7 @@ function getNewAccountBalanceFromIframe() {
     }
 }
 
-// Save single transaction (deposit/withdrawal) - MODIFIED
+// Save single transaction (deposit/withdrawal) - MODIFIED WITH AUTHORIZATION MODAL
 function saveSingleTransaction(accountCode, transactionAmount, transactionIndicator, particular, operationType, sessionWorkingDate) {
     // ✅ Get new account balance from iframe
     const newAccountBalance = getNewAccountBalanceFromIframe();
@@ -893,7 +894,8 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
         if (data.error) {
             showToast('❌ Error: ' + data.error, 'error');
         } else if (data.success) {
-            showToast(' Transaction saved successfully! (Scroll ' + data.scrollNumber + ')', 'success');
+            // ✅ SHOW AUTHORIZATION MODAL INSTEAD OF TOAST
+            showAuthorizationModal(accountCode, data.scrollNumber, operationType);
             
             // Clear form fields
             document.getElementById('accountCode').value = '';
@@ -919,7 +921,7 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
     });
 }
 
-// Save transactions from creditAccountsData array sequentially - MODIFIED
+// Save transactions from creditAccountsData array sequentially - MODIFIED WITH AUTHORIZATION MODAL
 function saveTransactionsSequentially(index, sessionWorkingDate) {
     // ✅ FIX 1: Initialize scroll number tracking on first call
     if (index === 0) {
@@ -930,7 +932,9 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     
     if (index >= creditAccountsData.length) {
         // All transactions saved successfully
-        showToast('✅ All transactions saved successfully!', 'success');
+        // ✅ SHOW AUTHORIZATION MODAL FOR TRANSFER
+        const firstTransaction = creditAccountsData[0];
+        showAuthorizationModal(firstTransaction.code, window.currentTransferScrollNumber, 'transfer');
         
         // Clear the transaction list and reset the form
         creditAccountsData = [];
@@ -1041,19 +1045,15 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
                            window.currentTransferScrollNumber + ', got ' + data.scrollNumber);
             }
             
-            // Show success message with scroll and subscroll numbers
+            // ✅ REPLACE TOAST WITH PROGRESS MESSAGE FOR INTERMEDIATE TRANSACTIONS
             const scrollDisplay = data.scrollNumber + '-' + data.subscrollNumber;
-            showToast('✅ Saved ' + opType + ' for ' + accountCode + 
-                     ' (Scroll ' + scrollDisplay + ')', 'success');
-            
             console.log('✓ Transaction saved: Scroll ' + data.scrollNumber + 
                        ', Subscroll ' + data.subscrollNumber);
             
             // ✅ FIX 4: Continue to next transaction after adequate delay
-            // This ensures scroll number is properly stored before proceeding
             setTimeout(() => {
                 saveTransactionsSequentially(index + 1, sessionWorkingDate);
-            }, 800); // 800ms delay to prevent race conditions
+            }, 800);
         } else {
             console.error('❌ Save failed:', data.message);
             showToast('❌ Failed to save transaction: ' + data.message, 'error');
@@ -1527,6 +1527,7 @@ function buildLoanFieldsTable() {
     
     tableBody.innerHTML = receivableRow + receivedRow + remainingRow;
 }
+
 function buildClosingFieldsTable() {
     const loader = document.getElementById('closingFieldsLoader');
     const tableContainer = document.getElementById('closingFieldsTableContainer');
@@ -2107,8 +2108,7 @@ function populateClosingFieldsFromIframe() {
     }
 }
 
-// Save loan recovery transactions
-// ✅ FIXED: Added principle received amount handling
+// Save loan recovery transactions - MODIFIED WITH AUTHORIZATION MODAL
 function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
     const formData = new URLSearchParams();
     formData.append('accountCode', accountCode);
@@ -2147,7 +2147,8 @@ function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
         if (data.error) {
             showToast('❌ Error: ' + data.error, 'error');
         } else if (data.success) {
-            showToast('✅ ' + data.message, 'success');
+            // ✅ SHOW AUTHORIZATION MODAL INSTEAD OF TOAST
+            showAuthorizationModal(accountCode, data.scrollNumber, 'loan');
             
             // Clear form
             document.getElementById('accountCode').value = '';
@@ -2163,4 +2164,31 @@ function saveLoanRecoveryTransactions(accountCode, sessionWorkingDate) {
         console.error('Save error:', error);
         showToast('❌ Failed to save transactions', 'error');
     });
+}
+
+// ========== AUTHORIZATION MODAL FUNCTIONS ==========
+function showAuthorizationModal(accountCode, scrollNumber, transactionType) {
+    const modal = document.getElementById('authorizationModal');
+    const messageDisplay = document.getElementById('authMessage');
+    const scrollDisplay = document.getElementById('authScrollNumber');
+    
+    // Build the success message based on transaction type
+    let message = 'Transaction saved successfully!';
+    
+    if (transactionType === 'transfer') {
+        message = 'All transfer transactions saved successfully!';
+    } else if (transactionType === 'loan') {
+        message = 'Loan recovery transactions saved successfully!';
+    }
+    
+    // Display the message and scroll number
+    messageDisplay.textContent = message;
+    scrollDisplay.textContent = 'Scroll Number: ' + scrollNumber;
+    
+    modal.style.display = 'flex';
+}
+
+function closeAuthorizationModal() {
+    const modal = document.getElementById('authorizationModal');
+    modal.style.display = 'none';
 }
