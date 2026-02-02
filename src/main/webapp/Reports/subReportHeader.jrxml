@@ -66,8 +66,8 @@ and b.branch_code=$P{branch_code}]]>
 				<textFieldExpression><![CDATA[$P{report_title}]]></textFieldExpression>
 			</textField>
 			<image>
-				<reportElement x="28" y="10" width="94" height="50" uuid="fac28be5-8726-4d28-bce6-6862f49a1ab3"/>
-				<imageExpression><![CDATA["D:\\apache-tomcat-8.5.99\\apache-tomcat-8.5.99\\webapps\\ENTERPROJECT\\Reports\\UPSB MONO.png"]]></imageExpression>
+				<reportElement x="48" y="2" width="81" height="71" uuid="80cdad8c-7830-4c74-8812-5ed4f756a953"/>
+				<imageExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\images\\UPSB MONO.png"]]></imageExpression>
 			</image>
 		</band>
 	</detail>
