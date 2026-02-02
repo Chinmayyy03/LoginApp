@@ -19,34 +19,6 @@
     }
     
     if (bankName == null) bankName = "Bank Name";
-    
-    // Fetch branch name from database
-    String branchName = "";
-    Connection conn = null;
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
-    
-    try {
-        conn = DBConnection.getConnection();
-        String sql = "SELECT BRANCH_NAME FROM BRANCH_MASTER WHERE BRANCH_CODE = ?";
-        pstmt = conn.prepareStatement(sql);
-        pstmt.setString(1, branchCode);
-        rs = pstmt.executeQuery();
-        
-        if (rs.next()) {
-            branchName = rs.getString("BRANCH_NAME");
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    } finally {
-        try {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 %>
 
 <!DOCTYPE html>
@@ -379,7 +351,7 @@ table tbody tr:nth-child(even) {
         <fieldset>
             <legend>Transaction Details</legend>
             
-            <!-- Row 1: Import From & Machine Type -->
+            <!-- Row 1: Import From & Transaction Type -->
             <div class="form-row">
                 <div class="form-group">
                     <div class="label">Import From:</div>
@@ -396,31 +368,40 @@ table tbody tr:nth-child(even) {
                 </div>
                 
                 <div class="form-group">
-                    <label class="label">Machine Type:</label>
-                    <select name="machineType" id="machineType">
-                        <option value="">-- Select Machine Type --</option>
-                        <option value="Balaji">Balaji</option>
-                        <option value="Pratinidhi">Pratinidhi</option>
-                        <option value="Sai Balaji">Sai Balaji</option>
-                        <option value="Others" selected>Others</option>
-                        <option value="Balaji New">Balaji New</option>
+                    <label class="label">Transaction Type:</label>
+                    <select name="transactionType" id="transactionTypeDropdown" onchange="loadTransactionType()">
+                        <option value="">-- Select Transaction Type --</option>
+                        <%
+                        Connection conn2 = null;
+                        PreparedStatement pstmt2 = null;
+                        ResultSet rs2 = null;
+                        
+                        try {
+                            conn2 = DBConnection.getConnection();
+                            String sql = "SELECT TRANSACTIONIDENTIFICATION_ID, DESCRIPTION FROM HEADOFFICE.TRANSACTIONIDENTIFICATION ORDER BY DESCRIPTION";
+                            pstmt2 = conn2.prepareStatement(sql);
+                            rs2 = pstmt2.executeQuery();
+                            
+                            while (rs2.next()) {
+                                int txnId = rs2.getInt("TRANSACTIONIDENTIFICATION_ID");
+                                String desc = rs2.getString("DESCRIPTION");
+                        %>
+                                <option value="<%= txnId %>"><%= desc %></option>
+                        <%
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            try {
+                                if (rs2 != null) rs2.close();
+                                if (pstmt2 != null) pstmt2.close();
+                                if (conn2 != null) conn2.close();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        %>
                     </select>
-                </div>
-            </div>
-            
-            <!-- Row 2: Branch Code and Product Code -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Branch Code</label>
-                    <div class="input-box">
-                        <input type="text" name="importBranchCode" id="importBranchCode" value="<%= branchCode %>" readonly>
-                        <button type="button" class="icon-btn">…</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Name</label>
-                    <input type="text" name="branchName" id="branchName" value="<%= branchName %>" readonly>
                 </div>
                 
                 <div class="form-group">
@@ -593,6 +574,16 @@ window.onload = function () {
         );
     }
 };
+
+function loadTransactionType() {
+    const dropdown = document.getElementById('transactionTypeDropdown');
+    const selectedValue = dropdown.value;
+    const selectedText = dropdown.options[dropdown.selectedIndex].text;
+    
+    if (selectedValue) {
+        showMessage('Transaction Type selected: ' + selectedText, 'info');
+    }
+}
 
 function handleFileSelect(input) {
     if (input.files && input.files[0]) {
@@ -788,8 +779,6 @@ function createTransaction() {
 function cancelImport() {
     if (confirm('Are you sure you want to cancel this import?')) {
         document.getElementById('importForm').reset();
-        document.getElementById('importBranchCode').value = '<%= branchCode %>';
-        document.getElementById('branchName').value = '<%= branchName %>';
         
         const headerRow = document.getElementById('tableHeader');
         headerRow.innerHTML = '<th>Loading...</th>';
