@@ -30,6 +30,12 @@
             <p>📥</p>
         </div>
         
+        <!-- New Import Card -->
+        <div class="card" onclick="openInParentFrame('Pigmy/import.jsp', 'Pigmy > New Import')">
+            <h3>New Import</h3>
+            <p>📁</p>
+        </div>
+        
         <!-- Export Card -->
         <div class="card" onclick="openInParentFrame('Pigmy/pigmyExport.jsp', 'Pigmy > Export')">
             <h3>Export</h3>
