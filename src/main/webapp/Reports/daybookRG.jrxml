@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="daybookRG" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="eb397dc2-6066-4b5b-b355-dffd9ad91a99">
-	<property name="ireport.zoom" value="1.4641000000000013"/>
+	<property name="ireport.zoom" value="1.5421731577181266"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="246"/>
+	<property name="ireport.y" value="181"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -101,97 +101,95 @@ INDEXER,
 	<pageHeader>
 		<band height="60">
 			<subreport>
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1" y="0" width="802" height="60" isPrintWhenDetailOverflows="true" uuid="bf52bb12-1472-4285-89e2-bcd934b564ab"/>
+				<reportElement x="2" y="0" width="801" height="60" uuid="e04e10f2-31c5-42ce-a758-4c79d68707da"/>
 				<subreportParameter name="as_on_date">
 					<subreportParameterExpression><![CDATA[$P{as_on_date}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="branch_code">
-					<subreportParameterExpression><![CDATA[$P{branch_code}
-]]></subreportParameterExpression>
+					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="report_title">
 					<subreportParameterExpression><![CDATA[$P{report_title}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "subReportHeader.jasper"
-]]></subreportExpression>
+				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\subReportHeader.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="61" splitType="Stretch">
+		<band height="45" splitType="Stretch">
 			<line>
-				<reportElement x="0" y="16" width="802" height="1" uuid="cd89ddce-26d7-40bf-aee7-56206c6e518a"/>
+				<reportElement x="0" y="0" width="802" height="1" uuid="cd89ddce-26d7-40bf-aee7-56206c6e518a"/>
 			</line>
 			<line>
-				<reportElement x="60" y="38" width="1" height="23" uuid="806048d8-cdbb-4109-bfd3-c064a80f71a3"/>
+				<reportElement x="60" y="22" width="1" height="23" uuid="806048d8-cdbb-4109-bfd3-c064a80f71a3"/>
 			</line>
 			<line>
-				<reportElement x="1" y="37" width="179" height="1" uuid="eaa7183a-791a-4004-9512-a6ae746e37fc"/>
+				<reportElement x="1" y="21" width="179" height="1" uuid="eaa7183a-791a-4004-9512-a6ae746e37fc"/>
 			</line>
 			<line>
-				<reportElement x="122" y="37" width="1" height="23" uuid="50c1c697-9bda-41f4-8afc-1ba9521ecde2"/>
+				<reportElement x="122" y="21" width="1" height="23" uuid="50c1c697-9bda-41f4-8afc-1ba9521ecde2"/>
 			</line>
 			<line>
-				<reportElement x="179" y="16" width="1" height="44" uuid="fda1cd15-e154-4134-aa87-6c556cd6051a"/>
+				<reportElement x="179" y="0" width="1" height="44" uuid="fda1cd15-e154-4134-aa87-6c556cd6051a"/>
 			</line>
 			<line>
-				<reportElement x="256" y="16" width="1" height="45" uuid="6d4c3df0-94d0-4ed0-9225-7a304f507998"/>
+				<reportElement x="256" y="0" width="1" height="45" uuid="6d4c3df0-94d0-4ed0-9225-7a304f507998"/>
 			</line>
 			<line>
-				<reportElement x="330" y="16" width="1" height="45" uuid="44df98c4-6d2a-493f-b9e1-ef6eba651f87"/>
+				<reportElement x="330" y="0" width="1" height="45" uuid="44df98c4-6d2a-493f-b9e1-ef6eba651f87"/>
 			</line>
 			<line>
-				<reportElement x="495" y="17" width="1" height="43" uuid="b41b98a3-d206-4862-9210-f32a71c3b67b"/>
+				<reportElement x="495" y="1" width="1" height="43" uuid="b41b98a3-d206-4862-9210-f32a71c3b67b"/>
 			</line>
 			<line>
-				<reportElement x="570" y="17" width="1" height="43" uuid="22feec53-fe69-43c6-83b3-265461da774b"/>
+				<reportElement x="570" y="1" width="1" height="43" uuid="22feec53-fe69-43c6-83b3-265461da774b"/>
 			</line>
 			<line>
-				<reportElement x="640" y="17" width="1" height="43" uuid="607aa977-8ed5-42e0-b7d4-844f4f6e79e1"/>
+				<reportElement x="640" y="1" width="1" height="43" uuid="607aa977-8ed5-42e0-b7d4-844f4f6e79e1"/>
 			</line>
 			<line>
-				<reportElement x="641" y="38" width="162" height="1" uuid="5641d3d6-1bac-44ca-881e-c2fb061c9df5"/>
+				<reportElement x="641" y="22" width="162" height="1" uuid="5641d3d6-1bac-44ca-881e-c2fb061c9df5"/>
 			</line>
 			<line>
-				<reportElement x="697" y="38" width="1" height="22" uuid="7c47dbfa-57e8-4f58-a915-f65184d4e911"/>
+				<reportElement x="697" y="22" width="1" height="22" uuid="7c47dbfa-57e8-4f58-a915-f65184d4e911"/>
 			</line>
 			<line>
-				<reportElement x="754" y="38" width="1" height="23" uuid="6324c8a4-f29b-4630-ac03-b3e3d36837a2"/>
+				<reportElement x="754" y="22" width="1" height="23" uuid="6324c8a4-f29b-4630-ac03-b3e3d36837a2"/>
 			</line>
 			<line>
-				<reportElement x="802" y="16" width="1" height="44" uuid="3af8f49e-e2e5-4927-bf1a-bc92245d4c6d"/>
+				<reportElement x="802" y="0" width="1" height="44" uuid="3af8f49e-e2e5-4927-bf1a-bc92245d4c6d"/>
 			</line>
 			<staticText>
-				<reportElement x="1" y="17" width="178" height="20" uuid="11e937ea-f327-4c23-92fa-be7926af4e04"/>
+				<reportElement x="1" y="1" width="178" height="20" uuid="11e937ea-f327-4c23-92fa-be7926af4e04"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[RECEIPT]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="1" y="37" width="59" height="23" uuid="8b5935da-2470-4db3-b183-644c3cafc3fc"/>
+				<reportElement x="1" y="21" width="59" height="23" uuid="8b5935da-2470-4db3-b183-644c3cafc3fc"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Cash]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="61" y="39" width="61" height="20" uuid="b46f7000-42a9-4d52-8c8d-f58f243302f6"/>
+				<reportElement x="61" y="23" width="61" height="20" uuid="b46f7000-42a9-4d52-8c8d-f58f243302f6"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Transfer]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="123" y="39" width="56" height="20" uuid="02cc56ea-5387-4397-8428-7864432fc1a1"/>
+				<reportElement x="123" y="23" width="56" height="20" uuid="02cc56ea-5387-4397-8428-7864432fc1a1"/>
 				<textElement textAlignment="Center">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Clearing]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="180" y="18" width="76" height="42" uuid="2cd418f7-f389-4a2a-b1cf-264214cae959"/>
+				<reportElement x="180" y="2" width="76" height="42" uuid="2cd418f7-f389-4a2a-b1cf-264214cae959"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
 					<font isBold="true"/>
 					<paragraph lineSpacing="Single"/>
@@ -199,71 +197,71 @@ INDEXER,
 				<text><![CDATA[RECEIPT   TOTAL]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="256" y="16" width="74" height="44" uuid="93ae5038-f14c-465c-97e1-84c6817a0810"/>
+				<reportElement x="256" y="0" width="74" height="44" uuid="93ae5038-f14c-465c-97e1-84c6817a0810"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Vouchers]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="331" y="18" width="164" height="40" uuid="51208781-3579-4779-9c11-1214d6c56e09"/>
+				<reportElement x="331" y="2" width="164" height="40" uuid="51208781-3579-4779-9c11-1214d6c56e09"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Account Name]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="495" y="17" width="75" height="41" uuid="d2d49fd5-6b9c-4bda-acfd-65c7b10a2b75"/>
+				<reportElement x="495" y="1" width="75" height="41" uuid="d2d49fd5-6b9c-4bda-acfd-65c7b10a2b75"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Vouchers]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="571" y="16" width="69" height="43" uuid="f19ad29c-d1bf-46d8-9c80-b85625deff00"/>
+				<reportElement x="571" y="0" width="69" height="43" uuid="f19ad29c-d1bf-46d8-9c80-b85625deff00"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[PAYMENT TOTAL]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="641" y="17" width="161" height="20" uuid="2b4a6980-55df-4c52-b299-abda26733469"/>
+				<reportElement x="641" y="1" width="161" height="20" uuid="2b4a6980-55df-4c52-b299-abda26733469"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[PAYMENT]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="641" y="39" width="56" height="20" uuid="3e96fa24-21fa-4122-a5bd-2be10137cc3f"/>
+				<reportElement x="641" y="23" width="56" height="20" uuid="3e96fa24-21fa-4122-a5bd-2be10137cc3f"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Cash]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="698" y="40" width="58" height="20" uuid="c7acdaf7-f174-4f44-9d34-461fd42a37a4"/>
+				<reportElement x="698" y="24" width="58" height="20" uuid="c7acdaf7-f174-4f44-9d34-461fd42a37a4"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Transfer]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="757" y="38" width="46" height="21" uuid="14486683-ba28-4406-bfe9-c2f907c58cc8"/>
+				<reportElement x="757" y="22" width="46" height="21" uuid="14486683-ba28-4406-bfe9-c2f907c58cc8"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Clearing]]></text>
 			</staticText>
 			<line>
-				<reportElement x="1" y="60" width="801" height="1" uuid="43469f70-3eaa-491c-a15e-b0d7e263c118"/>
+				<reportElement x="1" y="44" width="801" height="1" uuid="43469f70-3eaa-491c-a15e-b0d7e263c118"/>
 			</line>
 			<line>
-				<reportElement x="0" y="17" width="1" height="43" uuid="a600df35-2527-4cca-abfd-a99d52329adb"/>
+				<reportElement x="0" y="1" width="1" height="43" uuid="a600df35-2527-4cca-abfd-a99d52329adb"/>
 			</line>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="24" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<textField pattern="#,##0.00">
 				<reportElement x="2" y="0" width="58" height="20" uuid="c6f3fa6d-ecb6-4aef-83cc-987f3eafcad4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
@@ -321,12 +319,6 @@ INDEXER,
 			</textField>
 		</band>
 	</detail>
-	<columnFooter>
-		<band height="4" splitType="Stretch"/>
-	</columnFooter>
-	<pageFooter>
-		<band height="4" splitType="Stretch"/>
-	</pageFooter>
 	<summary>
 		<band height="324" splitType="Stretch">
 			<line>
@@ -385,23 +377,6 @@ INDEXER,
 			<line>
 				<reportElement x="0" y="20" width="802" height="1" uuid="77777777-8888-9999-aaaa-bbbbbbbbbbbb"/>
 			</line>
-			<subreport>
-				<reportElement x="0" y="21" width="257" height="103" uuid="88888888-9999-aaaa-bbbb-cccccccccccc"/>
-				<subreportParameter name="as_on_date">
-					<subreportParameterExpression><![CDATA[$P{as_on_date}]]></subreportParameterExpression>
-				</subreportParameter>
-				<subreportParameter name="bank_code">
-					<subreportParameterExpression><![CDATA[$P{bank_code}]]></subreportParameterExpression>
-				</subreportParameter>
-				<subreportParameter name="branch_code">
-					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
-				</subreportParameter>
-				<subreportParameter name="session_date">
-					<subreportParameterExpression><![CDATA[$P{session_date}]]></subreportParameterExpression>
-				</subreportParameter>
-				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "cashBalance.jasper"]]></subreportExpression>
-			</subreport>
 			<textField pattern="">
 				<reportElement x="4" y="185" width="799" height="20" uuid="2025b243-e844-437f-96b0-8a4a8d12b541"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
@@ -421,7 +396,24 @@ INDEXER,
 			<subreport>
 				<reportElement x="2" y="228" width="800" height="56" uuid="9ba8a5e9-c9f1-4e2a-809e-ed8445c6f733"/>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "clerk_manager.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\clerk_manager.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="-2" y="22" width="200" height="100" uuid="b26214a1-0f57-430b-9f1c-a8d4736af106"/>
+				<subreportParameter name="session_date">
+					<subreportParameterExpression><![CDATA[$P{session_date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="as_on_date">
+					<subreportParameterExpression><![CDATA[$P{as_on_date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="branch_code">
+					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="bank_code">
+					<subreportParameterExpression><![CDATA[$P{bank_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\cashBalance.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</summary>

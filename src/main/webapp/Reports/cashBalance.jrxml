@@ -8,144 +8,203 @@
 	<parameter name="branch_code" class="java.lang.String"/>
 	<parameter name="session_date" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[-- If date equals session_date (current date)
-SELECT 'CSOB' AS TRANSACTIONINDICATOR_CODE,
-       'Cash Opening Balance' AS DESCRIPTION,
-       ABS(OPENINGBALANCE) AS AMOUNT,
-       1 AS SORT_ORDER
-FROM BALANCE.BRANCHGL BRANCHGL
-JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
-WHERE BRANCHGL.BRANCH_CODE = $P{branch_code}
-AND BRANCHGL.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
-AND $P{as_on_date} = $P{session_date}
+		<![CDATA[SELECT
+    MAX(CASE WHEN SORT_ORDER = 1 THEN DESCRIPTION END) AS OPEN_DESC,
+    MAX(CASE WHEN SORT_ORDER = 1 THEN AMOUNT END)      AS OPEN_AMT,
 
-UNION ALL
+    MAX(CASE WHEN SORT_ORDER = 3 THEN DESCRIPTION END) AS PAY_DESC,
+    nvl(MAX(CASE WHEN SORT_ORDER = 3 THEN AMOUNT END),0)      AS PAY_AMT,
 
--- If date not equals session_date (historical date)
-SELECT 'CSOB' AS TRANSACTIONINDICATOR_CODE,
-       'Cash Opening Balance' AS DESCRIPTION,
-       ABS(OPENINGBALANCE) AS OPENINGAMOUNT,
-       1 AS SORT_ORDER
-FROM BALANCE.BRANCHGLHISTORY BRANCHGLHISTORY
-JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
-WHERE BRANCHGLHISTORY.BRANCH_CODE = $P{branch_code}
-AND BRANCHGLHISTORY.TXN_DATE = $P{as_on_date}
-AND BRANCHGLHISTORY.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
-AND $P{as_on_date} <> $P{session_date}
+    MAX(CASE WHEN SORT_ORDER = 2 THEN DESCRIPTION END) AS REC_DESC,
+    nvl(MAX(CASE WHEN SORT_ORDER = 2 THEN AMOUNT END),0)      AS REC_AMT,
 
-UNION ALL
+    MAX(CASE WHEN SORT_ORDER = 4 THEN DESCRIPTION END) AS CLOSE_DESC,
+    MAX(CASE WHEN SORT_ORDER = 4 THEN AMOUNT END)      AS CLOSE_AMT,
 
--- Cash Closing Balance (Fixed calculation)
-SELECT  'CSCB' AS TRANSACTIONINDICATOR_CODE,
-        'Cash Closing Balance' AS DESCRIPTION,
-        SUM(
-            CASE
-                WHEN TRANSACTIONINDICATOR_CODE = 'CSDR' THEN AMOUNT
-                WHEN TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -AMOUNT
-                ELSE 0
-            END
-        ) AS AMOUNT,
-        2 AS SORT_ORDER
-FROM TRANSACTION.TRANSACTION_HT_VIEW
-WHERE TXN_DATE = $P{as_on_date}
-AND BRANCH_CODE = $P{branch_code}
-AND TRANSACTIONSTATUS='A'
-AND TXN_NUMBER > 0
+    MAX(CASE WHEN SORT_ORDER = 5 THEN AMOUNT END)      AS TOTAL_AMT
+FROM (
+    SELECT DESCRIPTION, AMOUNT, SORT_ORDER
+    FROM (
+        /* Opening Cash */
+        SELECT
+            'Opening Cash' AS DESCRIPTION,
+            ABS(BG.OPENINGBALANCE) AS AMOUNT,
+            1 AS SORT_ORDER
+        FROM BALANCE.BRANCHGL BG
+        JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DBA
+          ON DBA.BANK_CODE = $P{bank_code}
+        WHERE BG.BRANCH_CODE = $P{branch_code}
+          AND BG.GLACCOUNT_CODE = DBA.ACCOUNT_CODE_CASH_IN_HAND
+          AND $P{as_on_date} = $P{session_date}
 
-UNION ALL
+        UNION ALL
 
--- Grand Total Calculation
-SELECT  'GRAND' AS TRANSACTIONINDICATOR_CODE,
-        'Grand Total' AS DESCRIPTION,
-        (
-            -- Opening Balance (from either BRANCHGL or BRANCHGLHISTORY)
-            COALESCE(
-                (SELECT ABS(OPENINGBALANCE)
-                 FROM BALANCE.BRANCHGL BRANCHGL
-                 JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
-                 WHERE BRANCHGL.BRANCH_CODE = $P{branch_code}
-                 AND BRANCHGL.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
-                 AND $P{as_on_date} = $P{session_date}),
+        /* Cash Receipt */
+        SELECT
+            'Cash Receipt',
+            SUM(T.AMOUNT),
+            2
+        FROM TRANSACTION.TRANSACTION_HT_VIEW T
+        WHERE T.TRANSACTIONINDICATOR_CODE = 'CSDR'
+          AND T.TXN_DATE = $P{as_on_date}
+          AND T.BRANCH_CODE = $P{branch_code}
+          AND T.TRANSACTIONSTATUS = 'A'
 
-                (SELECT ABS(OPENINGBALANCE)
-                 FROM BALANCE.BRANCHGLHISTORY BRANCHGLHISTORY
-                 JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DEFAULTBANKACCOUNTS ON (BANK_CODE = $P{bank_code})
-                 WHERE BRANCHGLHISTORY.BRANCH_CODE = $P{branch_code}
-                 AND BRANCHGLHISTORY.TXN_DATE = $P{as_on_date}
-                 AND BRANCHGLHISTORY.GLACCOUNT_CODE = DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND
-                 AND $P{as_on_date} <> $P{session_date}),
-                0
-            )
-            +
-            -- Closing Balance (Net cash flow)
-            COALESCE(
-                (SELECT SUM(
-                    CASE
-                        WHEN TRANSACTIONINDICATOR_CODE = 'CSDR' THEN AMOUNT
-                        WHEN TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -AMOUNT
-                        ELSE 0
-                    END)
-                 FROM TRANSACTION.TRANSACTION_HT_VIEW
-                 WHERE TXN_DATE = $P{as_on_date}
-                 AND BRANCH_CODE = $P{branch_code}
-                 AND TRANSACTIONSTATUS='A'
-                 AND TXN_NUMBER > 0),
-                0
-            )
-        ) AS AMOUNT,
-        3 AS SORT_ORDER
-FROM DUAL
+        UNION ALL
 
-ORDER BY SORT_ORDER]]>
+        /* Cash Payment */
+        SELECT
+            'Cash Payment',
+            SUM(T.AMOUNT),
+            3
+        FROM TRANSACTION.TRANSACTION_HT_VIEW T
+        WHERE T.TRANSACTIONINDICATOR_CODE = 'CSCR'
+          AND T.TXN_DATE = $P{as_on_date}
+          AND T.BRANCH_CODE = $P{branch_code}
+          AND T.TRANSACTIONSTATUS = 'A'
+
+        UNION ALL
+
+        /* Closing Cash */
+        SELECT
+            'Closing Cash',
+            ABS(BG.OPENINGBALANCE)
+            + NVL(SUM(
+                CASE
+                    WHEN T.TRANSACTIONINDICATOR_CODE = 'CSDR' THEN T.AMOUNT
+                    WHEN T.TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -T.AMOUNT
+                END
+              ), 0),
+            4
+        FROM BALANCE.BRANCHGL BG
+        JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DBA
+          ON DBA.BANK_CODE = $P{bank_code}
+        LEFT JOIN TRANSACTION.TRANSACTION_HT_VIEW T
+          ON T.BRANCH_CODE = BG.BRANCH_CODE
+         AND T.TXN_DATE = $P{as_on_date}
+         AND T.TRANSACTIONSTATUS = 'A'
+        WHERE BG.BRANCH_CODE = $P{branch_code}
+          AND BG.GLACCOUNT_CODE = DBA.ACCOUNT_CODE_CASH_IN_HAND
+        GROUP BY BG.OPENINGBALANCE
+
+        UNION ALL
+
+        /* Total */
+        SELECT
+            'Total',
+            ABS(BG.OPENINGBALANCE)
+            + NVL(SUM(
+                CASE
+                    WHEN T.TRANSACTIONINDICATOR_CODE = 'CSDR' THEN T.AMOUNT
+                    WHEN T.TRANSACTIONINDICATOR_CODE = 'CSCR' THEN -T.AMOUNT
+                END
+              ), 0),
+            5
+        FROM BALANCE.BRANCHGL BG
+        JOIN ACCOUNTLINK.DEFAULTBANKACCOUNTS DBA
+          ON DBA.BANK_CODE = $P{bank_code}
+        LEFT JOIN TRANSACTION.TRANSACTION_HT_VIEW T
+          ON T.BRANCH_CODE = BG.BRANCH_CODE
+         AND T.TXN_DATE = $P{as_on_date}
+         AND T.TRANSACTIONSTATUS = 'A'
+        WHERE BG.BRANCH_CODE = $P{branch_code}
+          AND BG.GLACCOUNT_CODE = DBA.ACCOUNT_CODE_CASH_IN_HAND
+        GROUP BY BG.OPENINGBALANCE
+    )
+)]]>
 	</queryString>
-	<field name="TRANSACTIONINDICATOR_CODE" class="java.lang.String"/>
-	<field name="DESCRIPTION" class="java.lang.String"/>
-	<field name="AMOUNT" class="java.math.BigDecimal"/>
-	<field name="SORT_ORDER" class="java.math.BigDecimal"/>
+	<field name="OPEN_DESC" class="java.lang.String"/>
+	<field name="OPEN_AMT" class="java.math.BigDecimal"/>
+	<field name="PAY_DESC" class="java.lang.String"/>
+	<field name="PAY_AMT" class="java.math.BigDecimal"/>
+	<field name="REC_DESC" class="java.lang.String"/>
+	<field name="REC_AMT" class="java.math.BigDecimal"/>
+	<field name="CLOSE_DESC" class="java.lang.String"/>
+	<field name="CLOSE_AMT" class="java.math.BigDecimal"/>
+	<field name="TOTAL_AMT" class="java.math.BigDecimal"/>
 	<columnHeader>
-		<band height="30">
+		<band height="34">
 			<line>
-				<reportElement x="0" y="29" width="235" height="1" uuid="ba27dea1-4ce9-4dc0-9e53-81415c1d6b0d"/>
+				<reportElement x="0" y="30" width="555" height="1" uuid="ba27dea1-4ce9-4dc0-9e53-81415c1d6b0d"/>
 			</line>
 			<staticText>
-				<reportElement x="100" y="0" width="96" height="29" uuid="bb3f8647-fe70-4390-9f08-abb97986290c"/>
+				<reportElement x="131" y="6" width="101" height="20" uuid="d7f88bbb-fa68-41de-84d3-49feb353de96"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="10" isBold="true"/>
+					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Amount]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="0" width="100" height="29" uuid="58188b1f-b931-4da4-9118-9446b4c959fc"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
+				<reportElement x="408" y="6" width="101" height="20" uuid="82ee43be-9499-4bbd-9ba4-6f4564e4995d"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Description]]></text>
+				<text><![CDATA[Amount]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="35">
+		<band height="49" splitType="Prevent">
 			<textField>
-				<reportElement x="0" y="-1" width="100" height="21" uuid="f59ad7ed-744f-4d56-9c8d-74461bc6cbbd"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font size="10" isBold="true" isItalic="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
+				<reportElement x="1" y="22" width="100" height="20" uuid="81add480-b079-42d9-a0a4-d5af18d9bb9c"/>
+				<textFieldExpression><![CDATA[$F{REC_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement x="129" y="21" width="100" height="20" uuid="77b2067e-68d2-4e74-a71a-c49a6ec5f9c6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{REC_AMT}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="100" y="0" width="96" height="20" uuid="364e36a1-3ab4-48a4-9391-5de5644340c2"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="10" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
+				<reportElement x="292" y="0" width="100" height="20" uuid="695f8090-75a0-4c4f-aaa7-9329aa361da9"/>
+				<textFieldExpression><![CDATA[$F{PAY_DESC}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="-1" width="100" height="20" uuid="e2d2deb7-1760-40fa-a92d-2e50200d194a"/>
+				<textFieldExpression><![CDATA[$F{OPEN_DESC}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="293" y="21" width="100" height="20" uuid="c0e40218-a124-4610-83be-1ef517ef3d5d"/>
+				<textFieldExpression><![CDATA[$F{CLOSE_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="131" y="0" width="100" height="20" uuid="8555c5b1-bd2d-4b6b-a825-0ce4086487a5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{OPEN_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="420" y="-2" width="100" height="20" uuid="ec111c44-ec4c-4638-a5f6-89f6a1d63208"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{PAY_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="420" y="18" width="100" height="20" uuid="3138bb4b-af27-483e-b50c-45dc679d1391"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{CLOSE_AMT}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
 	<summary>
-		<band height="6">
+		<band height="35">
 			<line>
-				<reportElement x="0" y="0" width="235" height="1" uuid="929758dd-67cb-4985-bf9b-257b880157d8"/>
+				<reportElement x="0" y="6" width="555" height="1" uuid="929758dd-67cb-4985-bf9b-257b880157d8"/>
 			</line>
+			<textField pattern="#,##0.00">
+				<reportElement x="422" y="11" width="100" height="20" uuid="2afe2979-89e7-4c51-bf33-035047b7855e"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{PAY_AMT} +$F{CLOSE_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="134" y="9" width="100" height="20" uuid="52b2ffdd-6f98-4dc7-8047-38c0b7e5d9f6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{OPEN_AMT}+$F{REC_AMT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="9" width="100" height="17" uuid="a80918f6-3b80-4281-aaaa-9137b64daa77"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
 		</band>
 	</summary>
 </jasperReport>

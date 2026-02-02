@@ -97,7 +97,9 @@ request.setAttribute("tallyMessage", tallyMessage);
                         "inline; filename=\"" + pdfFileName + "\""
                     );                
                 // NEW: Use custom PDF exporter with page numbers in "1/14" format
-                exportPdfWithPageNumbers(jasperPrint, outStream);
+               // exportPdfWithPageNumbers(jasperPrint, outStream);
+                JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+
                 
             } else if ("xls".equalsIgnoreCase(reporttype)) {
                 response.setContentType("application/vnd.ms-excel");
