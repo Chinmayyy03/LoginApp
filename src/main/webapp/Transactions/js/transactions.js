@@ -1712,12 +1712,21 @@ function clearLoanFields() {
         });
     });
 	
-	// ✅ Clear principle received field
-	const principleReceivedField = document.getElementById('principleReceived');
-	if (principleReceivedField) {
-	    principleReceivedField.value = '';
+	// ✅ ADD THIS - Clear total fields
+	    const totalReceivable = document.getElementById('totalReceivable');
+	    const totalReceived = document.getElementById('totalReceived');
+	    const totalRemaining = document.getElementById('totalRemaining');
+	    
+	    if (totalReceivable) totalReceivable.value = '';
+	    if (totalReceived) totalReceived.value = '';
+	    if (totalRemaining) totalRemaining.value = '';
+	    
+	    // Clear principle received field
+	    const principleReceivedField = document.getElementById('principleReceived');
+	    if (principleReceivedField) {
+	        principleReceivedField.value = '';
+	    }
 	}
-}
 
 
 // Add this new function to handle sequential loan deduction
