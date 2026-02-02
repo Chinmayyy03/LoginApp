@@ -44,8 +44,6 @@
     transition: background 0.3s;
 }
 
-
-
 .pagination-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
@@ -58,12 +56,145 @@
     font-weight: bold;
     padding: 0 15px;
 }
+
+/* Popup Modal Styles */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-container {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.popup-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-icon::before {
+    content: "✓";
+    font-size: 40px;
+    color: white;
+    font-weight: bold;
+}
+
+.popup-title {
+    color: #333;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.popup-message {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.popup-scroll-number {
+    color: #2b0d73;
+    font-size: 28px;
+    font-weight: bold;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    letter-spacing: 2px;
+    
+}
+
+.popup-button {
+    background: #2b0d73;
+    color: white;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.3s;
+}
+
+.popup-button:hover {
+    background: #1a0847;
+}
 </style>
+
 <script>
 // Store all application data for client-side search
 let allApplications = [];
 let currentPage = 1;
 const recordsPerPage = <%= recordsPerPage %>;
+
+// Show popup message
+function showPopup(accountCode) {
+    var popup = document.getElementById('successPopup');
+    var scrollNumber = document.getElementById('scrollNumber');
+    scrollNumber.textContent = accountCode;
+    popup.style.display = 'flex';
+}
+
+// Close popup
+function closePopup() {
+    var popup = document.getElementById('successPopup');
+    popup.style.display = 'none';
+    // Clear URL parameters after showing popup
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+// Check for success message on page load
+function checkForSuccessMessage() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var updated = urlParams.get('updated');
+    var accountCode = urlParams.get('accountCode');
+    
+    if (updated === 'authorized' && accountCode) {
+        showPopup(decodeURIComponent(accountCode));
+    } else if (updated === 'rejected') {
+        alert('Application has been rejected successfully.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    var error = urlParams.get('error');
+    if (error) {
+        alert('Error: ' + decodeURIComponent(error));
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
 
 // Live search filter across ALL data
 function searchTable() {
@@ -187,6 +318,9 @@ window.onload = function() {
         );
     }
     
+    // Check for success message first
+    checkForSuccessMessage();
+    
     // Check if returning from detail view and restore page
     var savedPage = sessionStorage.getItem('authPendingAppsPage');
     if (savedPage) {
@@ -208,6 +342,17 @@ function viewApplication(applicationNumber) {
 </script>
 </head>
 <body>
+
+<!-- Success Popup Modal -->
+<div id="successPopup" class="popup-overlay" onclick="if(event.target === this) closePopup()">
+    <div class="popup-container">
+        <div class="popup-icon"></div>
+        <div class="popup-title">Account Created successfully!</div>
+        <div class="popup-message">Account Code:</div>
+        <div id="scrollNumber" class="popup-scroll-number">129</div>
+        <button class="popup-button" onclick="closePopup()">OK</button>
+    </div>
+</div>
 
 <h2>Authorization Pending Applications for Branch: <%= branchCode %></h2>
 
