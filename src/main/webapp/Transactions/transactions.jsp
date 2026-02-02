@@ -250,9 +250,10 @@
         </div>
         
         <div id="authScrollNumber" style="
-            font-size: 16px;
+            font-size: 25px;
             color: #666;
             margin-bottom: 30px;
+            font-weight: bold;
         ">
             Scroll Number: 12345
         </div>
