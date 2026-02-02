@@ -6,6 +6,8 @@
 <%@ page import="net.sf.jasperreports.engine.export.*" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.math.BigDecimal" %>
+<%@ page import="db.DBConnection" %>
+
 
 <%
     String action = request.getParameter("action");
@@ -27,12 +29,7 @@
             response.setHeader("Pragma", "no-cache");
             response.setDateHeader("Expires", 0);
 
-            Class.forName("oracle.jdbc.OracleDriver");
-            conn = DriverManager.getConnection(
-                    "jdbc:oracle:thin:@192.168.1.117:1521:xe",
-                    "system",
-                    "info123"
-            );
+            conn = DBConnection.getConnection();
 
             // FIX 1: Use Oracle date format dd-MMM-yyyy (like 29-MAR-2025)
             String oracleDate = "";
@@ -95,8 +92,10 @@ request.setAttribute("tallyMessage", tallyMessage);
                 response.setContentType("application/pdf");
                 response.setHeader("Content-Type", "application/pdf");
                 String pdfFileName = "Daybook_Report_" + asOnDate.replace("-", "_") + ".pdf";
-                response.setHeader("Content-Disposition", "attachment; filename=\"" + pdfFileName + "\"");
-                
+                response.setHeader(
+                        "Content-Disposition",
+                        "inline; filename=\"" + pdfFileName + "\""
+                    );                
                 // NEW: Use custom PDF exporter with page numbers in "1/14" format
                 exportPdfWithPageNumbers(jasperPrint, outStream);
                 
@@ -594,7 +593,8 @@ if (!"download".equals(action)) {
       action="<%=request.getContextPath()%>/Reports/daybookRG.jsp"
       autocomplete="off"
       id="reportForm"
-      target="downloadFrame">
+      target="_blank">
+
             <input type="hidden" name="action" value="download"/>
             
             <div class="parameter-section">
@@ -725,7 +725,9 @@ if (!"download".equals(action)) {
             });
         });
     </script>
-    <iframe name="downloadFrame" style="display:none;"></iframe>
+    <iframe name="downloadFrame"
+        style="width:100%; height:800px; border:1px solid #ccc;">
+</iframe>
     
 </body>
 </html>
