@@ -24,12 +24,6 @@
 <body>
 <div class="dashboard-container">
     <div class="cards-wrapper">
-        <!-- Import Card -->
-        <div class="card" onclick="openInParentFrame('Pigmy/pigmyImport.jsp', 'Pigmy > Import')">
-            <h3>Import</h3>
-            <p>📥</p>
-        </div>
-        
         <!-- New Import Card -->
         <div class="card" onclick="openInParentFrame('Pigmy/import.jsp', 'Pigmy > New Import')">
             <h3>New Import</h3>
