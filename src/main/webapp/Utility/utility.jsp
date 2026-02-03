@@ -22,7 +22,7 @@
 <div class="dashboard-container">
     <div class="cards-wrapper">
         <div class="card" id="card-new-user"
-             onclick="openInParentFrame('createUser.jsp', 'Utility > New User')">
+             onclick="openInParentFrame('Utility/NewUser.jsp', 'Utility > New User')">
             <h3>New User</h3>
             <p class="size-1" id="value-new-user">+</p>
         </div>
