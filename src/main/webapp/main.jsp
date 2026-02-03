@@ -16,7 +16,7 @@
     }
 
     try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT NAME FROM BRANCHES WHERE BRANCH_CODE=?")) {
+         PreparedStatement ps = conn.prepareStatement("SELECT NAME FROM HEADOFFICE.BRANCH WHERE BRANCH_CODE=?")) {
         ps.setString(1, branchCode);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
