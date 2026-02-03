@@ -9,12 +9,14 @@
     String userId = (String) session.getAttribute("userId");
     String branchCode = (String) session.getAttribute("branchCode");
     String branchName = "";
+    String userName = userId; // fallback to USER_ID if NAME is not found
 
     if (userId == null || branchCode == null) {
         response.sendRedirect("login.jsp");
         return;
     }
 
+    // Fetch branch name
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement("SELECT NAME FROM HEADOFFICE.BRANCH WHERE BRANCH_CODE=?")) {
         ps.setString(1, branchCode);
@@ -24,6 +26,18 @@
         }
     } catch (Exception e) {
         branchName = "Unknown Branch";
+    }
+
+    // Fetch user's full name from USERREGISTER
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT NAME FROM ACL.USERREGISTER WHERE USER_ID=?")) {
+        ps.setString(1, userId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next() && rs.getString("NAME") != null) {
+            userName = rs.getString("NAME");
+        }
+    } catch (Exception e) {
+        // userName already defaults to userId as fallback
     }
 %>
 
@@ -41,7 +55,7 @@
 <div class="sidebar">
     <div class="profile-section">
         <img src="images/user.png" alt="Profile" class="profile-pic">
-        <div class="user-name"><%= userId.toUpperCase() %></div>
+        <div class="user-name"><%= userName.toUpperCase() %></div>
     </div>
 
     <ul class="menu">
