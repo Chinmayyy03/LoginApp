@@ -315,6 +315,40 @@ table tbody tr:nth-child(even) {
     background: #f9f9f9;
 }
 
+.column-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.column-tag .remove-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.column-tag .remove-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+small {
+    display: block;
+    margin-top: 4px;
+}
+
 @media (max-width: 768px) {
     .form-row {
         flex-direction: column;
@@ -417,12 +451,7 @@ table tbody tr:nth-child(even) {
                     <input type="text" name="productDescription" id="productDescription" readonly>
                 </div>
             </div>
-            
-        </fieldset>
         
-        <!-- Transaction Details Section -->
-        <fieldset>
-            <legend>Transaction Details</legend>
             
             <!-- Upload File Button -->
             <div class="form-row">
@@ -434,7 +463,54 @@ table tbody tr:nth-child(even) {
                 </div>
             </div>
             
-            <!-- Row with all transaction details -->
+            <!-- Column Selection and Extraction Tools -->
+            <fieldset id="columnTools" style="display: none; background: #f0f4ff; border: 2px solid #93c5fd; margin-top: 20px;">
+                <legend style="color: #1e40af;">📊 Column Selection & Data Extraction</legend>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">Select Column Number</label>
+                        <select name="selectedColumn" id="selectedColumn">
+                            <option value="">-- Select Column --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Extract Characters (Optional)</label>
+                        <input type="number" name="substringLength" id="substringLength" placeholder="e.g., 4 for last 4 chars" min="1">
+                        <small style="color: #666; font-size: 12px;">Leave empty to show full column</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label">Extraction Position</label>
+                        <select name="extractPosition" id="extractPosition">
+                            <option value="end" selected>From End (Last N chars)</option>
+                            <option value="start">From Start (First N chars)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="button" class="btn btn-primary" onclick="addSelectedColumn()">
+                            Add Column
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Selected Columns Display -->
+                <div id="selectedColumnsDisplay" style="margin-top: 15px; display: none;">
+                    <label class="label">Selected Columns for Display:</label>
+                    <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="applyColumnFilter()" style="margin-top: 10px;">
+                        Apply Filter
+                    </button>
+                    <button type="button" class="btn" onclick="resetColumnFilter()" style="margin-top: 10px; background: #f59e0b; color: white;">
+                        Reset & Show All
+                    </button>
+                </div>
+            </fieldset>
+            
+            <!-- Row with all transaction details 
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Transaction Type</label>
@@ -460,7 +536,7 @@ table tbody tr:nth-child(even) {
                 </div>
             </div>
             
-            <!-- Row 2 -->
+            <!-- Row 2 
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Total Amount</label>
@@ -478,7 +554,7 @@ table tbody tr:nth-child(even) {
                 </div>
             </div>
             
-            <!-- Row 3 -->
+            <!-- Row 3 
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Advice No.</label>
@@ -496,7 +572,7 @@ table tbody tr:nth-child(even) {
                 </div>
             </div>
             
-            <!-- Row 4 -->
+            <!-- Row 4 
             <div class="form-row">
                 <div class="form-group">
                     <label class="label">Recon.Code</label>
@@ -510,7 +586,7 @@ table tbody tr:nth-child(even) {
                     <label class="label">Description</label>
                     <input type="text" name="reconDescription" id="reconDescription" readonly>
                 </div>
-            </div>
+            </div> -->
             
         </fieldset>
         
@@ -575,6 +651,11 @@ window.onload = function () {
     }
 };
 
+// Global variables for column management
+let originalParsedData = [];
+let selectedColumns = [];
+let totalColumns = 0;
+
 function loadTransactionType() {
     const dropdown = document.getElementById('transactionTypeDropdown');
     const selectedValue = dropdown.value;
@@ -583,6 +664,190 @@ function loadTransactionType() {
     if (selectedValue) {
         showMessage('Transaction Type selected: ' + selectedText, 'info');
     }
+}
+
+function addSelectedColumn() {
+    const columnDropdown = document.getElementById('selectedColumn');
+    const columnNumber = columnDropdown.value;
+    const substringLength = document.getElementById('substringLength').value;
+    const extractPosition = document.getElementById('extractPosition').value;
+    
+    if (!columnNumber) {
+        showMessage('Please select a column number', 'error');
+        return;
+    }
+    
+    // Check if column already selected
+    const exists = selectedColumns.find(col => col.columnNumber === parseInt(columnNumber));
+    if (exists) {
+        showMessage('Column ' + columnNumber + ' is already selected', 'error');
+        return;
+    }
+    
+    const columnConfig = {
+        columnNumber: parseInt(columnNumber),
+        substringLength: substringLength ? parseInt(substringLength) : null,
+        extractPosition: extractPosition,
+        label: 'Column ' + columnNumber + 
+               (substringLength ? (' (Last ' + substringLength + ' chars)') : '')
+    };
+    
+    selectedColumns.push(columnConfig);
+    
+    // Display selected column tag
+    displaySelectedColumns();
+    
+    // Reset inputs
+    columnDropdown.value = '';
+    document.getElementById('substringLength').value = '';
+    document.getElementById('extractPosition').value = 'end';
+    
+    showMessage('Column ' + columnNumber + ' added successfully', 'success');
+}
+
+function displaySelectedColumns() {
+    const container = document.getElementById('selectedColumnsList');
+    const display = document.getElementById('selectedColumnsDisplay');
+    
+    container.innerHTML = '';
+    
+    if (selectedColumns.length === 0) {
+        display.style.display = 'none';
+        return;
+    }
+    
+    display.style.display = 'block';
+    
+    selectedColumns.forEach((col, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'column-tag';
+        tag.innerHTML = `
+            <span>${col.label}</span>
+            <button class="remove-btn" onclick="removeColumn(${index})" title="Remove">×</button>
+        `;
+        container.appendChild(tag);
+    });
+}
+
+function removeColumn(index) {
+    selectedColumns.splice(index, 1);
+    displaySelectedColumns();
+    
+    if (selectedColumns.length === 0) {
+        // Reset to show all columns
+        displayAllColumns();
+    }
+}
+
+function applyColumnFilter() {
+    if (selectedColumns.length === 0) {
+        showMessage('Please select at least one column', 'error');
+        return;
+    }
+    
+    // Filter and transform data based on selected columns
+    const filteredData = originalParsedData.map(row => {
+        return selectedColumns.map(colConfig => {
+            const colIndex = colConfig.columnNumber - 1;
+            let value = row[colIndex] || '';
+            
+            // Apply substring extraction if specified
+            if (colConfig.substringLength) {
+                if (colConfig.extractPosition === 'end') {
+                    // Extract last N characters
+                    value = value.slice(-colConfig.substringLength);
+                } else {
+                    // Extract first N characters
+                    value = value.slice(0, colConfig.substringLength);
+                }
+            }
+            
+            return value;
+        });
+    });
+    
+    // Update table with filtered data
+    displayFilteredData(filteredData);
+    
+    showMessage(`Displaying ${selectedColumns.length} selected column(s)`, 'success');
+}
+
+function displayFilteredData(filteredData) {
+    const tableHeaderRow = document.getElementById('tableHeader');
+    const tbody = document.getElementById('importDetailsTable');
+    
+    // Create headers based on selected columns
+    tableHeaderRow.innerHTML = '';
+    selectedColumns.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col.label;
+        th.style.padding = '10px';
+        th.style.border = '1px solid #ddd';
+        th.style.background = '#667eea';
+        th.style.color = 'white';
+        tableHeaderRow.appendChild(th);
+    });
+    
+    // Populate table body with filtered data
+    tbody.innerHTML = '';
+    filteredData.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
+        
+        row.forEach(cellValue => {
+            const td = document.createElement('td');
+            td.textContent = cellValue;
+            td.style.padding = '8px';
+            td.style.border = '1px solid #ddd';
+            tr.appendChild(td);
+        });
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function displayAllColumns() {
+    if (originalParsedData.length === 0) {
+        return;
+    }
+    
+    const tableHeaderRow = document.getElementById('tableHeader');
+    const tbody = document.getElementById('importDetailsTable');
+    
+    // Create blank headers for all columns
+    tableHeaderRow.innerHTML = '';
+    for (let i = 0; i < totalColumns; i++) {
+        const th = document.createElement('th');
+        th.textContent = '';
+        th.style.padding = '10px';
+        th.style.border = '1px solid #ddd';
+        tableHeaderRow.appendChild(th);
+    }
+    
+    // Populate table body with all data
+    tbody.innerHTML = '';
+    originalParsedData.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
+        
+        for (let i = 0; i < totalColumns; i++) {
+            const td = document.createElement('td');
+            td.textContent = row[i] || '';
+            td.style.padding = '8px';
+            td.style.border = '1px solid #ddd';
+            tr.appendChild(td);
+        }
+        
+        tbody.appendChild(tr);
+    });
+    
+    showMessage('Showing all columns (' + totalColumns + ' columns)', 'info');
+}
+
+function resetColumnFilter() {
+    selectedColumns = [];
+    displaySelectedColumns();
+    displayAllColumns();
 }
 
 function handleFileSelect(input) {
@@ -671,8 +936,25 @@ function parseAndDisplayFile(content, fileName) {
             return;
         }
         
+        // Store original data globally
+        originalParsedData = parsedData;
+        
         // Determine number of columns
         const maxColumns = Math.max(...parsedData.map(row => row.length));
+        totalColumns = maxColumns;
+        
+        // Populate column selection dropdown
+        const columnDropdown = document.getElementById('selectedColumn');
+        columnDropdown.innerHTML = '<option value="">-- Select Column --</option>';
+        for (let i = 1; i <= maxColumns; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = 'Column ' + i;
+            columnDropdown.appendChild(option);
+        }
+        
+        // Show column tools
+        document.getElementById('columnTools').style.display = 'block';
         
         // Create table header (blank column names)
         const tableHeaderRow = document.getElementById('tableHeader');
@@ -717,7 +999,7 @@ function parseAndDisplayFile(content, fileName) {
         
         document.getElementById('totalAmount').value = totalAmount.toFixed(2);
         
-        let successMsg = 'File loaded successfully! ' + parsedData.length + ' records found.';
+        let successMsg = 'File loaded successfully! ' + parsedData.length + ' records found with ' + maxColumns + ' columns.';
         if (isDatFile) {
             successMsg += ' (First line displayed separately)';
         }
@@ -779,6 +1061,16 @@ function createTransaction() {
 function cancelImport() {
     if (confirm('Are you sure you want to cancel this import?')) {
         document.getElementById('importForm').reset();
+        
+        // Reset global variables
+        originalParsedData = [];
+        selectedColumns = [];
+        totalColumns = 0;
+        
+        // Hide column tools
+        document.getElementById('columnTools').style.display = 'none';
+        document.getElementById('selectedColumnsDisplay').style.display = 'none';
+        document.getElementById('selectedColumnsList').innerHTML = '';
         
         const headerRow = document.getElementById('tableHeader');
         headerRow.innerHTML = '<th>Loading...</th>';
