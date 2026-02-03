@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="daybookRG" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="eb397dc2-6066-4b5b-b355-dffd9ad91a99">
 	<property name="ireport.zoom" value="1.5421731577181266"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="181"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -112,7 +112,7 @@ INDEXER,
 					<subreportParameterExpression><![CDATA[$P{report_title}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\subReportHeader.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["\\LoginApp\\src\\main\\webapp\\Reports\\subReportHeader.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</pageHeader>
