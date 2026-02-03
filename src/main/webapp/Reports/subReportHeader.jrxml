@@ -65,10 +65,6 @@ and b.branch_code=$P{branch_code}]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{report_title}]]></textFieldExpression>
 			</textField>
-			<image>
-				<reportElement x="48" y="2" width="81" height="71" uuid="80cdad8c-7830-4c74-8812-5ed4f756a953"/>
-				<imageExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\images\\UPSB MONO.png"]]></imageExpression>
-			</image>
 		</band>
 	</detail>
 </jasperReport>
