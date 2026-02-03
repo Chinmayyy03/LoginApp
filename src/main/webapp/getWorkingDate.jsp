@@ -49,10 +49,10 @@
         rsBank.close();
         psBank.close();
         
-        // ✅ Step 2: Fetch Branch Name from BRANCHES table
+        // ✅ Step 2: Fetch Branch Name from HEADOFFICE.BRANCH table
         String branchName = "";
         
-        String branchQuery = "SELECT NAME FROM BRANCHES WHERE BRANCH_CODE = ?";
+        String branchQuery = "SELECT NAME FROM HEADOFFICE.BRANCH WHERE BRANCH_CODE = ?";
         psBranch = conn.prepareStatement(branchQuery);
         psBranch.setString(1, branchCode);
         rsBranch = psBranch.executeQuery();
