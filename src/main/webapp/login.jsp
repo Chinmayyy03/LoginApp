@@ -20,7 +20,7 @@
 
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT USER_ID FROM BRANCH_LOGIN WHERE USER_ID=? AND PASSWORD=? AND BRANCH_CODE=?";
+            String sql = "SELECT USER_ID FROM ACL.USERREGISTER WHERE USER_ID=? AND acl.toolkit.decrypt(PASSWD)=? AND BRANCH_CODE=?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, userId);
             pstmt.setString(2, password);
@@ -91,7 +91,7 @@
                 <%
                     try (Connection conn = DBConnection.getConnection();
                          Statement stmt = conn.createStatement();
-                         ResultSet branchRS = stmt.executeQuery("SELECT BRANCH_CODE, NAME FROM BRANCHES ORDER BY BRANCH_CODE")) {
+                         ResultSet branchRS = stmt.executeQuery("SELECT BRANCH_CODE, NAME FROM HEADOFFICE.BRANCH ORDER BY BRANCH_CODE")) {
 
                         while(branchRS.next()) {
                             String bCode = branchRS.getString("BRANCH_CODE");
