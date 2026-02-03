@@ -72,6 +72,6 @@ public class CreateUserServlet extends HttpServlet {
         }
 
         // IMPORTANT: forward (NOT redirect)
-        request.getRequestDispatcher("/NewUser.jsp").forward(request, response);
+        request.getRequestDispatcher("/Utility/NewUser.jsp").forward(request, response);
     }
 }
