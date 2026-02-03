@@ -116,6 +116,15 @@
 	        <span>Pigmy</span>
 	    </a>
 	</li>
+	
+	<!-- Utility -->
+	<li data-page="Utility/utility.jsp">
+	    <a href="#" onclick="loadPage('Utility/utility.jsp', 'Utility', this); return false;">
+	        <img src="images/right-arrow.png" width="18" height="18" alt="">
+	        <span>Utility</span>
+	    </a>
+	</li>
+	
 </ul>
 
     <div class="logout">
