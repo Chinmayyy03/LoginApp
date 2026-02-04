@@ -71,7 +71,7 @@ public class CreateUserServlet extends HttpServlet {
             request.setAttribute("msgType", "error");
         }
 
-        // IMPORTANT: forward (NOT redirect)
+       
         request.getRequestDispatcher("/Utility/NewUser.jsp").forward(request, response);
     }
 }
