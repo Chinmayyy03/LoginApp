@@ -153,15 +153,15 @@ input[readonly] { background-color: var(--readonly-bg); }
         </div>
         <div class="form-group"><label>Customer Name</label><input type="text" id="customerName" readonly></div>
         <div class="form-group"><label>Employee Code</label><input type="text" name="empCode"></div>
-        <div class="form-group"><label>Phone</label><input type="text" id="phone" name="phone"></div>
-        <div class="form-group"><label>Mobile</label><input type="text" id="mobile" name="mobile"></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="phone" name="phone" readonly></div>
+        <div class="form-group"><label>Mobile</label><input type="text" id="mobile" name="mobile" readonly></div>
     </div>
 
     <div class="grid-row-2">
-        <div class="form-group"><label>Address 1</label><input type="text" id="addr1" name="addr1"></div>
-        <div class="form-group"><label>Address 2</label><input type="text" id="addr2" name="addr2"></div>
-        <div class="form-group"><label>Address 3</label><input type="text" id="addr3" name="addr3"></div>
-        <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+        <div class="form-group"><label>Address 1</label><input type="text" id="addr1" name="addr1" readonly></div>
+        <div class="form-group"><label>Address 2</label><input type="text" id="addr2" name="addr2" readonly></div>
+        <div class="form-group"><label>Address 3</label><input type="text" id="addr3" name="addr3" readonly></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" readonly></div>
     </div>
     </fieldset>
 
