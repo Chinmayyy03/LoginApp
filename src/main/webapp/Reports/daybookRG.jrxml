@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="daybookRG" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="eb397dc2-6066-4b5b-b355-dffd9ad91a99">
-	<property name="ireport.zoom" value="1.5421731577181266"/>
+	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="as_on_date" class="java.lang.String">
@@ -13,7 +13,7 @@
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["D:/apache-tomcat-8.5.99/apache-tomcat-8.5.99/webapps/ENTERPROJECT/Reports/"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="session_date" class="java.lang.String"/>
 	<parameter name="TALLY_MESSAGE" class="java.lang.String">
@@ -48,7 +48,8 @@ INDEXER,
     	      DAILYTXN.BRANCH_CODE = $P{branch_code} AND
     	       DAILYTXN.GLACCOUNT_CODE !=  DEFAULTBANKACCOUNTS.ACCOUNT_CODE_CASH_IN_HAND     ) DAILYTXN
     	     GROUP BY(INDEXER, GLACCOUNT_NAME,GLACCOUNT_CODE)
-             ORDER BY INDEXER, GLACCOUNT_CODE]]>
+             ORDER BY INDEXER, GLACCOUNT_CODE
+]]>
 	</queryString>
 	<field name="INDEXER" class="java.math.BigDecimal"/>
 	<field name="RECEIPT_CASH" class="java.math.BigDecimal"/>
@@ -112,7 +113,7 @@ INDEXER,
 					<subreportParameterExpression><![CDATA[$P{report_title}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA["\\LoginApp\\src\\main\\webapp\\Reports\\subReportHeader.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "subReportHeader.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</pageHeader>
@@ -396,7 +397,7 @@ INDEXER,
 			<subreport>
 				<reportElement x="2" y="228" width="800" height="56" uuid="9ba8a5e9-c9f1-4e2a-809e-ed8445c6f733"/>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\clerk_manager.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "clerk_manager.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport>
 				<reportElement x="-2" y="22" width="200" height="100" uuid="b26214a1-0f57-430b-9f1c-a8d4736af106"/>
@@ -413,7 +414,7 @@ INDEXER,
 					<subreportParameterExpression><![CDATA[$P{bank_code}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\cashBalance.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "cashBalance.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</summary>

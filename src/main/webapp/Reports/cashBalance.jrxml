@@ -135,7 +135,7 @@ FROM (
 				<text><![CDATA[Amount]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="408" y="6" width="101" height="20" uuid="82ee43be-9499-4bbd-9ba4-6f4564e4995d"/>
+				<reportElement x="418" y="6" width="101" height="20" uuid="82ee43be-9499-4bbd-9ba4-6f4564e4995d"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
