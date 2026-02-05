@@ -23,22 +23,22 @@
         
         // ✅ CRITICAL FIX: Get customer data first, then look up codes separately
         String sql = "SELECT " +
-                     "TRIM(c.SALUTATION_CODE) as SALUTATION_CODE, " +
-                     "TRIM(c.CUSTOMER_NAME) as CUSTOMER_NAME, " +
-                     "TRIM(c.ADDRESS1) as ADDRESS1, " +
-                     "TRIM(c.ADDRESS2) as ADDRESS2, " +
-                     "TRIM(c.ADDRESS3) as ADDRESS3, " +
-                     "TRIM(c.COUNTRY) as COUNTRY, " +
-                     "TRIM(c.STATE) as STATE, " +
-                     "TRIM(c.CITY) as CITY, " +
-                     "c.ZIP, " +
-                             "TRIM(c.MEMBER_NUMBER) as MEMBER_NUMBER, " +
-                             "c.BIRTH_DATE, " +
-                             "c.RESIDENCE_PHONE, " +
-                             "c.MOBILE_NO, " +
-                             "c.EMAIL"+
-                             "FROM CUSTOMERS c " +
-                             "WHERE c.CUSTOMER_ID = ? AND c.STATUS = 'A'";
+             "TRIM(c.SALUTATION_CODE) as SALUTATION_CODE, " +
+             "TRIM(c.CUSTOMER_NAME) as CUSTOMER_NAME, " +
+             "TRIM(c.ADDRESS1) as ADDRESS1, " +
+             "TRIM(c.ADDRESS2) as ADDRESS2, " +
+             "TRIM(c.ADDRESS3) as ADDRESS3, " +
+             "TRIM(c.COUNTRY) as COUNTRY, " +
+             "TRIM(c.STATE) as STATE, " +
+             "TRIM(c.CITY) as CITY, " +
+             "c.ZIP, " +
+             "TRIM(c.MEMBER_NUMBER) as MEMBER_NUMBER, " +
+             "c.BIRTH_DATE, " +
+             "c.RESIDENCE_PHONE, " +
+             "c.MOBILE_NO, " +
+             "c.EMAIL " +
+             "FROM CUSTOMERS c " +
+             "WHERE c.CUSTOMER_ID = ? AND c.STATUS = 'A'";
         
         ps = conn.prepareStatement(sql);
         ps.setString(1, customerId);
