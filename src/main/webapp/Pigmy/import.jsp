@@ -117,6 +117,7 @@ legend {
 
 input[type="text"],
 input[type="file"],
+input[type="number"],
 select {
     padding: 10px 12px;
     border: 2px solid #C8B7F6;
@@ -128,6 +129,7 @@ select {
 }
 
 input[type="text"]:focus,
+input[type="number"]:focus,
 select:focus {
     border-color: #8066E8;
 }
@@ -302,17 +304,12 @@ table td {
     text-align: left;
 }
 
-table td {
-    text-align: right;
-}
-
-table td:first-child,
-table td:nth-child(2) {
-    text-align: left;
-}
-
 table tbody tr:nth-child(even) {
     background: #f9f9f9;
+}
+
+table tbody tr:nth-child(odd) {
+    background: white;
 }
 
 .column-tag {
@@ -457,156 +454,76 @@ small {
             <div class="form-row">
                 <div class="form-group">
                     <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                        Upload File
+                        📤 Upload File
                     </button>
                     <input type="file" id="fileInput" name="importFile" accept=".csv,.dat,.txt" style="display: none;" onchange="handleFileSelect(this)">
                 </div>
             </div>
             
             <!-- Column Selection and Extraction Tools -->
-            <!-- Replace the existing Column Tools fieldset with this -->
-
-<fieldset id="columnTools" style="display: none; background: linear-gradient(135deg, #f0f4ff 0%, #e8f4f9 100%); border: 2px solid #93c5fd; margin-top: 20px;">
-    <legend style="color: #1e40af;">📊 Customize Columns</legend>
-    
-    <!-- Single Row Design -->
-    <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-        
-        <!-- Column Selection -->
-        <div style="flex: 1; min-width: 200px;">
-            <label class="label">Column</label>
-            <select name="selectedColumn" id="selectedColumn" style="width: 100%;">
-                <option value="">-- Select Column --</option>
-            </select>
-        </div>
-        
-        <!-- Character Options (Radio Buttons) -->
-        <div style="flex: 2; min-width: 300px;">
-            <label class="label">Display</label>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <label class="radio-label" style="padding: 8px 12px;">
-                    <input type="radio" name="displayMode" value="full" checked>
-                    <span>Full Column</span>
-                </label>
-                <label class="radio-label" style="padding: 8px 12px;">
-                    <input type="radio" name="displayMode" value="last">
-                    <span>Last</span>
-                </label>
-                <input type="number" id="lastChars" placeholder="4" min="1" max="50" 
-                       style="width: 70px; padding: 8px; display: none;" />
-                <label class="radio-label" style="padding: 8px 12px;">
-                    <input type="radio" name="displayMode" value="first">
-                    <span>First</span>
-                </label>
-                <input type="number" id="firstChars" placeholder="4" min="1" max="50" 
-                       style="width: 70px; padding: 8px; display: none;" />
-                <span style="color: #666; font-size: 12px; align-self: center;">chars</span>
-            </div>
-        </div>
-        
-        <!-- Add Button -->
-        <div>
-            <button type="button" class="btn btn-primary" onclick="addSelectedColumn()" 
-                    style="padding: 10px 24px; font-size: 14px;">
-                ➕ Add
-            </button>
-        </div>
-    </div>
-    
-    <!-- Selected Columns Tags -->
-    <div id="selectedColumnsDisplay" style="margin-top: 20px; display: none;">
-        <label class="label" style="margin-bottom: 10px;">Selected Columns:</label>
-        <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">
-                ✓ Apply Filter
-            </button>
-            <button type="button" class="btn" onclick="resetColumnFilter()" 
-                    style="background: #f59e0b; color: white;">
-                ↺ Show All Columns
-            </button>
-        </div>
-    </div>
-</fieldset>
-            
-            <!-- Row with all transaction details 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Transaction Type</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="transactionType" value="Credit" checked>
-                            <span>Credit</span>
-                        </label>
+            <fieldset id="columnTools" style="display: none; background: linear-gradient(135deg, #f0f4ff 0%, #e8f4f9 100%); border: 2px solid #93c5fd; margin-top: 20px;">
+                <legend style="color: #1e40af;">📊 Customize Columns</legend>
+                
+                <!-- Single Row Design -->
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    
+                    <!-- Column Selection -->
+                    <div style="flex: 1; min-width: 200px;">
+                        <label class="label">Column</label>
+                        <select name="selectedColumn" id="selectedColumn" style="width: 100%;">
+                            <option value="">-- Select Column --</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Character Options (Radio Buttons) -->
+                    <div style="flex: 2; min-width: 300px;">
+                        <label class="label">Display</label>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <label class="radio-label" style="padding: 8px 12px;">
+                                <input type="radio" name="displayMode" value="full" checked>
+                                <span>Full Column</span>
+                            </label>
+                            <label class="radio-label" style="padding: 8px 12px;">
+                                <input type="radio" name="displayMode" value="last">
+                                <span>Last</span>
+                            </label>
+                            <input type="number" id="lastChars" placeholder="4" min="1" max="50" 
+                                   style="width: 70px; padding: 8px; display: none; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF;" />
+                            <label class="radio-label" style="padding: 8px 12px;">
+                                <input type="radio" name="displayMode" value="first">
+                                <span>First</span>
+                            </label>
+                            <input type="number" id="firstChars" placeholder="4" min="1" max="50" 
+                                   style="width: 70px; padding: 8px; display: none; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF;" />
+                            <span style="color: #666; font-size: 12px;">chars</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Button -->
+                    <div>
+                        <button type="button" class="btn btn-primary" onclick="addSelectedColumn()" 
+                                style="padding: 10px 24px; font-size: 14px;">
+                            ➕ Add
+                        </button>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="label">Contra Account Head</label>
-                    <div class="input-box">
-                        <input type="text" name="contraAccountHead" id="contraAccountHead">
-                        <button type="button" class="icon-btn">…</button>
+                <!-- Selected Columns Tags -->
+                <div id="selectedColumnsDisplay" style="margin-top: 20px; display: none;">
+                    <label class="label" style="margin-bottom: 10px;">Selected Columns:</label>
+                    <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">
+                            ✓ Apply Filter
+                        </button>
+                        <button type="button" class="btn" onclick="resetColumnFilter()" 
+                                style="background: #f59e0b; color: white;">
+                            ↺ Show All Columns
+                        </button>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label class="label">Description</label>
-                    <input type="text" name="description" id="description" value="Invalid data" readonly>
-                </div>
-            </div>
-            
-            <!-- Row 2 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Total Amount</label>
-                    <input type="text" name="totalAmount" id="totalAmount" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Particular</label>
-                    <input type="text" name="particular" id="particular">
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Contra Head Particular</label>
-                    <input type="text" name="contraHeadParticular" id="contraHeadParticular">
-                </div>
-            </div>
-            
-            <!-- Row 3 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Advice No.</label>
-                    <input type="text" name="adviceNo" id="adviceNo" value="0" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Original/Responding</label>
-                    <input type="text" name="originalResponding" id="originalResponding" value="O" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Advice Date</label>
-                    <input type="text" name="adviceDate" id="adviceDate" readonly>
-                </div>
-            </div>
-            
-            <!-- Row 4 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Recon.Code</label>
-                    <div class="input-box">
-                        <input type="text" name="reconCode" id="reconCode" value="0" readonly>
-                        <button type="button" class="icon-btn">…</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="label">Description</label>
-                    <input type="text" name="reconDescription" id="reconDescription" readonly>
-                </div>
-            </div> -->
+            </fieldset>
             
         </fieldset>
         
@@ -620,7 +537,7 @@ small {
             <legend>FIRST LINE DATA (Metadata)</legend>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead style="background: #373279; color: white;">
+                    <thead>
                         <tr id="firstLineHeader">
                         </tr>
                     </thead>
@@ -818,15 +735,16 @@ function displayFilteredData(filteredData) {
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
     
-    // Create headers based on selected columns
+    // Create headers based on selected columns with column numbers
     tableHeaderRow.innerHTML = '';
     selectedColumns.forEach(col => {
         const th = document.createElement('th');
-        th.textContent = col.label;
+        th.textContent = 'Column ' + col.columnNumber;
         th.style.padding = '10px';
         th.style.border = '1px solid #ddd';
-        th.style.background = '#667eea';
+        th.style.background = '#373279';
         th.style.color = 'white';
+        th.style.textAlign = 'left';
         tableHeaderRow.appendChild(th);
     });
     
@@ -841,6 +759,7 @@ function displayFilteredData(filteredData) {
             td.textContent = cellValue;
             td.style.padding = '8px';
             td.style.border = '1px solid #ddd';
+            td.style.textAlign = 'left';
             tr.appendChild(td);
         });
         
@@ -856,13 +775,16 @@ function displayAllColumns() {
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
     
-    // Create blank headers for all columns
+    // Create headers with column numbers for all columns
     tableHeaderRow.innerHTML = '';
     for (let i = 0; i < totalColumns; i++) {
         const th = document.createElement('th');
-        th.textContent = '';
+        th.textContent = 'Column ' + (i + 1);
         th.style.padding = '10px';
         th.style.border = '1px solid #ddd';
+        th.style.background = '#373279';
+        th.style.color = 'white';
+        th.style.textAlign = 'left';
         tableHeaderRow.appendChild(th);
     }
     
@@ -877,6 +799,7 @@ function displayAllColumns() {
             td.textContent = row[i] || '';
             td.style.padding = '8px';
             td.style.border = '1px solid #ddd';
+            td.style.textAlign = 'left';
             tr.appendChild(td);
         }
         
@@ -932,14 +855,17 @@ function parseAndDisplayFile(content, fileName) {
             // Show first line section
             document.getElementById('firstLineSection').style.display = 'block';
             
-            // Create header for first line table (blank headers)
+            // Create header for first line table with column numbers
             const firstLineHeader = document.getElementById('firstLineHeader');
             firstLineHeader.innerHTML = '';
-            firstLineData.forEach(() => {
+            firstLineData.forEach((value, index) => {
                 const th = document.createElement('th');
-                th.textContent = ''; // Blank header
+                th.textContent = 'Column ' + (index + 1);
                 th.style.padding = '10px';
                 th.style.border = '1px solid #ddd';
+                th.style.background = '#373279';
+                th.style.color = 'white';
+                th.style.textAlign = 'left';
                 firstLineHeader.appendChild(th);
             });
             
@@ -953,6 +879,7 @@ function parseAndDisplayFile(content, fileName) {
                 td.textContent = value;
                 td.style.padding = '8px';
                 td.style.border = '1px solid #ddd';
+                td.style.textAlign = 'left';
                 tr.appendChild(td);
             });
             firstLineBody.appendChild(tr);
@@ -998,15 +925,18 @@ function parseAndDisplayFile(content, fileName) {
         // Show column tools
         document.getElementById('columnTools').style.display = 'block';
         
-        // Create table header (blank column names)
+        // Create table header with column numbers
         const tableHeaderRow = document.getElementById('tableHeader');
         tableHeaderRow.innerHTML = '';
         
         for (let i = 0; i < maxColumns; i++) {
             const th = document.createElement('th');
-            th.textContent = ''; // Blank column names
+            th.textContent = 'Column ' + (i + 1);
             th.style.padding = '10px';
             th.style.border = '1px solid #ddd';
+            th.style.background = '#373279';
+            th.style.color = 'white';
+            th.style.textAlign = 'left';
             tableHeaderRow.appendChild(th);
         }
         
@@ -1023,6 +953,7 @@ function parseAndDisplayFile(content, fileName) {
                 td.textContent = row[i] || '';
                 td.style.padding = '8px';
                 td.style.border = '1px solid #ddd';
+                td.style.textAlign = 'left';
                 tr.appendChild(td);
             }
             
@@ -1038,8 +969,6 @@ function parseAndDisplayFile(content, fileName) {
                 totalAmount += amount;
             }
         });
-        
-        document.getElementById('totalAmount').value = totalAmount.toFixed(2);
         
         let successMsg = 'File loaded successfully! ' + parsedData.length + ' records found with ' + maxColumns + ' columns.';
         if (isDatFile) {
@@ -1064,12 +993,18 @@ function showMessage(text, type) {
 }
 
 function displayData() {
-    const tbody = document.getElementById('importDetailsTable');
-    if (tbody.children.length === 0 || tbody.children[0].cells.length === 1) {
+    if (originalParsedData.length === 0) {
         showMessage('No data to display. Please upload a file first.', 'error');
-    } else {
-        showMessage('Displaying ' + tbody.children.length + ' records', 'info');
+        return;
     }
+    
+    // Scroll to the table
+    document.getElementById('importTable').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+    });
+    
+    showMessage('Displaying ' + originalParsedData.length + ' records with ' + totalColumns + ' columns', 'info');
 }
 
 function importData() {
@@ -1082,12 +1017,22 @@ function importData() {
 }
 
 function checkAmount() {
-    const totalAmount = document.getElementById('totalAmount').value;
-    if (totalAmount) {
-        showMessage('Total Amount: ₹' + totalAmount, 'info');
-    } else {
-        showMessage('No amount to check. Please upload a file first.', 'error');
+    if (originalParsedData.length === 0) {
+        showMessage('No data to check. Please upload a file first.', 'error');
+        return;
     }
+    
+    // Calculate total from last column
+    let totalAmount = 0;
+    originalParsedData.forEach(row => {
+        const lastValue = row[row.length - 1];
+        const amount = parseFloat(lastValue);
+        if (!isNaN(amount)) {
+            totalAmount += amount;
+        }
+    });
+    
+    showMessage('Total Amount: ₹' + totalAmount.toFixed(2) + ' (' + originalParsedData.length + ' records)', 'info');
 }
 
 function createTransaction() {
@@ -1131,10 +1076,10 @@ function cancelImport() {
         document.getElementById('messageBox').style.display = 'none';
         document.getElementById('importBtn').disabled = true;
         document.getElementById('createBtn').disabled = true;
-        document.getElementById('totalAmount').value = '';
     }
 }
 
+// Event listener for radio button changes
 document.addEventListener('DOMContentLoaded', function() {
     const radios = document.querySelectorAll('input[name="displayMode"]');
     const lastCharsInput = document.getElementById('lastChars');
