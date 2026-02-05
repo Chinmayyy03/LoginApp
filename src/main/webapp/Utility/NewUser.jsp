@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, db.DBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -118,6 +119,41 @@ input[readonly] { background-color: var(--readonly-bg); }
 
 <body>
 
+<%
+    // Get branch code from session
+    String sessionBranchCode = (String) session.getAttribute("branchCode");
+    String branchName = "";
+    
+    // Fetch branch name from database based on session branch code
+    if (sessionBranchCode != null && !sessionBranchCode.isEmpty()) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT NAME FROM HEADOFFICE.BRANCH WHERE BRANCH_CODE = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, sessionBranchCode);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                branchName = rs.getString("NAME");
+            }
+        } catch (Exception e) {
+            branchName = "Error loading branch";
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+        }
+    } else {
+        // If no session branch code, redirect to login
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+%>
+
 <div id="statusPopup" class="msg-overlay">
     <div class="msg-card">
         <span class="msg-icon">✔</span>
@@ -135,8 +171,8 @@ input[readonly] { background-color: var(--readonly-bg); }
     <div class="grid-row-1" style="grid-template-columns: repeat(4, 1fr);">
         <div class="form-group"><label>User Id</label><input type="text" name="userId" required></div>
         <div class="form-group"><label>User Name</label><input type="text" name="userName" required></div>
-        <div class="form-group"><label>Branch Code</label><input type="text" name="branchCode" value="0002" readonly></div>
-        <div class="form-group"><label>Branch Name</label><input type="text" value="SHAHUPURI" readonly></div>
+        <div class="form-group"><label>Branch Code</label><input type="text" name="branchCode" value="<%=sessionBranchCode%>" readonly></div>
+        <div class="form-group"><label>Branch Name</label><input type="text" value="<%=branchName%>" readonly></div>
     </div>
     </fieldset>
 
