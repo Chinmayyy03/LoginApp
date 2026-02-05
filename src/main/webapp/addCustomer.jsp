@@ -934,9 +934,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleFieldsByIndividual(isIndividual) {
         // Individual-specific fields
         let individualFields = [
-            'firstName',
-            'middleName',
-            'surname',
             'birthDate',
             'gender',
             'salutationCode',
@@ -952,8 +949,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ];
         // Non-individual fields
         let nonIndividualFields = [
-            'guardianName',
-            'relationGuardian',
             'gstinNo',
             'constitutionCode'
         ];
