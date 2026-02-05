@@ -9,12 +9,17 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/Utility/CreateUserServlet")
 public class CreateUserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        // ===== Get logged-in user ID from session (who is creating the new user) =====
+        HttpSession session = request.getSession(false);
+        String createdBy = (session != null) ? (String) session.getAttribute("userId") : "";
         
         // ===== Read form values =====
         String userId = request.getParameter("userId");
@@ -47,7 +52,7 @@ public class CreateUserServlet extends HttpServlet {
             pstmt.setString(9, phone);
             pstmt.setString(10, mobile);
             pstmt.setString(11, email);
-            pstmt.setString(12, userId);
+            pstmt.setString(12, createdBy);  // Store who created this user
             success = pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
