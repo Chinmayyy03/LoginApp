@@ -341,6 +341,44 @@ table tbody tr:nth-child(odd) {
     background: rgba(255, 255, 255, 0.5);
 }
 
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 15px;
+}
+
+.pagination-btn {
+    background: #2b0d73;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.pagination-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #1a0548;
+}
+
+.page-info {
+    font-size: 14px;
+    color: #2b0d73;
+    font-weight: bold;
+    padding: 0 15px;
+}
+
 small {
     display: block;
     margin-top: 4px;
@@ -369,6 +407,10 @@ small {
     
     .btn {
         width: 100%;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
     }
 }
 </style>
@@ -575,6 +617,13 @@ small {
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="paginationControls" style="display: none;">
+            <button id="prevBtn" class="pagination-btn" onclick="previousPage()">← Previous</button>
+            <span id="pageInfo" class="page-info">Page 1</span>
+            <button id="nextBtn" class="pagination-btn" onclick="nextPage()">Next →</button>
+        </div>
     </fieldset>
     
 </div>
@@ -592,6 +641,11 @@ window.onload = function () {
 let originalParsedData = [];
 let selectedColumns = [];
 let totalColumns = 0;
+
+// Pagination variables
+let currentPage = 1;
+const recordsPerPage = 15;
+let currentDisplayData = [];
 
 function loadTransactionType() {
     const dropdown = document.getElementById('transactionTypeDropdown');
@@ -725,13 +779,18 @@ function applyColumnFilter() {
         });
     });
     
+    // Update current display data and reset to page 1
+    currentDisplayData = filteredData;
+    currentPage = 1;
+    
     // Update table with filtered data
-    displayFilteredData(filteredData);
+    displayFilteredData(filteredData, 1);
     
     showMessage(`Displaying ${selectedColumns.length} selected column(s)`, 'success');
 }
 
-function displayFilteredData(filteredData) {
+function displayFilteredData(filteredData, page) {
+    currentPage = page;
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
     
@@ -748,11 +807,16 @@ function displayFilteredData(filteredData) {
         tableHeaderRow.appendChild(th);
     });
     
-    // Populate table body with filtered data
+    // Calculate pagination
+    const start = (page - 1) * recordsPerPage;
+    const end = Math.min(start + recordsPerPage, filteredData.length);
+    
+    // Populate table body with paginated filtered data
     tbody.innerHTML = '';
-    filteredData.forEach((row, index) => {
+    for (let i = start; i < end; i++) {
+        const row = filteredData[i];
         const tr = document.createElement('tr');
-        tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
+        tr.style.background = i % 2 === 0 ? '#f9f9f9' : 'white';
         
         row.forEach(cellValue => {
             const td = document.createElement('td');
@@ -764,13 +828,20 @@ function displayFilteredData(filteredData) {
         });
         
         tbody.appendChild(tr);
-    });
+    }
+    
+    // Update pagination controls
+    updatePaginationControls(filteredData.length, page);
 }
 
 function displayAllColumns() {
     if (originalParsedData.length === 0) {
         return;
     }
+    
+    // Reset current display data to original
+    currentDisplayData = originalParsedData;
+    currentPage = 1;
     
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
@@ -788,9 +859,14 @@ function displayAllColumns() {
         tableHeaderRow.appendChild(th);
     }
     
-    // Populate table body with all data
+    // Calculate pagination
+    const start = 0;
+    const end = Math.min(recordsPerPage, originalParsedData.length);
+    
+    // Populate table body with paginated data
     tbody.innerHTML = '';
-    originalParsedData.forEach((row, index) => {
+    for (let index = start; index < end; index++) {
+        const row = originalParsedData[index];
         const tr = document.createElement('tr');
         tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
         
@@ -804,7 +880,10 @@ function displayAllColumns() {
         }
         
         tbody.appendChild(tr);
-    });
+    }
+    
+    // Update pagination controls
+    updatePaginationControls(originalParsedData.length, 1);
     
     showMessage('Showing all columns (' + totalColumns + ' columns)', 'info');
 }
@@ -813,6 +892,93 @@ function resetColumnFilter() {
     selectedColumns = [];
     displaySelectedColumns();
     displayAllColumns();
+}
+
+function updatePaginationControls(totalRecords, page) {
+    const totalPages = Math.ceil(totalRecords / recordsPerPage);
+    const paginationContainer = document.getElementById('paginationControls');
+    
+    // Show pagination only if there's data and more than one page
+    if (totalRecords > 0) {
+        paginationContainer.style.display = 'flex';
+    } else {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('prevBtn').disabled = (page <= 1);
+    document.getElementById('nextBtn').disabled = (page >= totalPages);
+    
+    const pageInfo = 'Page ' + page + ' of ' + totalPages + ' (' + totalRecords + ' records)';
+    document.getElementById('pageInfo').textContent = pageInfo;
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        if (selectedColumns.length > 0) {
+            displayFilteredData(currentDisplayData, currentPage - 1);
+        } else {
+            displayPaginatedData(originalParsedData, currentPage - 1);
+        }
+    }
+}
+
+function nextPage() {
+    const dataToDisplay = selectedColumns.length > 0 ? currentDisplayData : originalParsedData;
+    const totalPages = Math.ceil(dataToDisplay.length / recordsPerPage);
+    
+    if (currentPage < totalPages) {
+        if (selectedColumns.length > 0) {
+            displayFilteredData(currentDisplayData, currentPage + 1);
+        } else {
+            displayPaginatedData(originalParsedData, currentPage + 1);
+        }
+    }
+}
+
+function displayPaginatedData(data, page) {
+    currentPage = page;
+    const tableHeaderRow = document.getElementById('tableHeader');
+    const tbody = document.getElementById('importDetailsTable');
+    
+    // Create headers with column numbers for all columns
+    tableHeaderRow.innerHTML = '';
+    for (let i = 0; i < totalColumns; i++) {
+        const th = document.createElement('th');
+        th.textContent = 'Column ' + (i + 1);
+        th.style.padding = '10px';
+        th.style.border = '1px solid #ddd';
+        th.style.background = '#373279';
+        th.style.color = 'white';
+        th.style.textAlign = 'left';
+        tableHeaderRow.appendChild(th);
+    }
+    
+    // Calculate pagination
+    const start = (page - 1) * recordsPerPage;
+    const end = Math.min(start + recordsPerPage, data.length);
+    
+    // Populate table body with paginated data
+    tbody.innerHTML = '';
+    for (let index = start; index < end; index++) {
+        const row = data[index];
+        const tr = document.createElement('tr');
+        tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
+        
+        for (let i = 0; i < totalColumns; i++) {
+            const td = document.createElement('td');
+            td.textContent = row[i] || '';
+            td.style.padding = '8px';
+            td.style.border = '1px solid #ddd';
+            td.style.textAlign = 'left';
+            tr.appendChild(td);
+        }
+        
+        tbody.appendChild(tr);
+    }
+    
+    // Update pagination controls
+    updatePaginationControls(data.length, page);
 }
 
 function handleFileSelect(input) {
@@ -907,6 +1073,8 @@ function parseAndDisplayFile(content, fileName) {
         
         // Store original data globally
         originalParsedData = parsedData;
+        currentDisplayData = parsedData;
+        currentPage = 1;
         
         // Determine number of columns
         const maxColumns = Math.max(...parsedData.map(row => row.length));
@@ -940,11 +1108,14 @@ function parseAndDisplayFile(content, fileName) {
             tableHeaderRow.appendChild(th);
         }
         
-        // Populate table body
+        // Populate table body with paginated data (first 15 rows)
         const tbody = document.getElementById('importDetailsTable');
         tbody.innerHTML = '';
         
-        parsedData.forEach((row, index) => {
+        const displayLimit = Math.min(recordsPerPage, parsedData.length);
+        
+        for (let index = 0; index < displayLimit; index++) {
+            const row = parsedData[index];
             const tr = document.createElement('tr');
             tr.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
             
@@ -958,7 +1129,10 @@ function parseAndDisplayFile(content, fileName) {
             }
             
             tbody.appendChild(tr);
-        });
+        }
+        
+        // Update pagination controls
+        updatePaginationControls(parsedData.length, 1);
         
         // Calculate total amount (assuming last column is amount)
         let totalAmount = 0;
@@ -1004,7 +1178,8 @@ function displayData() {
         block: 'start' 
     });
     
-    showMessage('Displaying ' + originalParsedData.length + ' records with ' + totalColumns + ' columns', 'info');
+    const displayedRecords = Math.min(recordsPerPage, currentDisplayData.length);
+    showMessage('Displaying page ' + currentPage + ' (' + displayedRecords + ' of ' + currentDisplayData.length + ' records)', 'info');
 }
 
 function importData() {
@@ -1053,6 +1228,8 @@ function cancelImport() {
         originalParsedData = [];
         selectedColumns = [];
         totalColumns = 0;
+        currentDisplayData = [];
+        currentPage = 1;
         
         // Hide column tools
         document.getElementById('columnTools').style.display = 'none';
@@ -1072,6 +1249,9 @@ function cancelImport() {
         document.getElementById('firstLineSection').style.display = 'none';
         document.getElementById('firstLineHeader').innerHTML = '';
         document.getElementById('firstLineBody').innerHTML = '';
+        
+        // Hide pagination
+        document.getElementById('paginationControls').style.display = 'none';
         
         document.getElementById('messageBox').style.display = 'none';
         document.getElementById('importBtn').disabled = true;
