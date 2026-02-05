@@ -161,7 +161,7 @@ input[readonly] { background-color: var(--readonly-bg); }
         <div class="form-group"><label>Address 1</label><input type="text" id="addr1" name="addr1" readonly></div>
         <div class="form-group"><label>Address 2</label><input type="text" id="addr2" name="addr2" readonly></div>
         <div class="form-group"><label>Address 3</label><input type="text" id="addr3" name="addr3" readonly></div>
-        <div class="form-group"><label>Email</label><input type="email" name="email" readonly></div>
+        <div class="form-group"><label>Email</label><input type="email" id="email" name="email" readonly></div>
     </div>
     </fieldset>
 

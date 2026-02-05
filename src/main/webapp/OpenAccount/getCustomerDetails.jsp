@@ -141,7 +141,8 @@
             System.out.println("   City: Name='" + (cityName != null ? cityName : "NULL") + "' -> Code='" + (cityCode != null ? cityCode : "NOT_FOUND") + "' -> Using='" + customer.getString("city") + "'");
             System.out.println("   State: Name='" + (stateName != null ? stateName : "NULL") + "' -> Code='" + (stateCode != null ? stateCode : "NOT_FOUND") + "' -> Using='" + customer.getString("state") + "'");
             System.out.println("   Country: Name='" + (countryName != null ? countryName : "NULL") + "' -> Code='" + (countryCode != null ? countryCode : "NOT_FOUND") + "' -> Using='" + customer.getString("country") + "'");
-            
+            System.out.println("   Email: '" + (email != null ? email : "NULL") + "'");  // ✅ Add this line
+
         } else {
             jsonResponse.put("success", false);
             jsonResponse.put("message", "Customer not found or not authorized");
