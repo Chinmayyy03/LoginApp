@@ -35,7 +35,8 @@
                              "TRIM(c.MEMBER_NUMBER) as MEMBER_NUMBER, " +
                              "c.BIRTH_DATE, " +
                              "c.RESIDENCE_PHONE, " +
-                             "c.MOBILE_NO " +
+                             "c.MOBILE_NO, " +
+                             "c.EMAIL"+
                              "FROM CUSTOMERS c " +
                              "WHERE c.CUSTOMER_ID = ? AND c.STATUS = 'A'";
         
@@ -61,6 +62,7 @@
             java.sql.Date birthDate = rs.getDate("BIRTH_DATE");
             long residencePhone = rs.getLong("RESIDENCE_PHONE");
             long mobileNo = rs.getLong("MOBILE_NO");
+            String email = rs.getString("EMAIL");
             
             customer.put("customerName", customerName != null ? customerName : "");
             customer.put("address1", address1 != null ? address1 : "");
@@ -72,6 +74,7 @@
             customer.put("birthDate", birthDate != null ? birthDate.toString() : "");
             customer.put("residencePhone", rs.wasNull() ? 0 : residencePhone);
             customer.put("mobileNo", rs.wasNull() ? 0 : mobileNo);
+            customer.put("email", email != null ? email : "");
             
             // ✅ SALUTATION: Use the code directly (even if NULL, we'll handle it in JS)
             customer.put("salutationCode", salutationCode != null ? salutationCode : "");

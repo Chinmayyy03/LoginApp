@@ -208,6 +208,7 @@ function fetchCustomerDetails(customerId) {
                 document.getElementById('addr1').value = c.address1 || '';
                 document.getElementById('addr2').value = c.address2 || '';
                 document.getElementById('addr3').value = c.address3 || '';
+                document.getElementById('email').value = c.email || '';
             }
         }).finally(() => fieldset.classList.remove('loading'));
 }
