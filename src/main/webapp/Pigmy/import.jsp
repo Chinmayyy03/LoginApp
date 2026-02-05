@@ -464,51 +464,71 @@ small {
             </div>
             
             <!-- Column Selection and Extraction Tools -->
-            <fieldset id="columnTools" style="display: none; background: #f0f4ff; border: 2px solid #93c5fd; margin-top: 20px;">
-                <legend style="color: #1e40af;">📊 Column Selection & Data Extraction</legend>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="label">Select Column Number</label>
-                        <select name="selectedColumn" id="selectedColumn">
-                            <option value="">-- Select Column --</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="label">Extract Characters (Optional)</label>
-                        <input type="number" name="substringLength" id="substringLength" placeholder="e.g., 4 for last 4 chars" min="1">
-                        <small style="color: #666; font-size: 12px;">Leave empty to show full column</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="label">Extraction Position</label>
-                        <select name="extractPosition" id="extractPosition">
-                            <option value="end" selected>From End (Last N chars)</option>
-                            <option value="start">From Start (First N chars)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button type="button" class="btn btn-primary" onclick="addSelectedColumn()">
-                            Add Column
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Selected Columns Display -->
-                <div id="selectedColumnsDisplay" style="margin-top: 15px; display: none;">
-                    <label class="label">Selected Columns for Display:</label>
-                    <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
-                    </div>
-                    <button type="button" class="btn btn-secondary" onclick="applyColumnFilter()" style="margin-top: 10px;">
-                        Apply Filter
-                    </button>
-                    <button type="button" class="btn" onclick="resetColumnFilter()" style="margin-top: 10px; background: #f59e0b; color: white;">
-                        Reset & Show All
-                    </button>
-                </div>
-            </fieldset>
+            <!-- Replace the existing Column Tools fieldset with this -->
+
+<fieldset id="columnTools" style="display: none; background: linear-gradient(135deg, #f0f4ff 0%, #e8f4f9 100%); border: 2px solid #93c5fd; margin-top: 20px;">
+    <legend style="color: #1e40af;">📊 Customize Columns</legend>
+    
+    <!-- Single Row Design -->
+    <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+        
+        <!-- Column Selection -->
+        <div style="flex: 1; min-width: 200px;">
+            <label class="label">Column</label>
+            <select name="selectedColumn" id="selectedColumn" style="width: 100%;">
+                <option value="">-- Select Column --</option>
+            </select>
+        </div>
+        
+        <!-- Character Options (Radio Buttons) -->
+        <div style="flex: 2; min-width: 300px;">
+            <label class="label">Display</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <label class="radio-label" style="padding: 8px 12px;">
+                    <input type="radio" name="displayMode" value="full" checked>
+                    <span>Full Column</span>
+                </label>
+                <label class="radio-label" style="padding: 8px 12px;">
+                    <input type="radio" name="displayMode" value="last">
+                    <span>Last</span>
+                </label>
+                <input type="number" id="lastChars" placeholder="4" min="1" max="50" 
+                       style="width: 70px; padding: 8px; display: none;" />
+                <label class="radio-label" style="padding: 8px 12px;">
+                    <input type="radio" name="displayMode" value="first">
+                    <span>First</span>
+                </label>
+                <input type="number" id="firstChars" placeholder="4" min="1" max="50" 
+                       style="width: 70px; padding: 8px; display: none;" />
+                <span style="color: #666; font-size: 12px; align-self: center;">chars</span>
+            </div>
+        </div>
+        
+        <!-- Add Button -->
+        <div>
+            <button type="button" class="btn btn-primary" onclick="addSelectedColumn()" 
+                    style="padding: 10px 24px; font-size: 14px;">
+                ➕ Add
+            </button>
+        </div>
+    </div>
+    
+    <!-- Selected Columns Tags -->
+    <div id="selectedColumnsDisplay" style="margin-top: 20px; display: none;">
+        <label class="label" style="margin-bottom: 10px;">Selected Columns:</label>
+        <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">
+                ✓ Apply Filter
+            </button>
+            <button type="button" class="btn" onclick="resetColumnFilter()" 
+                    style="background: #f59e0b; color: white;">
+                ↺ Show All Columns
+            </button>
+        </div>
+    </div>
+</fieldset>
             
             <!-- Row with all transaction details 
             <div class="form-row">
@@ -669,11 +689,10 @@ function loadTransactionType() {
 function addSelectedColumn() {
     const columnDropdown = document.getElementById('selectedColumn');
     const columnNumber = columnDropdown.value;
-    const substringLength = document.getElementById('substringLength').value;
-    const extractPosition = document.getElementById('extractPosition').value;
+    const displayMode = document.querySelector('input[name="displayMode"]:checked').value;
     
     if (!columnNumber) {
-        showMessage('Please select a column number', 'error');
+        showMessage('Please select a column', 'error');
         return;
     }
     
@@ -684,25 +703,48 @@ function addSelectedColumn() {
         return;
     }
     
+    let substringLength = null;
+    let extractPosition = null;
+    let label = 'Column ' + columnNumber;
+    
+    // Handle character extraction
+    if (displayMode === 'last') {
+        substringLength = parseInt(document.getElementById('lastChars').value);
+        if (!substringLength || substringLength < 1) {
+            showMessage('Please enter number of characters to extract', 'error');
+            return;
+        }
+        extractPosition = 'end';
+        label += ' (Last ' + substringLength + ')';
+    } else if (displayMode === 'first') {
+        substringLength = parseInt(document.getElementById('firstChars').value);
+        if (!substringLength || substringLength < 1) {
+            showMessage('Please enter number of characters to extract', 'error');
+            return;
+        }
+        extractPosition = 'start';
+        label += ' (First ' + substringLength + ')';
+    }
+    
     const columnConfig = {
         columnNumber: parseInt(columnNumber),
-        substringLength: substringLength ? parseInt(substringLength) : null,
+        substringLength: substringLength,
         extractPosition: extractPosition,
-        label: 'Column ' + columnNumber + 
-               (substringLength ? (' (Last ' + substringLength + ' chars)') : '')
+        label: label
     };
     
     selectedColumns.push(columnConfig);
-    
-    // Display selected column tag
     displaySelectedColumns();
     
-    // Reset inputs
+    // Reset form
     columnDropdown.value = '';
-    document.getElementById('substringLength').value = '';
-    document.getElementById('extractPosition').value = 'end';
+    document.querySelector('input[name="displayMode"][value="full"]').checked = true;
+    document.getElementById('lastChars').style.display = 'none';
+    document.getElementById('firstChars').style.display = 'none';
+    document.getElementById('lastChars').value = '';
+    document.getElementById('firstChars').value = '';
     
-    showMessage('Column ' + columnNumber + ' added successfully', 'success');
+    showMessage('Column added successfully! Click "Apply Filter" to see changes.', 'success');
 }
 
 function displaySelectedColumns() {
@@ -1092,6 +1134,29 @@ function cancelImport() {
         document.getElementById('totalAmount').value = '';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="displayMode"]');
+    const lastCharsInput = document.getElementById('lastChars');
+    const firstCharsInput = document.getElementById('firstChars');
+    
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Hide all character inputs
+            lastCharsInput.style.display = 'none';
+            firstCharsInput.style.display = 'none';
+            
+            // Show relevant input
+            if (this.value === 'last') {
+                lastCharsInput.style.display = 'inline-block';
+                lastCharsInput.focus();
+            } else if (this.value === 'first') {
+                firstCharsInput.style.display = 'inline-block';
+                firstCharsInput.focus();
+            }
+        });
+    });
+});
 </script>
 </body>
 </html>
