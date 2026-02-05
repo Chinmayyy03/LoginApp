@@ -974,16 +974,103 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-    // Attach event listeners to radio buttons
+ // Attach event listeners to radio buttons
     let individualRadios = document.querySelectorAll('input[name="isIndividual"]');
     individualRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
-            toggleFieldsByIndividual(this.value === 'yes');
+            const isIndividual = this.value === 'yes';
+            toggleFieldsByIndividual(isIndividual);
+            // ✅ NEW: Lock/Unlock specific fields
+            lockUnlockSpecialFields(isIndividual);
         });
     });
+    
+    // ✅ NEW FUNCTION: Lock/Unlock Gender, Salutation, Constitution fields
+    function lockUnlockSpecialFields(isIndividual) {
+        const genderField = document.getElementById('gender');
+        const salutationField = document.getElementById('salutationCode');
+        const constitutionField = document.getElementById('constitutionCode');
+        
+        if (isIndividual) {
+            // Individual (YES): Unlock Gender & Salutation, Lock Constitution
+            
+            // Unlock Gender
+            if (genderField) {
+                genderField.disabled = false;
+                genderField.style.pointerEvents = '';
+                genderField.style.backgroundColor = '';
+                genderField.style.cursor = '';
+            }
+            
+            // Unlock Salutation Code
+            if (salutationField) {
+                salutationField.disabled = false;
+                salutationField.style.pointerEvents = '';
+                salutationField.style.backgroundColor = '';
+                salutationField.style.cursor = '';
+            }
+            
+            // Lock Constitution Code
+            if (constitutionField) {
+                // Find and select 'OTHER' option
+                for (let i = 0; i < constitutionField.options.length; i++) {
+                    const optionValue = constitutionField.options[i].value.toUpperCase();
+                    const optionText = constitutionField.options[i].text.toUpperCase();
+                    if (optionValue.includes('OTHER') || optionText.includes('OTHER')) {
+                        constitutionField.selectedIndex = i;
+                        break;
+                    }
+                }
+                constitutionField.disabled = false; // Keep enabled for form submission
+                constitutionField.style.pointerEvents = 'none';
+                constitutionField.style.backgroundColor = '#f5f5f5';
+                constitutionField.style.cursor = 'not-allowed';
+            }
+            
+        } else {
+            // Non-Individual (NO): Lock Gender & Salutation, Unlock Constitution
+            
+            // Lock Gender
+            if (genderField) {
+                genderField.value = 'Other';
+                genderField.disabled = false; // Keep enabled for form submission
+                genderField.style.pointerEvents = 'none';
+                genderField.style.backgroundColor = '#f5f5f5';
+                genderField.style.cursor = 'not-allowed';
+            }
+            
+            // Lock Salutation Code
+            if (salutationField) {
+                // Find and select 'OTHER' option
+                for (let i = 0; i < salutationField.options.length; i++) {
+                    const optionValue = salutationField.options[i].value.toUpperCase();
+                    const optionText = salutationField.options[i].text.toUpperCase();
+                    if (optionValue.includes('OTHER') || optionText.includes('OTHER')) {
+                        salutationField.selectedIndex = i;
+                        break;
+                    }
+                }
+                salutationField.disabled = false; // Keep enabled for form submission
+                salutationField.style.pointerEvents = 'none';
+                salutationField.style.backgroundColor = '#f5f5f5';
+                salutationField.style.cursor = 'not-allowed';
+            }
+            
+            // Unlock Constitution Code
+            if (constitutionField) {
+                constitutionField.disabled = false;
+                constitutionField.style.pointerEvents = '';
+                constitutionField.style.backgroundColor = '';
+                constitutionField.style.cursor = '';
+            }
+        }
+    }
+    
     // Initialize on load based on selected value
     let checked = Array.from(individualRadios).find(r => r.checked);
-    toggleFieldsByIndividual(checked ? checked.value === 'yes' : true);
+    const initialIsIndividual = checked ? checked.value === 'yes' : true;
+    toggleFieldsByIndividual(initialIsIndividual);
+    lockUnlockSpecialFields(initialIsIndividual); // ✅ NEW: Call on page load
 });
 
 

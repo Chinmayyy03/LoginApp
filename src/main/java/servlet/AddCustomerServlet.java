@@ -17,11 +17,6 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/AddCustomerServlet")
 public class AddCustomerServlet extends HttpServlet {
 
-    // Helper method to convert checkbox to "on"/"off"
-    private String getCheckValue(HttpServletRequest request, String param) {
-        return request.getParameter(param) != null ? "on" : "off";
-    }
-
     // Helper method to parse date safely
     private java.sql.Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
@@ -33,6 +28,16 @@ public class AddCustomerServlet extends HttpServlet {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // Helper method to safely trim and get parameter
+    private String getTrimmedParameter(HttpServletRequest request, String param) {
+        String value = request.getParameter(param);
+        if (value == null) {
+            return null;
+        }
+        value = value.trim();
+        return value.isEmpty() ? null : value;
     }
 
     // Helper method to parse integer safely
@@ -65,7 +70,7 @@ public class AddCustomerServlet extends HttpServlet {
         String branchPrefix = String.format("%04d", Integer.parseInt(branchCode));
         
         // Get the TOTAL count of ALL customers across ALL branches (globally unique)
-        String countSQL = "SELECT COUNT(*) FROM CUSTOMERS";
+        String countSQL = "SELECT COUNT(*) FROM CUSTOMER.CUSTOMER";
         PreparedStatement pstmt = conn.prepareStatement(countSQL);
         ResultSet rs = pstmt.executeQuery();
         
@@ -81,6 +86,123 @@ public class AddCustomerServlet extends HttpServlet {
         return customerId;
     }
 
+    // Get RELATION_ID from relation description
+    private Integer getRelationId(Connection conn, String relationDesc) throws Exception {
+        if (relationDesc == null || relationDesc.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT RELATION_ID FROM GLOBALCONFIG.RELATION WHERE DESCRIPTION = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, relationDesc);
+        ResultSet rs = pstmt.executeQuery();
+        Integer relationId = null;
+        if (rs.next()) {
+            relationId = rs.getInt("RELATION_ID");
+        }
+        rs.close();
+        pstmt.close();
+        return relationId;
+    }
+
+    // Get OCCUPATION_ID from occupation description
+    private Integer getOccupationId(Connection conn, String occupationDesc) throws Exception {
+        if (occupationDesc == null || occupationDesc.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT OCCUPATION_ID FROM GLOBALCONFIG.OCCUPATION WHERE DESCRIPTION = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, occupationDesc);
+        ResultSet rs = pstmt.executeQuery();
+        Integer occupationId = null;
+        if (rs.next()) {
+            occupationId = rs.getInt("OCCUPATION_ID");
+        }
+        rs.close();
+        pstmt.close();
+        return occupationId;
+    }
+
+    // Get RESIDENCETYPE code from description
+    private Integer getResidenceTypeId(Connection conn, String residenceTypeDesc) throws Exception {
+        if (residenceTypeDesc == null || residenceTypeDesc.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT RESIDENCETYPE_ID FROM GLOBALCONFIG.RESIDENCETYPE WHERE DESCRIPTION = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, residenceTypeDesc);
+        ResultSet rs = pstmt.executeQuery();
+        Integer residenceTypeId = null;
+        if (rs.next()) {
+            residenceTypeId = rs.getInt("RESIDENCETYPE_ID");
+        }
+        rs.close();
+        pstmt.close();
+        return residenceTypeId;
+    }
+
+    // Convert residence status to numeric code
+    private Integer getResidenceStatusCode(String residenceStatus) {
+        if (residenceStatus == null || residenceStatus.trim().isEmpty()) {
+            return null;
+        }
+        switch (residenceStatus.toUpperCase()) {
+            case "BANGLOW": return 1;
+            case "ROW HOUSE": return 2;
+            case "FLAT": return 3;
+            case "OTHER": return 4;
+            case "NOT APPLICABLE": return 0;
+            default: return null;
+        }
+    }
+
+    // Convert vehicle owned to numeric code
+    private Integer getVehicleOwnedCode(String vehicleOwned) {
+        if (vehicleOwned == null || vehicleOwned.trim().isEmpty()) {
+            return 0;
+        }
+        switch (vehicleOwned.toUpperCase()) {
+            case "CAR": return 1;
+            case "BIKE": return 2;
+            case "BOTH": return 3;
+            case "NOT APPLICABLE": return 0;
+            default: return 0;
+        }
+    }
+
+    // Convert gender to single character
+    private String getGenderCode(String gender) {
+        if (gender == null || gender.trim().isEmpty()) {
+            return null;
+        }
+        switch (gender.toLowerCase()) {
+            case "male": return "M";
+            case "female": return "F";
+            case "other": return "O";
+            default: return null;
+        }
+    }
+
+    // Convert marital status to single character
+    private String getMaritalStatusCode(String maritalStatus) {
+        if (maritalStatus == null || maritalStatus.trim().isEmpty()) {
+            return "O";
+        }
+        switch (maritalStatus.toLowerCase()) {
+            case "married": return "M";
+            case "single": return "S";
+            case "other": return "O";
+            default: return "O";
+        }
+    }
+
+    // Convert yes/no to Y/N
+    private String convertYesNo(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "N";
+        }
+        return value.equalsIgnoreCase("yes") ? "Y" : "N";
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -88,7 +210,7 @@ public class AddCustomerServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
-        System.out.println("=== AddCustomerServlet called ===");
+        System.out.println("=== SaveCustomerServlet called ===");
 
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("branchCode") == null) {
@@ -98,11 +220,11 @@ public class AddCustomerServlet extends HttpServlet {
         }
 
         String branchCode = (String) session.getAttribute("branchCode");
+        String userId = (String) session.getAttribute("userId");
         System.out.println("Branch Code: " + branchCode);
         
         Connection conn = null;
         PreparedStatement pstmt = null;
-        ResultSet rs = null;
         String customerId = null;
 
         try {
@@ -110,233 +232,216 @@ public class AddCustomerServlet extends HttpServlet {
             conn = DBConnection.getConnection();
             System.out.println("Database connected successfully");
 
-            // Generate Customer ID based on branch code (GLOBALLY UNIQUE)
+            // Generate Customer ID
             customerId = generateCustomerId(conn, branchCode);
             System.out.println("Generated Customer ID: " + customerId);
 
-            // Simplified INSERT with exact parameter count
-            String insertSQL = "INSERT INTO CUSTOMERS (" +
-                "CUSTOMER_ID, BRANCH_CODE, IS_INDIVIDUAL, GENDER, SALUTATION_CODE, " +
-                "FIRST_NAME, SURNAME, MIDDLE_NAME, CUSTOMER_NAME, BIRTH_DATE, " +
-                "REGISTRATION_DATE, IS_MINOR, GUARDIAN_NAME, RELATION_GUARDIAN, RELIGION_CODE, " +
-                "CASTE_CODE, CATEGORY_CODE, SUB_CATEGORY_CODE, CONSTITUTION_CODE, OCCUPATION_CODE, " +
-                "VEHICLE_OWNED, MEMBER_TYPE, EMAIL, GSTIN_NO, MEMBER_NUMBER, " +
-                "CKY_NO, RISK_CATEGORY, MOTHER_NAME, FATHER_NAME, MARITAL_STATUS, " +
-                "NO_OF_CHILDREN, NO_OF_DEPENDENTS, NATIONALITY, RESIDENCE_TYPE, RESIDENCE_STATUS, " +
-                "ADDRESS1, ADDRESS2, ADDRESS3, COUNTRY, STATE, " +
-                "CITY, ZIP, MOBILE_NO, RESIDENCE_PHONE, OFFICE_PHONE, " +
-                "PASSPORT_CHECK, PASSPORT_EXPIRY, PASSPORT_NUMBER, PAN_CHECK, PAN_EXPIRY, " +
-                "PAN, VOTERID_CHECK, VOTERID_EXPIRY, VOTERID, DL_CHECK, " +
-                "DL_EXPIRY, DL, AADHAR_CHECK, AADHAR_EXPIRY, AADHAR, " +
-                "NREGA_CHECK, NREGA_EXPIRY, NREGA, TELEPHONE_CHECK, TELEPHONE_EXPIRY, " +
-                "TELEPHONE, BANK_CHECK, BANK_EXPIRY, BANK_STATEMENT, GOVT_CHECK, " +
-                "GOVT_EXPIRY, GOVT_DOC, ELECTRICITY_CHECK, ELECTRICITY_EXPIRY, ELECTRICITY, " +
-                "RATION_CHECK, RATION_EXPIRY, RATION, RENT_CHECK, RENT_EXPIRY, " +
-                "CERT_CHECK, CERT_EXPIRY, TAX_CHECK, TAX_EXPIRY, CST_CHECK, " +
-                "CST_EXPIRY, REG_CHECK, REG_EXPIRY, INC_CHECK, INC_EXPIRY, " +
-                "BOARD_CHECK, BOARD_EXPIRY, POA_CHECK, POA_EXPIRY, STATUS" +
+            // Get lookup IDs
+            Integer relationId = getRelationId(conn, getTrimmedParameter(request, "relationGuardian"));
+            Integer occupationId = getOccupationId(conn, getTrimmedParameter(request, "occupationCode"));
+            Integer residenceTypeId = getResidenceTypeId(conn, getTrimmedParameter(request, "residenceType"));
+            Integer residenceStatusCode = getResidenceStatusCode(getTrimmedParameter(request, "residenceStatus"));
+            Integer vehicleOwnedCode = getVehicleOwnedCode(getTrimmedParameter(request, "vehicleOwned"));
+
+            // Build INSERT SQL for CUSTOMER.CUSTOMER table
+            String insertSQL = "INSERT INTO CUSTOMER.CUSTOMER (" +
+                "CUSTOMER_ID, SALUTATION_CODE, NAMEFIRST, NAMEMIDDLE, NAMELAST, " +
+                "DATEOFBIRTH, GENDER, OCCUPATION_ID, IS_MINOR, RELIGION_CODE, " +
+                "CASTE_CODE, CATEGORY_CODE, CONSTITUTION_CODE, VEHICLEOWNED, PASSPORTNUMBER, " +
+                "PANNO, FORM60, FORM61, NAMEOFGUARDIAN, RELATION_ID, " +
+                "NATIONALITY, RESIDENCETYPE, RESIDENCESTATUS, ADDRESS1, ADDRESS2, " +
+                "ADDRESS3, CITY_CODE, COUNTRY_CODE, STATE_CODE, ZIP, " +
+                "PHONERESIDENCE, PHONEOFFICE, PHONEMOBILE, MOTHERNAME, FATHERNAME, " +
+                "MARITALSTATUS, NUMBEROFDEPENDENT, NUMBEROFCHILDREN, CUSTOMERGROUP_CODE, IS_PERMANENT_ADDRESS_SAME, " +
+                "PERMANENTADDRESS1, PERMANENTADDRESS2, PERMANENTADDRESS3, PERMANENTCITY_CODE, PERMANENTCOUNTRY_CODE, " +
+                "PERMANENTZIP, IS_OFFICE_RESIDENCE, IS_OFFICE_RESIDENCE_SAME, OFFICERESIDENCEADDRESS1, OFFICERESIDENCEADDRESS2, " +
+                "OFFICERESIDENCEADDRESS3, OFFICERESIDENCECITY_CODE, OFFICERESIDENCECOUNTRY_CODE, OFFICERESIDENCEZIP, INTRODUCERACCOUNT_CODE, " +
+                "NAME, REGISTRATION_DATE, MEMBER_NUMBER, MEMBER_TYPE, TDS_AMOUNT, " +
+                "CREATED_DATE, SHORT_NAME, AADHAR_CARD_NO, EMAIL_ID, AC_AREACODE, " +
+                "AC_MAIN_AREACODE, TDS_APPLICABLE, FORM15G, FORM15H, CKYC_NO, " +
+                "GSTIN, HOME_BRANCH, STATUS" +
                 ") VALUES (" +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
                 "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
-                "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, " +
-                "?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?" +
+                "?,?,?,?,?, ?,?,?,?,?, ?,?,?" +
                 ")";
 
             pstmt = conn.prepareStatement(insertSQL);
             System.out.println("PreparedStatement created");
 
-            // Set all parameters - EXACT count: 95 parameters
             int idx = 1;
             
-            // 1-5
+            // 1-5: Basic Info
             pstmt.setString(idx++, customerId);
-            pstmt.setString(idx++, branchCode);
-            pstmt.setString(idx++, request.getParameter("isIndividual"));
-            pstmt.setString(idx++, request.getParameter("gender"));
-            pstmt.setString(idx++, request.getParameter("salutationCode"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "salutationCode"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "firstName"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "middleName"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "surname"));
             
-            // 6-10
-            pstmt.setString(idx++, request.getParameter("firstName"));
-            pstmt.setString(idx++, request.getParameter("surname"));
-            pstmt.setString(idx++, request.getParameter("middleName"));
-            pstmt.setString(idx++, request.getParameter("customerName"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("birthDate")));
+            // 6-10: Personal Details
+            pstmt.setDate(idx++, parseDate(getTrimmedParameter(request, "birthDate")));
+            pstmt.setString(idx++, getGenderCode(getTrimmedParameter(request, "gender")));
+            if (occupationId != null) {
+                pstmt.setInt(idx++, occupationId);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setString(idx++, convertYesNo(getTrimmedParameter(request, "isMinor")));
+            pstmt.setString(idx++, getTrimmedParameter(request, "religionyCode"));
             
-            // 11-15
-            pstmt.setDate(idx++, parseDate(request.getParameter("registrationDate")));
-            pstmt.setString(idx++, request.getParameter("isMinor"));
-            pstmt.setString(idx++, request.getParameter("guardianName"));
-            pstmt.setString(idx++, request.getParameter("relationGuardian"));
-            pstmt.setString(idx++, request.getParameter("religionyCode"));
+            // 11-15: Caste, Category, Constitution
+            pstmt.setString(idx++, getTrimmedParameter(request, "casteCode"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "categoryCode"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "constitutionCode"));
+            if (vehicleOwnedCode != null) {
+                pstmt.setInt(idx++, vehicleOwnedCode);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setString(idx++, getTrimmedParameter(request, "passportNumber"));
             
-            // 16-20
-            pstmt.setString(idx++, request.getParameter("casteCode"));
-            pstmt.setString(idx++, request.getParameter("categoryCode"));
-            pstmt.setString(idx++, request.getParameter("subCategoryCode"));
-            pstmt.setString(idx++, request.getParameter("constitutionCode"));
-            pstmt.setString(idx++, request.getParameter("occupationCode"));
-            
-            // 21-25
-            pstmt.setString(idx++, request.getParameter("vehicleOwned"));
-            pstmt.setString(idx++, request.getParameter("memberType"));
-            pstmt.setString(idx++, request.getParameter("email"));
-            pstmt.setString(idx++, request.getParameter("gstinNo"));
-            pstmt.setString(idx++, request.getParameter("memberNumber"));
-            
-            // 26-30
-            pstmt.setString(idx++, request.getParameter("ckyNo"));
-            pstmt.setString(idx++, request.getParameter("riskCategory"));
-            pstmt.setString(idx++, request.getParameter("motherName"));
-            pstmt.setString(idx++, request.getParameter("fatherName"));
-            pstmt.setString(idx++, request.getParameter("maritalStatus"));
-            
-            // 31-32
-            Integer children = parseInt(request.getParameter("children"));
-            if (children != null) {
-                pstmt.setInt(idx++, children);
+            // 16-20: ID Proofs and Guardian
+            pstmt.setString(idx++, getTrimmedParameter(request, "pan"));
+            pstmt.setString(idx++, "N"); // FORM60 - default N
+            pstmt.setString(idx++, "N"); // FORM61 - default N
+            pstmt.setString(idx++, getTrimmedParameter(request, "guardianName"));
+            if (relationId != null) {
+                pstmt.setInt(idx++, relationId);
             } else {
                 pstmt.setNull(idx++, java.sql.Types.INTEGER);
             }
             
-            Integer dependents = parseInt(request.getParameter("dependents"));
-            if (dependents != null) {
-                pstmt.setInt(idx++, dependents);
+            // 21-25: Address Details
+            pstmt.setString(idx++, getTrimmedParameter(request, "nationality"));
+            if (residenceTypeId != null) {
+                pstmt.setInt(idx++, residenceTypeId);
             } else {
                 pstmt.setNull(idx++, java.sql.Types.INTEGER);
             }
+            if (residenceStatusCode != null) {
+                pstmt.setInt(idx++, residenceStatusCode);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setString(idx++, getTrimmedParameter(request, "address1"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "address2"));
             
-            // 33-37
-            pstmt.setString(idx++, request.getParameter("nationality"));
-            pstmt.setString(idx++, request.getParameter("residenceType"));
-            pstmt.setString(idx++, request.getParameter("residenceStatus"));
-            pstmt.setString(idx++, request.getParameter("address1"));
-            pstmt.setString(idx++, request.getParameter("address2"));
-            
-            // 38-42
-            pstmt.setString(idx++, request.getParameter("address3"));
-            pstmt.setString(idx++, request.getParameter("country"));
-            pstmt.setString(idx++, request.getParameter("state"));
-            pstmt.setString(idx++, request.getParameter("city"));
-            
-            Integer zip = parseInt(request.getParameter("zip"));
+            // 26-30: Address continuation
+            pstmt.setString(idx++, getTrimmedParameter(request, "address3"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "city"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "country"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "state"));
+            Integer zip = parseInt(getTrimmedParameter(request, "zip"));
             if (zip != null) {
                 pstmt.setInt(idx++, zip);
             } else {
                 pstmt.setNull(idx++, java.sql.Types.INTEGER);
             }
             
-            // 43-45
-            Long mobileNo = parseLong(request.getParameter("mobileNo"));
-            if (mobileNo != null) {
-                pstmt.setLong(idx++, mobileNo);
-            } else {
-                pstmt.setNull(idx++, java.sql.Types.BIGINT);
-            }
-            
-            Long residencePhone = parseLong(request.getParameter("residencePhone"));
+            // 31-35: Contact Details
+            Long residencePhone = parseLong(getTrimmedParameter(request, "residencePhone"));
             if (residencePhone != null) {
                 pstmt.setLong(idx++, residencePhone);
             } else {
                 pstmt.setNull(idx++, java.sql.Types.BIGINT);
             }
             
-            Long officePhone = parseLong(request.getParameter("officePhone"));
+            Long officePhone = parseLong(getTrimmedParameter(request, "officePhone"));
             if (officePhone != null) {
                 pstmt.setLong(idx++, officePhone);
             } else {
                 pstmt.setNull(idx++, java.sql.Types.BIGINT);
             }
             
-            // 46-48: Passport
-            pstmt.setString(idx++, getCheckValue(request, "passport_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("passport_expiry")));
-            pstmt.setString(idx++, request.getParameter("passportNumber"));
+            Long mobileNo = parseLong(getTrimmedParameter(request, "mobileNo"));
+            if (mobileNo != null) {
+                pstmt.setLong(idx++, mobileNo);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.BIGINT);
+            }
             
-            // 49-51: PAN
-            pstmt.setString(idx++, getCheckValue(request, "pan_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("pan_expiry")));
-            pstmt.setString(idx++, request.getParameter("pan"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "motherName"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "fatherName"));
             
-            // 52-54: Voter ID
-            pstmt.setString(idx++, getCheckValue(request, "voterid_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("voterid_expiry")));
-            pstmt.setString(idx++, request.getParameter("voterid"));
+            // 36-40: Family Details
+            pstmt.setString(idx++, getMaritalStatusCode(getTrimmedParameter(request, "maritalStatus")));
             
-            // 55-57: DL
-            pstmt.setString(idx++, getCheckValue(request, "dl_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("dl_expiry")));
-            pstmt.setString(idx++, request.getParameter("dl"));
+            Integer dependents = parseInt(getTrimmedParameter(request, "dependents"));
+            pstmt.setInt(idx++, dependents != null ? dependents : 0);
             
-            // 58-60: Aadhar
-            pstmt.setString(idx++, getCheckValue(request, "aadhar_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("aadhar_expiry")));
-            pstmt.setString(idx++, request.getParameter("aadhar"));
+            Integer children = parseInt(getTrimmedParameter(request, "children"));
+            pstmt.setInt(idx++, children != null ? children : 0);
             
-            // 61-63: NREGA
-            pstmt.setString(idx++, getCheckValue(request, "nrega_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("nrega_expiry")));
-            pstmt.setString(idx++, request.getParameter("nrega"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "subCategoryCode")); // CUSTOMERGROUP_CODE
+            pstmt.setString(idx++, "Y"); // IS_PERMANENT_ADDRESS_SAME - default Y
             
-            // 64-66: Telephone
-            pstmt.setString(idx++, getCheckValue(request, "telephone_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("telephone_expiry")));
-            pstmt.setString(idx++, request.getParameter("telephone"));
+            // 41-45: Permanent Address (same as current address by default)
+            pstmt.setString(idx++, getTrimmedParameter(request, "address1"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "address2"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "address3"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "city"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "country"));
             
-            // 67-69: Bank
-            pstmt.setString(idx++, getCheckValue(request, "bank_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("bank_expiry")));
-            pstmt.setString(idx++, request.getParameter("bank_statement"));
+            // 46-50: Permanent Address continuation
+            if (zip != null) {
+                pstmt.setInt(idx++, zip);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setString(idx++, "R"); // IS_OFFICE_RESIDENCE - default R (Residence)
+            pstmt.setString(idx++, "Y"); // IS_OFFICE_RESIDENCE_SAME - default Y
+            pstmt.setString(idx++, getTrimmedParameter(request, "address1")); // Office address same as residence
+            pstmt.setString(idx++, getTrimmedParameter(request, "address2"));
             
-            // 70-72: Govt
-            pstmt.setString(idx++, getCheckValue(request, "govt_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("govt_expiry")));
-            pstmt.setString(idx++, request.getParameter("govt_doc"));
+            // 51-55: Office Address continuation
+            pstmt.setString(idx++, getTrimmedParameter(request, "address3"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "city"));
+            pstmt.setString(idx++, getTrimmedParameter(request, "country"));
+            if (zip != null) {
+                pstmt.setInt(idx++, zip);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setNull(idx++, java.sql.Types.CHAR); // INTRODUCERACCOUNT_CODE
             
-            // 73-75: Electricity
-            pstmt.setString(idx++, getCheckValue(request, "electricity_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("electricity_expiry")));
-            pstmt.setString(idx++, request.getParameter("electricity"));
+            // 56-60: Member Details
+            pstmt.setString(idx++, getTrimmedParameter(request, "customerName")); // NAME
+            pstmt.setDate(idx++, parseDate(getTrimmedParameter(request, "registrationDate")));
+            Integer memberNumber = parseInt(getTrimmedParameter(request, "memberNumber"));
+            if (memberNumber != null) {
+                pstmt.setInt(idx++, memberNumber);
+            } else {
+                pstmt.setNull(idx++, java.sql.Types.INTEGER);
+            }
+            pstmt.setString(idx++, getTrimmedParameter(request, "memberType"));
+            pstmt.setDouble(idx++, 0); // TDS_AMOUNT - default 0
             
-            // 76-78: Ration
-            pstmt.setString(idx++, getCheckValue(request, "ration_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("ration_expiry")));
-            pstmt.setString(idx++, request.getParameter("ration"));
+            // 61-65: Audit and Additional Fields
+            pstmt.setDate(idx++, new java.sql.Date(System.currentTimeMillis())); // CREATED_DATE
+            pstmt.setString(idx++, getTrimmedParameter(request, "firstName")); // SHORT_NAME
             
-            // 79-80: Rent
-            pstmt.setString(idx++, getCheckValue(request, "rent_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("rent_expiry")));
+            Long aadharNo = parseLong(getTrimmedParameter(request, "aadhar"));
+            if (aadharNo != null) {
+                pstmt.setLong(idx++, aadharNo);
+            } else {
+                pstmt.setLong(idx++, 0);
+            }
             
-            // 81-82: Cert
-            pstmt.setString(idx++, getCheckValue(request, "cert_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("cert_expiry")));
+            pstmt.setString(idx++, getTrimmedParameter(request, "email"));
+            pstmt.setNull(idx++, java.sql.Types.VARCHAR); // AC_AREACODE
             
-            // 83-84: Tax
-            pstmt.setString(idx++, getCheckValue(request, "tax_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("tax_expiry")));
+            // 66-70: Additional Configuration
+            pstmt.setNull(idx++, java.sql.Types.INTEGER); // AC_MAIN_AREACODE
+            pstmt.setString(idx++, "N"); // TDS_APPLICABLE - default N
+            pstmt.setString(idx++, "N"); // FORM15G - default N
+            pstmt.setString(idx++, "N"); // FORM15H - default N
+            pstmt.setString(idx++, getTrimmedParameter(request, "ckyNo"));
             
-            // 85-86: CST
-            pstmt.setString(idx++, getCheckValue(request, "cst_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("cst_expiry")));
-            
-            // 87-88: Reg
-            pstmt.setString(idx++, getCheckValue(request, "reg_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("reg_expiry")));
-            
-            // 89-90: Inc
-            pstmt.setString(idx++, getCheckValue(request, "inc_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("inc_expiry")));
-            
-            // 91-92: Board
-            pstmt.setString(idx++, getCheckValue(request, "board_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("board_expiry")));
-            
-            // 93-94: POA
-            pstmt.setString(idx++, getCheckValue(request, "poa_check"));
-            pstmt.setDate(idx++, parseDate(request.getParameter("poa_expiry")));
-            
-            // 95: STATUS
-            pstmt.setString(idx++, "P");  // DEFAULT STATUS 'P'
+            // 71-73: Final Fields
+            pstmt.setString(idx++, getTrimmedParameter(request, "gstinNo"));
+            pstmt.setString(idx++, branchCode); // HOME_BRANCH
+            pstmt.setString(idx++, "E"); // STATUS - Entry/Pending
 
             System.out.println("All parameters set. Total parameters: " + (idx - 1));
             
@@ -344,14 +449,15 @@ public class AddCustomerServlet extends HttpServlet {
             System.out.println("Rows inserted: " + rows);
 
             if (rows > 0) {
-                System.out.println("Customer added successfully!");
-             // Upload photo and signature
+                System.out.println("Customer added successfully to CUSTOMER.CUSTOMER table!");
+                
+                // Upload photo and signature
                 String photoData = request.getParameter("photoData");
                 String signatureData = request.getParameter("signatureData");
                 String registrationDate = request.getParameter("registrationDate");
-                String userId = (String) session.getAttribute("userId");
                 
                 uploadPhotoAndSignature(customerId, userId, photoData, signatureData, registrationDate);
+                
                 response.sendRedirect("addCustomer.jsp?status=success&customerId=" + customerId);
             } else {
                 System.out.println("Failed to insert customer");
@@ -364,77 +470,77 @@ public class AddCustomerServlet extends HttpServlet {
             String errorMsg = e.getMessage().replace("'", "\\'");
             response.sendRedirect("addCustomer.jsp?status=error&message=" + java.net.URLEncoder.encode(errorMsg, "UTF-8"));
         } finally {
-            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
             try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
             try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
     }
+    
     private void uploadPhotoAndSignature(String customerId, String userId, String photoData, 
             String signatureData, String registrationDate) {
-Connection conn = null;
-PreparedStatement psPhoto = null;
-PreparedStatement psSignature = null;
+        Connection conn = null;
+        PreparedStatement psPhoto = null;
+        PreparedStatement psSignature = null;
 
-try {
-conn = DBConnection.getConnection();
+        try {
+            conn = DBConnection.getConnection();
 
-// Insert Photo
-if (photoData != null && !photoData.isEmpty()) {
-if (photoData.contains(",")) {
-photoData = photoData.split(",")[1];
-}
+            // Insert Photo
+            if (photoData != null && !photoData.isEmpty()) {
+                if (photoData.contains(",")) {
+                    photoData = photoData.split(",")[1];
+                }
 
-byte[] photoBytes = java.util.Base64.getDecoder().decode(photoData);
-String photoFilename = "PHOTO_" + customerId + ".jpg";
+                byte[] photoBytes = java.util.Base64.getDecoder().decode(photoData);
+                String photoFilename = "PHOTO_" + customerId + ".jpg";
 
-String sqlPhoto = "INSERT INTO SIGNATURES.CUSTOMERPHOTO " +
-  "(CUSTOMER_ID, PHOTO, USER_ID, OFFICER_ID, DATEOFREGISTRATION, PHOTOFILENAME, UPLOAD_ID) " +
-  "VALUES (?, ?, ?, NULL, ?, ?, ?)";
+                String sqlPhoto = "INSERT INTO SIGNATURES.CUSTOMERPHOTO " +
+                    "(CUSTOMER_ID, PHOTO, USER_ID, OFFICER_ID, DATEOFREGISTRATION, PHOTOFILENAME, UPLOAD_ID) " +
+                    "VALUES (?, ?, ?, NULL, ?, ?, ?)";
 
-psPhoto = conn.prepareStatement(sqlPhoto);
-psPhoto.setString(1, customerId);
-psPhoto.setBytes(2, photoBytes);
-psPhoto.setString(3, userId);
-psPhoto.setDate(4, parseDate(registrationDate));
-psPhoto.setString(5, photoFilename);
-psPhoto.setString(6, userId);
+                psPhoto = conn.prepareStatement(sqlPhoto);
+                psPhoto.setString(1, customerId);
+                psPhoto.setBytes(2, photoBytes);
+                psPhoto.setString(3, userId);
+                psPhoto.setDate(4, parseDate(registrationDate));
+                psPhoto.setString(5, photoFilename);
+                psPhoto.setString(6, userId);
 
-psPhoto.executeUpdate();
-System.out.println("✅ Photo uploaded for customer: " + customerId);
-}
+                psPhoto.executeUpdate();
+                System.out.println("✅ Photo uploaded for customer: " + customerId);
+            }
 
-// Insert Signature
-if (signatureData != null && !signatureData.isEmpty()) {
-if (signatureData.contains(",")) {
-signatureData = signatureData.split(",")[1];
-}
+            // Insert Signature
+            if (signatureData != null && !signatureData.isEmpty()) {
+                if (signatureData.contains(",")) {
+                    signatureData = signatureData.split(",")[1];
+                }
 
-byte[] signatureBytes = java.util.Base64.getDecoder().decode(signatureData);
-String signatureFilename = "SIGN_" + customerId + ".jpg";
+                byte[] signatureBytes = java.util.Base64.getDecoder().decode(signatureData);
+                String signatureFilename = "SIGN_" + customerId + ".jpg";
 
-String sqlSignature = "INSERT INTO SIGNATURES.CUSTOMERSIGNATURE " +
-      "(CUSTOMER_ID, SIGNATURE, USER_ID, OFFICER_ID, DATEOFREGISTRATION, SIGNATUREFILENAME, UPLOAD_ID) " +
-      "VALUES (?, ?, ?, NULL, ?, ?, ?)";
+                String sqlSignature = "INSERT INTO SIGNATURES.CUSTOMERSIGNATURE " +
+                    "(CUSTOMER_ID, SIGNATURE, USER_ID, OFFICER_ID, DATEOFREGISTRATION, SIGNATUREFILENAME, UPLOAD_ID) " +
+                    "VALUES (?, ?, ?, NULL, ?, ?, ?)";
 
-psSignature = conn.prepareStatement(sqlSignature);
-psSignature.setString(1, customerId);
-psSignature.setBytes(2, signatureBytes);
-psSignature.setString(3, userId);
-psSignature.setDate(4, parseDate(registrationDate));
-psSignature.setString(5, signatureFilename);
-psSignature.setString(6, userId);
+                psSignature = conn.prepareStatement(sqlSignature);
+                psSignature.setString(1, customerId);
+                psSignature.setBytes(2, signatureBytes);
+                psSignature.setString(3, userId);
+                psSignature.setDate(4, parseDate(registrationDate));
+                psSignature.setString(5, signatureFilename);
+                psSignature.setString(6, userId);
 
-psSignature.executeUpdate();
-System.out.println("✅ Signature uploaded for customer: " + customerId);
-}
+                psSignature.executeUpdate();
+                System.out.println("✅ Signature uploaded for customer: " + customerId);
+            }
 
-} catch (Exception e) {
-System.out.println("❌ Photo/Signature upload error: " + e.getMessage());
-e.printStackTrace();
-} finally {
-try { if (psPhoto != null) psPhoto.close(); } catch (Exception ignored) {}
-try { if (psSignature != null) psSignature.close(); } catch (Exception ignored) {}
-try { if (conn != null) conn.close(); } catch (Exception ignored) {}
-}
-}
+        } catch (Exception e) {
+            System.out.println("❌ Photo/Signature upload error: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try { if (psPhoto != null) psPhoto.close(); } catch (Exception ignored) {}
+            try { if (psSignature != null) psSignature.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+        }
+    }
 }
