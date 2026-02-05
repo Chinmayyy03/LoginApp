@@ -30,11 +30,15 @@
                 <p class="loading" id="pending-applications-value">Loading...</p>
             </div>
             
-            <div class="card"
-     onclick="openInParentFrame('authorizationPendingMasters.jsp', 'Authorization > Pending Masters')">
-    <h3>Authorization Pending Masters</h3>
-    <p class="loading" id="pending-masters-value">Loading...</p>
-</div>
+            <div class="card" onclick="openInParentFrame('authorizationPendingMasters.jsp', 'Authorization > Pending Masters')">
+                <h3>Authorization Pending Masters</h3>
+                <p class="loading" id="pending-masters-value">Loading...</p>
+            </div>
+            
+            <div class="card" onclick="openInParentFrame('authorizationPendingUsers.jsp', 'Authorization > Pending Users')">
+                <h3>Authorization Pending Users</h3>
+                <p class="loading" id="pending-users-value">Loading...</p>
+            </div>
             
         </div>
     </div>
@@ -48,11 +52,13 @@
         }
         loadCardValues();
     };
+    
     async function loadCardValues() {
         await Promise.all([
             loadCard('pending_customers', 'pending-customers-value', 'auth'),
             loadCard('pending_applications', 'pending-applications-value', 'auth'),
-            loadCard('pending_masters', 'pending-masters-value', 'auth') // ✅ FIXED
+            loadCard('pending_masters', 'pending-masters-value', 'auth'),
+            loadCard('pending_users', 'pending-users-value', 'auth')
         ]);
     }
 
