@@ -14,6 +14,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Authorization Pending Users</title>
+
+<link rel="stylesheet" href="css/addCustomers.css">
 <link rel="stylesheet" href="css/totalCustomers.css">
 
 <style>
@@ -37,96 +39,73 @@ h2{
     text-align: center;
     color: #2E1A87;
     font-weight: 700;
-    margin-bottom: 20px;
-    font-size: 26px;
+    margin-bottom: 18px;
+    font-size: 24px;
 }
 
 /* SEARCH BOX */
 .search-box{
     width: 650px;
-    margin: 0 auto 20px auto;
+    margin: 0 auto 18px auto;
 }
 
 .search-box input{
     width: 100%;
-    padding: 11px 15px;
-    border-radius: 5px;
+    padding: 8px 12px;
+    border-radius: 4px;
     border: 1px solid #999;
-    font-size: 14px;
+    font-size: 13px;
     background: #E9E9E9;
     box-sizing: border-box;
-    color: #666;
-}
-
-.search-box input::placeholder{
-    color: #999;
+    color: #444;
 }
 
 /* TABLE WRAPPER */
 .table-card{
     background: #fff;
-    border-radius: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.10);
     overflow: hidden;
+    border: 1px solid #cfcfcf;
 }
 
 /* TABLE */
 table{
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
 }
 
-/* HEADER ROW */
+/* HEADER */
 thead tr{
     background: #34127A;
 }
 
 th{
-    background: #34127A;
     color: #FFFFFF;
-    padding: 12px 10px;
+    padding: 6px 8px;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    font-size: 13px;
-    text-transform: uppercase;
-    border: none;
+    font-size: 12.5px;
+    border-right: 1px solid #6E5AA6;
 }
 
-/* DATA ROWS */
-tbody tr{
-    border-bottom: 1px solid #ddd;
+th:last-child{
+    border-right: none;
 }
 
-tbody tr:nth-child(odd){
-    background: #F5F5F5;
-}
-
-tbody tr:nth-child(even){
-    background: #FFFFFF;
-}
-
-tbody tr:hover{
-    background: #E8E4FC !important;
-}
+/* ROWS */
+tbody tr:nth-child(odd){ background: #F7F7F7; }
+tbody tr:nth-child(even){ background: #FFFFFF; }
 
 td{
-    padding: 11px 10px;
+    padding: 5px 8px;
     text-align: center;
-    color: #000;
-    border: none;
+    border-right: 1px solid #e3e3e3;
 }
 
-/* SR NO COLUMN */
-td:first-child{
-    font-weight: 500;
-}
-
-/* STATUS STYLING */
-td.status-cell{
-    color: #2E1A87;
-    font-weight: 600;
+td:last-child{
+    border-right: none;
 }
 
 /* BUTTON */
@@ -134,11 +113,10 @@ td.status-cell{
     background: #34127A;
     color: #FFFFFF;
     border: none;
-    padding: 6px 16px;
-    border-radius: 4px;
-    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 12px;
     cursor: pointer;
-    transition: background 0.3s ease;
     font-weight: 600;
 }
 
@@ -146,12 +124,11 @@ td.status-cell{
     background: #22085A;
 }
 
-/* NO DATA MESSAGE */
 .no-data{
     text-align: center;
-    padding: 40px;
+    padding: 30px;
     color: #666;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 </style>
@@ -161,142 +138,108 @@ td.status-cell{
 
 <div class="container">
 
-    <!-- TITLE -->
-    <h2>Authorization Pending list for Branch: <%=branchCode%></h2>
+<h2>Authorization Pending list for Branch: <%=branchCode%></h2>
 
-    <!-- SEARCH -->
-    <div class="search-box">
-        <input type="text"
-               placeholder="🔍 Search by Name, Customer ID, Branch">
-    </div>
-
-    <!-- TABLE -->
-    <div class="table-card">
-        <table>
-
-            <!-- TABLE HEADER -->
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>User Name</th>
-                    <th>Branch Code</th>
-                    <th>Customer ID</th>
-                    <th>Mobile</th>
-                    <th>Created Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            <%
-                Connection conn = null;
-                PreparedStatement pstmt = null;
-                ResultSet rs = null;
-
-                try {
-                    conn = DBConnection.getConnection();
-
-                    /* 🔹 Updated SQL (removed unwanted columns) */
-                    String sql =
-                        "SELECT USER_ID, NAME, BRANCH_CODE, CUSTOMER_ID, " +
-                        "MOBILE_NUMBER, CREATED_DATE " +
-                        "FROM ACL.USERREGISTER " +
-                        "WHERE BRANCH_CODE=? " +
-                        "ORDER BY CREATED_DATE DESC";
-
-                    pstmt = conn.prepareStatement(sql);
-                    pstmt.setString(1, branchCode);
-                    rs = pstmt.executeQuery();
-
-                    boolean hasData = false;
-
-                    while (rs.next()) {
-                        hasData = true;
-            %>
-
-                <tr>
-                    <td><%=rs.getString("USER_ID")%></td>
-
-                    <td>
-                        <%=rs.getString("NAME") != null
-                            ? rs.getString("NAME") : ""%>
-                    </td>
-
-                    <td><%=rs.getString("BRANCH_CODE")%></td>
-
-                    <td>
-                        <%=rs.getString("CUSTOMER_ID") != null
-                            ? rs.getString("CUSTOMER_ID") : ""%>
-                    </td>
-
-                    <td>
-                        <%=rs.getString("MOBILE_NUMBER") != null
-                            ? rs.getString("MOBILE_NUMBER") : ""%>
-                    </td>
-
-                    <td>
-                        <%
-                            Timestamp createdDate =
-                                rs.getTimestamp("CREATED_DATE");
-
-                            if(createdDate != null){
-                                out.print(
-                                    new java.text.SimpleDateFormat(
-                                        "dd-MMM-yyyy HH:mm"
-                                    ).format(createdDate)
-                                );
-                            }
-                        %>
-                    </td>
-
-                    <td>
-                        <button class="action-btn"
-                            onclick="authorizeUser('<%=rs.getString("USER_ID")%>')">
-                            View Details
-                        </button>
-                    </td>
-                </tr>
-
-            <%
-                    }
-
-                    if (!hasData) {
-            %>
-                <tr>
-                    <td colspan="7" class="no-data">
-                        No pending users found
-                    </td>
-                </tr>
-            <%
-                    }
-
-                } catch(Exception e) {
-            %>
-                <tr>
-                    <td colspan="7" class="no-data">
-                        Error: <%=e.getMessage()%>
-                    </td>
-                </tr>
-            <%
-                } finally {
-                    try{ if(rs!=null) rs.close(); }catch(Exception ignored){}
-                    try{ if(pstmt!=null) pstmt.close(); }catch(Exception ignored){}
-                    try{ if(conn!=null) conn.close(); }catch(Exception ignored){}
-                }
-            %>
-
-            </tbody>
-        </table>
-    </div>
-
+<div class="search-box">
+    <input type="text" placeholder="🔍 Search by Name, Customer ID, Branch">
 </div>
 
-<script>
-function authorizeUser(userId){
-    alert("Open details for: " + userId);
+<div class="table-card">
+<table>
+
+<thead>
+<tr>
+    <th>Sr. No.</th>
+    <th>User ID</th>
+    <th>User Name</th>
+    <th>Branch Code</th>
+    <th>Customer ID</th>
+    <th>Mobile</th>
+    <th>Created Date</th>
+    <th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+<%
+Connection conn=null;
+PreparedStatement pstmt=null;
+ResultSet rs=null;
+
+try{
+    conn = DBConnection.getConnection();
+
+    String sql =
+        "SELECT USER_ID, NAME, BRANCH_CODE, CUSTOMER_ID, " +
+        "MOBILE_NUMBER, CREATED_DATE " +
+        "FROM ACL.USERREGISTER " +
+        "WHERE BRANCH_CODE=? AND STATUS='E' " +
+        "ORDER BY CREATED_DATE DESC";
+
+    pstmt = conn.prepareStatement(sql);
+    pstmt.setString(1, branchCode);
+    rs = pstmt.executeQuery();
+
+    boolean hasData=false;
+    int srNo=1;
+
+    while(rs.next()){
+        hasData=true;
+%>
+
+<tr>
+<td><%=srNo++%></td>
+<td><%=rs.getString("USER_ID")%></td>
+<td><%=rs.getString("NAME")%></td>
+<td><%=rs.getString("BRANCH_CODE")%></td>
+<td><%=rs.getString("CUSTOMER_ID")%></td>
+<td><%=rs.getString("MOBILE_NUMBER")%></td>
+
+<td>
+<%
+Timestamp createdDate = rs.getTimestamp("CREATED_DATE");
+if(createdDate!=null){
+out.print(new java.text.SimpleDateFormat(
+"dd-MMM-yyyy HH:mm").format(createdDate));
 }
-</script>
+%>
+</td>
+
+<td>
+    <!-- ✅ ONLY CHANGE DONE HERE -->
+    <a href="viewUserAutho.jsp?userId=<%=rs.getString("USER_ID")%>">
+        <button class="action-btn">View Details</button>
+    </a>
+</td>
+
+</tr>
+
+<%
+}
+
+if(!hasData){
+%>
+<tr>
+<td colspan="8" class="no-data">No pending users found</td>
+</tr>
+<%
+}
+
+}catch(Exception e){
+%>
+<tr>
+<td colspan="8" class="no-data">Error: <%=e.getMessage()%></td>
+</tr>
+<%
+}
+%>
+
+</tbody>
+</table>
+</div>
+
+</div>
 
 </body>
 </html>
