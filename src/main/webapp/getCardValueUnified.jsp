@@ -154,6 +154,21 @@
                         value = "0";
                     }
 
+                } else if ("pending_users".equals(cardId)) {
+                    // ADD THIS NEW BLOCK FOR AUTHORIZATION PENDING USERS
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM ACL.USERREGISTER " +
+                        "WHERE BRANCH_CODE=? AND STATUS='E'"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        value = String.valueOf(rs.getInt(1));
+                    } else {
+                        value = "0";
+                    }
+
                 } else if ("pending_applications".equals(cardId)) {
                     if (workingDate != null) {
                         ps = conn.prepareStatement(
