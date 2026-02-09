@@ -466,9 +466,9 @@ input[type="password"] {
     </button>
 </div>
 
-<div style="text-align:center; margin-top:30px;">
-    <form id="authorizeForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;">
-        <input type="hidden" name="appNo" value="<%= userId %>">
+<<div style="text-align:center; margin-top:30px;">
+    <form id="authorizeForm" action="UserAuthorizationServlet" method="post" style="display:inline;">
+        <input type="hidden" name="userId" value="<%= userId %>">
         <input type="hidden" name="status" value="A">
         <input type="hidden" name="password" id="hiddenPassword">
         <button type="button" onclick="showAuthorizeConfirmation(event)"
@@ -481,8 +481,8 @@ input[type="password"] {
 
     &nbsp;&nbsp;&nbsp;
 
-    <form id="rejectForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;">
-        <input type="hidden" name="appNo" value="<%= userId %>">
+    <form id="rejectForm" action="UserAuthorizationServlet" method="post" style="display:inline;">
+        <input type="hidden" name="userId" value="<%= userId %>">
         <input type="hidden" name="status" value="R">
         <button type="button" onclick="showRejectConfirmation(event)"
             style="padding:10px 22px; background:linear-gradient(45deg, #dc3545, #e74c3c); color:white;
@@ -540,8 +540,8 @@ window.onload=function(){
  if(custId){
 
   fetch(
-   "<%=request.getContextPath()%>/OpenAccount/getCustomerDetails.jsp?customerId="
-   +encodeURIComponent(custId)
+		  "<%=request.getContextPath()%>/OpenAccount/getCustomerDetails.jsp?customerId="
+		   + encodeURIComponent(custId)
   )
   .then(res=>res.json())
   .then(data=>{
