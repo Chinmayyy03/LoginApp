@@ -135,6 +135,66 @@ input[readonly]{
  background-color:var(--readonly-bg);
 }
 
+/* ===== PASSWORD FIELD STYLES ===== */
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-field input {
+    padding-right: 40px;
+    background-color: white;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 16px;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: var(--navy-blue);
+}
+
+/* Hide default browser password reveal eye */
+
+/* Microsoft Edge / IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* Chrome / Safari (WebKit) */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container,
+input[type="password"]::-webkit-clear-button,
+input[type="password"]::-webkit-inner-spin-button,
+input[type="password"]::-webkit-outer-spin-button {
+    display: none !important;
+}
+
+/* General fallback */
+input[type="password"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+
+.error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
 /* ===== BUTTON STYLES ===== */
 
 .btn-back{
@@ -166,6 +226,104 @@ input[readonly]{
  border-radius:5px;
  font-size:14px;
  cursor:pointer;
+}
+
+/* ===== MODAL STYLES ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 12% auto;
+    padding: 35px 40px;
+    border-radius: 12px;
+    width: 550px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.modal-header {
+    font-size: 24px;
+    font-weight: bold;
+    color: #3f3a7f;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-header .icon {
+    font-size: 28px;
+}
+
+.modal-body {
+    margin-bottom: 25px;
+    color: #555;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.modal-body .app-number {
+    font-weight: bold;
+    color: #3f3a7f;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    min-width: 140px;
+    transition: all 0.3s ease;
+}
+
+.btn-confirm-authorize {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-confirm-authorize:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+}
+
+.btn-confirm-reject {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-confirm-reject:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220,53,69,0.3);
+}
+
+.btn-cancel {
+    background-color: #e0e0e0;
+    color: #555;
+}
+
+.btn-cancel:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-1px);
 }
 </style>
 </head>
@@ -258,6 +416,43 @@ input[readonly]{
 </div>
 </fieldset>
 
+<!-- ================= PASSWORD DETAILS ================= -->
+<fieldset>
+<legend>Password Details</legend>
+
+<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:80px; align-items:end; max-width:900px; margin:0 auto;">
+
+<div class="form-group">
+<label>Password <span style="color:red;">*</span></label>
+<div class="password-field">
+    <input type="password" id="password" name="password" required style="height:38px; padding:8px 40px 8px 12px;">
+    <span class="toggle-password" onclick="togglePassword('password')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+    </span>
+</div>
+<div class="error-message" id="passwordError">Password is required</div>
+</div>
+
+<div class="form-group">
+<label>Confirm Password <span style="color:red;">*</span></label>
+<div class="password-field">
+    <input type="password" id="confirmPassword" name="confirmPassword" required style="height:38px; padding:8px 40px 8px 12px;">
+    <span class="toggle-password" onclick="togglePassword('confirmPassword')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+    </span>
+</div>
+<div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+</div>
+
+</div>
+</fieldset>
+
 <!-- ================= BUTTON SECTION ================= -->
 
 <br>
@@ -275,6 +470,7 @@ input[readonly]{
     <form id="authorizeForm" action="UpdateApplicationStatusServlet" method="post" style="display:inline;">
         <input type="hidden" name="appNo" value="<%= userId %>">
         <input type="hidden" name="status" value="A">
+        <input type="hidden" name="password" id="hiddenPassword">
         <button type="button" onclick="showAuthorizeConfirmation(event)"
             style="padding:10px 22px; background:linear-gradient(45deg, #28a745, #34ce57); color:white;
                    border:none; border-radius:6px; cursor:pointer;
@@ -296,6 +492,45 @@ input[readonly]{
         </button>
     </form>
 </div>
+
+<!-- ================= CONFIRMATION MODALS ================= -->
+
+<!-- Authorize Confirmation Modal -->
+<div id="authorizeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="icon" style="color: #28a745;">✓</span>
+            Confirm Authorization
+        </div>
+        <div class="modal-body">
+            Are you sure you want to <strong>authorize</strong> this application?<br>
+            User ID: <span class="app-number"><%= userId %></span>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn btn-cancel" onclick="closeModal('authorizeModal')">Cancel</button>
+            <button class="modal-btn btn-confirm-authorize" onclick="submitAuthorize()">Yes, Authorize</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Confirmation Modal -->
+<div id="rejectModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="icon" style="color: #dc3545;">✗</span>
+            Confirm Rejection
+        </div>
+        <div class="modal-body">
+            Are you sure you want to <strong>reject</strong> this application?<br>
+            User ID: <span class="app-number"><%= userId %></span>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn btn-cancel" onclick="closeModal('rejectModal')">Cancel</button>
+            <button class="modal-btn btn-confirm-reject" onclick="submitReject()">Yes, Reject</button>
+        </div>
+    </div>
+</div>
+
 <!-- ================= FETCH CUSTOMER DETAILS ================= -->
 <script>
 window.onload=function(){
@@ -328,6 +563,143 @@ window.onload=function(){
  }
 
 };
+
+// ================= UTILITY FUNCTIONS =================
+
+// Toggle password visibility
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const toggleIcon = field.parentElement.querySelector('.toggle-password svg');
+    
+    if (field.type === "password") {
+        field.type = "text";
+        // Change to eye-off icon
+        toggleIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        field.type = "password";
+        // Change to eye icon
+        toggleIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    }
+}
+
+// Validate password fields
+function validatePasswords() {
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const passwordError = document.getElementById("passwordError");
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
+    
+    // Reset error messages
+    passwordError.style.display = "none";
+    confirmPasswordError.style.display = "none";
+    
+    // Check if password is empty
+    if (!password || password.trim() === "") {
+        passwordError.textContent = "Password is required";
+        passwordError.style.display = "block";
+        return false;
+    }
+    
+    // Check password length (minimum 6 characters)
+    if (password.length < 6) {
+        passwordError.textContent = "Password must be at least 6 characters";
+        passwordError.style.display = "block";
+        return false;
+    }
+    
+    // Check if confirm password is empty
+    if (!confirmPassword || confirmPassword.trim() === "") {
+        confirmPasswordError.textContent = "Please confirm your password";
+        confirmPasswordError.style.display = "block";
+        return false;
+    }
+    
+    // Check if passwords match
+    if (password !== confirmPassword) {
+        confirmPasswordError.textContent = "Passwords do not match";
+        confirmPasswordError.style.display = "block";
+        return false;
+    }
+    
+    return true;
+}
+
+// ================= BUTTON FUNCTIONS =================
+
+// Back to List function
+function goBackToList() {
+    // Redirect to pending list page
+    window.location.href = "<%=request.getContextPath()%>/authorizationPendingUsers.jsp";
+}
+
+// Show authorize confirmation modal
+function showAuthorizeConfirmation(event) {
+    event.preventDefault();
+    
+    // Validate passwords before showing modal
+    if (!validatePasswords()) {
+        return;
+    }
+    
+    // Show modal
+    document.getElementById("authorizeModal").style.display = "block";
+}
+
+// Show reject confirmation modal
+function showRejectConfirmation(event) {
+    event.preventDefault();
+    
+    // Show modal (no password validation needed for rejection)
+    document.getElementById("rejectModal").style.display = "block";
+}
+
+// Close modal
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+// Submit authorize form
+function submitAuthorize() {
+    // Set password in hidden field
+    const password = document.getElementById("password").value;
+    document.getElementById("hiddenPassword").value = password;
+    
+    // Submit the form
+    document.getElementById("authorizeForm").submit();
+}
+
+// Submit reject form
+function submitReject() {
+    // Submit the form
+    document.getElementById("rejectForm").submit();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const authorizeModal = document.getElementById("authorizeModal");
+    const rejectModal = document.getElementById("rejectModal");
+    
+    if (event.target == authorizeModal) {
+        authorizeModal.style.display = "none";
+    }
+    if (event.target == rejectModal) {
+        rejectModal.style.display = "none";
+    }
+}
+
+// Real-time password validation
+document.getElementById("confirmPassword").addEventListener("input", function() {
+    const password = document.getElementById("password").value;
+    const confirmPassword = this.value;
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
+    
+    if (confirmPassword && password !== confirmPassword) {
+        confirmPasswordError.style.display = "block";
+    } else {
+        confirmPasswordError.style.display = "none";
+    }
+});
+
 </script>
 
 </body>
