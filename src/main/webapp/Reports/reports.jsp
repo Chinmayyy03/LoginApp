@@ -114,7 +114,7 @@
 
         <div class="card"
              onclick="openInParentFrame(
-                 'Reports/programList.jsp?schema=<%= description %>',
+                 'Reports/jspFiles/programList.jsp?schema=<%= description %>',
                  'Reports > <%= description %>')">
 
             <h3><%= description %></h3>

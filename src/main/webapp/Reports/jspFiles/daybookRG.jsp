@@ -117,13 +117,22 @@
                ========================= */
             if ("pdf".equalsIgnoreCase(reporttype)) {
 
+                response.reset(); // IMPORTANT
                 response.setContentType("application/pdf");
+
+                // ✅ THIS LINE IS THE REAL FIX
                 response.setHeader(
-                        "Content-Disposition",
-                        "inline; filename=\"Daybook_Report.pdf\""
+                    "Content-Disposition",
+                    "inline; filename=\"Daybook_Report.pdf\"; filename*=UTF-8''Daybook_Report.pdf"
                 );
 
+                // Optional but recommended
+                response.setHeader("X-Content-Type-Options", "nosniff");
+
                 JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+                outStream.flush();
+                return; // IMPORTANT
+            
 
             } else if ("xls".equalsIgnoreCase(reporttype)) {
 
@@ -293,7 +302,7 @@ if (!"download".equals(action)) {
         
         <!-- REMOVE ONSUBMIT - Let form submit directly -->
 <form method="post"
-      action="<%=request.getContextPath()%>/Reports/daybookRG.jsp"
+      action="<%=request.getContextPath()%>/Reports/jspFiles/daybookRG.jsp"
       autocomplete="off"
       id="reportForm"
       target="_blank">
@@ -436,4 +445,4 @@ if (!"download".equals(action)) {
 </html>
 <%
 }
-%>
+%>   
