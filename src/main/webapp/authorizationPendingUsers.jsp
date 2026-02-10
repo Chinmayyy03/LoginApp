@@ -23,7 +23,7 @@
 /* PAGE BACKGROUND */
 body{
     font-family: Arial, sans-serif;
-    background: #C9C3D9;
+    background: #E6E6FA;  /* Changed from #C9C3D9 to match lighter lavender */
     margin: 0;
     padding: 20px;
 }
@@ -37,7 +37,7 @@ body{
 /* TITLE */
 h2{
     text-align: center;
-    color: #2E1A87;
+    color: #303F9F;  /* Changed to match navy blue from other page */
     font-weight: 700;
     margin-bottom: 18px;
     font-size: 24px;
@@ -53,9 +53,9 @@ h2{
     width: 100%;
     padding: 8px 12px;
     border-radius: 4px;
-    border: 1px solid #999;
+    border: 1px solid #B8B8E6;  /* Lighter border */
     font-size: 13px;
-    background: #E9E9E9;
+    background: #FFFFFF;  /* Changed to white for cleaner look */
     box-sizing: border-box;
     color: #444;
 }
@@ -66,7 +66,7 @@ h2{
     border-radius: 6px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.10);
     overflow: hidden;
-    border: 1px solid #cfcfcf;
+    border: 1px solid #B8B8E6;  /* Lighter border to match */
 }
 
 /* TABLE */
@@ -78,7 +78,7 @@ table{
 
 /* HEADER */
 thead tr{
-    background: #34127A;
+    background: #303F9F;  /* Changed to match navy blue */
 }
 
 th{
@@ -87,7 +87,7 @@ th{
     text-align: center;
     font-weight: 700;
     font-size: 12.5px;
-    border-right: 1px solid #6E5AA6;
+    border-right: 1px solid rgba(255,255,255,0.2);  /* Lighter separator */
 }
 
 th:last-child{
@@ -110,7 +110,7 @@ td:last-child{
 
 /* BUTTON */
 .action-btn{
-    background: #34127A;
+    background: #303F9F;  /* Matches table header color */
     color: #FFFFFF;
     border: none;
     padding: 3px 10px;
@@ -121,7 +121,7 @@ td:last-child{
 }
 
 .action-btn:hover{
-    background: #22085A;
+    background: #1E2870;  /* Darker on hover */
 }
 
 .no-data{
@@ -147,9 +147,9 @@ td:last-child{
            placeholder="🔍 Search by Name, Customer ID, Branch">
 </div>
 
-<div class="table-card">   <!-- keep wrapper if you had it -->
+<div class="table-card">
 
-<table id="userTable">   <!-- ✅ ONLY ONE TABLE -->
+<table id="userTable">
 
 <thead>
 <tr>
@@ -211,7 +211,6 @@ out.print(new java.text.SimpleDateFormat(
 </td>
 
 <td>
-    <!-- ✅ ONLY CHANGE DONE HERE -->
     <a href="viewUserAutho.jsp?userId=<%=rs.getString("USER_ID")%>">
         <button class="action-btn">View Details</button>
     </a>
@@ -236,6 +235,10 @@ if(!hasData){
 		<td colspan="8" class="no-data">Error: <%=e.getMessage()%></td>
 	</tr>
 <%
+} finally {
+    if(rs != null) try { rs.close(); } catch(Exception e){}
+    if(pstmt != null) try { pstmt.close(); } catch(Exception e){}
+    if(conn != null) try { conn.close(); } catch(Exception e){}
 }
 %>
 

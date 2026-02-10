@@ -466,7 +466,7 @@ input[type="password"] {
     </button>
 </div>
 
-<<div style="text-align:center; margin-top:30px;">
+<div style="text-align:center; margin-top:30px;">
     <form id="authorizeForm" action="UserAuthorizationServlet" method="post" style="display:inline;">
         <input type="hidden" name="userId" value="<%= userId %>">
         <input type="hidden" name="status" value="A">

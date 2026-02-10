@@ -25,8 +25,16 @@ public class UserAuthorizationServlet extends HttpServlet {
         String userId = request.getParameter("userId");
         String status = request.getParameter("status");
         String password = request.getParameter("password");
+        
+        // Get the authorizer's name from session
+        String authorizedBy = (session != null) ? (String) session.getAttribute("userId") : null;
 
         if (userId == null || userId.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/authorizationPendingUsers.jsp");
+            return;
+        }
+        
+        if (authorizedBy == null || authorizedBy.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/authorizationPendingUsers.jsp");
             return;
         }
@@ -40,14 +48,15 @@ public class UserAuthorizationServlet extends HttpServlet {
                     "UPDATE ACL.USERREGISTER " +
                     "SET STATUS = ?, " +
                     "PASSWD = acl.toolkit.encrypt(?), " +   // 🔐 DB Encryption
-                    "AUTHORIZED_BY = CREATED_BY " +
+                    "AUTHORIZED_BY = ? " +
                     "WHERE USER_ID = ?";
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
                     ps.setString(1, "A");
-                    ps.setString(2, password);   // Plain password → Oracle encrypts
-                    ps.setString(3, userId);
+                    ps.setString(2, password);      // Plain password → Oracle encrypts
+                    ps.setString(3, authorizedBy);  // Current user who is authorizing
+                    ps.setString(4, userId);
 
                     int rows = ps.executeUpdate();
                     updateSessionStatus(rows, "A", session);
@@ -60,13 +69,15 @@ public class UserAuthorizationServlet extends HttpServlet {
 
                 String sql =
                     "UPDATE ACL.USERREGISTER " +
-                    "SET STATUS = ? " +
+                    "SET STATUS = ?, " +
+                    "AUTHORIZED_BY = ? " +
                     "WHERE USER_ID = ?";
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
                     ps.setString(1, "R");
-                    ps.setString(2, userId);
+                    ps.setString(2, authorizedBy);  // Current user who is rejecting
+                    ps.setString(3, userId);
 
                     int rows = ps.executeUpdate();
                     updateSessionStatus(rows, "R", session);
