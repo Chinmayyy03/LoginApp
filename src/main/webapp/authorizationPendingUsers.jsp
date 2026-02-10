@@ -138,14 +138,18 @@ td:last-child{
 
 <div class="container">
 
-<h2>Authorization Pending list for Branch: <%=branchCode%></h2>
+	<h2>Authorization Pending list for Branch: <%=branchCode%></h2>
 
 <div class="search-box">
-    <input type="text" placeholder="🔍 Search by Name, Customer ID, Branch">
+    <input type="text"
+           id="searchInput"
+           onkeyup="searchTable()"
+           placeholder="🔍 Search by Name, Customer ID, Branch">
 </div>
 
-<div class="table-card">
-<table>
+<div class="table-card">   <!-- keep wrapper if you had it -->
+
+<table id="userTable">   <!-- ✅ ONLY ONE TABLE -->
 
 <thead>
 <tr>
@@ -188,13 +192,13 @@ try{
         hasData=true;
 %>
 
-<tr>
-<td><%=srNo++%></td>
-<td><%=rs.getString("USER_ID")%></td>
-<td><%=rs.getString("NAME")%></td>
-<td><%=rs.getString("BRANCH_CODE")%></td>
-<td><%=rs.getString("CUSTOMER_ID")%></td>
-<td><%=rs.getString("MOBILE_NUMBER")%></td>
+	<tr>
+	<td><%=srNo++%></td>
+	<td><%=rs.getString("USER_ID")%></td>
+	<td><%=rs.getString("NAME")%></td>
+	<td><%=rs.getString("BRANCH_CODE")%></td>
+	<td><%=rs.getString("CUSTOMER_ID")%></td>
+	<td><%=rs.getString("MOBILE_NUMBER")%></td>
 
 <td>
 <%
@@ -220,17 +224,17 @@ out.print(new java.text.SimpleDateFormat(
 
 if(!hasData){
 %>
-<tr>
-<td colspan="8" class="no-data">No pending users found</td>
-</tr>
+	<tr>
+		<td colspan="8" class="no-data">No pending users found</td>
+	</tr>
 <%
 }
 
 }catch(Exception e){
 %>
-<tr>
-<td colspan="8" class="no-data">Error: <%=e.getMessage()%></td>
-</tr>
+	<tr>
+		<td colspan="8" class="no-data">Error: <%=e.getMessage()%></td>
+	</tr>
 <%
 }
 %>
@@ -240,6 +244,36 @@ if(!hasData){
 </div>
 
 </div>
+<script>
+function searchTable() {
+
+    let input = document.getElementById("searchInput");
+    let filter = input.value.toLowerCase();
+
+    let table = document.getElementById("userTable");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {   // Skip header
+
+        let tds = tr[i].getElementsByTagName("td");
+        let found = false;
+
+        for (let j = 0; j < tds.length; j++) {
+
+            if (tds[j]) {
+                let text = tds[j].textContent || tds[j].innerText;
+
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        tr[i].style.display = found ? "" : "none";
+    }
+}
+</script>
 
 </body>
 </html>
