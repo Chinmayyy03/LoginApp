@@ -312,6 +312,24 @@ table tbody tr:nth-child(odd) {
     background: white;
 }
 
+/* Highlight customized columns */
+table th.customized-column {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+table th.customized-column::after {
+    content: '✨';
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+table td.customized-column {
+    background: #f0f4ff !important;
+    font-weight: 600;
+    color: #1e40af;
+}
+
 .column-tag {
     display: inline-flex;
     align-items: center;
@@ -557,11 +575,11 @@ small {
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">
-                            ✓ Apply Filter
+                            ✓ Apply Customization
                         </button>
                         <button type="button" class="btn" onclick="resetColumnFilter()" 
                                 style="background: #f59e0b; color: white;">
-                            ↺ Show All Columns
+                            ↺ Reset to Original
                         </button>
                     </div>
                 </div>
@@ -646,6 +664,7 @@ let totalColumns = 0;
 let currentPage = 1;
 const recordsPerPage = 15;
 let currentDisplayData = [];
+let isCustomizationApplied = false;
 
 function loadTransactionType() {
     const dropdown = document.getElementById('transactionTypeDropdown');
@@ -715,7 +734,7 @@ function addSelectedColumn() {
     document.getElementById('lastChars').value = '';
     document.getElementById('firstChars').value = '';
     
-    showMessage('Column added successfully! Click "Apply Filter" to see changes.', 'success');
+    showMessage('Column added successfully! Click "Apply Customization" to see changes.', 'success');
 }
 
 function displaySelectedColumns() {
@@ -748,7 +767,7 @@ function removeColumn(index) {
     
     if (selectedColumns.length === 0) {
         // Reset to show all columns
-        displayAllColumns();
+        resetColumnFilter();
     }
 }
 
@@ -758,80 +777,116 @@ function applyColumnFilter() {
         return;
     }
     
-    // Filter and transform data based on selected columns
-    const filteredData = originalParsedData.map(row => {
-        return selectedColumns.map(colConfig => {
-            const colIndex = colConfig.columnNumber - 1;
-            let value = row[colIndex] || '';
+    // Create a map of column numbers that have customizations
+    const customizationMap = {};
+    selectedColumns.forEach(colConfig => {
+        customizationMap[colConfig.columnNumber] = colConfig;
+    });
+    
+    // Transform data: show all columns, but apply customizations to selected ones
+    const transformedData = originalParsedData.map(row => {
+        return row.map((cellValue, index) => {
+            const columnNumber = index + 1;
             
-            // Apply substring extraction if specified
-            if (colConfig.substringLength) {
-                if (colConfig.extractPosition === 'end') {
-                    // Extract last N characters
-                    value = value.slice(-colConfig.substringLength);
-                } else {
-                    // Extract first N characters
-                    value = value.slice(0, colConfig.substringLength);
+            // Check if this column has customization
+            if (customizationMap[columnNumber]) {
+                const colConfig = customizationMap[columnNumber];
+                let value = cellValue || '';
+                
+                // Apply substring extraction if specified
+                if (colConfig.substringLength) {
+                    if (colConfig.extractPosition === 'end') {
+                        // Extract last N characters
+                        value = value.slice(-colConfig.substringLength);
+                    } else {
+                        // Extract first N characters
+                        value = value.slice(0, colConfig.substringLength);
+                    }
                 }
+                
+                return value;
+            } else {
+                // Return original value for non-customized columns
+                return cellValue || '';
             }
-            
-            return value;
         });
     });
     
     // Update current display data and reset to page 1
-    currentDisplayData = filteredData;
+    currentDisplayData = transformedData;
     currentPage = 1;
+    isCustomizationApplied = true;
     
-    // Update table with filtered data
-    displayFilteredData(filteredData, 1);
+    // Update table with all columns but customized values
+    displayAllColumnsWithCustomization(transformedData, 1);
     
-    showMessage(`Displaying ${selectedColumns.length} selected column(s)`, 'success');
+    showMessage(`Applied customizations to ${selectedColumns.length} column(s). Showing all ${totalColumns} columns.`, 'success');
 }
 
-function displayFilteredData(filteredData, page) {
+function displayAllColumnsWithCustomization(data, page) {
     currentPage = page;
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
     
-    // Create headers based on selected columns with column numbers
+    // Create a map to check which columns are customized
+    const customizedColumnNumbers = selectedColumns.map(col => col.columnNumber);
+    
+    // Create headers with column numbers for all columns
     tableHeaderRow.innerHTML = '';
-    selectedColumns.forEach(col => {
+    for (let i = 0; i < totalColumns; i++) {
         const th = document.createElement('th');
-        th.textContent = 'Column ' + col.columnNumber;
+        const columnNumber = i + 1;
+        th.textContent = 'Column ' + columnNumber;
         th.style.padding = '10px';
         th.style.border = '1px solid #ddd';
-        th.style.background = '#373279';
-        th.style.color = 'white';
         th.style.textAlign = 'left';
+        
+        // Highlight customized columns
+        if (customizedColumnNumbers.includes(columnNumber)) {
+            th.className = 'customized-column';
+            th.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            th.style.color = 'white';
+        } else {
+            th.style.background = '#373279';
+            th.style.color = 'white';
+        }
+        
         tableHeaderRow.appendChild(th);
-    });
+    }
     
     // Calculate pagination
     const start = (page - 1) * recordsPerPage;
-    const end = Math.min(start + recordsPerPage, filteredData.length);
+    const end = Math.min(start + recordsPerPage, data.length);
     
-    // Populate table body with paginated filtered data
+    // Populate table body with paginated data
     tbody.innerHTML = '';
-    for (let i = start; i < end; i++) {
-        const row = filteredData[i];
+    for (let index = start; index < end; index++) {
+        const row = data[index];
         const tr = document.createElement('tr');
-        tr.style.background = i % 2 === 0 ? '#f9f9f9' : 'white';
         
-        row.forEach(cellValue => {
+        for (let i = 0; i < totalColumns; i++) {
             const td = document.createElement('td');
-            td.textContent = cellValue;
+            const columnNumber = i + 1;
+            td.textContent = row[i] || '';
             td.style.padding = '8px';
             td.style.border = '1px solid #ddd';
             td.style.textAlign = 'left';
+            
+            // Highlight customized column cells
+            if (customizedColumnNumbers.includes(columnNumber)) {
+                td.className = 'customized-column';
+            } else {
+                td.style.background = index % 2 === 0 ? '#f9f9f9' : 'white';
+            }
+            
             tr.appendChild(td);
-        });
+        }
         
         tbody.appendChild(tr);
     }
     
     // Update pagination controls
-    updatePaginationControls(filteredData.length, page);
+    updatePaginationControls(data.length, page);
 }
 
 function displayAllColumns() {
@@ -842,6 +897,7 @@ function displayAllColumns() {
     // Reset current display data to original
     currentDisplayData = originalParsedData;
     currentPage = 1;
+    isCustomizationApplied = false;
     
     const tableHeaderRow = document.getElementById('tableHeader');
     const tbody = document.getElementById('importDetailsTable');
@@ -885,7 +941,7 @@ function displayAllColumns() {
     // Update pagination controls
     updatePaginationControls(originalParsedData.length, 1);
     
-    showMessage('Showing all columns (' + totalColumns + ' columns)', 'info');
+    showMessage('Showing all columns with original data (' + totalColumns + ' columns)', 'info');
 }
 
 function resetColumnFilter() {
@@ -915,8 +971,8 @@ function updatePaginationControls(totalRecords, page) {
 
 function previousPage() {
     if (currentPage > 1) {
-        if (selectedColumns.length > 0) {
-            displayFilteredData(currentDisplayData, currentPage - 1);
+        if (isCustomizationApplied) {
+            displayAllColumnsWithCustomization(currentDisplayData, currentPage - 1);
         } else {
             displayPaginatedData(originalParsedData, currentPage - 1);
         }
@@ -924,12 +980,12 @@ function previousPage() {
 }
 
 function nextPage() {
-    const dataToDisplay = selectedColumns.length > 0 ? currentDisplayData : originalParsedData;
+    const dataToDisplay = isCustomizationApplied ? currentDisplayData : originalParsedData;
     const totalPages = Math.ceil(dataToDisplay.length / recordsPerPage);
     
     if (currentPage < totalPages) {
-        if (selectedColumns.length > 0) {
-            displayFilteredData(currentDisplayData, currentPage + 1);
+        if (isCustomizationApplied) {
+            displayAllColumnsWithCustomization(currentDisplayData, currentPage + 1);
         } else {
             displayPaginatedData(originalParsedData, currentPage + 1);
         }
@@ -1075,6 +1131,7 @@ function parseAndDisplayFile(content, fileName) {
         originalParsedData = parsedData;
         currentDisplayData = parsedData;
         currentPage = 1;
+        isCustomizationApplied = false;
         
         // Determine number of columns
         const maxColumns = Math.max(...parsedData.map(row => row.length));
@@ -1230,6 +1287,7 @@ function cancelImport() {
         totalColumns = 0;
         currentDisplayData = [];
         currentPage = 1;
+        isCustomizationApplied = false;
         
         // Hide column tools
         document.getElementById('columnTools').style.display = 'none';
