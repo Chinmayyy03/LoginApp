@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dailyTform" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ebc06a81-9ea3-4f2f-9478-e5ef8edaaee2">
 	<property name="ireport.zoom" value="1.8627639691774651"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="107"/>
+	<property name="ireport.y" value="217"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
 	</parameter>
@@ -408,7 +408,7 @@
 				<reportElement x="-1" y="0" width="802" height="1" uuid="88b69443-f31c-46bc-bdfb-a179e4c8cc9a"/>
 			</line>
 			<textField pattern="#,##0.00">
-				<reportElement x="68" y="47" width="50" height="17" uuid="ce9ce459-14ad-45b1-8c42-4274edff82ff"/>
+				<reportElement x="68" y="45" width="54" height="17" uuid="ce9ce459-14ad-45b1-8c42-4274edff82ff"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{TOTAL_CREDIT}]]></textFieldExpression>
 			</textField>
@@ -439,7 +439,7 @@
 				<text><![CDATA[Total Cash :]]></text>
 			</staticText>
 			<textField pattern=" #,##0.00">
-				<reportElement x="67" y="72" width="36" height="15" uuid="e7a2e869-9aec-4493-932b-0c90bb91b69c"/>
+				<reportElement x="79" y="72" width="54" height="15" uuid="e7a2e869-9aec-4493-932b-0c90bb91b69c"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{TOTAL_CASH}]]></textFieldExpression>
 			</textField>
@@ -463,7 +463,7 @@
 				<text><![CDATA[Total TRDR :]]></text>
 			</staticText>
 			<textField pattern="#,##0.00">
-				<reportElement x="67" y="95" width="36" height="17" uuid="2b7339cb-491e-4cf4-aeb7-2667b5c83ec6"/>
+				<reportElement x="81" y="95" width="57" height="17" uuid="2b7339cb-491e-4cf4-aeb7-2667b5c83ec6"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{TOTAL_TRDR}]]></textFieldExpression>
 			</textField>
@@ -499,7 +499,7 @@
 				<textFieldExpression><![CDATA[$P{CLOSING_BALANCE}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00" isBlankWhenNull="false">
-				<reportElement x="92" y="127" width="32" height="15" uuid="336a565c-0682-4b98-8236-638b95546b6c"/>
+				<reportElement x="92" y="124" width="32" height="20" uuid="336a565c-0682-4b98-8236-638b95546b6c"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{OPENING_BALANCE}]]></textFieldExpression>
 			</textField>
