@@ -166,13 +166,12 @@ input[readonly]{
 
 /* Hide default browser password reveal eye */
 
-/* Microsoft Edge / IE */
+
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
 }
 
-/* Chrome / Safari (WebKit) */
 input[type="password"]::-webkit-credentials-auto-fill-button,
 input[type="password"]::-webkit-textfield-decoration-container,
 input[type="password"]::-webkit-clear-button,
@@ -447,7 +446,7 @@ input[type="password"] {
         </svg>
     </span>
 </div>
-<div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+<div class="error-message" id="confirmPasswordError">Passwords does not match</div>
 </div>
 
 </div>

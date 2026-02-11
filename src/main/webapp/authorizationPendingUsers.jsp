@@ -28,6 +28,10 @@ body{
     padding: 20px;
 }
 
+html, body{
+    overflow-x: hidden;
+}
+
 /* CONTAINER */
 .container{
     max-width: 1400px;
@@ -65,8 +69,10 @@ h2{
     background: #fff;
     border-radius: 6px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.10);
-    overflow: hidden;
-    border: 1px solid #B8B8E6;  /* Lighter border to match */
+    overflow: auto;
+    border: 1px solid #B8B8E6;
+    overflow: auto;       
+    max-height: 500px;  
 }
 
 /* TABLE */
@@ -85,7 +91,7 @@ th{
     color: #FFFFFF;
     padding: 6px 8px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12.5px;
     border-right: 1px solid rgba(255,255,255,0.2);  /* Lighter separator */
 }
@@ -100,7 +106,7 @@ tbody tr:nth-child(even){ background: #FFFFFF; }
 
 td{
     padding: 5px 8px;
-    text-align: center;
+    text-align: left;
     border-right: 1px solid #e3e3e3;
 }
 
@@ -110,14 +116,14 @@ td:last-child{
 
 /* BUTTON */
 .action-btn{
-    background: #303F9F;  /* Matches table header color */
+    background: #2b0d73;  /* Matches table header color */
     color: #FFFFFF;
     border: none;
     padding: 3px 10px;
     border-radius: 3px;
     font-size: 12px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .action-btn:hover{

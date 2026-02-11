@@ -169,7 +169,11 @@ input[readonly] { background-color: var(--readonly-bg); }
     <fieldset>
     <legend>User Details</legend>
     <div class="grid-row-1" style="grid-template-columns: repeat(4, 1fr);">
-        <div class="form-group"><label>User Id</label><input type="text" name="userId" required></div>
+        <div class="form-group"><label>User Id</label><input type="text" id="userId" name="userId" onblur="checkUserId()" required>      
+    <!-- Message under field -->
+    <span id="userIdMsg" style="font-size:12px;"></span>
+</div>
+
         <div class="form-group"><label>User Name</label><input type="text" name="userName" required></div>
         <div class="form-group"><label>Branch Code</label><input type="text" name="branchCode" value="<%=sessionBranchCode%>" readonly></div>
         <div class="form-group"><label>Branch Name</label><input type="text" value="<%=branchName%>" readonly></div>
@@ -265,6 +269,8 @@ function openCustomerLookup() {
 }
 
 function closeCustomerLookup() { document.getElementById('customerLookupModal').style.display = 'none'; }
+
+
 </script>
 </body>
 </html>
