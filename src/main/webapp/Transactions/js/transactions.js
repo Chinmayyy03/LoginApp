@@ -967,40 +967,28 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
         return;
     }
     
-    const transaction = creditAccountsData[index];
-    const accountCode = transaction.code;
-    const amount = transaction.amount;
-    const particular = transaction.particular;
-    const opType = transaction.opType;
-    
-    console.log('Processing transaction ' + (index + 1) + '/' + creditAccountsData.length + 
-                ': ' + opType + ' for account ' + accountCode);
-    
-    // Determine transaction indicator based on opType
-    const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
-    
-    // For transfer, get the opposite account code as forAccountCode
-    const oppositeTransaction = creditAccountsData.find(t => 
-        t.opType !== opType && t.id !== transaction.id
-    );
-    const forAccountCode = oppositeTransaction ? oppositeTransaction.code : '';
-    
-    // ✅ Get new account balance from iframe — per transaction type
-    const balances = getNewAccountBalanceFromIframe();
+	const transaction = creditAccountsData[index];
+	const accountCode = transaction.code;
+	const amount = transaction.amount;
+	const particular = transaction.particular;
+	const opType = transaction.opType;
 
-    if (balances === null) {
-        showToast('❌ Could not read account balance from iframe. Please wait for the page to load.', 'error');
-        window.transferBatchInProgress = false;
-        return;
-    }
+	console.log('Processing transaction ' + (index + 1) + '/' + creditAccountsData.length + 
+	            ': ' + opType + ' for account ' + accountCode);
 
-    // ✅ Pick correct balance based on this transaction's opType
-    let newAccountBalance;
-    if (typeof balances === 'object' && balances.debit !== undefined) {
-        newAccountBalance = (opType === 'Debit') ? balances.debit : balances.credit;
-    } else {
-        newAccountBalance = balances; // fallback for non-transfer
-    }
+	// Determine transaction indicator based on opType
+	const transactionIndicator = opType === 'Credit' ? 'TRCR' : 'TRDR';
+
+	// For transfer, get the opposite account code as forAccountCode
+	const oppositeTransaction = creditAccountsData.find(t => 
+	    t.opType !== opType && t.id !== transaction.id
+	);
+	const forAccountCode = oppositeTransaction ? oppositeTransaction.code : '';
+
+	// ✅ CRITICAL FIX: Use the balance that was stored when adding to the list
+	const newAccountBalance = transaction.newAccountBalance || '0.00';
+
+	console.log('Using stored balance for ' + opType + ' account ' + accountCode + ': ' + newAccountBalance);
     
     // Create form data for POST request
     const formData = new URLSearchParams();
@@ -1196,10 +1184,24 @@ function calculateNewBalanceInIframe() {
 	        return;
 	    }
 
-	    const finalAmount = parseFloat(transactionAmount).toFixed(2);
+		const finalAmount = parseFloat(transactionAmount).toFixed(2);
 
-	    // ✅ FIXED: Collect loan field values if it's a loan account
-	    let loanFieldsData = {};
+		// ✅ CRITICAL FIX: Get and store the calculated balance from iframe NOW
+		const balances = getNewAccountBalanceFromIframe();
+		let newAccountBalance = '0.00';
+
+		if (balances) {
+		    if (typeof balances === 'object' && balances.debit !== undefined) {
+		        // Transfer mode - select correct balance based on opType
+		        newAccountBalance = (opType === 'Debit') ? balances.debit : balances.credit;
+		    } else {
+		        // Non-transfer mode
+		        newAccountBalance = balances;
+		    }
+		}
+
+		// ✅ FIXED: Collect loan field values if it's a loan account
+		let loanFieldsData = {};
 	    if (accountCategory === 'loan' || accountCategory === 'cc') {
 	        loanRecoveryColumns.forEach(function(col) {
 	            if (!col || !col.columnName) return;
@@ -1235,16 +1237,17 @@ function calculateNewBalanceInIframe() {
 			};
 	    }
 
-	    // ✅ Add to data array WITH loan fields data
-	    creditAccountsData.push({
-	        id: Date.now(),
-	        code: accountCode,
-	        name: accountName,
-	        amount: finalAmount,
-	        particular: particular,
-	        opType: opType,
-	        loanFields: loanFieldsData
-	    });
+		// ✅ Add to data array WITH loan fields data AND calculated balance
+		creditAccountsData.push({
+		    id: Date.now(),
+		    code: accountCode,
+		    name: accountName,
+		    amount: finalAmount,
+		    particular: particular,
+		    opType: opType,
+		    loanFields: loanFieldsData,
+		    newAccountBalance: newAccountBalance // ✅ STORE BALANCE HERE
+		});
 
 	    // Clear input fields
 	    document.getElementById('accountCode').value = '';
