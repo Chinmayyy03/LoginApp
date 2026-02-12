@@ -11,8 +11,10 @@
 /* ===== PAGE BACKGROUND ===== */
 body {
     margin: 0;
-    background: linear-gradient(135deg, #e9ecff, #f4f6ff);
+    background: transparent;
 }
+
+
 
 /* ===== MAIN FORM CONTAINER ===== */
 .report-container {

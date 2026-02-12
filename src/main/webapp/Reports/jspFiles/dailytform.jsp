@@ -458,7 +458,8 @@ if (!"download".equals(action)) {
 <html>
 <head>
     <title>Daily Supplementary Report_TForm</title>
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/Reports/common-report.css?v=4">
+<link rel="stylesheet"
+      href="<%=request.getContextPath()%>/Reports/common-report.css">
    
 </head>
 

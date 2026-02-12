@@ -42,9 +42,14 @@
 
 <div class="container">
 
-    <div class="page-title">
-        <h2>Report List</h2>
+     <!-- SEARCH BAR -->
+    <div class="search-box">
+        <input type="text"
+               id="tableSearch"
+               placeholder="🔍 Search by Program Name...."
+               onkeyup="filterTable()">
     </div>
+
 
     <div class="card-wrapper">
 
@@ -198,6 +203,31 @@ function closeForm() {
     document.getElementById("formFrame").src = "";
 }
 </script>
+
+<script>
+function filterTable() {
+    let input = document.getElementById("tableSearch");
+    let filter = input.value.toUpperCase();
+    let table = document.querySelector(".program-table");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let tds = tr[i].getElementsByTagName("td");
+        let found = false;
+
+        for (let j = 0; j < tds.length; j++) {
+            if (tds[j].innerText.toUpperCase().includes(filter)) {
+                found = true;
+                break;
+            }
+        }
+
+        tr[i].style.display = found ? "" : "none";
+    }
+}
+</script>
+
+
 
 </body>
 </html>
