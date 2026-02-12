@@ -30,6 +30,22 @@
             if (rs.next()) {
                 session.setAttribute("userId", userId);
                 session.setAttribute("branchCode", branchCode);
+                
+                // Insert login history
+                PreparedStatement historyStmt = null;
+                try {
+                    String historySql = "INSERT INTO ACL.USERREGISTERLOGINHISTORY (USER_ID, BRANCH_CODE, LOGIN_TIME) VALUES (?, ?, SYSDATE)";
+                    historyStmt = conn.prepareStatement(historySql);
+                    historyStmt.setString(1, userId);
+                    historyStmt.setString(2, branchCode);
+                    historyStmt.executeUpdate();
+                } catch (Exception historyEx) {
+                    // Log the error but don't prevent login
+                    System.err.println("Error inserting login history: " + historyEx.getMessage());
+                } finally {
+                    try { if (historyStmt != null) historyStmt.close(); } catch (Exception ignored) {}
+                }
+                
                 response.sendRedirect("main.jsp");
                 showForm = false;
             } else {
