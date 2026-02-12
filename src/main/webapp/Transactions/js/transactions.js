@@ -832,21 +832,32 @@ function proceedWithSave() {
     }
 }
 
-// ✅ NEW FUNCTION: Get new account balance from iframe
 function getNewAccountBalanceFromIframe() {
     const iframe = document.getElementById('resultFrame');
-    
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+
     try {
         const iframeWindow = iframe.contentWindow;
         const iframeDoc = iframeWindow.document;
-        
+
+        if (operationType === 'transfer') {
+            // For transfer, return both balances as an object
+            const debitNew = iframeDoc.getElementById('newLedgerBalance');
+            const creditNew = iframeDoc.getElementById('creditNewLedgerBalance');
+
+            return {
+                debit: (debitNew && debitNew.value.trim() !== '') ? debitNew.value.trim() : '0.00',
+                credit: (creditNew && creditNew.value.trim() !== '') ? creditNew.value.trim() : '0.00'
+            };
+        }
+
+        // Deposit / Withdrawal
         const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
         const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
-        
-        // Priority: New Ledger Balance > Ledger Balance > 0.00
-        if (newLedgerBalanceField && newLedgerBalanceField.value && newLedgerBalanceField.value.trim() !== '') {
+
+        if (newLedgerBalanceField && newLedgerBalanceField.value.trim() !== '') {
             return newLedgerBalanceField.value.trim();
-        } else if (ledgerBalanceField && ledgerBalanceField.value && ledgerBalanceField.value.trim() !== '') {
+        } else if (ledgerBalanceField && ledgerBalanceField.value.trim() !== '') {
             return ledgerBalanceField.value.trim();
         } else {
             return '0.00';
@@ -923,7 +934,7 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
 
 // Save transactions from creditAccountsData array sequentially - MODIFIED WITH AUTHORIZATION MODAL
 function saveTransactionsSequentially(index, sessionWorkingDate) {
-    // ✅ FIX 1: Initialize scroll number tracking on first call
+    // Initialize scroll number tracking on first call
     if (index === 0) {
         window.currentTransferScrollNumber = null;
         window.transferBatchInProgress = true;
@@ -932,7 +943,6 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     
     if (index >= creditAccountsData.length) {
         // All transactions saved successfully
-        // ✅ SHOW AUTHORIZATION MODAL FOR TRANSFER
         const firstTransaction = creditAccountsData[0];
         showAuthorizationModal(firstTransaction.code, window.currentTransferScrollNumber, 'transfer');
         
@@ -975,13 +985,21 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     );
     const forAccountCode = oppositeTransaction ? oppositeTransaction.code : '';
     
-    // ✅ Get new account balance from iframe
-    const newAccountBalance = getNewAccountBalanceFromIframe();
-    
-    if (newAccountBalance === null) {
+    // ✅ Get new account balance from iframe — per transaction type
+    const balances = getNewAccountBalanceFromIframe();
+
+    if (balances === null) {
         showToast('❌ Could not read account balance from iframe. Please wait for the page to load.', 'error');
         window.transferBatchInProgress = false;
         return;
+    }
+
+    // ✅ Pick correct balance based on this transaction's opType
+    let newAccountBalance;
+    if (typeof balances === 'object' && balances.debit !== undefined) {
+        newAccountBalance = (opType === 'Debit') ? balances.debit : balances.credit;
+    } else {
+        newAccountBalance = balances; // fallback for non-transfer
     }
     
     // Create form data for POST request
@@ -992,9 +1010,9 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     formData.append('particular', particular || '');
     formData.append('operationType', 'transfer');
     formData.append('forAccountCode', forAccountCode);
-    formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
+    formData.append('newAccountBalance', newAccountBalance); // ✅ correct per-opType balance
     
-    // ✅ FIX 2: Handle scroll number parameters correctly
+    // Handle scroll number parameters correctly
     if (index === 0) {
         // First transaction - servlet will generate new scroll number
         console.log('→ First transaction - servlet will generate new scroll number');
@@ -1006,7 +1024,7 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
         console.log('→ Transaction #' + (index + 1) + ' - Reusing scroll number: ' + 
                     window.currentTransferScrollNumber + ', subscroll: ' + (index + 1));
     } else {
-        // This should not happen - means first transaction response wasn't received
+        // This should not happen
         console.error('ERROR: Scroll number not available for transaction ' + (index + 1));
         showToast('❌ Error: Previous transaction not completed', 'error');
         window.transferBatchInProgress = false;
@@ -1027,12 +1045,11 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
             console.error('❌ Save failed:', data.error);
             showToast('❌ Failed to save ' + opType + ' transaction for account ' + 
                      accountCode + ': ' + data.error, 'error');
-            // Reset scroll number on error
             window.currentTransferScrollNumber = null;
             window.transferBatchInProgress = false;
-            return; // Stop saving
+            return;
         } else if (data.success) {
-            // ✅ FIX 3: Store scroll number from FIRST transaction response
+            // Store scroll number from FIRST transaction response
             if (index === 0 && data.scrollNumber) {
                 window.currentTransferScrollNumber = data.scrollNumber;
                 console.log('✓ Stored scroll number from first transaction: ' + 
@@ -1045,31 +1062,27 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
                            window.currentTransferScrollNumber + ', got ' + data.scrollNumber);
             }
             
-            // ✅ REPLACE TOAST WITH PROGRESS MESSAGE FOR INTERMEDIATE TRANSACTIONS
-            const scrollDisplay = data.scrollNumber + '-' + data.subscrollNumber;
             console.log('✓ Transaction saved: Scroll ' + data.scrollNumber + 
                        ', Subscroll ' + data.subscrollNumber);
             
-            // ✅ FIX 4: Continue to next transaction after adequate delay
+            // Continue to next transaction
             setTimeout(() => {
                 saveTransactionsSequentially(index + 1, sessionWorkingDate);
             }, 800);
         } else {
             console.error('❌ Save failed:', data.message);
             showToast('❌ Failed to save transaction: ' + data.message, 'error');
-            // Reset scroll number on error
             window.currentTransferScrollNumber = null;
             window.transferBatchInProgress = false;
-            return; // Stop saving
+            return;
         }
     })
     .catch(error => {
         console.error('❌ Network error for account ' + accountCode + ':', error);
         showToast('❌ Network error saving account ' + accountCode, 'error');
-        // Reset scroll number on error
         window.currentTransferScrollNumber = null;
         window.transferBatchInProgress = false;
-        return; // Stop saving
+        return;
     });
 }
 
@@ -1077,43 +1090,80 @@ function calculateNewBalanceInIframe() {
     const transactionAmount = parseFloat(document.getElementById('transactionamount').value) || 0;
     const operationType = document.querySelector("input[name='operationType']:checked").value;
     const accountCategory = document.getElementById('accountCategory').value;
-    
+    const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+
     const iframe = document.getElementById('resultFrame');
-    
+
     try {
         const iframeWindow = iframe.contentWindow;
         const iframeDoc = iframeWindow.document;
-        
+
+        // ===== TRANSFER MODE =====
+        if (operationType === 'transfer') {
+            const shouldUseSequential = (accountCategory === 'loan' || accountCategory === 'cc') 
+                                        && opType === 'Credit';
+
+            if (shouldUseSequential) {
+                calculateSequentialLoanDeduction();
+                return;
+            }
+
+            if (opType === 'Debit') {
+                // Debit: subtract from debit account ledger balance
+                const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+                const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+
+                if (ledgerBalanceField && newLedgerBalanceField) {
+                    const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+                    const newBalance = transactionAmount > 0 
+                        ? (ledgerBalance - transactionAmount) 
+                        : ledgerBalance;
+                    newLedgerBalanceField.value = newBalance.toFixed(2);
+                }
+
+            } else if (opType === 'Credit') {
+                // Credit: add to credit account ledger balance
+                const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+                const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
+
+                if (ledgerBalanceField && newLedgerBalanceField) {
+                    const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+                    const newBalance = transactionAmount > 0 
+                        ? (ledgerBalance + transactionAmount) 
+                        : ledgerBalance;
+                    newLedgerBalanceField.value = newBalance.toFixed(2);
+                }
+            }
+            return;
+        }
+
+        // ===== DEPOSIT / WITHDRAWAL MODE =====
         const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
         const newLedgerBalanceField = iframeDoc.getElementById('newLedgerBalance');
-        
+
         if (ledgerBalanceField && newLedgerBalanceField) {
             const ledgerBalance = parseFloat(ledgerBalanceField.value) || 0;
             let newLedgerBalance = ledgerBalance;
-            
+
             if (transactionAmount > 0) {
-                // For loan accounts with deposit/credit, use sequential deduction
-                const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
-                const shouldUseSequential = (accountCategory === 'loan' || accountCategory === 'cc') && 
-                                           ((operationType === 'deposit') || 
-                                            (operationType === 'transfer' && opType === 'Credit'));
-                
+                const shouldUseSequential = (accountCategory === 'loan' || accountCategory === 'cc') 
+                                            && operationType === 'deposit';
+
                 if (shouldUseSequential) {
-                    // Call sequential deduction function
                     calculateSequentialLoanDeduction();
-                    return; // Let sequential function handle everything
+                    return;
                 }
-                
-                // Normal calculation for non-loan or withdrawal
+
                 if (operationType === 'deposit') {
                     newLedgerBalance = ledgerBalance + transactionAmount;
                 } else if (operationType === 'withdrawal') {
                     newLedgerBalance = ledgerBalance - transactionAmount;
                 }
             }
-            
+
             newLedgerBalanceField.value = newLedgerBalance.toFixed(2);
         }
+
     } catch (e) {
         console.error('Error calculating balance:', e);
     }

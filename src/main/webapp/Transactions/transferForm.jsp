@@ -294,14 +294,17 @@ function checkDebitAccountDetails() {
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
-                document.getElementById('glAccountCode').value = data.glAccountCode || '';
-                document.getElementById('glAccountName').value = data.glAccountName || '';
-                document.getElementById('customerId').value = data.customerId || '';
-                document.getElementById('aadharnumber').value = data.aadharNumber || '';
-                document.getElementById('pannumber').value = data.panNumber || '';
-                document.getElementById('zipcode').value = data.zipcode || '';
-                document.getElementById('ledgerBalance').value = data.ledgerBalance || '0.00';
+                document.getElementById('glAccountCode').value    = data.glAccountCode || '';
+                document.getElementById('glAccountName').value    = data.glAccountName || '';
+                document.getElementById('customerId').value       = data.customerId || '';
+                document.getElementById('aadharnumber').value     = data.aadharNumber || '';
+                document.getElementById('pannumber').value        = data.panNumber || '';
+                document.getElementById('zipcode').value          = data.zipcode || '';
+                document.getElementById('ledgerBalance').value    = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
+                
+                // ✅ Initialize newLedgerBalance = ledgerBalance (will be recalculated by parent)
+                document.getElementById('newLedgerBalance').value = data.ledgerBalance || '0.00';
             }
         })
         .catch(error => {
@@ -332,15 +335,17 @@ function checkCreditAccountDetails() {
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
-                document.getElementById('creditGlAccountCode').value = data.glAccountCode || '';
-                document.getElementById('creditGlAccountName').value = data.glAccountName || '';
-                document.getElementById('creditCustomerId').value = data.customerId || '';
-                document.getElementById('creditLedgerBalance').value = data.ledgerBalance || '0.00';
+                document.getElementById('creditGlAccountCode').value    = data.glAccountCode || '';
+                document.getElementById('creditGlAccountName').value    = data.glAccountName || '';
+                document.getElementById('creditCustomerId').value       = data.customerId || '';
+                document.getElementById('creditLedgerBalance').value    = data.ledgerBalance || '0.00';
                 document.getElementById('creditAvailableBalance').value = data.availableBalance || '0.00';
-                // ADD THESE NEW LINES:
-                document.getElementById('creditAadharnumber').value = data.aadharNumber || '';
-                document.getElementById('creditPannumber').value = data.panNumber || '';
-                document.getElementById('creditZipcode').value = data.zipcode || '';
+                document.getElementById('creditAadharnumber').value     = data.aadharNumber || '';
+                document.getElementById('creditPannumber').value        = data.panNumber || '';
+                document.getElementById('creditZipcode').value          = data.zipcode || '';
+                
+                // ✅ Initialize creditNewLedgerBalance = creditLedgerBalance (will be recalculated by parent)
+                document.getElementById('creditNewLedgerBalance').value = data.ledgerBalance || '0.00';
             }
         })
         .catch(error => {
