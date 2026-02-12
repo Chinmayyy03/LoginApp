@@ -262,16 +262,12 @@ function validateForm() {
 function checkDebitAccountDetails() {
     const accountCode = '<%= accountCode %>';
     const accountCategory = '<%= accountCategory %>';
-    
-    console.log('Debit Account Code:', accountCode);
-    console.log('Account Category:', accountCategory);
-    
+
     if (!accountCode) {
         showToast('No debit account selected', 'error');
         return;
     }
-    
-    // Show/hide fields based on account category
+
     if (accountCategory === 'loan' || accountCategory === 'cc') {
         document.getElementById('limitAmount').closest('div').style.display = 'flex';
         document.getElementById('drawingPower').closest('div').style.display = 'flex';
@@ -281,16 +277,10 @@ function checkDebitAccountDetails() {
         document.getElementById('drawingPower').closest('div').style.display = 'none';
         document.getElementById('accountReviewDate').closest('div').style.display = 'none';
     }
-    
-    // Fetch debit account details
+
     fetch('GetAccountDetails.jsp?accountCode=' + encodeURIComponent(accountCode))
-        .then(response => {
-            console.log('Debit Account Response status:', response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Debit Account Data received:', data);
-            
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
@@ -302,9 +292,15 @@ function checkDebitAccountDetails() {
                 document.getElementById('zipcode').value          = data.zipcode || '';
                 document.getElementById('ledgerBalance').value    = data.ledgerBalance || '0.00';
                 document.getElementById('availableBalance').value = data.availableBalance || '0.00';
-                
-                // ✅ Initialize newLedgerBalance = ledgerBalance (will be recalculated by parent)
-                document.getElementById('newLedgerBalance').value = data.ledgerBalance || '0.00';
+
+                // ✅ Get txnAmount passed from parent window via URL param
+                const urlParams = new URLSearchParams(window.location.search);
+                const txnAmount = parseFloat(urlParams.get('txnAmount')) || 0;
+                const ledgerBalance = parseFloat(data.ledgerBalance) || 0;
+
+                // ✅ Debit: subtract txnAmount from ledgerBalance
+                document.getElementById('newLedgerBalance').value = 
+                    (ledgerBalance - txnAmount).toFixed(2);
             }
         })
         .catch(error => {
@@ -315,23 +311,15 @@ function checkDebitAccountDetails() {
 
 function checkCreditAccountDetails() {
     const creditAccountCode = '<%= creditAccountCode %>';
-    
-    console.log('Credit Account Code:', creditAccountCode);
-    
+
     if (!creditAccountCode) {
         showToast('No credit account selected', 'error');
         return;
     }
-    
-    // Fetch credit account details
+
     fetch('GetAccountDetails.jsp?accountCode=' + encodeURIComponent(creditAccountCode))
-        .then(response => {
-            console.log('Credit Account Response status:', response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Credit Account Data received:', data);
-            
             if (data.error) {
                 showToast('Error: ' + data.error, 'error');
             } else {
@@ -343,9 +331,15 @@ function checkCreditAccountDetails() {
                 document.getElementById('creditAadharnumber').value     = data.aadharNumber || '';
                 document.getElementById('creditPannumber').value        = data.panNumber || '';
                 document.getElementById('creditZipcode').value          = data.zipcode || '';
-                
-                // ✅ Initialize creditNewLedgerBalance = creditLedgerBalance (will be recalculated by parent)
-                document.getElementById('creditNewLedgerBalance').value = data.ledgerBalance || '0.00';
+
+                // ✅ Get txnAmount passed from parent window via URL param
+                const urlParams = new URLSearchParams(window.location.search);
+                const txnAmount = parseFloat(urlParams.get('txnAmount')) || 0;
+                const creditLedgerBalance = parseFloat(data.ledgerBalance) || 0;
+
+                // ✅ Credit: add txnAmount to creditLedgerBalance
+                document.getElementById('creditNewLedgerBalance').value = 
+                    (creditLedgerBalance + txnAmount).toFixed(2);
             }
         })
         .catch(error => {

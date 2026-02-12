@@ -1393,17 +1393,22 @@ function updateTotals() {
 function loadAccountInTransferForm(accountCode, accountName, opType) {
     const operationType = document.querySelector("input[name='operationType']:checked").value;
     const accountCategory = document.getElementById('accountCategory').value;
-    
+
     if (operationType !== 'transfer') {
         showToast('This feature only works in transfer mode', 'warning');
         return;
     }
-    
+
+    // ✅ Get txnAmount for this account from creditAccountsData
+    const transaction = creditAccountsData.find(acc => acc.code === accountCode);
+    const txnAmount = transaction ? parseFloat(transaction.amount) || 0 : 0;
+
     // Build URL with parameters
     let url = 'transferForm.jsp?';
     url += 'operationType=' + encodeURIComponent(operationType);
     url += '&accountCategory=' + encodeURIComponent(accountCategory);
-    
+    url += '&txnAmount=' + txnAmount; // ✅ Pass amount to iframe
+
     if (opType === 'Debit') {
         url += '&accountCode=' + encodeURIComponent(accountCode);
         url += '&accountName=' + encodeURIComponent(accountName);
@@ -1415,42 +1420,40 @@ function loadAccountInTransferForm(accountCode, accountName, opType) {
         url += '&creditAccountCode=' + encodeURIComponent(accountCode);
         url += '&creditAccountName=' + encodeURIComponent(accountName);
     }
-    
-    // Load in iframe
-    document.getElementById('resultFrame').src = url;
 
-    // ✅ UPDATED: Restore loan data and values
+    // Load in iframe
+    const iframe = document.getElementById('resultFrame');
+    iframe.src = url;
+
+    // ✅ No need for iframe.onload balance calculation anymore
+    // transferForm.jsp handles it internally via txnAmount URL param
+
+    // Handle loan/cc account restore
     if (accountCategory === 'loan' || accountCategory === 'cc') {
-        // Find the transaction in creditAccountsData
-        const transaction = creditAccountsData.find(acc => acc.code === accountCode);
-        
-        if (transaction) {
-            // Set transaction amount
-            document.getElementById('transactionamount').value = transaction.amount;
-            
-            // Fetch loan receivable data first
-            setTimeout(() => {
-                fetchLoanReceivableData(accountCode);
-                
-                // ✅ RESTORE saved loan field values
+        iframe.onload = function() {
+            if (transaction) {
+                document.getElementById('transactionamount').value = transaction.amount;
+
                 setTimeout(() => {
-                    if (transaction.loanFields) {
-                        // Restore all loan field values
-                        for (const fieldName in transaction.loanFields) {
-                            const fieldData = transaction.loanFields[fieldName];
-                            
-                            const receivableEl = document.getElementById(fieldName + 'Receivable');
-                            const receivedEl = document.getElementById(fieldName + 'Received');
-                            const remainingEl = document.getElementById(fieldName + 'Remaining');
-                            
-                            if (receivableEl) receivableEl.value = fieldData.receivable || '';
-                            if (receivedEl) receivedEl.value = fieldData.received || '';
-                            if (remainingEl) remainingEl.value = fieldData.remaining || '';
+                    fetchLoanReceivableData(accountCode);
+
+                    setTimeout(() => {
+                        if (transaction.loanFields) {
+                            for (const fieldName in transaction.loanFields) {
+                                const fieldData = transaction.loanFields[fieldName];
+                                const receivableEl = document.getElementById(fieldName + 'Receivable');
+                                const receivedEl   = document.getElementById(fieldName + 'Received');
+                                const remainingEl  = document.getElementById(fieldName + 'Remaining');
+                                if (receivableEl) receivableEl.value = fieldData.receivable || '';
+                                if (receivedEl)   receivedEl.value   = fieldData.received   || '';
+                                if (remainingEl)  remainingEl.value  = fieldData.remaining  || '';
+                            }
                         }
-                    }
-                }, 500);
-            }, 1000);
-        }
+                    }, 500);
+                }, 1000);
+            }
+            iframe.onload = null;
+        };
     }
 }
 	const opTypeSelect = document.getElementById('opType');
