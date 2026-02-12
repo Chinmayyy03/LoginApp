@@ -1184,24 +1184,54 @@ function calculateNewBalanceInIframe() {
 	        return;
 	    }
 
-		const finalAmount = parseFloat(transactionAmount).toFixed(2);
+	    const finalAmount = parseFloat(transactionAmount).toFixed(2);
 
-		// ✅ CRITICAL FIX: Get and store the calculated balance from iframe NOW
-		const balances = getNewAccountBalanceFromIframe();
-		let newAccountBalance = '0.00';
+	    // ✅ NEW FIX: Calculate balance from CURRENT iframe state
+	    let newAccountBalance = '0.00';
+	    const iframe = document.getElementById('resultFrame');
 
-		if (balances) {
-		    if (typeof balances === 'object' && balances.debit !== undefined) {
-		        // Transfer mode - select correct balance based on opType
-		        newAccountBalance = (opType === 'Debit') ? balances.debit : balances.credit;
-		    } else {
-		        // Non-transfer mode
-		        newAccountBalance = balances;
-		    }
-		}
+	    try {
+	        const iframeWindow = iframe.contentWindow;
+	        const iframeDoc = iframeWindow.document;
+	        
+	        // Get the ledger balance from the iframe (current account being displayed)
+	        let currentLedgerBalance = 0;
+	        
+	        if (opType === 'Debit') {
+	            // For Debit, check if debit section exists
+	            const ledgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+	            if (ledgerBalanceField && ledgerBalanceField.value.trim() !== '') {
+	                currentLedgerBalance = parseFloat(ledgerBalanceField.value) || 0;
+	                // Debit: subtract amount
+	                newAccountBalance = (currentLedgerBalance - parseFloat(finalAmount)).toFixed(2);
+	            }
+	        } else if (opType === 'Credit') {
+	            // For Credit, check BOTH sections (credit might be in either field depending on iframe load state)
+	            const creditLedgerBalanceField = iframeDoc.getElementById('creditLedgerBalance');
+	            const regularLedgerBalanceField = iframeDoc.getElementById('ledgerBalance');
+	            
+	            if (creditLedgerBalanceField && creditLedgerBalanceField.value.trim() !== '') {
+	                // Credit section exists (transferForm.jsp loaded with credit account)
+	                currentLedgerBalance = parseFloat(creditLedgerBalanceField.value) || 0;
+	            } else if (regularLedgerBalanceField && regularLedgerBalanceField.value.trim() !== '') {
+	                // Regular section exists (transactionForm.jsp loaded with credit account)
+	                currentLedgerBalance = parseFloat(regularLedgerBalanceField.value) || 0;
+	            }
+	            
+	            // Credit: add amount
+	            newAccountBalance = (currentLedgerBalance + parseFloat(finalAmount)).toFixed(2);
+	        }
+	        
+	        console.log('Captured ' + opType + ' balance: ' + newAccountBalance + ' (Ledger: ' + currentLedgerBalance + ', Amount: ' + finalAmount + ')');
+	        
+	    } catch (e) {
+	        console.error('Error reading balance from iframe:', e);
+	        showToast('Could not read account balance. Please try again.', 'error');
+	        return;
+	    }
 
-		// ✅ FIXED: Collect loan field values if it's a loan account
-		let loanFieldsData = {};
+	    // ✅ FIXED: Collect loan field values if it's a loan account
+	    let loanFieldsData = {};
 	    if (accountCategory === 'loan' || accountCategory === 'cc') {
 	        loanRecoveryColumns.forEach(function(col) {
 	            if (!col || !col.columnName) return;
@@ -1219,35 +1249,35 @@ function calculateNewBalanceInIframe() {
 	            };
 	        });
 	        
-			// ✅ Add total field
-			const totalReceivableEl = document.getElementById('totalReceivable');
-			const totalReceivedEl = document.getElementById('totalReceived');
-			const totalRemainingEl = document.getElementById('totalRemaining');
+	        // ✅ Add total field
+	        const totalReceivableEl = document.getElementById('totalReceivable');
+	        const totalReceivedEl = document.getElementById('totalReceived');
+	        const totalRemainingEl = document.getElementById('totalRemaining');
 
-			loanFieldsData['total'] = {
-			    receivable: totalReceivableEl ? totalReceivableEl.value : '',
-			    received: totalReceivedEl ? totalReceivedEl.value : '',
-			    remaining: totalRemainingEl ? totalRemainingEl.value : ''
-			};
-			
-			// ✅ Add principle field
-			const principleReceivedEl = document.getElementById('principleReceived');
-			loanFieldsData['principle'] = {
-			    received: principleReceivedEl ? principleReceivedEl.value : ''
-			};
+	        loanFieldsData['total'] = {
+	            receivable: totalReceivableEl ? totalReceivableEl.value : '',
+	            received: totalReceivedEl ? totalReceivedEl.value : '',
+	            remaining: totalRemainingEl ? totalRemainingEl.value : ''
+	        };
+	        
+	        // ✅ Add principle field
+	        const principleReceivedEl = document.getElementById('principleReceived');
+	        loanFieldsData['principle'] = {
+	            received: principleReceivedEl ? principleReceivedEl.value : ''
+	        };
 	    }
 
-		// ✅ Add to data array WITH loan fields data AND calculated balance
-		creditAccountsData.push({
-		    id: Date.now(),
-		    code: accountCode,
-		    name: accountName,
-		    amount: finalAmount,
-		    particular: particular,
-		    opType: opType,
-		    loanFields: loanFieldsData,
-		    newAccountBalance: newAccountBalance // ✅ STORE BALANCE HERE
-		});
+	    // ✅ Add to data array WITH loan fields data AND calculated balance
+	    creditAccountsData.push({
+	        id: Date.now(),
+	        code: accountCode,
+	        name: accountName,
+	        amount: finalAmount,
+	        particular: particular,
+	        opType: opType,
+	        loanFields: loanFieldsData,
+	        newAccountBalance: newAccountBalance // ✅ STORE CALCULATED BALANCE HERE
+	    });
 
 	    // Clear input fields
 	    document.getElementById('accountCode').value = '';
