@@ -274,6 +274,51 @@
         </button>
     </div>
 </div>
+
+<!-- Validation Error Modal -->
+<div id="validationErrorModal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+">
+    <div style="
+        background: white;
+        width: 480px;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        text-align: center;
+    ">
+        <div style="color: #e53935; font-size: 48px; margin-bottom: 20px;">✕</div>
+        <div id="validationErrorMessage" style="
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        "></div>
+        <button onclick="closeValidationErrorModal()" style="
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 12px 50px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        " onmouseover="this.style.background='#c62828'"
+           onmouseout="this.style.background='#e53935'">
+            OK
+        </button>
+    </div>
+</div>
+
 <!-- SINGLE LOOKUP MODAL -->
 <div id="lookupModal" style="
     display:none; 

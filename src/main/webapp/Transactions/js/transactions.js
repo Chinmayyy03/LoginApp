@@ -738,7 +738,7 @@ function validateTransactionsSequentially(index, sessionWorkingDate) {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                showToast('❌ Validation failed for ' + opType + ' account ' + accountCode + ': ' + data.error, 'error');
+                showValidationError('Validation failed for ' + opType + ' account ' + accountCode + ':\n' + data.error);
                 return; // Stop validation
             } else if (data.success) {
                
@@ -748,13 +748,13 @@ function validateTransactionsSequentially(index, sessionWorkingDate) {
                 }, 500);
             } else {
                 // Validation failed
-                showToast('❌ Validation failed for ' + opType + ' account ' + accountCode + ': ' + data.message, 'error');
+    			showValidationError('Validation failed for ' + opType + ' account ' + accountCode + ':\n' + data.message);
                 return; // Stop validation
             }
         })
         .catch(error => {
             console.error('Validation error for account ' + accountCode + ':', error);
-            showToast('❌ Network error validating account ' + accountCode, 'error');
+            showValidationError('Network error validating account ' + accountCode);
             return; // Stop validation
         });
 }
@@ -786,21 +786,28 @@ function validateSingleTransaction(accountCode, sessionWorkingDate, operationTyp
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                showToast('Error: ' + data.error, 'error');
+                showValidationError('Error: ' + data.error);
             } else if (data.success) {
                 //showToast(data.message, 'success');
                 proceedWithSave();
             } else {
-                showToast(data.message, 'error');
+                showValidationError(data.message);
             }
         })
         .catch(error => {
             console.error('Validation error:', error);
-            showToast('Failed to validate transaction', 'error');
+            showValidationError('Failed to validate transaction. Please try again.');
         });
 }
 
+function showValidationError(message) {
+    document.getElementById('validationErrorMessage').textContent = message;
+    document.getElementById('validationErrorModal').style.display = 'flex';
+}
 
+function closeValidationErrorModal() {
+    document.getElementById('validationErrorModal').style.display = 'none';
+}
 
 function proceedWithSave() {
     const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
