@@ -43,24 +43,24 @@ body {
 .page-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 20px 40px;
+    padding: 10px 30px;
     text-align: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .page-header h1 {
     margin: 0;
-    font-size: 28px;
+    font-size: 20px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .header-info {
     display: flex;
     justify-content: space-between;
     background: white;
-    padding: 12px 40px;
-    font-size: 14px;
+    padding: 6px 30px;
+    font-size: 12px;
     color: #3D316F;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
@@ -71,29 +71,29 @@ body {
 
 .container {
     max-width: 1400px;
-    margin: 20px auto;
-    padding: 0 20px;
+    margin: 15px auto;
+    padding: 0 15px;
 }
 
 fieldset {
     background-color: white;
     border: 2px solid #BBADED;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 20px;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
 }
 
 legend {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
-    padding: 0 10px;
+    padding: 0 8px;
     color: #3D316F;
 }
 
 .form-row {
     display: flex;
-    gap: 25px;
-    margin-bottom: 20px;
+    gap: 15px;
+    margin-bottom: 12px;
     align-items: flex-end;
 }
 
@@ -103,28 +103,28 @@ legend {
 
 .label {
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     color: #3D316F;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     display: block;
 }
 
 .input-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 input[type="text"],
 input[type="file"],
 input[type="number"],
 select {
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: 2px solid #C8B7F6;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: #F4EDFF;
     outline: none;
-    font-size: 14px;
+    font-size: 13px;
     width: 100%;
 }
 
@@ -149,10 +149,10 @@ select {
     background-color: #2D2B80;
     color: white;
     border: none;
-    width: 35px;
-    height: 35px;
-    border-radius: 8px;
-    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 16px;
     cursor: pointer;
     flex-shrink: 0;
 }
@@ -163,19 +163,19 @@ select {
 
 .radio-group {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     align-items: center;
 }
 
 .radio-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
-    font-size: 14px;
-    padding: 8px 14px;
+    font-size: 13px;
+    padding: 6px 12px;
     border: 2px solid #C8B7F6;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.3s ease;
     background: #F4EDFF;
     color: #3D316F;
@@ -188,20 +188,20 @@ select {
 
 .radio-label input[type="radio"] {
     cursor: pointer;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     accent-color: #8066E8;
 }
 
 .btn {
-    padding: 12px 24px;
+    padding: 8px 18px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     transition: all 0.3s ease;
-    margin: 5px;
+    margin: 4px;
 }
 
 .btn-primary {
@@ -210,8 +210,8 @@ select {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(74, 158, 255, 0.4);
 }
 
 .btn-secondary {
@@ -235,16 +235,17 @@ select {
 .button-row {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-top: 30px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .message-box {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 8px;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 6px;
     border: 2px solid;
-    min-height: 60px;
+    min-height: 45px;
+    font-size: 13px;
 }
 
 .message-box.success {
@@ -267,7 +268,7 @@ select {
 
 /* File input custom styling */
 input[type="file"] {
-    padding: 8px;
+    padding: 6px;
     background: white;
     cursor: pointer;
 }
@@ -276,10 +277,11 @@ input[type="file"]::file-selector-button {
     background: #2D2B80;
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 6px 14px;
+    border-radius: 5px;
     cursor: pointer;
-    margin-right: 10px;
+    margin-right: 8px;
+    font-size: 12px;
 }
 
 input[type="file"]::file-selector-button:hover {
@@ -299,7 +301,7 @@ table thead {
 
 table th,
 table td {
-    padding: 10px;
+    padding: 6px 8px;
     border: 1px solid #ddd;
     text-align: left;
 }
@@ -333,12 +335,12 @@ table td.customized-column {
 .column-tag {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
     font-weight: 600;
 }
 
@@ -346,11 +348,11 @@ table td.customized-column {
     background: rgba(255, 255, 255, 0.3);
     border: none;
     color: white;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
     transition: all 0.2s;
 }
@@ -363,19 +365,19 @@ table td.customized-column {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin: 20px 0;
-    padding: 15px;
+    gap: 8px;
+    margin: 12px 0;
+    padding: 10px;
 }
 
 .pagination-btn {
     background: #2b0d73;
     color: white;
-    padding: 8px 16px;
+    padding: 6px 14px;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     transition: background 0.3s;
 }
@@ -391,26 +393,26 @@ table td.customized-column {
 }
 
 .page-info {
-    font-size: 14px;
+    font-size: 13px;
     color: #2b0d73;
     font-weight: bold;
-    padding: 0 15px;
+    padding: 0 12px;
 }
 
 small {
     display: block;
-    margin-top: 4px;
+    margin-top: 3px;
 }
 
 @media (max-width: 768px) {
     .form-row {
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
     }
     
     .header-info {
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         text-align: center;
     }
     
@@ -521,14 +523,14 @@ small {
             </div>
             
             <!-- Column Selection and Extraction Tools -->
-            <fieldset id="columnTools" style="display: none; background: linear-gradient(135deg, #f0f4ff 0%, #e8f4f9 100%); border: 2px solid #93c5fd; margin-top: 20px;">
-                <legend style="color: #1e40af;">📊 Customize Columns</legend>
+            <fieldset id="columnTools" style="display: none; background: linear-gradient(135deg, #f0f4ff 0%, #e8f4f9 100%); border: 2px solid #93c5fd; margin-top: 12px;">
+                <legend style="color: #1e40af; font-size: 14px;">📊 Customize Columns</legend>
                 
                 <!-- Single Row Design -->
-                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                     
                     <!-- Column Selection -->
-                    <div style="flex: 1; min-width: 200px;">
+                    <div style="flex: 1; min-width: 180px;">
                         <label class="label">Column</label>
                         <select name="selectedColumn" id="selectedColumn" style="width: 100%;">
                             <option value="">-- Select Column --</option>
@@ -536,44 +538,44 @@ small {
                     </div>
                     
                     <!-- Character Options (Radio Buttons) -->
-                    <div style="flex: 2; min-width: 300px;">
+                    <div style="flex: 2; min-width: 280px;">
                         <label class="label">Display</label>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                            <label class="radio-label" style="padding: 8px 12px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <label class="radio-label" style="padding: 6px 10px;">
                                 <input type="radio" name="displayMode" value="full" checked>
                                 <span>Full Column</span>
                             </label>
-                            <label class="radio-label" style="padding: 8px 12px;">
+                            <label class="radio-label" style="padding: 6px 10px;">
                                 <input type="radio" name="displayMode" value="last">
                                 <span>Last</span>
                             </label>
                             <input type="number" id="lastChars" placeholder="4" min="1" max="50" 
-                                   style="width: 70px; padding: 8px; display: none; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF;" />
-                            <label class="radio-label" style="padding: 8px 12px;">
+                                   style="width: 60px; padding: 6px; display: none; border: 2px solid #C8B7F6; border-radius: 6px; background-color: #F4EDFF; font-size: 13px;" />
+                            <label class="radio-label" style="padding: 6px 10px;">
                                 <input type="radio" name="displayMode" value="first">
                                 <span>First</span>
                             </label>
                             <input type="number" id="firstChars" placeholder="4" min="1" max="50" 
-                                   style="width: 70px; padding: 8px; display: none; border: 2px solid #C8B7F6; border-radius: 8px; background-color: #F4EDFF;" />
-                            <span style="color: #666; font-size: 12px;">chars</span>
+                                   style="width: 60px; padding: 6px; display: none; border: 2px solid #C8B7F6; border-radius: 6px; background-color: #F4EDFF; font-size: 13px;" />
+                            <span style="color: #666; font-size: 11px;">chars</span>
                         </div>
                     </div>
                     
                     <!-- Add Button -->
                     <div>
                         <button type="button" class="btn btn-primary" onclick="addSelectedColumn()" 
-                                style="padding: 10px 24px; font-size: 14px;">
+                                style="padding: 8px 20px; font-size: 13px;">
                             ➕ Add
                         </button>
                     </div>
                 </div>
                 
                 <!-- Selected Columns Tags -->
-                <div id="selectedColumnsDisplay" style="margin-top: 20px; display: none;">
-                    <label class="label" style="margin-bottom: 10px;">Selected Columns:</label>
-                    <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <div id="selectedColumnsDisplay" style="margin-top: 12px; display: none;">
+                    <label class="label" style="margin-bottom: 8px;">Selected Columns:</label>
+                    <div id="selectedColumnsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 8px;">
                         <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">
                             ✓ Apply Customization
                         </button>
@@ -593,7 +595,7 @@ small {
         </div>
         
         <!-- First Line Data Table (for .dat files) -->
-        <fieldset id="firstLineSection" style="display: none; margin-top: 20px;">
+        <fieldset id="firstLineSection" style="display: none; margin-top: 12px;">
             <legend>FIRST LINE DATA (Metadata)</legend>
             <div style="overflow-x: auto;">
                 <table>
@@ -607,20 +609,20 @@ small {
             </div>
         </fieldset>
         
-        <!-- Action Buttons -->
+        <!-- Action Buttons 
         <div class="button-row">
             <button type="button" class="btn btn-secondary" onclick="displayData()">Display</button>
             <button type="button" class="btn btn-primary" onclick="importData()" disabled id="importBtn">Import</button>
             <button type="button" class="btn btn-secondary" onclick="checkAmount()">Check Amount</button>
             <button type="button" class="btn btn-secondary" onclick="createTransaction()" disabled id="createBtn">Create Transaction</button>
             <button type="button" class="btn btn-cancel" onclick="cancelImport()">Cancel</button>
-        </div>
+        </div> -->
         
     </form>
     
     <!-- Import Details Table -->
-    <fieldset style="margin-top: 30px;">
-        <legend>TRANSACTION IMPORT DETAILS</legend>
+    <fieldset style="margin-top: 15px;">
+        <legend>TEXT DATA</legend>
         <div style="overflow-x: auto;">
             <table id="importTable">
                 <thead>
@@ -630,7 +632,7 @@ small {
                 </thead>
                 <tbody id="importDetailsTable">
                     <tr>
-                        <td colspan="10" style="padding: 20px; text-align: center; color: #999;">No data imported yet</td>
+                        <td colspan="10" style="padding: 15px; text-align: center; color: #999;">No data imported yet</td>
                     </tr>
                 </tbody>
             </table>
@@ -837,7 +839,7 @@ function displayAllColumnsWithCustomization(data, page) {
         const th = document.createElement('th');
         const columnNumber = i + 1;
         th.textContent = 'Column ' + columnNumber;
-        th.style.padding = '10px';
+        th.style.padding = '6px 8px';
         th.style.border = '1px solid #ddd';
         th.style.textAlign = 'left';
         
@@ -868,7 +870,7 @@ function displayAllColumnsWithCustomization(data, page) {
             const td = document.createElement('td');
             const columnNumber = i + 1;
             td.textContent = row[i] || '';
-            td.style.padding = '8px';
+            td.style.padding = '6px 8px';
             td.style.border = '1px solid #ddd';
             td.style.textAlign = 'left';
             
@@ -907,7 +909,7 @@ function displayAllColumns() {
     for (let i = 0; i < totalColumns; i++) {
         const th = document.createElement('th');
         th.textContent = 'Column ' + (i + 1);
-        th.style.padding = '10px';
+        th.style.padding = '6px 8px';
         th.style.border = '1px solid #ddd';
         th.style.background = '#373279';
         th.style.color = 'white';
@@ -929,7 +931,7 @@ function displayAllColumns() {
         for (let i = 0; i < totalColumns; i++) {
             const td = document.createElement('td');
             td.textContent = row[i] || '';
-            td.style.padding = '8px';
+            td.style.padding = '6px 8px';
             td.style.border = '1px solid #ddd';
             td.style.textAlign = 'left';
             tr.appendChild(td);
@@ -1002,7 +1004,7 @@ function displayPaginatedData(data, page) {
     for (let i = 0; i < totalColumns; i++) {
         const th = document.createElement('th');
         th.textContent = 'Column ' + (i + 1);
-        th.style.padding = '10px';
+        th.style.padding = '6px 8px';
         th.style.border = '1px solid #ddd';
         th.style.background = '#373279';
         th.style.color = 'white';
@@ -1024,7 +1026,7 @@ function displayPaginatedData(data, page) {
         for (let i = 0; i < totalColumns; i++) {
             const td = document.createElement('td');
             td.textContent = row[i] || '';
-            td.style.padding = '8px';
+            td.style.padding = '6px 8px';
             td.style.border = '1px solid #ddd';
             td.style.textAlign = 'left';
             tr.appendChild(td);
@@ -1083,7 +1085,7 @@ function parseAndDisplayFile(content, fileName) {
             firstLineData.forEach((value, index) => {
                 const th = document.createElement('th');
                 th.textContent = 'Column ' + (index + 1);
-                th.style.padding = '10px';
+                th.style.padding = '6px 8px';
                 th.style.border = '1px solid #ddd';
                 th.style.background = '#373279';
                 th.style.color = 'white';
@@ -1099,7 +1101,7 @@ function parseAndDisplayFile(content, fileName) {
             firstLineData.forEach(value => {
                 const td = document.createElement('td');
                 td.textContent = value;
-                td.style.padding = '8px';
+                td.style.padding = '6px 8px';
                 td.style.border = '1px solid #ddd';
                 td.style.textAlign = 'left';
                 tr.appendChild(td);
@@ -1157,7 +1159,7 @@ function parseAndDisplayFile(content, fileName) {
         for (let i = 0; i < maxColumns; i++) {
             const th = document.createElement('th');
             th.textContent = 'Column ' + (i + 1);
-            th.style.padding = '10px';
+            th.style.padding = '6px 8px';
             th.style.border = '1px solid #ddd';
             th.style.background = '#373279';
             th.style.color = 'white';
@@ -1179,7 +1181,7 @@ function parseAndDisplayFile(content, fileName) {
             for (let i = 0; i < maxColumns; i++) {
                 const td = document.createElement('td');
                 td.textContent = row[i] || '';
-                td.style.padding = '8px';
+                td.style.padding = '6px 8px';
                 td.style.border = '1px solid #ddd';
                 td.style.textAlign = 'left';
                 tr.appendChild(td);
@@ -1299,7 +1301,7 @@ function cancelImport() {
         
         document.getElementById('importDetailsTable').innerHTML = `
             <tr>
-                <td colspan="10" style="padding: 20px; text-align: center; color: #999;">No data imported yet</td>
+                <td colspan="10" style="padding: 15px; text-align: center; color: #999;">No data imported yet</td>
             </tr>
         `;
         

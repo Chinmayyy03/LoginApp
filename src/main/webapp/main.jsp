@@ -53,7 +53,7 @@
 <body>
 
 <div class="sidebar">
-    <div class="profile-section">
+    <div class="profile-section" style="cursor: pointer;" onclick="openUserProfile()">
         <img src="images/user.png" alt="Profile" class="profile-pic">
         <div class="user-name"><%= userName.toUpperCase() %></div>
     </div>
@@ -231,6 +231,12 @@ document.addEventListener('visibilitychange', function() {
 
 // Track the currently active menu item
 let currentActiveMenu = null;
+
+// ========== USER PROFILE FUNCTION ==========
+
+function openUserProfile() {
+    loadPage('userProfile.jsp', 'User Profile', null);
+}
 
 // ========== PAGE STATE PERSISTENCE ==========
 

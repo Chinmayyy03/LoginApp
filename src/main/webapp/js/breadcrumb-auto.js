@@ -45,7 +45,10 @@ const PAGE_EXCEPTIONS = {
 		'Reports/reports.jsp': 'Reports',
 		
 		// Master page
-		'Master/masters.jsp': 'Master'
+		'Master/masters.jsp': 'Master',
+		
+		// User Profile page
+		'userProfile.jsp': 'User Profile'
 
 	
 	//Transactions
