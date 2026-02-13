@@ -20,7 +20,9 @@
 
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT USER_ID FROM ACL.USERREGISTER WHERE USER_ID=? AND acl.toolkit.decrypt(PASSWD)=? AND BRANCH_CODE=?";
+            
+            // First, verify the credentials and check current login status
+            String sql = "SELECT USER_ID, CURRENTLOGIN_STATUS FROM ACL.USERREGISTER WHERE USER_ID=? AND acl.toolkit.decrypt(PASSWD)=? AND BRANCH_CODE=?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, userId);
             pstmt.setString(2, password);
@@ -28,26 +30,49 @@
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                session.setAttribute("userId", userId);
-                session.setAttribute("branchCode", branchCode);
+                String currentLoginStatus = rs.getString("CURRENTLOGIN_STATUS");
                 
-                // Insert login history
-                PreparedStatement historyStmt = null;
-                try {
-                    String historySql = "INSERT INTO ACL.USERREGISTERLOGINHISTORY (USER_ID, BRANCH_CODE, LOGIN_TIME) VALUES (?, ?, SYSDATE)";
-                    historyStmt = conn.prepareStatement(historySql);
-                    historyStmt.setString(1, userId);
-                    historyStmt.setString(2, branchCode);
-                    historyStmt.executeUpdate();
-                } catch (Exception historyEx) {
-                    // Log the error but don't prevent login
-                    System.err.println("Error inserting login history: " + historyEx.getMessage());
-                } finally {
-                    try { if (historyStmt != null) historyStmt.close(); } catch (Exception ignored) {}
+                // Check if user is already logged in
+                if ("L".equals(currentLoginStatus)) {
+                    errorMessage = "User is already logged in from another machine/session. Please logout from the other session first or contact administrator.";
+                } else {
+                    // User credentials are valid and not logged in elsewhere, proceed with login
+                    session.setAttribute("userId", userId);
+                    session.setAttribute("branchCode", branchCode);
+                    
+                    // Insert login history with LOGIN_TIME
+                    PreparedStatement historyStmt = null;
+                    try {
+                        String historySql = "INSERT INTO ACL.USERREGISTERLOGINHISTORY (USER_ID, BRANCH_CODE, LOGIN_TIME) VALUES (?, ?, SYSDATE)";
+                        historyStmt = conn.prepareStatement(historySql);
+                        historyStmt.setString(1, userId);
+                        historyStmt.setString(2, branchCode);
+                        historyStmt.executeUpdate();
+                    } catch (Exception historyEx) {
+                        // Log the error but don't prevent login
+                        System.err.println("Error inserting login history: " + historyEx.getMessage());
+                    } finally {
+                        try { if (historyStmt != null) historyStmt.close(); } catch (Exception ignored) {}
+                    }
+                    
+                    // Update CURRENTLOGIN_STATUS to 'L' in USERREGISTER table
+                    PreparedStatement statusStmt = null;
+                    try {
+                        String statusSql = "UPDATE ACL.USERREGISTER SET CURRENTLOGIN_STATUS = 'L' WHERE USER_ID = ? AND BRANCH_CODE = ?";
+                        statusStmt = conn.prepareStatement(statusSql);
+                        statusStmt.setString(1, userId);
+                        statusStmt.setString(2, branchCode);
+                        statusStmt.executeUpdate();
+                    } catch (Exception statusEx) {
+                        // Log the error but don't prevent login
+                        System.err.println("Error updating login status: " + statusEx.getMessage());
+                    } finally {
+                        try { if (statusStmt != null) statusStmt.close(); } catch (Exception ignored) {}
+                    }
+                    
+                    response.sendRedirect("main.jsp");
+                    showForm = false;
                 }
-                
-                response.sendRedirect("main.jsp");
-                showForm = false;
             } else {
                 errorMessage = "Invalid username or password";
             }
@@ -76,6 +101,16 @@
     font-weight: bold;
     margin-top: 10px;
     text-align: center;
+}
+.warning-message {
+    color: #ff6600;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
+    padding: 10px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
 }
 </style>
 </head>
@@ -133,7 +168,11 @@
             <button type="submit" class="btn-login">Login</button>
 
             <% if (errorMessage != null) { %>
-                <div class="error-message"><%= errorMessage %></div>
+                <% if (errorMessage.contains("already logged in")) { %>
+                    <div class="warning-message">⚠️ <%= errorMessage %></div>
+                <% } else { %>
+                    <div class="error-message"><%= errorMessage %></div>
+                <% } %>
             <% } %>
 
             <div class="help-row">
@@ -182,8 +221,4 @@ password.addEventListener("input", function () {
 
 </body>
 </html>
-<% } %> 
-
-
-
-
+<% } %>
