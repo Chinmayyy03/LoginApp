@@ -239,16 +239,18 @@ function openUserProfile() {
 }
 
 // ========== PAGE STATE PERSISTENCE ==========
+// This stack tracks the navigation history automatically
+const navigationStack = [];
 
 function loadPage(page, title, anchorEl) {
     let breadcrumbPath = buildBreadcrumbPath(page);
     
+    // Add to navigation stack
+    addToNavigationStack(page, breadcrumbPath);
+    
     sessionStorage.setItem('currentPage', page);
     sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
     sessionStorage.setItem('activeMenu', title);
-    
-    // ✅ Store page path for this breadcrumb (for navigation)
-    sessionStorage.setItem('page_for_breadcrumb_' + breadcrumbPath, page);
     
     document.getElementById("contentFrame").src = page;
     updateBreadcrumb(breadcrumbPath);
@@ -259,6 +261,30 @@ function loadPage(page, title, anchorEl) {
         menuItem.classList.add("active");
         currentActiveMenu = menuItem;
     }
+}
+
+//Load navigation stack from session
+function loadNavigationStack() {
+    const stored = sessionStorage.getItem('navigationStack');
+    if (stored) {
+        const parsed = JSON.parse(stored);
+        navigationStack.push(...parsed);
+    }
+}
+
+function addToNavigationStack(page, breadcrumbPath) {
+    const entry = { page, breadcrumbPath };
+    
+    // Remove any entries after current position (when navigating back then forward)
+    const currentIndex = navigationStack.findIndex(e => e.breadcrumbPath === breadcrumbPath);
+    if (currentIndex !== -1) {
+        navigationStack.splice(currentIndex + 1);
+    } else {
+        navigationStack.push(entry);
+    }
+    
+    // Persist to sessionStorage
+    sessionStorage.setItem('navigationStack', JSON.stringify(navigationStack));
 }
 
 function navigateToBreadcrumb(page, title) {
@@ -301,20 +327,13 @@ function _doUpdateBreadcrumb(path) {
     if (!breadcrumbNav) return;
 
     const parts = path.split(' > ');
-
-    // Build HTML parts and session entries
     const breadcrumbParts = [];
-    const sessionEntries = [];
 
     for (let index = 0; index < parts.length; index++) {
         const part = parts[index];
         if (index === parts.length - 1) {
             breadcrumbParts.push('<span class="breadcrumb-current">' + escapeHtml(part) + '</span>');
         } else {
-            const accumulatedParts = parts.slice(0, index + 1);
-            const accumulatedPath = accumulatedParts.join(' > ');
-            sessionEntries.push({ key: 'breadcrumb_path_' + index, value: accumulatedPath });
-
             breadcrumbParts.push(
                 '<div class="breadcrumb-item">' +
                 '<a href="#" class="breadcrumb-link" onclick="navigateToBreadcrumbByIndex(' + index + '); return false;">' +
@@ -323,18 +342,8 @@ function _doUpdateBreadcrumb(path) {
         }
     }
 
-    // Single DOM update
     breadcrumbNav.innerHTML = breadcrumbParts.join('');
-
-    // Batch write sessionStorage (avoid many writes)
-    try {
-        sessionEntries.forEach(entry => {
-            sessionStorage.setItem(entry.key, entry.value);
-        });
-        sessionStorage.setItem('currentBreadcrumb', path);
-    } catch (e) {
-        console.warn('Failed to write breadcrumb sessionStorage:', e);
-    }
+    sessionStorage.setItem('currentBreadcrumb', path);
 }
 
 // small helper to avoid XSS when injecting text
@@ -413,8 +422,8 @@ function updateWorkingDateAndBankName() {
 // ========== RESTORE STATE ON LOAD ==========
 
 window.onload = function () {
-    // Initial session check
     checkSession();
+    loadNavigationStack(); // Load navigation history
     
     const savedPage = sessionStorage.getItem('currentPage');
     const savedBreadcrumb = sessionStorage.getItem('currentBreadcrumb');
@@ -424,11 +433,16 @@ window.onload = function () {
         updateBreadcrumb(savedBreadcrumb);
         updateActiveMenuFromSession();
     } else {
-        document.getElementById("contentFrame").src = "Dashboard/dashboard.jsp";
-        updateBreadcrumb("Dashboard");
-        sessionStorage.setItem("currentPage", "Dashboard/dashboard.jsp");
-        sessionStorage.setItem("currentBreadcrumb", "Dashboard");
+        const defaultPage = "Dashboard/dashboard.jsp";
+        const defaultBreadcrumb = "Dashboard";
+        
+        document.getElementById("contentFrame").src = defaultPage;
+        updateBreadcrumb(defaultBreadcrumb);
+        sessionStorage.setItem("currentPage", defaultPage);
+        sessionStorage.setItem("currentBreadcrumb", defaultBreadcrumb);
         sessionStorage.setItem("activeMenu", "Dashboard");
+        
+        addToNavigationStack(defaultPage, defaultBreadcrumb);
         
         const dashboardItem = document.querySelector('.menu li[data-page="Dashboard/dashboard.jsp"]');
         if (dashboardItem) {
@@ -437,10 +451,7 @@ window.onload = function () {
         }
     }
 
-    // Update working date, bank name AND branch name immediately
     updateWorkingDateAndBankName();
-    
-    // Refresh every 30 seconds
     setInterval(updateWorkingDateAndBankName, 30000);
 };
 
@@ -474,30 +485,37 @@ document.addEventListener('keydown', function(event) {
 });
 
 function navigateToBreadcrumbByIndex(index) {
-    // Get the stored path for this breadcrumb level
-    let breadcrumbPath = sessionStorage.getItem('breadcrumb_path_' + index);
+    const currentPath = sessionStorage.getItem('currentBreadcrumb');
+    if (!currentPath) return;
     
-    if (!breadcrumbPath) {
-        console.error('No path found for breadcrumb index:', index);
-        return;
+    const currentParts = currentPath.split(' > ');
+    const targetPath = currentParts.slice(0, index + 1).join(' > ');
+    
+    // Search navigation stack for matching breadcrumb
+    const navStack = JSON.parse(sessionStorage.getItem('navigationStack') || '[]');
+    
+    // Find the most recent entry with this breadcrumb path
+    for (let i = navStack.length - 1; i >= 0; i--) {
+        if (navStack[i].breadcrumbPath === targetPath) {
+            const targetPage = navStack[i].page;
+            document.getElementById("contentFrame").src = targetPage;
+            updateBreadcrumb(targetPath);
+            sessionStorage.setItem('currentPage', targetPage);
+            return;
+        }
     }
     
-    // Find the stored page path for this breadcrumb
-    let storedPage = sessionStorage.getItem('page_for_breadcrumb_' + breadcrumbPath);
-    
-    if (!storedPage) {
-        // Fallback: try to go back in history
-        console.warn('No stored page for breadcrumb:', breadcrumbPath);
-        window.history.back();
-        return;
-    }
-    
-    // Navigate to the page
-    document.getElementById("contentFrame").src = storedPage;
-    updateBreadcrumb(breadcrumbPath);
-    sessionStorage.setItem('currentPage', storedPage);
-    sessionStorage.setItem('currentBreadcrumb', breadcrumbPath);
+    console.warn('No navigation history found for:', targetPath);
 }
+
+window.updateParentBreadcrumb = function(path, currentPage) {
+    // If currentPage is provided, add it to navigation stack
+    if (currentPage) {
+        addToNavigationStack(currentPage, path);
+    }
+    sessionStorage.setItem('currentBreadcrumb', path);
+    updateBreadcrumb(path);
+};
 
 </script>
 </body>

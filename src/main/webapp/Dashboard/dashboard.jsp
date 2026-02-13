@@ -177,13 +177,11 @@ function openInParentFrame(page, breadcrumbPath) {
     if (window.parent && window.parent.document) {
         const iframe = window.parent.document.getElementById("contentFrame");
         if (iframe) {
-            // If page ALREADY contains '/', use as-is (already has folder path)
-            // If page doesn't contain '/', add '../' to go up from Dashboard folder
             var adjustedPage = page.includes('/') ? page : '../' + page;
             iframe.src = adjustedPage;
             
             if (window.parent.updateParentBreadcrumb) {
-                window.parent.updateParentBreadcrumb(breadcrumbPath);
+                window.parent.updateParentBreadcrumb(breadcrumbPath, adjustedPage);
             }
         }
     }

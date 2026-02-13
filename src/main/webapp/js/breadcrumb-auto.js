@@ -46,6 +46,7 @@ const PAGE_EXCEPTIONS = {
 		
 		// Master page
 		'Master/masters.jsp': 'Master',
+		'Master/editRow.jsp': 'Edit Record',
 		
 		// User Profile page
 		'userProfile.jsp': 'User Profile'

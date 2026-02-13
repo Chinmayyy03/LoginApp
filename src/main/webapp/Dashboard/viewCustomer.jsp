@@ -229,24 +229,20 @@ body {
 }
 </style>
 <script>
-// Update breadcrumb on page load
+//Update breadcrumb on page load
 window.onload = function() {
     var returnPage = '<%= returnPage %>';
-    var breadcrumb = 'Dashboard > Total Customer > View Details';
     
-    // Set appropriate breadcrumb based on return page
-    if (returnPage === 'Dashboard/aTypeMember.jsp') {
-        breadcrumb = 'Dashboard > A Type member > View Details';
-    } else if (returnPage === 'bTypeMember.jsp') {
-        breadcrumb = 'Dashboard > B Type member > View Details';
-    } else if (returnPage === 'otherMember.jsp') {
-        breadcrumb = 'Dashboard > OTHER > View Details';
-    } else if (returnPage === 'totalCustomers.jsp') {
-        breadcrumb = 'Dashboard > Total Customer > View Details';
-    }
-    
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(breadcrumb);
+    // Auto-register with parent using breadcrumb builder
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        // Normalize the return page path
+        var normalizedReturnPage = returnPage;
+        if (!returnPage.includes('/')) {
+            normalizedReturnPage = 'Dashboard/' + returnPage;
+        }
+        
+        const breadcrumb = window.parent.buildBreadcrumbPath('Dashboard/viewCustomer.jsp', normalizedReturnPage);
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Dashboard/viewCustomer.jsp');
     }
 };
 

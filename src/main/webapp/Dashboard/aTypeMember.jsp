@@ -177,10 +177,11 @@ function nextPage() {
     }
 }
 
-// Update breadcrumb on page load
 window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > A Type member');
+    // Auto-register with parent using breadcrumb builder
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Dashboard/aTypeMember.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Dashboard/aTypeMember.jsp');
     }
     
     // Check if returning from detail view and restore page
@@ -191,10 +192,11 @@ window.onload = function() {
     }
 };
 
-// View customer and update breadcrumb
+//View customer and update breadcrumb
 function viewCustomer(customerId) {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > A Type member > View Details');
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Dashboard/viewCustomer.jsp', 'Dashboard/aTypeMember.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Dashboard/viewCustomer.jsp');
     }
     window.location.href = 'viewCustomer.jsp?cid=' + customerId + '&returnPage=aTypeMember.jsp';
 }

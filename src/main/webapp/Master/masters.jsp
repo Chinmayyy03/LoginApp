@@ -75,9 +75,11 @@
 <script>
 const ctx = '<%=request.getContextPath()%>';
 let currentSchema = '';
+let currentSchemaTitle = ''; // ✅ Store the card title
 
 function openCard(title, schema){
     currentSchema = schema;
+    currentSchemaTitle = title; // ✅ Store title for breadcrumb
 
     const dashboard  = document.getElementById("dashboard");
     const search     = document.getElementById("search");
@@ -96,6 +98,12 @@ function openCard(title, schema){
     tableMenu.style.display = 'none';
     data.innerHTML = '<p style="text-align:center;color:#777">Select a Table</p>';
 
+    // ✅ Update breadcrumb when card is opened
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = 'Master > ' + title;
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Master/masters.jsp');
+    }
+
     loadTables();
 }
 
@@ -107,6 +115,12 @@ function back(){
 
     search.style.display = 'none';
     dashboard.style.display = 'block';
+
+    // ✅ Reset breadcrumb to just "Master"
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Master/masters.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Master/masters.jsp');
+    }
 }
 
 function loadTables(){
@@ -203,15 +217,37 @@ document.addEventListener("click", function(e){
     }
 });
 
-/* restore state after redirect */
+/* ✅ BREADCRUMB REGISTRATION + RESTORE STATE AFTER REDIRECT */
 document.addEventListener("DOMContentLoaded", function () {
+    
+    // ✅ Register initial breadcrumb with parent frame
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Master/masters.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Master/masters.jsp');
+    }
 
+    // ✅ Restore state after redirect (existing logic)
     const params = new URLSearchParams(window.location.search);
     const schemaFromUrl = params.get("schema");
     const tableFromUrl  = params.get("table");
 
     if (schemaFromUrl) {
-        openCard("", schemaFromUrl);
+        // ✅ Find the card title from the schema
+        const cards = document.querySelectorAll('.card');
+        let foundTitle = schemaFromUrl; // fallback
+        
+        cards.forEach(card => {
+            const cardOnClick = card.getAttribute('onclick');
+            if (cardOnClick && cardOnClick.includes(schemaFromUrl)) {
+                // Extract title from onclick="openCard('Title', 'SCHEMA')"
+                const match = cardOnClick.match(/openCard\s*\(\s*['"]([^'"]+)['"]/);
+                if (match) {
+                    foundTitle = match[1];
+                }
+            }
+        });
+
+        openCard(foundTitle, schemaFromUrl);
 
         if (tableFromUrl) {
             setTimeout(() => {
@@ -233,7 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ auto-hide message
+    // ✅ auto-hide success/pending message
     const msg = document.getElementById("updateMsg");
     if (msg) {
         setTimeout(() => msg.style.display = "none", 4000);
@@ -274,6 +310,12 @@ function openAddForm() {
         return;
     }
 
+    // ✅ Update breadcrumb when navigating to Add form
+    if (window.parent && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = 'Master > ' + currentSchemaTitle + ' > Add ' + table;
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Master/editRow.jsp');
+    }
+
     window.location.href =
         ctx + "/editRow?schema=" + encodeURIComponent(currentSchema) +
         "&table=" + encodeURIComponent(table) +
@@ -281,8 +323,6 @@ function openAddForm() {
 }
 
 </script>
-
-
 </head>
 
 <body>
@@ -408,8 +448,6 @@ function openAddForm() {
         min-width: 260px;
      ">
 </div>
-
-
 </body>
 </html>
 

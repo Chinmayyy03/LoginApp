@@ -177,10 +177,12 @@ function nextPage() {
     }
 }
 
-// Update breadcrumb on page load
+//Update breadcrumb on page load
 window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > OTHER');
+    // Auto-register with parent using breadcrumb builder
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Dashboard/otherMember.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Dashboard/otherMember.jsp');
     }
     
     // Check if returning from detail view and restore page
@@ -193,8 +195,9 @@ window.onload = function() {
 
 // View customer and update breadcrumb
 function viewCustomer(customerId) {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb('Dashboard > OTHER > View Details');
+    if (window.parent && window.parent.buildBreadcrumbPath && window.parent.updateParentBreadcrumb) {
+        const breadcrumb = window.parent.buildBreadcrumbPath('Dashboard/viewCustomer.jsp', 'Dashboard/otherMember.jsp');
+        window.parent.updateParentBreadcrumb(breadcrumb, 'Dashboard/viewCustomer.jsp');
     }
     window.location.href = 'viewCustomer.jsp?cid=' + customerId + '&returnPage=otherMember.jsp';
 }
