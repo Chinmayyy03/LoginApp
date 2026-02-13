@@ -11,13 +11,20 @@
     String schemaParam = request.getParameter("schema");
     if (schemaParam == null) schemaParam = "";
 
+    String searchParam = request.getParameter("search");
+    if (searchParam == null) searchParam = "";
+
     String pageParam = request.getParameter("page");
 
     int currentPage = 1;
     int recordsPerPage = 16;
 
     if (pageParam != null) {
-        currentPage = Integer.parseInt(pageParam);
+        try {
+            currentPage = Integer.parseInt(pageParam);
+        } catch (Exception e) {
+            currentPage = 1;
+        }
     }
 
     Connection conn = null;
@@ -42,14 +49,20 @@
 
 <div class="container">
 
-     <!-- SEARCH BAR -->
+    <!-- ================= AUTO SEARCH ================= -->
     <div class="search-box">
-        <input type="text"
-               id="tableSearch"
-               placeholder="🔍 Search by Program Name...."
-               onkeyup="filterTable()">
-    </div>
+        <form id="searchForm" method="get">
+            <input type="hidden" name="schema" value="<%=schemaParam%>">
+            <input type="hidden" name="page" value="1">
 
+            <input type="text"
+                   id="searchInput"
+                   name="search"
+                   placeholder="🔍 Search by Program Name..."
+                   value="<%=searchParam%>"
+                   onkeyup="autoSearch()">
+        </form>
+    </div>
 
     <div class="card-wrapper">
 
@@ -59,10 +72,14 @@
         conn = DBConnection.getConnection();
 
         String countSql =
-            "SELECT COUNT(*) FROM ACL.PROGRAM WHERE UPPER(\"SCHEMA\") LIKE ?";
+            "SELECT COUNT(*) FROM ACL.PROGRAM " +
+            "WHERE UPPER(\"SCHEMA\") LIKE ? " +
+            "AND UPPER(PROGRAM_NAME) LIKE ?";
 
         ps = conn.prepareStatement(countSql);
         ps.setString(1, "%" + schemaParam.toUpperCase() + "%");
+        ps.setString(2, "%" + searchParam.toUpperCase() + "%");
+
         rs = ps.executeQuery();
 
         if (rs.next()) {
@@ -78,13 +95,16 @@
         String dataSql =
             "SELECT PROGRAM_NAME, PAGE_LINK FROM (" +
             " SELECT PROGRAM_NAME, PAGE_LINK, ROW_NUMBER() OVER (ORDER BY PROGRAM_NAME) rn " +
-            " FROM ACL.PROGRAM WHERE UPPER(\"SCHEMA\") LIKE ?" +
+            " FROM ACL.PROGRAM " +
+            " WHERE UPPER(\"SCHEMA\") LIKE ? " +
+            " AND UPPER(PROGRAM_NAME) LIKE ? " +
             ") WHERE rn BETWEEN ? AND ?";
 
         ps = conn.prepareStatement(dataSql);
         ps.setString(1, "%" + schemaParam.toUpperCase() + "%");
-        ps.setInt(2, start + 1);
-        ps.setInt(3, start + recordsPerPage);
+        ps.setString(2, "%" + searchParam.toUpperCase() + "%");
+        ps.setInt(3, start + 1);
+        ps.setInt(4, start + recordsPerPage);
 
         rs = ps.executeQuery();
 %>
@@ -92,10 +112,10 @@
         <table class="program-table">
             <thead>
                 <tr>
-                    <th>PROGRAM NAME</th>
-                    <th>PROGRAM NAME</th>
-                    <th>PROGRAM NAME</th>
-                    <th>PROGRAM NAME</th>
+                    <th>PROGRAM</th>
+                    <th>PROGRAM</th>
+                    <th>PROGRAM</th>
+                    <th>PROGRAM</th>
                 </tr>
             </thead>
             <tbody>
@@ -115,8 +135,9 @@
             }
 %>
 
+            <!-- 🔥 SAFE FIX USING data-url -->
             <td class="program-cell"
-                onclick="openForm('<%= rs.getString("PAGE_LINK") %>')">
+                data-url="<%= rs.getString("PAGE_LINK") %>">
                 <%= rs.getString("PROGRAM_NAME") %>
             </td>
 
@@ -150,11 +171,11 @@
 
     </div>
 
-    <!-- PAGINATION -->
+    <!-- ================= PAGINATION ================= -->
     <div class="pagination-container">
 
         <% if (currentPage > 1) { %>
-            <a href="?schema=<%=schemaParam%>&page=<%=currentPage-1%>"
+            <a href="?schema=<%=schemaParam%>&search=<%=searchParam%>&page=<%=currentPage-1%>"
                class="nav-btn">← Previous</a>
         <% } else { %>
             <button class="disabled-btn">← Previous</button>
@@ -165,7 +186,7 @@
         </span>
 
         <% if (currentPage < totalPages) { %>
-            <a href="?schema=<%=schemaParam%>&page=<%=currentPage+1%>"
+            <a href="?schema=<%=schemaParam%>&search=<%=searchParam%>&page=<%=currentPage+1%>"
                class="nav-btn">Next →</a>
         <% } else { %>
             <button class="disabled-btn">Next →</button>
@@ -173,61 +194,77 @@
 
     </div>
 
-    <!-- ================= FORM CONTAINER BELOW TABLE ================= -->
-    <div id="formContainer" style="display:none; margin-top:30px;">
-        
-        <div style="text-align:right; margin-bottom:10px;">
-            <button onclick="closeForm()" class="nav-btn">Close</button>
-        </div>
+</div>
 
-        <iframe id="formFrame"
-                style="width:100%; height:650px; border:1px solid #ccc; border-radius:8px;">
-        </iframe>
+<!-- ================= FORM CONTAINER ================= -->
+<div id="formContainer" style="display:none; margin-top:30px;">
+    <div style="text-align:right; margin-bottom:10px;">
+        <button onclick="closeForm()" class="nav-btn">Close</button>
     </div>
 
+    <iframe id="formFrame"
+            style="width:100%; border:1px solid #ccc; border-radius:8px;"
+            scrolling="no"
+            onload="resizeIframe(this)">
+    </iframe>
 </div>
 
 <!-- ================= SCRIPT ================= -->
 <script>
-function openForm(url) {
-    document.getElementById("formContainer").style.display = "block";
-    document.getElementById("formFrame").src = url;
 
-    document.getElementById("formContainer").scrollIntoView({
-        behavior: "smooth"
-    });
+// Auto search delay
+let typingTimer;
+let doneTypingInterval = 500;
+
+function autoSearch() {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function() {
+        document.getElementById("searchForm").submit();
+    }, doneTypingInterval);
 }
+
+// 🔥 SAFE CLICK HANDLER (Logic Same)
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".program-cell").forEach(function(cell) {
+
+        cell.addEventListener("click", function() {
+
+            const url = this.getAttribute("data-url");
+
+            const iframe = document.getElementById("formFrame");
+            const container = document.getElementById("formContainer");
+
+            container.style.display = "block";
+            iframe.src = url;
+
+            window.scrollTo({
+                top: container.offsetTop - 20,
+                behavior: "smooth"
+            });
+        });
+    });
+
+});
 
 function closeForm() {
-    document.getElementById("formContainer").style.display = "none";
-    document.getElementById("formFrame").src = "";
+    const iframe = document.getElementById("formFrame");
+    const container = document.getElementById("formContainer");
+
+    container.style.display = "none";
+    iframe.src = "";
 }
-</script>
 
-<script>
-function filterTable() {
-    let input = document.getElementById("tableSearch");
-    let filter = input.value.toUpperCase();
-    let table = document.querySelector(".program-table");
-    let tr = table.getElementsByTagName("tr");
-
-    for (let i = 1; i < tr.length; i++) {
-        let tds = tr[i].getElementsByTagName("td");
-        let found = false;
-
-        for (let j = 0; j < tds.length; j++) {
-            if (tds[j].innerText.toUpperCase().includes(filter)) {
-                found = true;
-                break;
-            }
-        }
-
-        tr[i].style.display = found ? "" : "none";
+function resizeIframe(iframe) {
+    try {
+        iframe.style.height =
+            iframe.contentWindow.document.documentElement.scrollHeight + "px";
+    } catch (e) {
+        iframe.style.height = "700px";
     }
 }
+
 </script>
-
-
 
 </body>
 </html>

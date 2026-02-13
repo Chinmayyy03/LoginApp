@@ -251,6 +251,13 @@ if (!"download".equals(action)) {
 <head>
     <title>DayBookRG Report</title>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/Reports/common-report.css?v=10">
+  <style>
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+</style>
     
 </head>
 
@@ -437,9 +444,6 @@ if (!"download".equals(action)) {
             });
         });
     </script>
-    <iframe name="downloadFrame"
-        style="width:100%; height:800px; border:1px solid #ccc;">
-</iframe>
     
 </body>
 </html>

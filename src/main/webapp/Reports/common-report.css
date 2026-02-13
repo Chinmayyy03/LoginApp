@@ -19,16 +19,14 @@ body {
 /* ===== MAIN FORM CONTAINER ===== */
 .report-container {
     max-width: 900px;
-    margin: 30px auto;
-    padding: 25px 35px;
+    margin: 10px auto;       /* 🔥 reduced space */
+    padding: 20px 30px;
 
     background: #efefff;
     border-radius: 12px;
 
-    /* 🔥 Thin blue form border */
     border: 1px solid #6f8fe8;
 
-    /* subtle depth */
     box-shadow:
         0 0 0 2px rgba(111,143,232,0.12),
         0 6px 16px rgba(0,0,0,0.12);
