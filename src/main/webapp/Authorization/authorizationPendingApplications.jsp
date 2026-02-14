@@ -352,16 +352,7 @@ function closeErrorPopup() {
 </head>
 <body>
 
-<!-- Success Popup Modal -->
-<div id="successPopup" class="popup-overlay" onclick="if(event.target === this) closePopup()">
-    <div class="popup-container">
-        <div class="popup-icon"></div>
-        <div class="popup-title">Account Created successfully!</div>
-        <div class="popup-message">Account Code:</div>
-        <div id="scrollNumber" class="popup-scroll-number">129</div>
-        <button class="popup-button" onclick="closePopup()">OK</button>
-    </div>
-</div>
+
 
 <h2>Authorization Pending Applications for Branch: <%= branchCode %></h2>
 
@@ -456,6 +447,18 @@ try (Connection conn = DBConnection.getConnection()) {
 %>
 </tbody>
 </table>
+</div>
+
+
+<!-- Success Popup Modal -->
+<div id="successPopup" class="popup-overlay" onclick="if(event.target === this) closePopup()">
+    <div class="popup-container">
+        <div class="popup-icon"></div>
+        <div class="popup-title">Account Created successfully!</div>
+        <div class="popup-message">Account Code:</div>
+        <div id="scrollNumber" class="popup-scroll-number">129</div>
+        <button class="popup-button" onclick="closePopup()">OK</button>
+    </div>
 </div>
 
 <!-- Pagination Controls -->
