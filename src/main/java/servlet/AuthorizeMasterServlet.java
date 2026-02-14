@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
-@WebServlet("/AuthorizeMasterServlet")
+@WebServlet("/Authorization/AuthorizeMasterServlet")
 public class AuthorizeMasterServlet extends HttpServlet {
 
     @Override

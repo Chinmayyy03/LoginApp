@@ -112,8 +112,8 @@
 <head>
   <meta charset="UTF-8">
   <title>View Application — <%= appNo %></title>
-  <link rel="stylesheet" href="css/addCustomer.css">
-  <link rel="stylesheet" href="css/authViewCustomers.css">
+  <link rel="stylesheet" href="../css/addCustomer.css">
+  <link rel="stylesheet" href="../css/authViewCustomers.css">
   <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
 	<script>
 		window.onload = function() {

@@ -628,7 +628,7 @@ function validatePasswords() {
 // Back to List function
 function goBackToList() {
     // Redirect to pending list page
-    window.location.href = "<%=request.getContextPath()%>/authorizationPendingUsers.jsp";
+    window.location.href = "<%=request.getContextPath()%>/Authorization/authorizationPendingUsers.jsp";
 }
 
 // Show authorize confirmation modal

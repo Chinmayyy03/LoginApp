@@ -15,7 +15,6 @@
 <meta charset="UTF-8">
 <title>Authorization Pending Users</title>
 
-<link rel="stylesheet" href="../css/addCustomers.css">
 <link rel="stylesheet" href="../css/totalCustomers.css">
 
 <style>

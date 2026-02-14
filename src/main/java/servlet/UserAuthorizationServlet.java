@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import db.DBConnection;
 
-@WebServlet("/UserAuthorizationServlet")
+@WebServlet("/Authorization/UserAuthorizationServlet")
 public class UserAuthorizationServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -88,7 +88,7 @@ public class UserAuthorizationServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        response.sendRedirect(request.getContextPath() + "/authorizationPendingUsers.jsp");
+        response.sendRedirect(request.getContextPath() + "/Authorization/authorizationPendingUsers.jsp");
     }
 
     // ===== SESSION MESSAGE =====

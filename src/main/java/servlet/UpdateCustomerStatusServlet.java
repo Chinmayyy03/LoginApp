@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-@WebServlet("/UpdateCustomerStatusServlet")
+@WebServlet("/Authorization/UpdateCustomerStatusServlet")
 public class UpdateCustomerStatusServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -85,7 +85,7 @@ public class UpdateCustomerStatusServlet extends HttpServlet {
                 System.out.println("✘ Failed: No customer found for ID = " + customerId);
             }
 
-            response.sendRedirect("authorizationPending.jsp?updated=" + status);
+            response.sendRedirect("authorizationPendingCustomers.jsp?updated=" + status);
 
         } catch (Exception e) {
             e.printStackTrace();
