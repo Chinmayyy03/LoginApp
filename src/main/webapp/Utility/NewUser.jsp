@@ -6,8 +6,6 @@
 if ("checkUserId".equals(request.getParameter("action"))) {
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
-    
-    // Prevent caching
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
@@ -34,32 +32,82 @@ if ("checkUserId".equals(request.getParameter("action"))) {
         String sql = "SELECT USER_ID FROM ACL.USERREGISTER WHERE USER_ID = ?";
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, userId.trim());
-        
-        System.out.println("=== Checking User ID ===");
-        System.out.println("Input User ID: " + userId.trim());
-        
         rs = pstmt.executeQuery();
         
         if (rs.next()) {
-            String foundUserId = rs.getString("USER_ID");
-            System.out.println("FOUND - User ID exists: " + foundUserId);
-            
             String message = "User ID '" + userId + "' already exists";
             String jsonMessage = message.replace("\\", "\\\\").replace("\"", "\\\"");
             out.print("{\"exists\":true,\"message\":\"" + jsonMessage + "\"}");
         } else {
-            System.out.println("NOT FOUND - User ID is available");
             out.print("{\"exists\":false,\"message\":\"User ID is available\"}");
         }
         
     } catch (Exception e) {
-        System.err.println("Error in checkUserId: " + e.getMessage());
-        e.printStackTrace();
-        
         String errorMsg = "Error: " + e.getMessage();
         String jsonError = errorMsg.replace("\\", "\\\\").replace("\"", "\\\"");
         out.print("{\"error\":true,\"message\":\"" + jsonError + "\"}");
         
+    } finally {
+        try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+        try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
+        try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+    }
+    return;
+}
+
+// Handle AJAX request for loading roles
+if ("getRoles".equals(request.getParameter("action"))) {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
+    
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = DBConnection.getConnection();
+        
+        if (conn == null) {
+            out.print("{\"success\":false,\"message\":\"Database connection failed\"}");
+            return;
+        }
+        
+        String sql = "SELECT MAINROLE_ID, MAINROLE FROM ACL.MAINROLEREGISTER ORDER BY MAINROLE_ID";
+        pstmt = conn.prepareStatement(sql);
+        rs = pstmt.executeQuery();
+        
+        StringBuilder json = new StringBuilder();
+        json.append("{\"success\":true,\"roles\":[");
+        
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) {
+                json.append(",");
+            }
+            first = false;
+            
+            int roleId = rs.getInt("MAINROLE_ID");
+            String roleName = rs.getString("MAINROLE");
+            
+            // Escape special characters for JSON
+            roleName = roleName.replace("\\", "\\\\").replace("\"", "\\\"");
+            
+            json.append("{");
+            json.append("\"id\":").append(roleId).append(",");
+            json.append("\"name\":\"").append(roleName).append("\"");
+            json.append("}");
+        }
+        
+        json.append("]}");
+        out.print(json.toString());
+        
+    } catch (Exception e) {
+        System.err.println("Error fetching roles: " + e.getMessage());
+        e.printStackTrace();
+        out.print("{\"success\":false,\"message\":\"Error: " + e.getMessage().replace("\"", "\\\"") + "\"}");
     } finally {
         try { if (rs != null) rs.close(); } catch (Exception ignored) {}
         try { if (pstmt != null) pstmt.close(); } catch (Exception ignored) {}
@@ -124,7 +172,7 @@ legend { color: var(--navy-blue); font-weight: bold; font-size: 15px; padding: 0
 
 .form-group { width: 100%; }
 .form-group label { display: block; font-size: 13px; font-weight: bold; color: var(--navy-blue); margin-bottom: 4px; }
-.form-group input { width: 100%; padding: 7px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+.form-group input, .form-group select { width: 100%; padding: 7px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; box-sizing: border-box; }
 input[readonly] { background-color: var(--readonly-bg); }
 
 input.error { border-color: var(--error-red); }
@@ -154,7 +202,91 @@ input.success { border-color: var(--success-green); }
     justify-content: center;
 }
 
-/* EXACT BLUE INFO TOAST LIKE IMAGE */
+/* USER ROLES SECTION */
+.roles-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.role-dropdown-wrapper {
+    width: 100%;
+}
+
+.role-dropdown-wrapper label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--navy-blue);
+    margin-bottom: 4px;
+}
+
+.role-dropdown-wrapper select {
+    width: 100%;
+    padding: 7px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.roles-checkbox-area {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 15px;
+    background-color: white;
+    min-height: 120px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.roles-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+}
+
+.role-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.role-checkbox-item:hover {
+    background-color: #f5f5f5;
+}
+
+.role-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    accent-color: var(--navy-blue);
+}
+
+.role-checkbox-item label {
+    font-size: 13px;
+    color: #000;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    white-space: normal;
+    word-break: break-word
+}
+
+.no-roles-message {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-size: 13px;
+}
+
+/* TOAST */
 .toast-overlay {
     position: fixed;
     top: 0;
@@ -326,14 +458,14 @@ input.success { border-color: var(--success-green); }
     }
 %>
 
-<!-- Toast Notification - Exact Blue Style -->
+<!-- Toast Notification -->
 <div id="toastOverlay" class="toast-overlay">
     <div id="toast" class="toast">
         <div class="toast-icon-wrapper">
             <span class="toast-icon">i</span>
         </div>
         <div class="toast-content">
-            <p class="toast-message" id="toastMessage">Loading transaction form...</p>
+            <p class="toast-message" id="toastMessage">Loading...</p>
         </div>
         <button class="toast-close" onclick="hideToast()">&times;</button>
     </div>
@@ -391,6 +523,25 @@ input.success { border-color: var(--success-green); }
     </div>
     </fieldset>
 
+    <!-- USER ROLES SECTION -->
+    <fieldset>
+    <legend>User Roles</legend>
+    <div class="roles-container">
+        <div class="role-dropdown-wrapper">
+            <label>Select Roles</label>
+            <select id="roleDropdown" onclick="loadAllRoles()" onchange="loadAllRoles()">
+                <option value="">-- Click to view roles --</option>
+            </select>
+        </div>
+        
+        <div class="roles-checkbox-area">
+            <div id="rolesCheckboxContainer" class="roles-checkbox-grid">
+                <div class="no-roles-message">Click the dropdown to load roles</div>
+            </div>
+        </div>
+    </div>
+    </fieldset>
+
     <div style="text-align: center; margin-top: 20px;">
         <input type="submit" value="Save" id="submitBtn" style="padding: 10px 55px; background: #3F51B5; color: white; border: none; border-radius: 5px; font-size: 15px; cursor: pointer;">
     </div>
@@ -407,6 +558,7 @@ input.success { border-color: var(--success-green); }
 <script>
 let userIdExists = false;
 let toastTimeout;
+let rolesLoaded = false;
 
 window.onload = function() {
     <% String statusType = (String)request.getAttribute("msgType");
@@ -417,20 +569,14 @@ window.onload = function() {
 
 function closeStatusPopup() { document.getElementById("statusPopup").style.display = "none"; }
 
-// Show blue info toast - exact style from image
 function showToast(message) {
     const overlay = document.getElementById('toastOverlay');
     const toast = document.getElementById('toast');
     
     document.getElementById('toastMessage').textContent = message;
-    
-    // Remove hiding class
     toast.classList.remove('hiding');
-    
-    // Show toast
     overlay.classList.add('show');
     
-    // Auto hide after 5 seconds
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
         hideToast();
@@ -449,7 +595,53 @@ function hideToast() {
     }, 200);
 }
 
-// Check if User ID already exists
+// Load all roles from database when dropdown is clicked
+// Function to fetch and render roles into the checkbox grid
+function loadAllRoles() {
+    if (rolesLoaded) return; // Prevent redundant network calls
+    
+    const container = document.getElementById('rolesCheckboxContainer');
+    
+    // Optional: show a small loading indicator inside the container
+    container.innerHTML = '<div class="no-roles-message">Loading roles...</div>';
+    
+    fetch('<%=request.getContextPath()%>/Utility/NewUser.jsp?action=getRoles')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.roles && data.roles.length > 0) {
+                let html = '';
+                data.roles.forEach(role => {
+                    // role.id corresponds to MAINROLE_ID (e.g., 9, 2, 3)
+                    // role.name corresponds to MAINROLE (e.g., REPORTS, MANAGER)
+                    const roleId = 'role_' + role.id;
+                    html += `
+                        <div class="role-checkbox-item">
+                            <input type="checkbox" id="${roleId}" name="roles" value="${role.id}">
+                            <label for="${roleId}">${role.name}</label>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+                rolesLoaded = true;
+            } else {
+                // Handle case where success is true but no roles are returned
+                container.innerHTML = '<div class="no-roles-message">No roles available in the database.</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading roles:', error);
+            container.innerHTML = '<div class="no-roles-message" style="color:red;">Failed to load roles. Please refresh the page.</div>';
+        });
+}
+
+// Ensure roles load automatically when the page is ready
+document.addEventListener('DOMContentLoaded', function() {
+    loadAllRoles();
+});
+
 function checkUserId() {
     const userIdInput = document.getElementById('userId');
     const userId = userIdInput.value.trim();
@@ -462,21 +654,11 @@ function checkUserId() {
         return;
     }
     
-    // No "Checking..." message - silent check
-    
     const checkUrl = '<%=request.getContextPath()%>/Utility/NewUser.jsp?action=checkUserId&userId=' + encodeURIComponent(userId);
     
-    console.log('Checking User ID:', userId);
-    
     fetch(checkUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('HTTP error! status: ' + response.status);
-            }
-            return response.text();
-        })
+        .then(response => response.text())
         .then(text => {
-            console.log('Response:', text);
             const data = JSON.parse(text);
             
             if (data.error) {
@@ -485,7 +667,6 @@ function checkUserId() {
                 userIdInput.classList.remove('error', 'success');
                 userIdExists = false;
             } else if (data.exists) {
-                // Only show message for duplicate
                 showToast(data.message);
                 userIdMsg.textContent = 'User ID already exists';
                 userIdMsg.style.color = '#dc3545';
@@ -493,7 +674,6 @@ function checkUserId() {
                 userIdInput.classList.remove('success');
                 userIdExists = true;
             } else {
-                // Available - keep field normal, no message
                 userIdMsg.textContent = '';
                 userIdInput.classList.remove('error', 'success');
                 userIdExists = false;
@@ -570,3 +750,4 @@ function closeCustomerLookup() { document.getElementById('customerLookupModal').
 </script>
 </body>
 </html>
+
