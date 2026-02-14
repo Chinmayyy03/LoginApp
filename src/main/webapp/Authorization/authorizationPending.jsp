@@ -15,27 +15,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authorization Pending</title>
     <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
-	<link rel="stylesheet" href="css/cardView.css">
+	<link rel="stylesheet" href="../css/cardView.css">
 </head>
 <body>
     <div class="dashboard-container">
         <div class="cards-wrapper">
-            <div class="card" onclick="openInParentFrame('authorizationPendingCustomers.jsp', 'Authorization  > Customer List')">
+            <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingCustomers.jsp', 'Authorization  > Customer List')">
                 <h3>Authorization Pending Customers</h3>
                 <p class="loading" id="pending-customers-value">Loading...</p>
             </div>
             
-            <div class="card" onclick="openInParentFrame('authorizationPendingApplications.jsp', 'Authorization > Application List')">
+            <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingApplications.jsp', 'Authorization > Application List')">
                 <h3>Authorization Pending Application</h3>
                 <p class="loading" id="pending-applications-value">Loading...</p>
             </div>
             
-            <div class="card" onclick="openInParentFrame('authorizationPendingMasters.jsp', 'Authorization > Pending Masters')">
+            <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingMasters.jsp', 'Authorization > Pending Masters')">
                 <h3>Authorization Pending Masters</h3>
                 <p class="loading" id="pending-masters-value">Loading...</p>
             </div>
             
-            <div class="card" onclick="openInParentFrame('authorizationPendingUsers.jsp', 'Authorization > Pending Users')">
+            <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingUsers.jsp', 'Authorization > Pending Users')">
                 <h3>Authorization Pending Users</h3>
                 <p class="loading" id="pending-users-value">Loading...</p>
             </div>
@@ -65,7 +65,7 @@
     
     async function loadCard(cardId, elementId, cardType) {
         try {
-            const response = await fetch('getCardValueUnified.jsp?type=' + cardType + '&id=' + cardId);
+            const response = await fetch('../getCardValueUnified.jsp?type=' + cardType + '&id=' + cardId);
             const data = await response.json();
             
             const valueElement = document.getElementById(elementId);

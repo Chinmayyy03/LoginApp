@@ -100,8 +100,8 @@
 <head>
   <meta charset="utf-8">
   <title>View Customer — <%= cid %></title>
-  <link rel="stylesheet" href="css/addCustomer.css">
-  <link rel="stylesheet" href="css/authViewCustomers.css">
+  <link rel="stylesheet" href="../css/addCustomer.css">
+  <link rel="stylesheet" href="../css/authViewCustomers.css">
   <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
   <style>
   .image-preview-section {

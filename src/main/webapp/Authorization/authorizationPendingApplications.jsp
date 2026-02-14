@@ -19,7 +19,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Authorization Pending Applications - Branch <%= branchCode %></title>
-<link rel="stylesheet" href="css/totalCustomers.css">
+<link rel="stylesheet" href="../css/totalCustomers.css">
 <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
 
 <style>

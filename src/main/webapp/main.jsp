@@ -76,8 +76,8 @@
 	</li>
 
 	<!-- Authorization -->
-	<li data-page="authorizationPending.jsp">
-	    <a href="#" onclick="loadPage('authorizationPending.jsp', 'Authorization', this); return false;">
+	<li data-page="Authorization/authorizationPending.jsp">
+	    <a href="#" onclick="loadPage('Authorization/authorizationPending.jsp', 'Authorization', this); return false;">
 	        <img src="images/right-arrow.png" width="18" height="18" alt="">
 	        <span>Authorization</span>
 	    </a>
