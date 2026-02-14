@@ -569,7 +569,7 @@ window.onload=function(){
 function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     const toggleIcon = field.parentElement.querySelector('.toggle-password svg');
-    
+
     if (field.type === "password") {
         field.type = "text";
         // Change to eye-off icon
@@ -587,41 +587,67 @@ function validatePasswords() {
     const confirmPassword = document.getElementById("confirmPassword").value;
     const passwordError = document.getElementById("passwordError");
     const confirmPasswordError = document.getElementById("confirmPasswordError");
-    
+
     // Reset error messages
     passwordError.style.display = "none";
     confirmPasswordError.style.display = "none";
-    
+
     // Check if password is empty
     if (!password || password.trim() === "") {
         passwordError.textContent = "Password is required";
         passwordError.style.display = "block";
         return false;
     }
-    
+
     // Check password length (minimum 6 characters)
     if (password.length < 6) {
         passwordError.textContent = "Password must be at least 6 characters";
         passwordError.style.display = "block";
         return false;
     }
-    
+
     // Check if confirm password is empty
     if (!confirmPassword || confirmPassword.trim() === "") {
         confirmPasswordError.textContent = "Please confirm your password";
         confirmPasswordError.style.display = "block";
         return false;
     }
-    
+
     // Check if passwords match
     if (password !== confirmPassword) {
         confirmPasswordError.textContent = "Passwords do not match";
         confirmPasswordError.style.display = "block";
         return false;
     }
-    
+
     return true;
 }
+
+// Add real-time validation - Hide errors when user types
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById("password");
+    const confirmPasswordField = document.getElementById("confirmPassword");
+    const passwordError = document.getElementById("passwordError");
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
+
+    // Clear password error when user types
+    if (passwordField) {
+        passwordField.addEventListener('input', function() {
+            if (this.value.trim() !== "") {
+                passwordError.style.display = "none";
+            }
+        });
+    }
+
+    // Clear confirm password error when user types
+    if (confirmPasswordField) {
+        confirmPasswordField.addEventListener('input', function() {
+            if (this.value.trim() !== "") {
+                confirmPasswordError.style.display = "none";
+            }
+        });
+    }
+});
 
 // ================= BUTTON FUNCTIONS =================
 
