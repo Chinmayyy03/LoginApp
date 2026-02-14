@@ -185,13 +185,14 @@ function checkForSuccessMessage() {
     if (updated === 'authorized' && accountCode) {
         showPopup(decodeURIComponent(accountCode));
     } else if (updated === 'rejected') {
-        alert('Application has been rejected successfully.');
+        document.getElementById('rejectPopup').style.display = 'flex';
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-    
+
     var error = urlParams.get('error');
     if (error) {
-        alert('Error: ' + decodeURIComponent(error));
+        document.getElementById('errorMessage').textContent = decodeURIComponent(error);
+        document.getElementById('errorPopup').style.display = 'flex';
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 }
@@ -339,6 +340,14 @@ function viewApplication(applicationNumber) {
 
     window.location.href = 'authViewApplication.jsp?appNo=' + applicationNumber;
 }
+
+function closeRejectPopup() {
+    document.getElementById('rejectPopup').style.display = 'none';
+}
+
+function closeErrorPopup() {
+    document.getElementById('errorPopup').style.display = 'none';
+}
 </script>
 </head>
 <body>
@@ -454,6 +463,26 @@ try (Connection conn = DBConnection.getConnection()) {
     <button id="prevBtn" class="pagination-btn" onclick="previousPage()">← Previous</button>
     <span id="pageInfo" class="page-info">Page 1</span>
     <button id="nextBtn" class="pagination-btn" onclick="nextPage()">Next →</button>
+</div>
+
+<!-- Reject Popup Modal -->
+<div id="rejectPopup" class="popup-overlay" onclick="if(event.target === this) closeRejectPopup()">
+    <div class="popup-container">
+        <div class="popup-icon" style="background: #f44336;"></div>
+        <div class="popup-title">Application Rejected</div>
+        <div class="popup-message">The application has been rejected successfully.</div>
+        <button class="popup-button" onclick="closeRejectPopup()">OK</button>
+    </div>
+</div>
+
+<!-- Error Popup Modal -->
+<div id="errorPopup" class="popup-overlay" onclick="if(event.target === this) closeErrorPopup()">
+    <div class="popup-container">
+        <div class="popup-icon" style="background: #ff9800;">&#9888;</div>
+        <div class="popup-title" style="color: #e65100;">Error</div>
+        <div class="popup-message" id="errorMessage"></div>
+        <button class="popup-button" onclick="closeErrorPopup()">OK</button>
+    </div>
 </div>
 
 <script>
