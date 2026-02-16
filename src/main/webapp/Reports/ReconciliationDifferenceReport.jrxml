@@ -207,6 +207,11 @@
 				<reportElement x="513" y="122" width="40" height="20" uuid="7949b3ce-94a0-46af-9670-3b7132fc7860"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
+			<subreport>
+				<reportElement x="2" y="45" width="551" height="52" uuid="28707913-fa4b-40fa-b2da-84a25a6cf732"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "A4_clerk-manager.jasper"]]></subreportExpression>
+			</subreport>
 		</band>
 	</summary>
 </jasperReport>
