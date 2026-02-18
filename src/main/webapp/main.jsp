@@ -331,6 +331,22 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
         }
+        /* Remove default password reveal eye (Edge / IE) */
+input[type="password"]::-ms-reveal {
+    display: none;
+}
+
+/* Remove clear (X) icon if visible */
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* Extra safety for Chromium browsers */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-password-toggle-button {
+    display: none !important;
+}
+        
     </style>
 </head>
 <body>

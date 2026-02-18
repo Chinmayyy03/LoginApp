@@ -21,90 +21,126 @@ public class UserAuthorizationServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        // ===== PARAMETERS =====
-        String userId = request.getParameter("userId");
-        String status = request.getParameter("status");
-        String password = request.getParameter("password");
-        
-        // Get the authorizer's name from session
+        String userId       = request.getParameter("userId");
+        String status       = request.getParameter("status");
+        String password     = request.getParameter("password");
         String authorizedBy = (session != null) ? (String) session.getAttribute("userId") : null;
 
-        if (userId == null || userId.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/authorizationPendingUsers.jsp");
-            return;
-        }
-        
-        if (authorizedBy == null || authorizedBy.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/authorizationPendingUsers.jsp");
+        System.out.println("=== UserAuthorizationServlet START ===");
+        System.out.println("userId       = " + userId);
+        System.out.println("status       = " + status);
+        System.out.println("authorizedBy = " + authorizedBy);
+
+        if (userId == null || userId.trim().isEmpty() ||
+            authorizedBy == null || authorizedBy.trim().isEmpty()) {
+            System.out.println("VALIDATION FAILED - redirecting");
+            response.sendRedirect(request.getContextPath() + "/Authorization/authorizationPendingUsers.jsp");
             return;
         }
 
-        try (Connection conn = DBConnection.getConnection()) {
+        Connection conn = null;
+
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+            System.out.println("DB connection obtained, autoCommit=false");
 
             // ================= AUTHORIZE =================
             if ("A".equals(status)) {
 
-                String sql =
-                    "UPDATE ACL.USERREGISTER " +
-                    "SET STATUS = ?, " +
-                    "PASSWD = acl.toolkit.encrypt(?), " +   // 🔐 DB Encryption
-                    "AUTHORIZED_BY = ? " +
-                    "WHERE USER_ID = ?";
-
-                try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-                    ps.setString(1, "A");
-                    ps.setString(2, password);      // Plain password → Oracle encrypts
-                    ps.setString(3, authorizedBy);  // Current user who is authorizing
-                    ps.setString(4, userId);
-
+                // STEP 1: Update USERREGISTER — STATUS='A', encrypt password, record authorizer
+                System.out.println("STEP 1: Updating USERREGISTER...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE ACL.USERREGISTER " +
+                        "SET STATUS = 'A', PASSWD = acl.toolkit.encrypt(?), AUTHORIZED_BY = ? " +
+                        "WHERE USER_ID = ?")) {
+                    ps.setString(1, password);
+                    ps.setString(2, authorizedBy);
+                    ps.setString(3, userId);
                     int rows = ps.executeUpdate();
-                    updateSessionStatus(rows, "A", session);
+                    System.out.println("STEP 1 done: rows updated in USERREGISTER = " + rows);
                 }
 
+                // STEP 2: Update USERPENDINGROLES — STATUS='A', record authorizer + date
+                System.out.println("STEP 2: Updating USERPENDINGROLES...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE ACL.USERPENDINGROLES " +
+                        "SET STATUS = 'A', AUTHORIZED_BY = ?, AUTHORIZED_DATE = SYSDATE " +
+                        "WHERE USER_ID = ? AND STATUS = 'P'")) {
+                    ps.setString(1, authorizedBy);
+                    ps.setString(2, userId);
+                    int rows = ps.executeUpdate();
+                    System.out.println("STEP 2 done: rows updated in USERPENDINGROLES = " + rows);
+                }
+
+                // STEP 3: Insert into USERMAINROLE
+                // Table has: USER_ID, MAINROLE_ID, CREATED_DATE only — no BRANCH_CODE
+                System.out.println("STEP 3: Inserting into USERMAINROLE...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO ACL.USERMAINROLE (USER_ID, MAINROLE_ID, CREATED_DATE) " +
+                        "SELECT USER_ID, MAINROLE_ID, SYSDATE " +
+                        "FROM ACL.USERPENDINGROLES " +
+                        "WHERE USER_ID = ? AND STATUS = 'A'")) {
+                    ps.setString(1, userId);
+                    int rows = ps.executeUpdate();
+                    System.out.println("STEP 3 done: rows inserted into USERMAINROLE = " + rows);
+                }
+
+                conn.commit();
+                System.out.println("COMMIT done - Authorize complete");
+
+                session.setAttribute("message",     "Authorized Successfully!");
+                session.setAttribute("messageType", "success");
             }
 
             // ================= REJECT =================
             else if ("R".equals(status)) {
 
-                String sql =
-                    "UPDATE ACL.USERREGISTER " +
-                    "SET STATUS = ?, " +
-                    "AUTHORIZED_BY = ? " +
-                    "WHERE USER_ID = ?";
-
-                try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-                    ps.setString(1, "R");
-                    ps.setString(2, authorizedBy);  // Current user who is rejecting
-                    ps.setString(3, userId);
-
+                // STEP 1: Update USERREGISTER — STATUS='R', record authorizer
+                System.out.println("STEP 1: Updating USERREGISTER for REJECT...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE ACL.USERREGISTER " +
+                        "SET STATUS = 'R', AUTHORIZED_BY = ? " +
+                        "WHERE USER_ID = ?")) {
+                    ps.setString(1, authorizedBy);
+                    ps.setString(2, userId);
                     int rows = ps.executeUpdate();
-                    updateSessionStatus(rows, "R", session);
+                    System.out.println("STEP 1 done: rows updated in USERREGISTER = " + rows);
                 }
+
+                // STEP 2: Update USERPENDINGROLES — STATUS='R', record authorizer + date
+                System.out.println("STEP 2: Updating USERPENDINGROLES for REJECT...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE ACL.USERPENDINGROLES " +
+                        "SET STATUS = 'R', AUTHORIZED_BY = ?, AUTHORIZED_DATE = SYSDATE " +
+                        "WHERE USER_ID = ? AND STATUS = 'P'")) {
+                    ps.setString(1, authorizedBy);
+                    ps.setString(2, userId);
+                    int rows = ps.executeUpdate();
+                    System.out.println("STEP 2 done: rows updated in USERPENDINGROLES = " + rows);
+                }
+
+                conn.commit();
+                System.out.println("COMMIT done - Reject complete");
+
+                session.setAttribute("message",     "Rejected Successfully!");
+                session.setAttribute("messageType", "success");
             }
 
         } catch (SQLException e) {
+            System.out.println("EXCEPTION: " + e.getMessage());
             e.printStackTrace();
+            if (conn != null) try { conn.rollback(); System.out.println("ROLLBACK done"); } catch (SQLException ignored) {}
+            if (session != null) {
+                session.setAttribute("message",     "Operation failed: " + e.getMessage());
+                session.setAttribute("messageType", "error");
+            }
+        } finally {
+            if (conn != null) try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignored) {}
         }
 
+        System.out.println("=== UserAuthorizationServlet END ===");
         response.sendRedirect(request.getContextPath() + "/Authorization/authorizationPendingUsers.jsp");
-    }
-
-    // ===== SESSION MESSAGE =====
-    private void updateSessionStatus(int rowsAffected, String status, HttpSession session) {
-
-        if (session == null) return;
-
-        if (rowsAffected > 0) {
-            session.setAttribute(
-                "message",
-                "A".equals(status)
-                    ? "Authorized Successfully!"
-                    : "Rejected Successfully!"
-            );
-            session.setAttribute("messageType", "success");
-        }
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
