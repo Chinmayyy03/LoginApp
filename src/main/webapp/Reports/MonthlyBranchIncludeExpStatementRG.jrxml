@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MonthlyBranchIncludeExpStatementRG" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="882af5c1-d7ef-403a-9352-7e827632b49b">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="4"/>
 	<parameter name="branch_code" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -55,7 +55,7 @@
 					<text><![CDATA[Sub total :]]></text>
 				</staticText>
 				<textField>
-					<reportElement x="441" y="2" width="113" height="20" uuid="458443f3-cdcc-46bb-aa8d-284eb72a010d"/>
+					<reportElement x="447" y="2" width="107" height="20" uuid="458443f3-cdcc-46bb-aa8d-284eb72a010d"/>
 					<textFieldExpression><![CDATA[$V{amt_total}]]></textFieldExpression>
 				</textField>
 				<line>
@@ -141,7 +141,7 @@
 				<textFieldExpression><![CDATA[$F{PARTICULAR}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="441" y="0" width="113" height="17" uuid="54a5cd2e-826d-4810-89bf-ccafb8d2e8b1"/>
+				<reportElement x="448" y="0" width="107" height="17" uuid="54a5cd2e-826d-4810-89bf-ccafb8d2e8b1"/>
 				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 			</textField>
 		</band>
@@ -170,7 +170,7 @@
 				<text><![CDATA[total :]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="441" y="6" width="114" height="20" uuid="f23d6720-d9ce-49cd-adb8-47940236afc4"/>
+				<reportElement x="448" y="5" width="107" height="20" uuid="f23d6720-d9ce-49cd-adb8-47940236afc4"/>
 				<textFieldExpression><![CDATA[$V{amt_total}]]></textFieldExpression>
 			</textField>
 			<line>
