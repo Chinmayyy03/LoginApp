@@ -276,46 +276,48 @@
             color: #d32f2f;
         }
         
-        /* Success Message - Simple Style */
-        .success-message-container {
+        /* Success Popup - clean centered card */
+        .success-popup-overlay {
             display: none;
-            text-align: center;
-            padding: 40px 30px;
-        }
-        
-        .success-message-container.active {
-            display: block;
-        }
-        
-        /* Simple Green Circle with Checkmark */
-        .success-checkmark {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 25px;
-            background: #22c55e;
-            border-radius: 50%;
-            display: flex;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            z-index: 99999;
             align-items: center;
             justify-content: center;
         }
-        
-        .success-checkmark::before {
-            content: "✓";
-            font-size: 50px;
-            font-weight: bold;
-            color: white;
+        .success-popup-overlay.active {
+            display: flex;
+        }
+        .success-popup-card {
+            background: white;
+            border-radius: 16px;
+            padding: 50px 40px 40px;
+            text-align: center;
+            width: 380px;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        .success-popup-icon {
+            font-size: 52px;
+            color: #22c55e;
+            margin-bottom: 16px;
             line-height: 1;
         }
-        
-        .success-title {
-            font-size: 22px;
-            font-weight: 600;
+        .success-popup-title {
+            font-size: 20px;
+            font-weight: 700;
             color: #1e293b;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
-        
         .btn-ok {
-            padding: 12px 50px;
+            padding: 13px 60px;
             background: #22c55e;
             color: white;
             border: none;
@@ -323,29 +325,145 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.2s;
         }
-        
         .btn-ok:hover {
             background: #16a34a;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
         }
+        .countdown-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 14px;
+        }
+
+        /* Password Strength Bar */
+        .strength-bar-wrapper {
+            margin-top: 8px;
+            display: none;
+        }
+        .strength-bar-track {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .strength-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+        .strength-label {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Password Rules Checklist */
+        .password-rules {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: none;
+        }
+        .password-rules.visible {
+            display: block;
+        }
+        .rule-item {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+        .rule-item.passed {
+            color: #22c55e;
+        }
+        .rule-item .rule-icon {
+            font-size: 13px;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Success Popup */
+        .success-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-popup-overlay.active {
+            display: flex;
+        }
+        .success-popup-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 50px 50px 40px;
+            text-align: center;
+            width: 380px;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        .success-popup-icon {
+            font-size: 56px;
+            color: #22c55e;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+        .success-popup-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 28px;
+        }
+        .btn-ok {
+            padding: 13px 60px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-ok:hover {
+            background: #16a34a;
+        }
+        .countdown-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 14px;
+        }
+
         /* Remove default password reveal eye (Edge / IE) */
-input[type="password"]::-ms-reveal {
-    display: none;
-}
+        input[type="password"]::-ms-reveal {
+            display: none;
+        }
 
-/* Remove clear (X) icon if visible */
-input[type="password"]::-ms-clear {
-    display: none;
-}
+        /* Remove clear (X) icon if visible */
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
 
-/* Extra safety for Chromium browsers */
-input[type="password"]::-webkit-credentials-auto-fill-button,
-input[type="password"]::-webkit-password-toggle-button {
-    display: none !important;
-}
+        /* Extra safety for Chromium browsers */
+        input[type="password"]::-webkit-credentials-auto-fill-button,
+        input[type="password"]::-webkit-password-toggle-button {
+            display: none !important;
+        }
         
     </style>
 </head>
@@ -498,7 +616,7 @@ input[type="password"]::-webkit-password-toggle-button {
             <p>For security reasons, please set a new password</p>
         </div>
         
-        <div class="modal-body-custom">
+        <div class="modal-body-custom" id="passwordFormBody">
             <div id="passwordForm">
                 <div class="alert-custom alert-error-custom" id="errorAlert"></div>
                 
@@ -511,6 +629,22 @@ input[type="password"]::-webkit-password-toggle-button {
                             <img src="images/eye.png" class="eye-icon-modal" id="eyeIconNew" 
                                  alt="Show" onclick="togglePasswordVisibility('newPassword', 'eyeIconNew')" 
                                  style="display:none;">
+                        </div>
+                        <!-- Strength Bar -->
+                        <div class="strength-bar-wrapper">
+                            <div class="strength-bar-track">
+                                <div class="strength-bar-fill" id="strengthBarFill"></div>
+                            </div>
+                            <div class="strength-label" id="strengthLabel"></div>
+                        </div>
+                        <!-- Rules Checklist -->
+                        <div class="password-rules" id="passwordRules">
+                            <div class="rule-item" id="rule-length"><span class="rule-icon">✗</span> Minimum 8 characters</div>
+                            <div class="rule-item" id="rule-upper"><span class="rule-icon">✗</span> At least 1 uppercase letter</div>
+                            <div class="rule-item" id="rule-lower"><span class="rule-icon">✗</span> At least 1 lowercase letter</div>
+                            <div class="rule-item" id="rule-number"><span class="rule-icon">✗</span> At least 1 number</div>
+                            <div class="rule-item" id="rule-special"><span class="rule-icon">✗</span> At least 1 special character (!@#$%^&amp;*)</div>
+                        </div>
                         </div>
                     </div>
                     
@@ -530,14 +664,17 @@ input[type="password"]::-webkit-password-toggle-button {
                     </button>
                 </form>
             </div>
-            
-            <!-- Success Message - Simple Style with Clean Checkmark -->
-            <div class="success-message-container" id="successMessage">
-                <div class="success-checkmark"></div>
-                <div class="success-title">Password changed successfully</div>
-                <button class="btn-ok" onclick="closeSuccessModal()">OK</button>
-            </div>
         </div>
+    </div>
+</div>
+
+<!-- Success Popup - clean simple card (shown after password change) -->
+<div class="success-popup-overlay" id="successPopupOverlay">
+    <div class="success-popup-card">
+        <div class="success-popup-icon">✔</div>
+        <div class="success-popup-title">Password Changed Successfully!</div>
+        <button class="btn-ok" onclick="doLogout()">OK</button>
+        <p style="margin-top:12px; font-size:13px; color:#94a3b8;">Please login again with your new password.</p>
     </div>
 </div>
 
@@ -553,9 +690,10 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 <% } %>
 
-// Close success modal
-function closeSuccessModal() {
-    document.getElementById('modalOverlay').classList.remove('active');
+// *** FIX: Logout after password change so DB status resets to 'U' ***
+function doLogout() {
+    sessionStorage.clear();
+    window.location.href = "logout.jsp";
 }
 
 // Show/hide eye icon based on input
@@ -568,6 +706,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (newPasswordInput) {
         newPasswordInput.addEventListener('input', function() {
             eyeIconNew.style.display = this.value.length > 0 ? 'block' : 'none';
+            document.querySelector('.strength-bar-wrapper').style.display = this.value.length > 0 ? 'block' : 'none';
+            checkPasswordStrength(this.value);
+            document.getElementById('passwordRules').classList.toggle('visible', this.value.length > 0);
         });
     }
     
@@ -575,8 +716,73 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPasswordInput.addEventListener('input', function() {
             eyeIconConfirm.style.display = this.value.length > 0 ? 'block' : 'none';
         });
+        // Hide rules and strength bar when user moves to confirm password field
+        confirmPasswordInput.addEventListener('focus', function() {
+            document.getElementById('passwordRules').classList.remove('visible');
+            document.querySelector('.strength-bar-wrapper').style.display = 'none';
+        });
+        // Show rules again if user goes back to new password field
+    }
+    
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('focus', function() {
+            if (this.value.length > 0) {
+                document.getElementById('passwordRules').classList.add('visible');
+                document.querySelector('.strength-bar-wrapper').style.display = 'block';
+                checkPasswordStrength(this.value);
+            }
+        });
     }
 });
+
+// ========== PASSWORD STRENGTH CHECKER ==========
+function checkPasswordStrength(password) {
+    const rules = {
+        length:  password.length >= 8,
+        upper:   /[A-Z]/.test(password),
+        lower:   /[a-z]/.test(password),
+        number:  /[0-9]/.test(password),
+        special: /[!@#$%^&*()_+\-=\[\]{};':"|,.<>\/?]/.test(password)
+    };
+
+    Object.keys(rules).forEach(function(key) {
+        const el = document.getElementById('rule-' + key);
+        if (!el) return;
+        const icon = el.querySelector('.rule-icon');
+        if (rules[key]) {
+            el.classList.add('passed');
+            icon.textContent = '✓';
+        } else {
+            el.classList.remove('passed');
+            icon.textContent = '✗';
+        }
+    });
+
+    const score = Object.values(rules).filter(Boolean).length;
+    const bar = document.getElementById('strengthBarFill');
+    const label = document.getElementById('strengthLabel');
+
+    if (password.length === 0) {
+        bar.style.width = '0%';
+        bar.style.background = '';
+        label.textContent = '';
+    } else if (score <= 2) {
+        bar.style.width = '33%';
+        bar.style.background = '#ef4444';
+        label.textContent = 'Weak';
+        label.style.color = '#ef4444';
+    } else if (score <= 4) {
+        bar.style.width = '66%';
+        bar.style.background = '#f59e0b';
+        label.textContent = 'Medium';
+        label.style.color = '#f59e0b';
+    } else {
+        bar.style.width = '100%';
+        bar.style.background = '#22c55e';
+        label.textContent = 'Strong';
+        label.style.color = '#22c55e';
+    }
+}
 
 // Toggle password visibility
 function togglePasswordVisibility(inputId, iconId) {
@@ -591,6 +797,7 @@ function togglePasswordVisibility(inputId, iconId) {
         icon.src = "images/eye.png";
     }
 }
+
 
 // Handle password change form submission
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
@@ -618,6 +825,29 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
         errorAlert.style.display = 'block';
         return;
     }
+
+    // Validate strong password rules
+    const pwRules = {
+        length:  newPassword.length >= 8,
+        upper:   /[A-Z]/.test(newPassword),
+        lower:   /[a-z]/.test(newPassword),
+        number:  /[0-9]/.test(newPassword),
+        special: /[!@#$%^&*()_+\-=\[\]{};':"|,.<>\/?]/.test(newPassword)
+    };
+    const ruleMessages = {
+        length:  'at least 8 characters',
+        upper:   'at least 1 uppercase letter',
+        lower:   'at least 1 lowercase letter',
+        number:  'at least 1 number',
+        special: 'at least 1 special character'
+    };
+    const failedRules = Object.keys(pwRules).filter(k => !pwRules[k]);
+    if (failedRules.length > 0) {
+        errorAlert.textContent = '❌ Password must contain ' + failedRules.map(k => ruleMessages[k]).join(', ') + '.';
+        errorAlert.style.display = 'block';
+        return;
+    }
+
     
     // Disable submit button
     submitBtn.disabled = true;
@@ -634,9 +864,13 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
                 const response = JSON.parse(xhr.responseText);
                 
                 if (response.success) {
-                    // Show simple success message
-                    document.getElementById('passwordForm').style.display = 'none';
-                    document.getElementById('successMessage').classList.add('active');
+                    // Show success message and start countdown to auto-logout
+                    // Hide password change modal, show clean success popup
+                    document.getElementById('modalOverlay').classList.remove('active');
+                    document.getElementById('successPopupOverlay').classList.add('active');
+
+                    // User must click OK to logout
+
                 } else {
                     errorAlert.textContent = '❌ ' + response.message;
                     errorAlert.style.display = 'block';
@@ -763,7 +997,7 @@ function addToNavigationStack(page, breadcrumbPath) {
 }
 
 function navigateToBreadcrumb(page, title) {
-    // ✅ Auto-build breadcrumb
+    // Auto-build breadcrumb
     let path = buildBreadcrumbPath(page);
     
     sessionStorage.setItem('currentPage', page);
@@ -774,8 +1008,6 @@ function navigateToBreadcrumb(page, title) {
 }
 
 // ========== BREADCRUMB FUNCTIONS ==========
-
-// --- Optimized breadcrumb updater (replace the existing updateBreadcrumb) ---
 
 // Simple debounce to coalesce rapid calls (100ms)
 let _breadcrumbTimeout = null;
@@ -821,7 +1053,7 @@ function _doUpdateBreadcrumb(path) {
     sessionStorage.setItem('currentBreadcrumb', path);
 }
 
-// small helper to avoid XSS when injecting text
+// Small helper to avoid XSS when injecting text
 function escapeHtml(text) {
     return String(text)
         .replace(/&/g, '&amp;')
