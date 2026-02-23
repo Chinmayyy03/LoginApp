@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SBInterestCertificate" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="681b007c-0c12-49bd-8730-14d6ae1b644d">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="215"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -22,19 +22,42 @@
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<queryString>
-		<![CDATA[SELECT A.ACCOUNT_CODE, FN_GET_BALANCE_ASON($P{to_date},A.ACCOUNT_CODE) LEDGERBALANCE, TO_CHAR(A.DATEACCOUNTOPEN, 'DD/MM/YYYY') AS DATEACCOUNTOPEN,
-   (SELECT SUM(AMOUNT) FROM TRANSACTION.DAILYTXN WHERE ACCOUNT_CODE =$P{account_code}
-		  AND TXN_DATE BETWEEN $P{from_date} AND $P{to_date}
-			 AND transactionindicator_code LIKE '%CR' and
-       nvl(TRANIDENTIFICATION_ID,0)=0
-		  AND UPPER(particular) LIKE '%INT%') AMOUNT,
-		 A.NAME, trim(C.ADDRESS1) || ' ' || trim(C.ADDRESS2) || ' ' || trim(C.ADDRESS3) AS ADDRESS
-		 FROM BALANCE.ACCOUNT D,  ACCOUNT.ACCOUNT A, CUSTOMER.CUSTOMER C
-		 WHERE D.ACCOUNT_CODE = A.ACCOUNT_CODE
-		  AND SUBSTR(A.ACCOUNT_CODE, 1, 4) = $P{branch_code}
-		  AND A.ACCOUNT_CODE = $P{account_code}
-		--  AND A.CUSTOMER_ID = C.CUSTOMER_ID
-		 ORDER BY A.ACCOUNT_CODE]]>
+		<![CDATA[SELECT A.ACCOUNT_CODE,
+       B.LEDGERBALANCE,
+       TO_CHAR(A.DATEACCOUNTOPEN,'DD/MM/YYYY') DATEACCOUNTOPEN,
+       NVL(SUM(D.AMOUNT),0) AMOUNT,
+       A.NAME,
+       NVL(TRIM(C.ADDRESS1),'') || ' ' ||
+       NVL(TRIM(C.ADDRESS2),'') || ' ' ||
+       NVL(TRIM(C.ADDRESS3),'') ADDRESS
+
+FROM ACCOUNT.ACCOUNT A
+
+JOIN BALANCE.ACCOUNT B
+     ON B.ACCOUNT_CODE = A.ACCOUNT_CODE
+
+LEFT JOIN CUSTOMER.CUSTOMER C
+     ON A.CUSTOMER_ID = C.CUSTOMER_ID
+
+LEFT JOIN TRANSACTION.DAILYTXN D
+     ON D.ACCOUNT_CODE = A.ACCOUNT_CODE
+     AND D.TXN_DATE BETWEEN
+         TO_DATE($P{from_date},'YYYY-MM-DD')
+         AND TO_DATE($P{to_date},'YYYY-MM-DD')
+     AND D.TRANSACTIONINDICATOR_CODE LIKE '%CR'
+     AND NVL(D.TRANIDENTIFICATION_ID,0)=0
+     AND UPPER(D.PARTICULAR) LIKE '%INT%'
+
+WHERE SUBSTR(A.ACCOUNT_CODE,1,4) = $P{branch_code}
+  AND A.ACCOUNT_CODE = $P{account_code}
+
+GROUP BY A.ACCOUNT_CODE,
+         B.LEDGERBALANCE,
+         A.NAME,
+         C.ADDRESS1,
+         C.ADDRESS2,
+         C.ADDRESS3,
+         A.DATEACCOUNTOPEN]]>
 	</queryString>
 	<field name="ACCOUNT_CODE" class="java.lang.String"/>
 	<field name="LEDGERBALANCE" class="java.math.BigDecimal"/>
@@ -42,14 +65,8 @@
 	<field name="AMOUNT" class="java.math.BigDecimal"/>
 	<field name="NAME" class="java.lang.String"/>
 	<field name="ADDRESS" class="java.lang.String"/>
-	<background>
-		<band splitType="Stretch"/>
-	</background>
-	<title>
-		<band height="79" splitType="Stretch"/>
-	</title>
 	<detail>
-		<band height="462" splitType="Stretch">
+		<band height="415" splitType="Stretch">
 			<staticText>
 				<reportElement x="0" y="58" width="70" height="20" uuid="a396ec8a-3362-4ae9-8c81-0e677352a99c"/>
 				<textElement>
@@ -108,19 +125,19 @@
 				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="100" y="197" width="225" height="20" uuid="bdf96ab5-d2d0-4192-97fe-3c833b7838b2"/>
+				<reportElement x="90" y="197" width="225" height="20" uuid="bdf96ab5-d2d0-4192-97fe-3c833b7838b2"/>
 				<text><![CDATA[ BEING INTEREST FOR THE PERIOD FROM]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="308" y="197" width="99" height="20" uuid="e752ecfa-ce55-4092-9363-a35e441d33f4"/>
+				<reportElement x="309" y="197" width="71" height="20" uuid="e752ecfa-ce55-4092-9363-a35e441d33f4"/>
 				<textFieldExpression><![CDATA[$P{from_date}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="386" y="197" width="28" height="20" uuid="b44571d4-f907-4be8-ae97-0cf206aa504d"/>
+				<reportElement x="379" y="197" width="28" height="20" uuid="b44571d4-f907-4be8-ae97-0cf206aa504d"/>
 				<text><![CDATA[To]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="405" y="197" width="100" height="20" uuid="05715297-6adf-4cbc-a09c-f8294bf617f1"/>
+				<reportElement x="407" y="197" width="100" height="20" uuid="05715297-6adf-4cbc-a09c-f8294bf617f1"/>
 				<textFieldExpression><![CDATA[$P{to_date}]]></textFieldExpression>
 			</textField>
 			<staticText>
@@ -201,13 +218,4 @@
 			</staticText>
 		</band>
 	</detail>
-	<columnFooter>
-		<band height="51" splitType="Stretch"/>
-	</columnFooter>
-	<pageFooter>
-		<band height="38" splitType="Stretch"/>
-	</pageFooter>
-	<summary>
-		<band height="42" splitType="Stretch"/>
-	</summary>
 </jasperReport>
