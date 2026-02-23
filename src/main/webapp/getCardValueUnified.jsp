@@ -200,8 +200,27 @@
                     } else {
                         value = "0";
                     }
+                } else if ("pending_txn_cash".equals(cardId)) {
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM TRANSACTION.DAILYSCROLL " +
+                        "WHERE BRANCH_CODE = ? AND TRANSACTIONSTATUS = 'E' " +
+                        "AND TRANSACTIONINDICATOR_CODE LIKE 'CS%'"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
+
+                } else if ("pending_txn_transfer".equals(cardId)) {
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM TRANSACTION.DAILYSCROLL " +
+                        "WHERE BRANCH_CODE = ? AND TRANSACTIONSTATUS = 'E' " +
+                        "AND TRANSACTIONINDICATOR_CODE LIKE 'TR%'"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
                 }
-                break;
+                break;   
 
                 
             default:

@@ -40,7 +40,16 @@
                 <p class="loading" id="pending-users-value">Loading...</p>
             </div>
             
-        </div>
+        <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingTransactionCash.jsp', 'Authorization > Pending Transaction (Cash)')">
+                <h3>Authorization Pending Transaction (Cash)</h3>
+                <p class="loading" id="pending-txn-cash-value">Loading...</p>
+            </div>
+            
+            <div class="card" onclick="openInParentFrame('Authorization/authorizationPendingTransactionTransfer.jsp', 'Authorization > Pending Transaction (Transfer)')">
+                <h3>Authorization Pending Transaction (Transfer)</h3>
+                <p class="loading" id="pending-txn-transfer-value">Loading...</p>
+            </div>
+        </div>  <%-- this closing div was already there --%>
     </div>
     
     <script>
@@ -58,7 +67,9 @@
             loadCard('pending_customers', 'pending-customers-value', 'auth'),
             loadCard('pending_applications', 'pending-applications-value', 'auth'),
             loadCard('pending_masters', 'pending-masters-value', 'auth'),
-            loadCard('pending_users', 'pending-users-value', 'auth')
+            loadCard('pending_users', 'pending-users-value', 'auth'),
+            loadCard('pending_txn_cash', 'pending-txn-cash-value', 'auth'),
+            loadCard('pending_txn_transfer', 'pending-txn-transfer-value', 'auth')
         ]);
     }
 
