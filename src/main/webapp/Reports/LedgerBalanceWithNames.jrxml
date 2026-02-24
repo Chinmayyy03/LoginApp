@@ -26,14 +26,12 @@
        DATEACCOUNTOPEN,
        LEDGERBALANCES,
 
-       /* Member Type */
        CASE
            WHEN MEMBER_TYPE = 'A' THEN 'A'
            WHEN MEMBER_TYPE = 'B' THEN 'B'
            ELSE 'UNKNOWN'
        END AS MEMBER_TYPE,
 
-       /* Gender */
        CASE
            WHEN GENDER = 'M' THEN 'MALE'
            WHEN GENDER = 'F' THEN 'FEMALE'
@@ -46,7 +44,6 @@ FROM (
                X.CUSTOMER_ID,
                TO_CHAR(X.DATEACCOUNTOPEN,'DD/MM/YYYY') AS DATEACCOUNTOPEN,
 
-               /* Final Ledger Balance */
                CASE
                    WHEN B.BACKDATED IS NULL
                    THEN Y.LEDGERBALANCE
@@ -57,14 +54,12 @@ FROM (
                C.GENDER
 
         FROM ACCOUNT.ACCOUNT X
-
         JOIN BALANCE.ACCOUNT Y
              ON X.ACCOUNT_CODE = Y.ACCOUNT_CODE
 
         LEFT JOIN CUSTOMER.CUSTOMER C
              ON C.CUSTOMER_ID = X.CUSTOMER_ID
 
-        /* Backdated Balance Calculation */
         LEFT JOIN (
             SELECT T.ACCOUNT_CODE,
                    Y2.LEDGERBALANCE
@@ -78,19 +73,21 @@ FROM (
             JOIN BALANCE.ACCOUNT Y2
                  ON Y2.ACCOUNT_CODE = T.ACCOUNT_CODE
             WHERE T.TRANSACTIONSTATUS = 'A'
-              AND T.TXN_DATE >  TO_DATE('29-MAR-2025','DD-MON-YYYY')
-              AND T.TXN_DATE <= TO_DATE('29-MAR-2025','DD-MON-YYYY')
+              AND T.TXN_DATE <= TO_DATE($P{as_on_date},'DD-MON-YYYY')
             GROUP BY T.ACCOUNT_CODE, Y2.LEDGERBALANCE
         ) B
         ON B.ACCOUNT_CODE = X.ACCOUNT_CODE
 
-        WHERE SUBSTR(X.ACCOUNT_CODE,5,3) = $P{product_code}   -- Product Code
-          AND SUBSTR(X.ACCOUNT_CODE,1,4) = $P{branch_code}  -- Branch Code
-          AND (X.DATEACCOUNTCLOSE IS NULL
-               OR X.DATEACCOUNTCLOSE >
-                  TO_DATE('26-APR-2011','DD-MON-YYYY'))
-          AND X.DATEACCOUNTOPEN <=
-              TO_DATE('26-APR-2011','DD-MON-YYYY')
+        /* ✅ STRICT PRODUCT FILTER */
+        WHERE SUBSTR(X.ACCOUNT_CODE,1,4) = $P{branch_code}
+          AND SUBSTR(X.ACCOUNT_CODE,5,3) = $P{product_code}
+
+        AND (X.DATEACCOUNTCLOSE IS NULL
+             OR X.DATEACCOUNTCLOSE >
+                TO_DATE($P{as_on_date},'DD-MON-YYYY'))
+
+        AND X.DATEACCOUNTOPEN <=
+            TO_DATE($P{as_on_date},'DD-MON-YYYY')
 
         ORDER BY X.ACCOUNT_CODE
      )
@@ -320,6 +317,15 @@ ORDER BY SERIALNUMBER]]>
 			<line>
 				<reportElement x="1" y="-1" width="833" height="1" uuid="c2bdec4c-29e4-498f-b9e0-67b0c3b8dd63"/>
 			</line>
+			<textField>
+				<reportElement x="404" y="17" width="80" height="20" uuid="155a3548-0887-4360-a135-f5682959b705"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="484" y="17" width="40" height="20" uuid="0dddc3af-9e12-44fa-99f4-59fb6403c078"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageFooter>
 </jasperReport>

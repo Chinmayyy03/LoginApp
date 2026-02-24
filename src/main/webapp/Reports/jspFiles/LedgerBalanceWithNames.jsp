@@ -19,10 +19,8 @@ String action = request.getParameter("action");
 String branchCode  = request.getParameter("branch_code");
 String asOnDateUI  = request.getParameter("as_on_date");
 String productCode = request.getParameter("product_code");
-String singleAll   = request.getParameter("single_all");
 
 if (branchCode == null) branchCode = "0002";
-if (singleAll == null) singleAll = "S";
 
 if (asOnDateUI == null || asOnDateUI.trim().isEmpty()) {
     asOnDateUI = new SimpleDateFormat("yyyy-MM-dd")
@@ -38,12 +36,10 @@ if ("download".equals(action)) {
 
     try {
 
-        /* Validation */
-        if ("S".equals(singleAll) && 
-            (productCode == null || productCode.trim().isEmpty())) {
-
+        /* Product Code Mandatory */
+        if (productCode == null || productCode.trim().isEmpty()) {
             session.setAttribute("errorMessage",
-                "Please enter Product Code for Single selection.");
+                "Please enter Product Code.");
             response.sendRedirect("LedgerBalanceWithNames.jsp");
             return;
         }
@@ -71,21 +67,18 @@ if ("download".equals(action)) {
 
         params.put("branch_code", branchCode);
         params.put("as_on_date", oracleDate);
-        params.put("single_all", singleAll);
+        params.put("product_code", productCode.trim());
 
-        /* IMPORTANT FIX */
-        if ("A".equals(singleAll)) {
-            params.put("product_code", null);
-        } else {
-            params.put("product_code", productCode.trim());
-        }
-
+        /* Optional parameters */
         String userId = (String) session.getAttribute("user_id");
         if (userId == null) userId = "admin";
         params.put("user_id", userId);
 
+        params.put("report_title", "PRODUCT WISE LEDGER BALANCE");
+
         params.put("SUBREPORT_DIR",
                 application.getRealPath("/Reports/"));
+
         params.put("IMAGE_PATH",
                 application.getRealPath("/images/UPSB MONO.png"));
 
@@ -190,37 +183,11 @@ if ("download".equals(action)) {
             </div>
 
             <div class="parameter-group">
-                <table style="width:400px;">
-                    <tr>
-                        <td style="width:120px;">Select</td>
-                        <td style="text-align:center;">Single</td>
-                        <td style="text-align:center;">All</td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td style="text-align:center;">
-                            <input type="radio" name="single_all"
-                                   value="S"
-                                   onclick="toggleProduct()"
-                                   <%= "S".equals(singleAll) ? "checked" : "" %>>
-                        </td>
-                        <td style="text-align:center;">
-                            <input type="radio" name="single_all"
-                                   value="A"
-                                   onclick="toggleProduct()"
-                                   <%= "A".equals(singleAll) ? "checked" : "" %>>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="parameter-group">
                 <div class="parameter-label">Product Code</div>
                 <input type="text" name="product_code"
                        class="input-field"
-                       id="productField"
                        placeholder="Enter product code"
-                       value="<%=productCode != null ? productCode : ""%>">
+                       required>
             </div>
 
         </div>
@@ -237,26 +204,6 @@ if ("download".equals(action)) {
 
     </form>
 </div>
-
-<script>
-function toggleProduct() {
-    var single = document.querySelector('input[name="single_all"][value="S"]').checked;
-    var productField = document.getElementById("productField");
-
-    if (single) {
-        productField.disabled = false;
-        productField.readOnly = false;
-    } else {
-        productField.value = "";
-        productField.disabled = true;
-        productField.readOnly = true;
-    }
-}
-
-window.onload = function() {
-    toggleProduct();
-};
-</script>
 
 </body>
 </html>
