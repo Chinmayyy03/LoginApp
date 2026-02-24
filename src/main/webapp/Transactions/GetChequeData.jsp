@@ -20,7 +20,7 @@
         con = DBConnection.getConnection();
 
         // Fetch cheque data where STATUS = 'I' (Issued / In hand) for the given account
-        String query = "SELECT CHEQUE_NUMBER, CHEQUE_SERIES " +
+        String query = "SELECT CHEQUE_NUMBER, CHEQUE_SERIES, CHEQUETYPE_CODE " +
                        "FROM ACCOUNT.ACCOUNTCHEQUE " +
                        "WHERE ACCOUNT_CODE = ? " +
                        "AND STATUS = 'I' " +
@@ -34,22 +34,32 @@
         jsonResponse.put("success", true);
 
         JSONArray chequesArray = new JSONArray();
-        // Collect unique CHEQUE_SERIES for cheque type dropdown
+        // Collect unique CHEQUE_SERIES and CHEQUETYPE_CODE for dropdowns
         java.util.LinkedHashSet<String> seriesSet = new java.util.LinkedHashSet<>();
+        java.util.LinkedHashSet<String> typeSet = new java.util.LinkedHashSet<>();
 
         while (rs.next()) {
             JSONObject cheque = new JSONObject();
 
+            // ✅ TRIM ALL STRING VALUES
             String chequeNumber = rs.getString("CHEQUE_NUMBER");
             String chequeSeries = rs.getString("CHEQUE_SERIES");
+            String chequeTypeCode = rs.getString("CHEQUETYPE_CODE");
 
+            // Trim and apply to JSON
             cheque.put("chequeNumber", chequeNumber != null ? chequeNumber.trim() : "");
             cheque.put("chequeSeries", chequeSeries != null ? chequeSeries.trim() : "");
+            cheque.put("chequeTypeCode", chequeTypeCode != null ? chequeTypeCode.trim() : "");
 
             chequesArray.put(cheque);
 
+            // ✅ TRIM BEFORE ADDING TO SETS
             if (chequeSeries != null && !chequeSeries.trim().isEmpty()) {
                 seriesSet.add(chequeSeries.trim());
+            }
+            
+            if (chequeTypeCode != null && !chequeTypeCode.trim().isEmpty()) {
+                typeSet.add(chequeTypeCode.trim());
             }
         }
 
@@ -58,9 +68,16 @@
         for (String series : seriesSet) {
             seriesArray.put(series);
         }
+        
+        // ✅ BUILD UNIQUE TYPE ARRAY
+        JSONArray typeArray = new JSONArray();
+        for (String type : typeSet) {
+            typeArray.put(type);
+        }
 
         jsonResponse.put("cheques", chequesArray);
         jsonResponse.put("seriesList", seriesArray);
+        jsonResponse.put("typeList", typeArray);
         jsonResponse.put("count", chequesArray.length());
 
         out.print(jsonResponse.toString());

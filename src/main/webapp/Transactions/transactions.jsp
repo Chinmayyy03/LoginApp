@@ -26,7 +26,6 @@
             align-items: flex-end;
             gap: 20px;
             margin-top: 10px;
-            padding: 12px 15px;
             flex-wrap: wrap;
             animation: fadeIn 0.3s ease;
         }
@@ -228,31 +227,39 @@
                 <!-- ========================================== -->
                 <!-- CHEQUE FIELDS ROW (Shown only on Withdrawal) -->
                 <!-- ========================================== -->
-                <div class="cheque-fields-row" id="chequeFieldsRow">
-
-
-                    <!-- Cheque Type (CHEQUE_SERIES) -->
-                    <div>
-                        <div class="label">Cheque Type</div>
-                        <select id="chequeType" name="chequeType">
-                            <option value="">-- Select Cheque Type --</option>
-                        </select>
-                    </div>
-
-                    <!-- Cheque No (CHEQUE_NUMBER) - filtered by selected Cheque Type -->
-                    <div>
-                        <div class="label">Cheque No</div>
-                        <select id="chequeNo" name="chequeNo">
-                            <option value="">-- Select Cheque No --</option>
-                        </select>
-                    </div>
-
-                    <!-- Cheque Date -->
-                    <div>
-                        <div class="label">Cheque Date</div>
-                        <input type="date" id="chequeDate" name="chequeDate">
-                    </div>
-                </div>
+				<div class="cheque-fields-row" id="chequeFieldsRow">
+				
+								    <!-- Cheque Type (CHEQUETYPE_CODE) -->
+				    <div>
+				        <div class="label">Cheque Type</div>
+				        <select id="chequeType" name="chequeType">
+				            <option value="">Select Cheque Type</option>
+				        </select>
+				    </div>
+				    
+				    <!-- Cheque Series -->
+				    <div>
+				        <div class="label">Cheque Series</div>
+				        <select id="chequeSeries" name="chequeSeries">
+				            <option value="">Select Cheque Series</option>
+				        </select>
+				    </div>
+				
+				
+				    <!-- Cheque No (CHEQUE_NUMBER) -->
+				    <div>
+				        <div class="label">Cheque No</div>
+				        <select id="chequeNo" name="chequeNo">
+				            <option value="">Select Cheque No</option>
+				        </select>
+				    </div>
+				
+				    <!-- Cheque Date -->
+				    <div>
+				        <div class="label">Cheque Date</div>
+				        <input type="date" id="chequeDate" name="chequeDate">
+				    </div>
+				</div>
 				
 				
 				

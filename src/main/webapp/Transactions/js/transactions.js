@@ -380,15 +380,15 @@ function fetchChequeData(accountCode) {
 	const operationType = document.querySelector("input[name='operationType']:checked").value;
 	const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
 
-	// ✅ FIX: Allow BOTH withdrawal AND transfer-debit
 	if (operationType !== 'withdrawal' && !(operationType === 'transfer' && opType === 'Debit')) {
 	    clearChequeFields();
 	    return;
 	}
 
-    // Show loading state
+    const chequeSeriesSelect = document.getElementById('chequeSeries');
     const chequeTypeSelect = document.getElementById('chequeType');
     const chequeNoSelect   = document.getElementById('chequeNo');
+    chequeSeriesSelect.innerHTML = '<option value="">Loading...</option>';
     chequeTypeSelect.innerHTML = '<option value="">Loading...</option>';
     chequeNoSelect.innerHTML   = '<option value="">Loading...</option>';
 
@@ -401,27 +401,43 @@ function fetchChequeData(accountCode) {
                 return;
             }
 
-            // Store full cheque data globally for filtering later
             allChequeData = data.cheques || [];
 
             if (allChequeData.length === 0) {
-                chequeTypeSelect.innerHTML = '<option value="">-- No cheques available --</option>';
-                chequeNoSelect.innerHTML   = '<option value="">-- No cheques available --</option>';
+                chequeSeriesSelect.innerHTML = '<option value="">No cheques available</option>';
+                chequeTypeSelect.innerHTML = '<option value="">No cheques available</option>';
+                chequeNoSelect.innerHTML   = '<option value="">No cheques available/option>';
                 return;
             }
 
-            // Populate Cheque Type dropdown (unique CHEQUE_SERIES values)
+            // ✅ Populate Cheque Series - All unique series from database
             const seriesList = data.seriesList || [];
-            chequeTypeSelect.innerHTML = '<option value="">-- Select Cheque Type --</option>';
+            chequeSeriesSelect.innerHTML = '<option value="">Select Cheque Series</option>';
             seriesList.forEach(function(series) {
                 const opt = document.createElement('option');
                 opt.value = series;
                 opt.textContent = series;
+                chequeSeriesSelect.appendChild(opt);
+            });
+
+            // ✅ Populate Cheque Type - All unique types from database
+            const typeList = data.typeList || [];
+            chequeTypeSelect.innerHTML = '<option value="">Select Cheque Type</option>';
+            typeList.forEach(function(typeCode) {
+                const opt = document.createElement('option');
+                opt.value = typeCode;
+                opt.textContent = typeCode;
                 chequeTypeSelect.appendChild(opt);
             });
 
-            // Initially populate Cheque No with all available cheque numbers
-            populateChequeNoDropdown('');
+            // ✅ Populate Cheque No - All cheque numbers from database
+            chequeNoSelect.innerHTML = '<option value="">Select Cheque No</option>';
+            allChequeData.forEach(function(cheque) {
+                const opt = document.createElement('option');
+                opt.value = cheque.chequeNumber;
+                opt.textContent = cheque.chequeNumber;
+                chequeNoSelect.appendChild(opt);
+            });
         })
         .catch(error => {
             console.error('Error fetching cheque data:', error);
@@ -431,19 +447,103 @@ function fetchChequeData(accountCode) {
 }
 
 /**
+ * Populate Cheque Type dropdown with CHEQUETYPE_CODE values
+ * Filter by selected cheque series if provided
+ */
+function populateChequeTypeDropdown(selectedSeries) {
+    const chequeTypeSelect = document.getElementById('chequeType');
+    chequeTypeSelect.innerHTML = '<option value="">Select Cheque Type</option>';
+
+    const filtered = selectedSeries
+        ? allChequeData.filter(c => c.chequeSeries === selectedSeries)
+        : allChequeData;
+
+    // ✅ Get unique CHEQUETYPE_CODE values from filtered data
+    const typeSet = new Set();
+    filtered.forEach(cheque => {
+        if (cheque.chequeTypeCode && cheque.chequeTypeCode.trim() !== '') {
+            typeSet.add(cheque.chequeTypeCode.trim());
+        }
+    });
+
+    if (typeSet.size === 0) {
+        chequeTypeSelect.innerHTML = '<option value="">No cheque types available</option>';
+        return;
+    }
+
+    // ✅ Add all trimmed unique types to dropdown
+    typeSet.forEach(function(typeCode) {
+        const opt = document.createElement('option');
+        opt.value = typeCode;
+        opt.textContent = typeCode;
+        chequeTypeSelect.appendChild(opt);
+    });
+}
+
+/**
+ * Called when user changes Cheque Series dropdown
+ */
+function onChequeSeriesChange() {
+    const selectedSeries = document.getElementById('chequeSeries').value;
+    populateChequeTypeDropdown(selectedSeries);
+    populateChequeNoDropdown(selectedSeries, '');
+}
+
+/**
+ * Populate Cheque No dropdown, filtered by selected series AND selected type
+ */
+function populateChequeNoDropdown(selectedSeries, selectedType) {
+    const chequeNoSelect = document.getElementById('chequeNo');
+    chequeNoSelect.innerHTML = '<option value="">Select Cheque No</option>';
+
+    let filtered = allChequeData;
+
+    if (selectedSeries && selectedSeries.trim() !== '') {
+        filtered = filtered.filter(c => c.chequeSeries === selectedSeries);
+    }
+
+    if (selectedType && selectedType.trim() !== '') {
+        filtered = filtered.filter(c => c.chequeTypeCode === selectedType);
+    }
+
+    if (filtered.length === 0) {
+        chequeNoSelect.innerHTML = '<option value="">No cheques available</option>';
+        return;
+    }
+
+    filtered.forEach(function(cheque) {
+        const opt = document.createElement('option');
+        opt.value = cheque.chequeNumber;
+        opt.textContent = cheque.chequeNumber;
+        opt.setAttribute('data-series', cheque.chequeSeries);
+        opt.setAttribute('data-type', cheque.chequeTypeCode);
+        chequeNoSelect.appendChild(opt);
+    });
+}
+
+/**
+ * Called when user changes the Cheque Type dropdown
+ */
+function onChequeTypeChange() {
+    const selectedSeries = document.getElementById('chequeSeries').value;
+    const selectedType = document.getElementById('chequeType').value;
+    populateChequeNoDropdown(selectedSeries, selectedType);
+}
+
+/**
  * Populate Cheque No dropdown, optionally filtered by selected Cheque Type (series).
  * If selectedSeries is empty/null, show all cheque numbers.
  */
 function populateChequeNoDropdown(selectedSeries) {
     const chequeNoSelect = document.getElementById('chequeNo');
-    chequeNoSelect.innerHTML = '<option value="">-- Select Cheque No --</option>';
+    chequeNoSelect.innerHTML = '<option value="">Select Cheque No</option>';
 
     const filtered = selectedSeries
         ? allChequeData.filter(c => c.chequeSeries === selectedSeries)
         : allChequeData;
 
     if (filtered.length === 0) {
-        chequeNoSelect.innerHTML = '<option value="">-- No cheques for this type --</option>';
+        chequeNoSelect.innerHTML = '<option value="">No cheques for this type</option>';
         return;
     }
 
@@ -470,13 +570,15 @@ function onChequeTypeChange() {
  */
 function clearChequeFields() {
     allChequeData = [];
+    const chequeSeriesSelect = document.getElementById('chequeSeries');
     const chequeTypeSelect = document.getElementById('chequeType');
     const chequeNoSelect   = document.getElementById('chequeNo');
     const chequeDateInput  = document.getElementById('chequeDate');
 
-    if (chequeTypeSelect) chequeTypeSelect.innerHTML = '<option value="">-- Select Cheque Type --</option>';
-    if (chequeNoSelect)   chequeNoSelect.innerHTML   = '<option value="">-- Select Cheque No --</option>';
-    if (chequeDateInput)  chequeDateInput.value = '';
+    if (chequeSeriesSelect) chequeSeriesSelect.innerHTML = '<option value="">Select Cheque Series</option>';
+    if (chequeTypeSelect)   chequeTypeSelect.innerHTML = '<option value="">Select Cheque Type</option>';
+    if (chequeNoSelect)     chequeNoSelect.innerHTML   = '<option value="">Select Cheque No</option>';
+    if (chequeDateInput)    chequeDateInput.value = '';
 }
 
 // ========================================
@@ -679,14 +781,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	    });
 	}
 
-    // ✅ Cheque Type change handler - filter cheque no by selected type
-    const chequeTypeSelect = document.getElementById('chequeType');
-    if (chequeTypeSelect) {
-        chequeTypeSelect.addEventListener('change', function() {
-            onChequeTypeChange();
-        });
-    }
-    
+
+	
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
     
