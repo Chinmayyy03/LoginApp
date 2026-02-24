@@ -5,6 +5,10 @@ let searchTimeout;
 let currentCategory = 'saving';
 let previousAccountCode = '';
 
+// ========== CHEQUE DATA STORE ==========
+// Holds all cheque records fetched from server for the current account
+let allChequeData = [];
+
 // ========== TOAST UTILITY ==========
 function showToast(message, type = 'error') {
     const styles = {
@@ -60,6 +64,8 @@ accountCodeInput.addEventListener('input', function(e) {
             clearLoanFields();
             resetLoanReceivedFields();
         }
+        // Clear cheque fields when account is cleared
+        clearChequeFields();
     }
     
     handleLiveSearch(currentValue);
@@ -195,6 +201,7 @@ function selectAccountFromSearch(code, name) {
         
         const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
         const accountCategory = document.getElementById('accountCategory').value;
+        const operationType = document.querySelector("input[name='operationType']:checked").value;
         
         // ✅ Populate closing fields if in closing mode
         if (transactionType === 'closing') {
@@ -208,6 +215,13 @@ function selectAccountFromSearch(code, name) {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
             }, 1500);
+        }
+
+        // ✅ Fetch cheque data if operation is withdrawal
+        if (operationType === 'withdrawal') {
+            setTimeout(() => {
+                fetchChequeData(code);
+            }, 500);
         }
     }, 500);
 }
@@ -293,6 +307,10 @@ function updateLabelsBasedOnOperation() {
 	    calculateRemaining('principle');
 	}
 
+    // ✅ Show/hide cheque fields based on operation type
+    toggleChequeFields();
+    // Clear cheque fields when switching operation
+    clearChequeFields();
 
     // ✅ Toggle transfer fields visibility
     toggleTransferFields();
@@ -324,6 +342,137 @@ function updateLabelsBasedOnOperation() {
 	updateParticularField();
 
 }
+
+// ========================================
+// ====  CHEQUE FIELD FUNCTIONS  ==========
+// ========================================
+
+/**
+ * Show or hide the cheque fields row based on current operation type.
+ * Cheque fields are shown ONLY when operation = withdrawal.
+ */
+function toggleChequeFields() {
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const chequeFieldsRow = document.getElementById('chequeFieldsRow');
+    const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
+
+    // Show cheque fields only for regular withdrawal (not closing, not deposit, not transfer)
+    if (operationType === 'withdrawal' && transactionType !== 'closing') {
+        chequeFieldsRow.classList.add('active');
+    } else {
+        chequeFieldsRow.classList.remove('active');
+    }
+}
+
+/**
+ * Fetch cheque data for the given account code from GetChequeData.jsp.
+ * Populates Cheque Type and Cheque No dropdowns.
+ */
+function fetchChequeData(accountCode) {
+    if (!accountCode || accountCode.trim() === '') {
+        clearChequeFields();
+        return;
+    }
+
+    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    if (operationType !== 'withdrawal') return;
+
+    // Show loading state
+    const chequeTypeSelect = document.getElementById('chequeType');
+    const chequeNoSelect   = document.getElementById('chequeNo');
+    chequeTypeSelect.innerHTML = '<option value="">Loading...</option>';
+    chequeNoSelect.innerHTML   = '<option value="">Loading...</option>';
+
+    fetch('GetChequeData.jsp?accountCode=' + encodeURIComponent(accountCode))
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                showToast('Cheque data error: ' + (data.error || 'Unknown error'), 'warning');
+                clearChequeFields();
+                return;
+            }
+
+            // Store full cheque data globally for filtering later
+            allChequeData = data.cheques || [];
+
+            if (allChequeData.length === 0) {
+                chequeTypeSelect.innerHTML = '<option value="">-- No cheques available --</option>';
+                chequeNoSelect.innerHTML   = '<option value="">-- No cheques available --</option>';
+                return;
+            }
+
+            // Populate Cheque Type dropdown (unique CHEQUE_SERIES values)
+            const seriesList = data.seriesList || [];
+            chequeTypeSelect.innerHTML = '<option value="">-- Select Cheque Type --</option>';
+            seriesList.forEach(function(series) {
+                const opt = document.createElement('option');
+                opt.value = series;
+                opt.textContent = series;
+                chequeTypeSelect.appendChild(opt);
+            });
+
+            // Initially populate Cheque No with all available cheque numbers
+            populateChequeNoDropdown('');
+        })
+        .catch(error => {
+            console.error('Error fetching cheque data:', error);
+            showToast('Failed to load cheque data', 'warning');
+            clearChequeFields();
+        });
+}
+
+/**
+ * Populate Cheque No dropdown, optionally filtered by selected Cheque Type (series).
+ * If selectedSeries is empty/null, show all cheque numbers.
+ */
+function populateChequeNoDropdown(selectedSeries) {
+    const chequeNoSelect = document.getElementById('chequeNo');
+    chequeNoSelect.innerHTML = '<option value="">-- Select Cheque No --</option>';
+
+    const filtered = selectedSeries
+        ? allChequeData.filter(c => c.chequeSeries === selectedSeries)
+        : allChequeData;
+
+    if (filtered.length === 0) {
+        chequeNoSelect.innerHTML = '<option value="">-- No cheques for this type --</option>';
+        return;
+    }
+
+    filtered.forEach(function(cheque) {
+        const opt = document.createElement('option');
+        opt.value = cheque.chequeNumber;
+        opt.textContent = cheque.chequeNumber;
+        opt.setAttribute('data-series', cheque.chequeSeries);
+        chequeNoSelect.appendChild(opt);
+    });
+}
+
+/**
+ * Called when user changes the Cheque Type dropdown.
+ * Re-filters the Cheque No dropdown to only show cheques of that series.
+ */
+function onChequeTypeChange() {
+    const selectedSeries = document.getElementById('chequeType').value;
+    populateChequeNoDropdown(selectedSeries);
+}
+
+/**
+ * Reset cheque dropdowns and date to empty state.
+ */
+function clearChequeFields() {
+    allChequeData = [];
+    const chequeTypeSelect = document.getElementById('chequeType');
+    const chequeNoSelect   = document.getElementById('chequeNo');
+    const chequeDateInput  = document.getElementById('chequeDate');
+
+    if (chequeTypeSelect) chequeTypeSelect.innerHTML = '<option value="">-- Select Cheque Type --</option>';
+    if (chequeNoSelect)   chequeNoSelect.innerHTML   = '<option value="">-- Select Cheque No --</option>';
+    if (chequeDateInput)  chequeDateInput.value = '';
+}
+
+// ========================================
+// ====  END CHEQUE FIELD FUNCTIONS  ======
+// ========================================
 
 //========== TOGGLE LOAN FIELDS VISIBILITY ==========
 function toggleLoanFields() {
@@ -454,6 +603,15 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             updateLabelsBasedOnOperation();
             calculateNewBalanceInIframe();
+            // ✅ Toggle cheque fields when operation type changes
+            toggleChequeFields();
+            // If switching to withdrawal and account is already selected, fetch cheque data
+            const currentAccountCode = document.getElementById('accountCode').value.trim();
+            if (this.value === 'withdrawal' && currentAccountCode) {
+                fetchChequeData(currentAccountCode);
+            } else {
+                clearChequeFields();
+            }
         });
     });
     
@@ -491,8 +649,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	const categoryDropdown = document.getElementById('accountCategory');
 	if (categoryDropdown) {
 	    categoryDropdown.addEventListener('change', function() {
-	        // ... existing code ...
-	        
 	        // ✅ ADD THIS - Refetch closing columns if in closing mode
 	        const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
 	        if (transactionType === 'closing') {
@@ -503,6 +659,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	        toggleLoanFields();
 	    });
 	}
+
+    // ✅ Cheque Type change handler - filter cheque no by selected type
+    const chequeTypeSelect = document.getElementById('chequeType');
+    if (chequeTypeSelect) {
+        chequeTypeSelect.addEventListener('change', function() {
+            onChequeTypeChange();
+        });
+    }
     
     // Initialize previous values
     previousAccountCode = document.getElementById('accountCode').value;
@@ -517,6 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLabelsBasedOnOperation();
     toggleLoanFields();
     toggleTransferFields();
+    toggleChequeFields(); // ✅ Initialize cheque fields visibility
 	updateParticularField(); 
 });
 
@@ -594,6 +759,7 @@ function setValueFromLookup(code, desc, type) {
         
         const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
         const accountCategory = document.getElementById('accountCategory').value;
+        const operationType = document.querySelector("input[name='operationType']:checked").value;
         
         // ✅ Populate closing fields if in closing mode
         if (transactionType === 'closing') {
@@ -607,6 +773,13 @@ function setValueFromLookup(code, desc, type) {
             setTimeout(() => {
                 fetchLoanReceivableData(code);
             }, 1500);
+        }
+
+        // ✅ Fetch cheque data if operation is withdrawal
+        if (operationType === 'withdrawal') {
+            setTimeout(() => {
+                fetchChequeData(code);
+            }, 500);
         }
     }, 500);
 }
@@ -665,6 +838,26 @@ function handleSaveTransaction() {
     // Use working date from session (defined in JSP)
     const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
         new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
+    
+    // ✅ VALIDATE CHEQUE FIELDS IF WITHDRAWAL
+    if (operationType === 'withdrawal') {
+        const chequeNo = document.getElementById('chequeNo').value;
+        const chequeType = document.getElementById('chequeType').value;
+        const chequeDate = document.getElementById('chequeDate').value;
+        
+        if (!chequeNo) {
+            showToast('Please select a Cheque No for withdrawal', 'error');
+            return;
+        }
+        if (!chequeType) {
+            showToast('Please select a Cheque Type for withdrawal', 'error');
+            return;
+        }
+        if (!chequeDate) {
+            showToast('Please select a Cheque Date for withdrawal', 'error');
+            return;
+        }
+    }
     
     // ✅ HANDLE TRANSFER MODE - Validate from creditAccountsData list
     if (operationType === 'transfer') {
@@ -898,6 +1091,13 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
     formData.append('particular', particular || '');
     formData.append('operationType', operationType);
     formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
+
+    // ✅ Append cheque fields if withdrawal
+    if (operationType === 'withdrawal') {
+        formData.append('chequeType', document.getElementById('chequeType').value || '');
+        formData.append('chequeNo',   document.getElementById('chequeNo').value   || '');
+        formData.append('chequeDate', document.getElementById('chequeDate').value  || '');
+    }
     
     // Call servlet
     fetch('SaveTransactionServlet', {
@@ -922,9 +1122,11 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
             document.getElementById('particular').value = '';
             previousAccountCode = '';
             clearIframe();
+
+            // ✅ Clear cheque fields after successful save
+            clearChequeFields();
             
             // Clear loan fields if applicable
-            const accountCategory = document.getElementById('accountCategory').value;
             if (accountCategory === 'loan' || accountCategory === 'cc') {
                 clearLoanFields();
                 resetLoanReceivedFields();
@@ -1464,9 +1666,6 @@ function loadAccountInTransferForm(accountCode, accountName, opType) {
     // Load in iframe
     const iframe = document.getElementById('resultFrame');
     iframe.src = url;
-
-    // ✅ No need for iframe.onload balance calculation anymore
-    // transferForm.jsp handles it internally via txnAmount URL param
 
     // Handle loan/cc account restore
     if (accountCategory === 'loan' || accountCategory === 'cc') {
@@ -2049,11 +2248,16 @@ function handleTransactionTypeChange() {
         // ========== CLOSING MODE ==========
         
         // Hide elements for closing transaction
-        //if (operationTypeSection) operationTypeSection.style.display = 'none';
         if (transferFieldsSection) transferFieldsSection.classList.remove('active');
         if (loanFieldsSection) loanFieldsSection.classList.remove('active');
         if (creditAccountsContainer) creditAccountsContainer.style.display = 'none';
         if (addButtonParent) addButtonParent.style.display = 'none';
+
+        // ✅ Hide cheque fields in closing mode
+        const chequeFieldsRow = document.getElementById('chequeFieldsRow');
+        if (chequeFieldsRow) chequeFieldsRow.classList.remove('active');
+        clearChequeFields();
+
 		// Show closing fields section
 		    const closingFieldsSection = document.getElementById('closingFieldsSection');
 		    if (closingFieldsSection) {
@@ -2124,6 +2328,9 @@ function handleTransactionTypeChange() {
         // Clear loan fields
         clearLoanFields();
         resetLoanReceivedFields();
+
+        // ✅ Clear cheque fields when switching to regular mode
+        clearChequeFields();
         
         // ✅ IMPORTANT: Re-evaluate visibility based on current selections
         const currentOperationType = document.querySelector("input[name='operationType']:checked").value;
@@ -2142,6 +2349,9 @@ function handleTransactionTypeChange() {
         } else {
             if (loanFieldsSection) loanFieldsSection.classList.remove('active');
         }
+
+        // ✅ Re-evaluate cheque fields visibility
+        toggleChequeFields();
         
         // Update labels and other UI elements
         updateLabelsBasedOnOperation();

@@ -19,6 +19,87 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="css/transactions.css">
+    <style>
+        /* ===== CHEQUE FIELDS STYLES ===== */
+        .cheque-fields-row {
+            display: none; /* hidden by default */
+            align-items: flex-end;
+            gap: 20px;
+            margin-top: 10px;
+            padding: 12px 15px;
+            background: #fff8e1;
+            border: 2px solid #ffe082;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .cheque-fields-row.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .cheque-fields-row .label {
+            font-weight: bold;
+            font-size: 13px;
+            color: #7B5800;
+            margin-bottom: 5px;
+        }
+
+        .cheque-fields-row select,
+        .cheque-fields-row input[type="date"] {
+            padding: 8px 10px;
+            border: 2px solid #ffe082;
+            border-radius: 8px;
+            background-color: #fffde7;
+            color: #3D316F;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .cheque-fields-row select:focus,
+        .cheque-fields-row input[type="date"]:focus {
+            border-color: #f9a825;
+            box-shadow: 0 0 0 3px rgba(249, 168, 37, 0.2);
+        }
+
+        .cheque-fields-row .cheque-badge {
+            background: #f9a825;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .cheque-section-title {
+            width: 100%;
+            font-size: 13px;
+            font-weight: bold;
+            color: #7B5800;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Loading state for cheque dropdowns */
+        .cheque-loading {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+            padding: 8px 10px;
+        }
+    </style>
 <script>
     // Store working date from session
     const workingDate = '<%= sess.getAttribute("workingDate") != null ? 
@@ -157,6 +238,38 @@
 				</div>
 
 				</div>
+
+                <!-- ========================================== -->
+                <!-- CHEQUE FIELDS ROW (Shown only on Withdrawal) -->
+                <!-- ========================================== -->
+                <div class="cheque-fields-row" id="chequeFieldsRow">
+                    <div class="cheque-section-title">
+                        🏦 Cheque Details
+                        <span class="cheque-badge">WITHDRAWAL</span>
+                    </div>
+
+                    <!-- Cheque Type (CHEQUE_SERIES) -->
+                    <div>
+                        <div class="label">Cheque Type</div>
+                        <select id="chequeType" name="chequeType">
+                            <option value="">-- Select Cheque Type --</option>
+                        </select>
+                    </div>
+
+                    <!-- Cheque No (CHEQUE_NUMBER) - filtered by selected Cheque Type -->
+                    <div>
+                        <div class="label">Cheque No</div>
+                        <select id="chequeNo" name="chequeNo">
+                            <option value="">-- Select Cheque No --</option>
+                        </select>
+                    </div>
+
+                    <!-- Cheque Date -->
+                    <div>
+                        <div class="label">Cheque Date</div>
+                        <input type="date" id="chequeDate" name="chequeDate">
+                    </div>
+                </div>
 				
 				
 				
