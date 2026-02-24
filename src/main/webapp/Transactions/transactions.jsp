@@ -27,9 +27,6 @@
             gap: 20px;
             margin-top: 10px;
             padding: 12px 15px;
-            background: #fff8e1;
-            border: 2px solid #ffe082;
-            border-radius: 10px;
             flex-wrap: wrap;
             animation: fadeIn 0.3s ease;
         }
@@ -43,19 +40,13 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        .cheque-fields-row .label {
-            font-weight: bold;
-            font-size: 13px;
-            color: #7B5800;
-            margin-bottom: 5px;
-        }
+
 
         .cheque-fields-row select,
         .cheque-fields-row input[type="date"] {
             padding: 8px 10px;
-            border: 2px solid #ffe082;
+            border: 2px solid #C8B7F6;
             border-radius: 8px;
-            background-color: #fffde7;
             color: #3D316F;
             font-size: 14px;
             font-weight: 600;
@@ -65,11 +56,6 @@
             min-width: 140px;
         }
 
-        .cheque-fields-row select:focus,
-        .cheque-fields-row input[type="date"]:focus {
-            border-color: #f9a825;
-            box-shadow: 0 0 0 3px rgba(249, 168, 37, 0.2);
-        }
 
         .cheque-fields-row .cheque-badge {
             background: #f9a825;
@@ -243,10 +229,7 @@
                 <!-- CHEQUE FIELDS ROW (Shown only on Withdrawal) -->
                 <!-- ========================================== -->
                 <div class="cheque-fields-row" id="chequeFieldsRow">
-                    <div class="cheque-section-title">
-                        🏦 Cheque Details
-                        <span class="cheque-badge">WITHDRAWAL</span>
-                    </div>
+
 
                     <!-- Cheque Type (CHEQUE_SERIES) -->
                     <div>
