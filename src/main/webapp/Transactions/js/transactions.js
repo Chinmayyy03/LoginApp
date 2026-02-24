@@ -352,17 +352,19 @@ function updateLabelsBasedOnOperation() {
  * Cheque fields are shown ONLY when operation = withdrawal.
  */
 function toggleChequeFields() {
-    const operationType = document.querySelector("input[name='operationType']:checked").value;
+    const operationType = document.querySelector('input[name="operationType"]:checked').value;
     const chequeFieldsRow = document.getElementById('chequeFieldsRow');
-    const transactionType = document.querySelector("input[name='transactionTypeRadio']:checked").value;
-
-    // Show cheque fields only for regular withdrawal (not closing, not deposit, not transfer)
-    if (operationType === 'withdrawal' && transactionType !== 'closing') {
+    const transactionType = document.querySelector('input[name="transactionTypeRadio"]:checked').value;
+    
+    // Show for regular withdrawal OR transfer with Debit OP Type (not closing)
+    if ((operationType === 'withdrawal' && transactionType !== 'closing') ||
+        (operationType === 'transfer' && document.getElementById('opType').value === 'Debit')) {
         chequeFieldsRow.classList.add('active');
     } else {
         chequeFieldsRow.classList.remove('active');
     }
 }
+
 
 /**
  * Fetch cheque data for the given account code from GetChequeData.jsp.
@@ -600,49 +602,53 @@ document.addEventListener('DOMContentLoaded', function() {
     // Operation type change handler
     const operationRadios = document.querySelectorAll("input[name='operationType']");
     operationRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            updateLabelsBasedOnOperation();
-            calculateNewBalanceInIframe();
-            // ✅ Toggle cheque fields when operation type changes
-            toggleChequeFields();
-            // If switching to withdrawal and account is already selected, fetch cheque data
-            const currentAccountCode = document.getElementById('accountCode').value.trim();
-            if (this.value === 'withdrawal' && currentAccountCode) {
-                fetchChequeData(currentAccountCode);
-            } else {
-                clearChequeFields();
-            }
-        });
+		radio.addEventListener('change', function() {
+		    updateLabelsBasedOnOperation();
+		    calculateNewBalanceInIframe();
+		    toggleChequeFields();
+		    
+		    // If switching to withdrawal OR transfer-debit and account is already selected, fetch cheque data
+		    const currentAccountCode = document.getElementById('accountCode').value.trim();
+		    if ((this.value === 'withdrawal' || (this.value === 'transfer' && document.getElementById('opType').value === 'Debit')) && currentAccountCode) {
+		        fetchChequeData(currentAccountCode);
+		    } else {
+		        clearChequeFields();
+		    }
+		});
+
     });
     
     // Handle OP Type dropdown change
     const opTypeSelect = document.getElementById('opType');
     if (opTypeSelect) {
-        opTypeSelect.addEventListener('change', function() {
-            const opType = this.value;
-            const accountCodeLabel = document.getElementById("accountCodeLabel");
-            const accountNameLabel = document.getElementById("accountNameLabel");
-            const transactionAmountLabel = document.getElementById("transactionamountLabel");
-            
-            if (opType === 'Debit') {
-                accountCodeLabel.textContent = 'Debit Account Code';
-                accountNameLabel.textContent = 'Debit Account Name';
-                transactionAmountLabel.textContent = 'Debit Amount';
-            } else if (opType === 'Credit') {
-                accountCodeLabel.textContent = 'Credit Account Code';
-                accountNameLabel.textContent = 'Credit Account Name';
-                transactionAmountLabel.textContent = 'Credit Amount';
-            }
-            
-            // Clear inputs when OP Type changes
-            document.getElementById('accountCode').value = '';
-            document.getElementById('accountName').value = '';
-            document.getElementById('transactionamount').value = '';
-            document.getElementById('particular').value = '';
-            previousAccountCode = '';
-            clearIframe();
-			updateParticularField();
-        });
+		opTypeSelect.addEventListener('change', function() {
+		    const opType = this.value;
+		    const accountCodeLabel = document.getElementById('accountCodeLabel');
+		    const accountNameLabel = document.getElementById('accountNameLabel');
+		    const transactionAmountLabel = document.getElementById('transactionamountLabel');
+		    
+		    if (opType === 'Debit') {
+		        accountCodeLabel.textContent = 'Debit Account Code';
+		        accountNameLabel.textContent = 'Debit Account Name';
+		        transactionAmountLabel.textContent = 'Debit Amount';
+		    } else if (opType === 'Credit') {
+		        accountCodeLabel.textContent = 'Credit Account Code';
+		        accountNameLabel.textContent = 'Credit Account Name';
+		        transactionAmountLabel.textContent = 'Credit Amount';
+		    }
+		    
+		    // Clear inputs when OP Type changes
+		    document.getElementById('accountCode').value = '';
+		    document.getElementById('accountName').value = '';
+		    document.getElementById('transactionamount').value = '';
+		    document.getElementById('particular').value = '';
+		    previousAccountCode = '';
+		    clearIframe();
+		    updateParticularField();
+		    
+		    // Toggle cheque fields when switching Debit/Credit
+		    toggleChequeFields();
+		});
     }
     
 	// Category change handler
@@ -839,25 +845,26 @@ function handleSaveTransaction() {
     const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
         new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
     
-    // ✅ VALIDATE CHEQUE FIELDS IF WITHDRAWAL
-    if (operationType === 'withdrawal') {
-        const chequeNo = document.getElementById('chequeNo').value;
-        const chequeType = document.getElementById('chequeType').value;
-        const chequeDate = document.getElementById('chequeDate').value;
-        
-        if (!chequeNo) {
-            showToast('Please select a Cheque No for withdrawal', 'error');
-            return;
-        }
-        if (!chequeType) {
-            showToast('Please select a Cheque Type for withdrawal', 'error');
-            return;
-        }
-        if (!chequeDate) {
-            showToast('Please select a Cheque Date for withdrawal', 'error');
-            return;
-        }
-    }
+		// VALIDATE CHEQUE FIELDS IF WITHDRAWAL OR TRANSFER-DEBIT
+		if (operationType === 'withdrawal' || (operationType === 'transfer' && document.getElementById('opType').value === 'Debit')) {
+		    const chequeNo = document.getElementById('chequeNo').value;
+		    const chequeType = document.getElementById('chequeType').value;
+		    const chequeDate = document.getElementById('chequeDate').value;
+		    
+		    if (!chequeNo) {
+		        showToast('Please select a Cheque No for withdrawal/transfer debit', 'error');
+		        return;
+		    }
+		    if (!chequeType) {
+		        showToast('Please select a Cheque Type for withdrawal/transfer debit', 'error');
+		        return;
+		    }
+		    if (!chequeDate) {
+		        showToast('Please select a Cheque Date for withdrawal/transfer debit', 'error');
+		        return;
+		    }
+		}
+
     
     // ✅ HANDLE TRANSFER MODE - Validate from creditAccountsData list
     if (operationType === 'transfer') {
@@ -1093,11 +1100,12 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
     formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
 
     // ✅ Append cheque fields if withdrawal
-    if (operationType === 'withdrawal') {
-        formData.append('chequeType', document.getElementById('chequeType').value || '');
-        formData.append('chequeNo',   document.getElementById('chequeNo').value   || '');
-        formData.append('chequeDate', document.getElementById('chequeDate').value  || '');
-    }
+	if (operationType === 'withdrawal' || (operationType === 'transfer' && document.getElementById('opType').value === 'Debit')) {
+	    formData.append('chequeType', document.getElementById('chequeType').value);
+	    formData.append('chequeNo', document.getElementById('chequeNo').value);
+	    formData.append('chequeDate', document.getElementById('chequeDate').value);
+	}
+
     
     // Call servlet
     fetch('SaveTransactionServlet', {
