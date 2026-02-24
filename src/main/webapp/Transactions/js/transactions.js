@@ -217,12 +217,13 @@ function selectAccountFromSearch(code, name) {
             }, 1500);
         }
 
-        // ✅ Fetch cheque data if operation is withdrawal
-        if (operationType === 'withdrawal') {
-            setTimeout(() => {
-                fetchChequeData(code);
-            }, 500);
-        }
+		// ✅ Fetch cheque data if operation is withdrawal OR transfer-debit
+		const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+		if (operationType === 'withdrawal' || (operationType === 'transfer' && opType === 'Debit')) {
+		    setTimeout(() => {
+		        fetchChequeData(code);
+		    }, 500);
+		}
     }, 500);
 }
 
@@ -376,8 +377,14 @@ function fetchChequeData(accountCode) {
         return;
     }
 
-    const operationType = document.querySelector("input[name='operationType']:checked").value;
-    if (operationType !== 'withdrawal') return;
+	const operationType = document.querySelector("input[name='operationType']:checked").value;
+	const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+
+	// ✅ FIX: Allow BOTH withdrawal AND transfer-debit
+	if (operationType !== 'withdrawal' && !(operationType === 'transfer' && opType === 'Debit')) {
+	    clearChequeFields();
+	    return;
+	}
 
     // Show loading state
     const chequeTypeSelect = document.getElementById('chequeType');
@@ -648,6 +655,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		    
 		    // Toggle cheque fields when switching Debit/Credit
 		    toggleChequeFields();
+			const currentAccountCode = document.getElementById('accountCode').value.trim();
+			if (this.value === 'Debit' && currentAccountCode) {
+			    fetchChequeData(currentAccountCode);
+			} else if (this.value === 'Credit') {
+			    clearChequeFields();
+			}
 		});
     }
     
@@ -781,12 +794,13 @@ function setValueFromLookup(code, desc, type) {
             }, 1500);
         }
 
-        // ✅ Fetch cheque data if operation is withdrawal
-        if (operationType === 'withdrawal') {
-            setTimeout(() => {
-                fetchChequeData(code);
-            }, 500);
-        }
+		// ✅ Fetch cheque data if operation is withdrawal OR transfer-debit
+		const opType = document.getElementById('opType') ? document.getElementById('opType').value : '';
+		if (operationType === 'withdrawal' || (operationType === 'transfer' && opType === 'Debit')) {
+		    setTimeout(() => {
+		        fetchChequeData(code);
+		    }, 500);
+		}
     }, 500);
 }
 
