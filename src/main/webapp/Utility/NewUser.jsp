@@ -169,7 +169,7 @@ if (sessionBranchCode != null && !sessionBranchCode.isEmpty()) {
     <style>
         :root {
             --bg-lavender:   #E6E6FA;
-            --navy-blue:     #303F9F;
+            --navy-blue:     #2b0d73;
             --border-color:  #B8B8E6;
             --readonly-bg:   #E0E0E0;
             --success-green: #28a745;
@@ -771,7 +771,7 @@ if (sessionBranchCode != null && !sessionBranchCode.isEmpty()) {
             <!-- ── Save Button ── -->
             <div style="text-align: center; margin-top: 20px;">
                 <input type="submit" value="Save" id="submitBtn"
-                       style="padding: 10px 55px; background: #3F51B5; color: white;
+                       style="padding: 10px 55px; background: #2b0d73; color: white;
                               border: none; border-radius: 5px; font-size: 15px; cursor: pointer;">
             </div>
 

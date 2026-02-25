@@ -99,7 +99,7 @@ href="<%=request.getContextPath()%>/OpenAccount/css/savingAcc.css">
 <style>
 :root {
     --bg-lavender: #E6E6FA;
-    --navy-blue: #303F9F;
+    --navy-blue: #2b0d73;
     --border-color: #B8B8E6;
     --readonly-bg: #E0E0E0;
 }

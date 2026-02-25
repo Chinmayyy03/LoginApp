@@ -4,9 +4,12 @@
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
 
-    String userId = (String) session.getAttribute("userId");
-    String branchCode = (String) session.getAttribute("branchCode");
-    
-    boolean isValid = (userId != null && branchCode != null);
+    HttpSession existingSession = request.getSession(false);
+    boolean isValid = false;
+    if (existingSession != null) {
+        String userId = (String) existingSession.getAttribute("userId");
+        String branchCode = (String) existingSession.getAttribute("branchCode");
+        isValid = (userId != null && branchCode != null);
+    }
 %>
 {"sessionValid": <%= isValid %>}

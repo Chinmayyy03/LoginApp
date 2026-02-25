@@ -40,7 +40,7 @@ html, body{
 /* TITLE */
 h2{
     text-align: center;
-    color: #303F9F;  /* Changed to match navy blue from other page */
+    color: #2b0d73;  /* Changed to match navy blue from other page */
     font-weight: 700;
     margin-bottom: 18px;
     font-size: 24px;
