@@ -56,7 +56,7 @@
                 break;
                 
             case "view":
-                // View page cards - ALL accounts/customers for logged in branch
+                // View page cards
                 if ("total_accounts".equals(cardId)) {
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) as TOTAL " +
@@ -65,12 +65,8 @@
                     );
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
-                    
-                    if (rs.next()) {
-                        value = String.valueOf(rs.getInt("TOTAL"));
-                    } else {
-                        value = "0";
-                    }
+                    value = rs.next() ? String.valueOf(rs.getInt("TOTAL")) : "0";
+
                 } else if ("all_customers".equals(cardId)) {
                     // All customers for logged in branch
                     ps = conn.prepareStatement(
@@ -79,12 +75,27 @@
                     );
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
-                    
-                    if (rs.next()) {
-                        value = String.valueOf(rs.getInt("TOTAL"));
-                    } else {
-                        value = "0";
-                    }
+                    value = rs.next() ? String.valueOf(rs.getInt("TOTAL")) : "0";
+
+                } else if ("all_users".equals(cardId)) {
+                    // Total users for this branch
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) as TOTAL FROM ACL.USERREGISTER " +
+                        "WHERE BRANCH_CODE = ?"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    value = rs.next() ? String.valueOf(rs.getInt("TOTAL")) : "0";
+
+                } else if ("maintenance_users".equals(cardId)) {
+                    // Pending authorization users (STATUS = 'E') for this branch
+                    ps = conn.prepareStatement(
+                        "SELECT COUNT(*) as TOTAL FROM ACL.USERREGISTER " +
+                        "WHERE BRANCH_CODE = ? AND STATUS = 'E'"
+                    );
+                    ps.setString(1, branchCode);
+                    rs = ps.executeQuery();
+                    value = rs.next() ? String.valueOf(rs.getInt("TOTAL")) : "0";
                 }
                 break;
                 
@@ -147,27 +158,16 @@
                     );
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
-
-                    if (rs.next()) {
-                        value = String.valueOf(rs.getInt(1));
-                    } else {
-                        value = "0";
-                    }
+                    value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
 
                 } else if ("pending_users".equals(cardId)) {
-                    // ADD THIS NEW BLOCK FOR AUTHORIZATION PENDING USERS
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM ACL.USERREGISTER " +
                         "WHERE BRANCH_CODE=? AND STATUS='E'"
                     );
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
-
-                    if (rs.next()) {
-                        value = String.valueOf(rs.getInt(1));
-                    } else {
-                        value = "0";
-                    }
+                    value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
 
                 } else if ("pending_applications".equals(cardId)) {
                     if (workingDate != null) {
@@ -179,12 +179,7 @@
                         ps.setString(1, branchCode);
                         ps.setDate(2, workingDate);
                         rs = ps.executeQuery();
-
-                        if (rs.next()) {
-                            value = String.valueOf(rs.getInt(1));
-                        } else {
-                            value = "0";
-                        }
+                        value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
                     } else {
                         value = "N/A";
                     }
@@ -194,12 +189,8 @@
                         "SELECT COUNT(*) FROM AUDITTRAIL.MASTER_AUDITTRAIL WHERE STATUS='E'"
                     );
                     rs = ps.executeQuery();
+                    value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
 
-                    if (rs.next()) {
-                        value = String.valueOf(rs.getInt(1));
-                    } else {
-                        value = "0";
-                    }
                 } else if ("pending_txn_cash".equals(cardId)) {
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM TRANSACTION.DAILYSCROLL " +
@@ -222,7 +213,6 @@
                 }
                 break;   
 
-                
             default:
                 out.print("{\"error\": \"Unknown card type\"}");
                 return;
@@ -299,7 +289,6 @@
             rs = ps.executeQuery();
             if (rs.next()) {
                 String result = rs.getString(1);
-                // Return raw value from database as-is
                 return (result == null || result.trim().isEmpty()) ? "0" : result.trim();
             }
             

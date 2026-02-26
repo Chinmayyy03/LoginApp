@@ -75,7 +75,7 @@ try {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>All Users for Branch: <%=selectedBranch%></title>
+    <title>Maintenance - Users for Branch: <%=selectedBranch%></title>
     <link rel="stylesheet" href="../css/totalCustomers.css">
     <style>
     body { font-family: Arial, sans-serif; background: #E6E6FA; margin: 0; padding: 20px; }
@@ -83,7 +83,6 @@ try {
     .container { max-width: 1400px; margin: auto; }
     h2 { text-align: center; color: #2b0d73; font-weight: 700; margin-bottom: 20px; font-size: 24px; }
 
-    /* ── Filter Card ── */
     .filter-card {
         background: #fff; border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.10);
@@ -95,8 +94,6 @@ try {
         grid-template-columns: 1fr 1fr 1fr;
         gap: 20px; align-items: start; width: 100%;
     }
-
-    /* Branch + Description groups */
     .filter-group { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
     .filter-group label { font-size: 14px; font-weight: 600; color: #2b0d73; }
     .filter-group select,
@@ -125,7 +122,6 @@ try {
         accent-color: #2b0d73; width: 16px; height: 16px; cursor: pointer;
     }
 
-    /* ── Search Box ── */
     .search-box { width: 650px; margin: 0 auto 18px auto; }
     .search-box input {
         width: 100%; padding: 9px 14px; border-radius: 5px;
@@ -133,7 +129,6 @@ try {
         background: #FFFFFF; box-sizing: border-box; color: #444;
     }
 
-    /* ── Table ── */
     .table-card {
         background: #fff; border-radius: 6px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.10);
@@ -152,16 +147,14 @@ try {
     td { padding: 6px 10px; text-align: left; border-right: 1px solid #e3e3e3; }
     td:last-child { border-right: none; }
 
-    .view-btn {
+    .edit-btn {
         background: #2b0d73; color: #FFFFFF; border: none;
         padding: 4px 12px; border-radius: 3px; font-size: 12px;
-        cursor: pointer; font-weight: 400;
-        text-decoration: none; display: inline-block;
+        cursor: pointer; font-weight: 400; display: inline-block;
     }
-    .view-btn:hover { background: #1E2870; }
+    .edit-btn:hover { background: #1E2870; }
     .no-records { text-align: center; padding: 30px; color: #666; font-size: 14px; }
 
-    /* ── Pagination ── */
     .pagination-bar {
         display: flex; align-items: center; justify-content: center;
         gap: 28px; padding: 20px 0 6px;
@@ -187,12 +180,11 @@ try {
 <body>
 <div class="container">
 
-    <h2>All Users for Branch: <%=selectedBranch%></h2>
+    <h2>Maintenance - Users for Branch: <%=selectedBranch%></h2>
 
     <!-- Filter Card -->
     <div class="filter-card">
         <form method="get" action="" id="filterForm">
-            <!-- Branch dropdown -->
             <div class="filter-group">
                 <label for="branchSelect">Branch</label>
                 <select name="branch" id="branchSelect" onchange="updateDescription(); submitForm();">
@@ -203,13 +195,11 @@ try {
                 </select>
             </div>
 
-            <!-- Description (read-only) -->
             <div class="filter-group">
                 <label>Description</label>
                 <input type="text" id="branchDesc" value="<%=branchDescription%>" readonly>
             </div>
 
-            <!-- Status radio buttons — auto-submit on change -->
             <div class="status-group">
                 <span class="status-label">Status</span>
                 <div class="radio-row">
@@ -266,7 +256,7 @@ try {
                     <td><%=createdDt%></td>
                     <td><%=mobile%></td>
                     <td>
-                        <button class="view-btn" onclick="viewUser('<%=uid%>')">View User</button>
+                        <button class="edit-btn" onclick="editUser('<%=uid%>')">&#9998; Edit User</button>
                     </td>
                 </tr>
                 <% } } %>
@@ -292,7 +282,6 @@ try {
     const allRows = Array.from(document.querySelectorAll('#tableBody tr[data-search]'));
     initPagination();
 
-    // Auto-submit form (used by radio buttons and branch dropdown)
     function submitForm() {
         document.getElementById('filterForm').submit();
     }
@@ -357,8 +346,8 @@ try {
         document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function viewUser(uid) {
-        var url = '<%=request.getContextPath()%>/View/viewUser.jsp?userId=' + uid;
+    function editUser(uid) {
+        var url = '<%=request.getContextPath()%>/View/maintenanceUser.jsp?userId=' + uid;
         try {
             var tries = [window.parent, window.top];
             for (var i = 0; i < tries.length; i++) {
@@ -368,7 +357,7 @@ try {
                 if (iframe) {
                     iframe.src = url;
                     if (typeof w.updateParentBreadcrumb === 'function') {
-                        w.updateParentBreadcrumb('View > Users');
+                        w.updateParentBreadcrumb('View > Maintenance > Edit User');
                     }
                     return;
                 }

@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import db.DBConnection;
+import db.DBConnection; 
 
 @WebServlet("/Authorization/UserAuthorizationServlet")
 public class UserAuthorizationServlet extends HttpServlet {
@@ -73,9 +73,18 @@ public class UserAuthorizationServlet extends HttpServlet {
                     System.out.println("STEP 2 done: rows updated in USERPENDINGROLES = " + rows);
                 }
 
-                // STEP 3: Insert into USERMAINROLE
-                // Table has: USER_ID, MAINROLE_ID, CREATED_DATE only — no BRANCH_CODE
-                System.out.println("STEP 3: Inserting into USERMAINROLE...");
+                // STEP 3: DELETE old roles from USERMAINROLE for this user
+                // This ensures if the same user was edited again, old roles are fully replaced
+                System.out.println("STEP 3: Deleting old roles from USERMAINROLE...");
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM ACL.USERMAINROLE WHERE USER_ID = ?")) {
+                    ps.setString(1, userId);
+                    int rows = ps.executeUpdate();
+                    System.out.println("STEP 3 done: rows deleted from USERMAINROLE = " + rows);
+                }
+
+                // STEP 4: Insert fresh roles into USERMAINROLE from newly authorized USERPENDINGROLES
+                System.out.println("STEP 4: Inserting new roles into USERMAINROLE...");
                 try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO ACL.USERMAINROLE (USER_ID, MAINROLE_ID, CREATED_DATE) " +
                         "SELECT USER_ID, MAINROLE_ID, SYSDATE " +
@@ -83,7 +92,7 @@ public class UserAuthorizationServlet extends HttpServlet {
                         "WHERE USER_ID = ? AND STATUS = 'A'")) {
                     ps.setString(1, userId);
                     int rows = ps.executeUpdate();
-                    System.out.println("STEP 3 done: rows inserted into USERMAINROLE = " + rows);
+                    System.out.println("STEP 4 done: rows inserted into USERMAINROLE = " + rows);
                 }
 
                 conn.commit();
@@ -96,7 +105,8 @@ public class UserAuthorizationServlet extends HttpServlet {
             // ================= REJECT =================
             else if ("R".equals(status)) {
 
-                // STEP 1: Update USERREGISTER — STATUS='R', record authorizer
+                // STEP 1: Update USERREGISTER — revert STATUS back to 'A' (was authorized before edit)
+                // so the user is NOT locked out after rejection; their previous state is restored
                 System.out.println("STEP 1: Updating USERREGISTER for REJECT...");
                 try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE ACL.USERREGISTER " +

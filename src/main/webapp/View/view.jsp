@@ -36,10 +36,16 @@
             <p class="loading" id="all-customers-value">Loading...</p>
         </div>
 
-        <!-- ✅ All Users Card (NEW) -->
+        <!-- All Users Card -->
         <div class="card" onclick="openInParentFrame('View/allUsers.jsp', 'View > Users')">
             <h3>Users</h3>
             <p class="loading" id="all-users-value">Loading...</p>
+        </div>
+
+        <!-- Maintenance Card -->
+        <div class="card" onclick="openInParentFrame('View/allUsersMaintenance.jsp', 'View > Maintenance')">
+            <h3>Maintenance</h3>
+            <p class="loading" id="maintenance-value">Loading...</p>
         </div>
 
     </div>
@@ -58,7 +64,8 @@ window.onload = function () {
 async function loadCardValues() {
     await loadCard('total_accounts', 'total-accounts-value',  'view');
     await loadCard('all_customers',  'all-customers-value',   'view');
-    await loadCard('all_users',      'all-users-value',       'view');   // NEW
+    await loadCard('all_users',      'all-users-value',       'view');
+    await loadCard('maintenance_users', 'maintenance-value',  'view');
 }
 
 async function loadCard(cardId, elementId, cardType) {
