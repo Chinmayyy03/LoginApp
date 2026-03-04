@@ -88,10 +88,16 @@ public class SaveTransactionServlet extends HttpServlet {
             String accountCategory = request.getParameter("accountCategory");
             
             // Optional parameters
-            String chequeType = request.getParameter("chequeType");
+            String chequeType   = request.getParameter("chequeType");
             String chequeSeries = request.getParameter("chequeSeries");
             String chequeNumber = request.getParameter("chequeNumber");
-            String chequeDate = request.getParameter("chequeDate");
+            String chequeDate   = request.getParameter("chequeDate");
+
+            // Normalize: treat empty strings as null so INSERT uses NULL
+            if (chequeType   != null && chequeType.trim().isEmpty())   chequeType   = null;
+            if (chequeSeries != null && chequeSeries.trim().isEmpty()) chequeSeries = null;
+            if (chequeNumber != null && chequeNumber.trim().isEmpty()) chequeNumber = null;
+            if (chequeDate   != null && chequeDate.trim().isEmpty())   chequeDate   = null;
             String forAccountCode = request.getParameter("forAccountCode");
             
             // Get scroll number and subscroll number for transfer grouping

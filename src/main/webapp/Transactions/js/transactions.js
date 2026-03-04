@@ -955,25 +955,7 @@ function handleSaveTransaction() {
     const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
         new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
     
-		// VALIDATE CHEQUE FIELDS IF WITHDRAWAL OR TRANSFER-DEBIT
-		if (operationType === 'withdrawal' || (operationType === 'transfer' && document.getElementById('opType').value === 'Debit')) {
-		    const chequeNo = document.getElementById('chequeNo').value;
-		    const chequeType = document.getElementById('chequeType').value;
-		    const chequeDate = document.getElementById('chequeDate').value;
-		    
-		    if (!chequeNo) {
-		        showToast('Please select a Cheque No for withdrawal/transfer debit', 'error');
-		        return;
-		    }
-		    if (!chequeType) {
-		        showToast('Please select a Cheque Type for withdrawal/transfer debit', 'error');
-		        return;
-		    }
-		    if (!chequeDate) {
-		        showToast('Please select a Cheque Date for withdrawal/transfer debit', 'error');
-		        return;
-		    }
-		}
+
 
     
     // ✅ HANDLE TRANSFER MODE - Validate from creditAccountsData list
@@ -1209,12 +1191,13 @@ function saveSingleTransaction(accountCode, transactionAmount, transactionIndica
     formData.append('operationType', operationType);
     formData.append('newAccountBalance', newAccountBalance); // ✅ ADD THIS
 
-    // ✅ Append cheque fields if withdrawal
-	if (operationType === 'withdrawal' || (operationType === 'transfer' && document.getElementById('opType').value === 'Debit')) {
-	    formData.append('chequeType', document.getElementById('chequeType').value);
-	    formData.append('chequeNo', document.getElementById('chequeNo').value);
-	    formData.append('chequeDate', document.getElementById('chequeDate').value);
-	}
+	// Append cheque fields for withdrawal only (deposit → no cheque params → servlet inserts NULL)
+	    if (operationType === 'withdrawal') {
+	        formData.append('chequeType',   document.getElementById('chequeType').value   || '');
+	        formData.append('chequeSeries', document.getElementById('chequeSeries').value || '');
+	        formData.append('chequeNumber', document.getElementById('chequeNo').value      || '');
+	        formData.append('chequeDate',   document.getElementById('chequeDate').value    || '');
+	    }
 
     
     // Call servlet
@@ -1327,8 +1310,16 @@ function saveTransactionsSequentially(index, sessionWorkingDate) {
     formData.append('forAccountCode', forAccountCode);
     formData.append('newAccountBalance', newAccountBalance); // ✅ correct per-opType balance
     
-    // Handle scroll number parameters correctly
-    if (index === 0) {
+	// Append cheque fields for Debit transactions (Credit rows → params absent → servlet inserts NULL)
+	    if (opType === 'Debit' && transaction.chequeData) {
+	        formData.append('chequeType',   transaction.chequeData.chequeType   || '');
+	        formData.append('chequeSeries', transaction.chequeData.chequeSeries || '');
+	        formData.append('chequeNumber', transaction.chequeData.chequeNumber || '');
+	        formData.append('chequeDate',   transaction.chequeData.chequeDate   || '');
+	    }
+
+	    // Handle scroll number parameters correctly
+	    if (index === 0) {
         // First transaction - servlet will generate new scroll number
         console.log('→ First transaction - servlet will generate new scroll number');
         // DO NOT send scrollNumber or subscrollNumber parameters
@@ -1594,17 +1585,28 @@ function calculateNewBalanceInIframe() {
 	        };
 	    }
 
-	    // ✅ Add to data array WITH loan fields data AND calculated balance
-	    creditAccountsData.push({
-	        id: Date.now(),
-	        code: accountCode,
-	        name: accountName,
-	        amount: finalAmount,
-	        particular: particular,
-	        opType: opType,
-	        loanFields: loanFieldsData,
-	        newAccountBalance: newAccountBalance // ✅ STORE CALCULATED BALANCE HERE
-	    });
+		// Capture cheque fields for Debit transfer rows
+		    let chequeData = { chequeType: '', chequeSeries: '', chequeNumber: '', chequeDate: '' };
+		    if (opType === 'Debit') {
+		        chequeData = {
+		            chequeType:   document.getElementById('chequeType').value   || '',
+		            chequeSeries: document.getElementById('chequeSeries').value || '',
+		            chequeNumber: document.getElementById('chequeNo').value      || '',
+		            chequeDate:   document.getElementById('chequeDate').value    || ''
+		        };
+		    }
+
+		    creditAccountsData.push({
+		        id: Date.now(),
+		        code: accountCode,
+		        name: accountName,
+		        amount: finalAmount,
+		        particular: particular,
+		        opType: opType,
+		        loanFields: loanFieldsData,
+		        newAccountBalance: newAccountBalance,
+		        chequeData: chequeData   // ✅ Store cheque data per-row
+		    });
 
 	    // Clear input fields
 	    document.getElementById('accountCode').value = '';
