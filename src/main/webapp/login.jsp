@@ -139,7 +139,20 @@
     <!-- 🔹 Logo and Titles -->
     <div class="bank-brand">
         <img src="images/idsspl_logo.gif" alt="Bank Logo" class="bank-logo">
-        <div class="brand-title">MERCHANTS LIBERAL CO-OP BANK LTD, GADAG</div>
+        <%
+		    String loginBankName = "Bank CBS"; // fallback
+		    try (Connection connBank = DBConnection.getConnection();
+		         PreparedStatement psLoginBank = connBank.prepareStatement(
+		             "SELECT NAME FROM GLOBALCONFIG.BANK WHERE BANK_CODE = ?")) {
+		        psLoginBank.setString(1, "0100"); // your bank code
+		        ResultSet rsLoginBank = psLoginBank.executeQuery();
+		        if (rsLoginBank.next()) {
+		            loginBankName = rsLoginBank.getString("NAME");
+		        }
+		    } catch (Exception ignored) {}
+		%>
+		
+		<div class="brand-title"><%= loginBankName.toUpperCase() %></div>
         <div class="brand-sub">Core Banking System - Secure Access</div>
     </div>
 
