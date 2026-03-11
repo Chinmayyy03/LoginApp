@@ -410,114 +410,134 @@
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
     <div class="profile-section" style="cursor: pointer;" onclick="openUserProfile()">
         <img src="images/user.png" alt="Profile" class="profile-pic">
         <div class="user-name"><%= userName.toUpperCase() %></div>
     </div>
 
     <ul class="menu">
-    <!-- Dashboard -->
-	<li class="active" data-page="Dashboard/dashboard.jsp">
-	    <a href="#" onclick="loadPage('Dashboard/dashboard.jsp', 'Dashboard', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Dashboard</span>
-	    </a>
-	</li>
 
-	<!-- Add Customer -->
-	<li data-page="addCustomer.jsp">
-	    <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Add Customer</span>
-	    </a>
-	</li>
+        <!-- Dashboard -->
+        <li class="active" data-page="Dashboard/dashboard.jsp">
+            <a href="#" onclick="loadPage('Dashboard/dashboard.jsp', 'Dashboard', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Dashboard</span>
+            </a>
+            <span class="tooltip-label">Dashboard</span>
+        </li>
 
-	<!-- Authorization -->
-	<li data-page="Authorization/authorizationPending.jsp">
-	    <a href="#" onclick="loadPage('Authorization/authorizationPending.jsp', 'Authorization', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Authorization</span>
-	    </a>
-	</li>
+        <!-- Add Customer -->
+        <li data-page="addCustomer.jsp">
+            <a href="#" onclick="loadPage('addCustomer.jsp', 'Add Customer', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Add Customer</span>
+            </a>
+            <span class="tooltip-label">Add Customer</span>
+        </li>
 
-	<!-- Open Account -->
-	<li data-page="newApplication.jsp">
-	    <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Open Account</span>
-	    </a>
-	</li>
+        <!-- Authorization -->
+        <li data-page="Authorization/authorizationPending.jsp">
+            <a href="#" onclick="loadPage('Authorization/authorizationPending.jsp', 'Authorization', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Authorization</span>
+            </a>
+            <span class="tooltip-label">Authorization</span>
+        </li>
 
-	<!-- Master -->
-	<li data-page="Master/masters.jsp">
-	    <a href="#" onclick="loadPage('Master/masters.jsp', 'Master', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Master</span>
-	    </a>
-	</li>
+        <!-- Open Account -->
+        <li data-page="newApplication.jsp">
+            <a href="#" onclick="loadPage('newApplication.jsp', 'Open Account', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Open Account</span>
+            </a>
+            <span class="tooltip-label">Open Account</span>
+        </li>
 
-	<!-- View -->
-	<li data-page="View/view.jsp">
-	    <a href="#" onclick="loadPage('View/view.jsp', 'View', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>View</span>
-	    </a>
-	</li>
+        <!-- Master -->
+        <li data-page="Master/masters.jsp">
+            <a href="#" onclick="loadPage('Master/masters.jsp', 'Master', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Master</span>
+            </a>
+            <span class="tooltip-label">Master</span>
+        </li>
 
-	<!-- Transactions -->
-	<li data-page="Transactions/transactionsCards.jsp">
-	    <a href="#" onclick="loadPage('Transactions/transactionsCards.jsp', 'Transactions', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Transactions</span>
-	    </a>
-	</li>
-	
-	<!-- Reports -->
-	<li data-page="Reports/jspFiles/reports.jsp">
-	    <a href="#" onclick="loadPage('Reports/jspFiles/reports.jsp', 'Reports', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Reports</span>
-	    </a>
-	</li>
+        <!-- View -->
+        <li data-page="View/view.jsp">
+            <a href="#" onclick="loadPage('View/view.jsp', 'View', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">View</span>
+            </a>
+            <span class="tooltip-label">View</span>
+        </li>
 
-	<!-- Pigmy -->
-	<li data-page="Pigmy/pigmy.jsp">
-	    <a href="#" onclick="loadPage('Pigmy/pigmy.jsp', 'Pigmy', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Pigmy</span>
-	    </a>
-	</li>
-	
-	<!-- Utility -->
-	<li data-page="Utility/utility.jsp">
-	    <a href="#" onclick="loadPage('Utility/utility.jsp', 'Utility', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Utility</span>
-	    </a>
-	</li>
-	
-	<!-- Shares -->
-	<li data-page="Utility/utility.jsp">
-	    <a href="#" onclick="loadPage('Shares/shares.jsp', 'Shares', this); return false;">
-	        <img src="images/right-arrow.png" width="18" height="18" alt="">
-	        <span>Shares</span>
-	    </a>
-	</li>
-	
-</ul>
+        <!-- Transactions -->
+        <li data-page="Transactions/transactionsCards.jsp">
+            <a href="#" onclick="loadPage('Transactions/transactionsCards.jsp', 'Transactions', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Transactions</span>
+            </a>
+            <span class="tooltip-label">Transactions</span>
+        </li>
+        
+        <!-- Reports -->
+        <li data-page="Reports/jspFiles/reports.jsp">
+            <a href="#" onclick="loadPage('Reports/jspFiles/reports.jsp', 'Reports', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Reports</span>
+            </a>
+            <span class="tooltip-label">Reports</span>
+        </li>
+
+        <!-- Pigmy -->
+        <li data-page="Pigmy/pigmy.jsp">
+            <a href="#" onclick="loadPage('Pigmy/pigmy.jsp', 'Pigmy', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Pigmy</span>
+            </a>
+            <span class="tooltip-label">Pigmy</span>
+        </li>
+        
+        <!-- Utility -->
+        <li data-page="Utility/utility.jsp">
+            <a href="#" onclick="loadPage('Utility/utility.jsp', 'Utility', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Utility</span>
+            </a>
+            <span class="tooltip-label">Utility</span>
+        </li>
+        
+        <!-- Shares -->
+        <li data-page="Shares/shares.jsp">
+            <a href="#" onclick="loadPage('Shares/shares.jsp', 'Shares', this); return false;">
+                <img src="images/right-arrow.png" width="18" height="18" alt="">
+                <span class="menu-label">Shares</span>
+            </a>
+            <span class="tooltip-label">Shares</span>
+        </li>
+        
+    </ul>
 
     <div class="logout">
-        <a href="#" onclick="showLogoutConfirmation(event)">𓉘➜ Log Out</a>
+        <a href="#" onclick="showLogoutConfirmation(event)">
+            <span style="flex-shrink:0;">𓉘➜</span>
+            <span class="logout-text">Log Out</span>
+        </a>
+        <span class="tooltip-label">Log Out</span>
     </div>
 </div>
 
-<div class="main-content">
+<div class="main-content" id="mainContent">
     <header>
         <!-- Title Row: Bank Name (Left) + Branch Name (Right) -->
         <div class="title-row">
             <!-- Bank Section with Icon -->
             <div class="bank-section">
+                <!-- ☰ Hamburger toggle — ADDED -->
+                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
                 <div class="bank-icon">🏦</div>
                 <h1 class="bank-title" id="bankNameTitle">
                     Loading Bank Name...
@@ -628,6 +648,56 @@
 </div>
 
 <script>
+
+/* ============================================================
+   SIDEBAR COLLAPSE / EXPAND  — ADDED
+   ============================================================ */
+var isCollapsed = sessionStorage.getItem('sidebarCollapsed') === 'true';
+
+function applyState() {
+    var sidebar = document.getElementById('sidebar');
+    var mc      = document.getElementById('mainContent');
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+        mc.style.marginLeft = '62px';
+        mc.style.width      = 'calc(100% - 62px)';
+    } else {
+        sidebar.classList.remove('collapsed');
+        document.body.classList.remove('sidebar-collapsed');
+        mc.style.marginLeft = '250px';
+        mc.style.width      = 'calc(100% - 250px)';
+    }
+    sessionStorage.setItem('sidebarCollapsed', isCollapsed);
+}
+
+function toggleSidebar() {
+    isCollapsed = !isCollapsed;
+    applyState();
+}
+
+// Apply immediately on load — no flash
+applyState();
+
+// Tooltip vertical positioning via JS (fixed coords)
+document.addEventListener('DOMContentLoaded', function () {
+    var items = document.querySelectorAll('.menu li, .logout');
+    items.forEach(function (item) {
+        var tip = item.querySelector('.tooltip-label');
+        if (!tip) return;
+        item.addEventListener('mouseenter', function () {
+            if (!isCollapsed) return;
+            var rect = item.getBoundingClientRect();
+            tip.style.top       = (rect.top + rect.height / 2) + 'px';
+            tip.style.transform = 'translateY(-50%) translateX(0)';
+        });
+    });
+});
+
+/* ============================================================
+   ORIGINAL SCRIPTS BELOW — UNCHANGED
+   ============================================================ */
+
 //========== PASSWORD CHANGE MODAL LOGIC ==========
 
 <% if (needsPasswordChange) { %>

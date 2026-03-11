@@ -23,15 +23,26 @@ body {
     height: 100%;
     left: 0;
     z-index: 200;
-    transition: transform 0.3s ease;
+    transition: width 0.3s ease;
+    /* NOTE: overflow must NOT be hidden — tooltips need to escape */
     /*box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3); */
+}
+
+/* ── Collapsed: icon-only strip ── */
+.sidebar.collapsed {
+    width: 62px;
 }
 
 .profile-section {
     text-align: center;
     padding: 30px 10px 5px;
     background: linear-gradient(90deg,#182542, #1d314f);
+    overflow: hidden;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: padding 0.3s ease;
 }
+
 
 .profile-pic {
     width: 90px;
@@ -41,6 +52,13 @@ body {
     object-fit: cover;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 119, 182, 0.4);
+    display: block;
+    margin: 0 auto;
+}
+.sidebar.collapsed .profile-pic {
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
 }
 
 .profile-pic:hover {
@@ -56,6 +74,14 @@ body {
     color: #ffffff;
     line-height: 1.4;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+    overflow: hidden;
+    max-height: 40px;
+}
+.sidebar.collapsed .user-name {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
 }
 
 /* Enhanced Sidebar Menu */ 
@@ -65,6 +91,7 @@ body {
     margin: 0;
     flex-grow: 1;
     overflow-y: auto;
+    overflow-x: visible; /* allow tooltips to escape */
 }
 
 .menu::-webkit-scrollbar {
@@ -108,6 +135,7 @@ body {
     background: linear-gradient(90deg, rgb(178 178 183 / 52%), rgba(0, 180, 216, 0.1));
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 119, 182, 0.2);
+    white-space: nowrap;
 }
 
 /* Subtle hover background */
@@ -161,6 +189,7 @@ body {
     transition: all 0.3s ease;
     opacity: 0.7;
     filter: brightness(1.2);
+    flex-shrink: 0;
 }
 
 /* Arrow animation on hover */
@@ -185,11 +214,82 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* ── Menu label — hide when collapsed ── */
+.menu li a .menu-label {
+    transition: opacity 0.2s ease, max-width 0.3s ease;
+    overflow: hidden;
+    max-width: 200px;
+    opacity: 1;
+}
+.sidebar.collapsed .menu li a .menu-label {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none;
+    letter-spacing: 0;
+}
+
+/* Collapsed: centre the icon */
+.sidebar.collapsed .menu li a {
+    justify-content: center;
+    padding: 13px 0;
+    gap: 0;
+    transform: none;
+    overflow: visible;
+}
+.sidebar.collapsed .menu li a img {
+    transform: none !important;
+}
+
+/* ── Tooltip label (shown on hover when collapsed) ── */
+.menu li .tooltip-label {
+    position: fixed;
+    left: 72px;
+    background: #0f2744;
+    color: #ffffff;
+    padding: 6px 13px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    z-index: 9999;
+    border: 1px solid rgba(0,180,216,0.35);
+    visibility: hidden;
+}
+.menu li .tooltip-label::before {
+    content: '';
+    position: absolute;
+    right: 100%; top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: rgba(0,180,216,0.35);
+}
+.menu li .tooltip-label::after {
+    content: '';
+    position: absolute;
+    right: calc(100% - 1px); top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #0f2744;
+}
+.sidebar.collapsed .menu li:hover .tooltip-label {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+}
+
 /* Enhanced Logout section */
 .logout {
     padding: 20px;
     text-align: center;
     background: linear-gradient(90deg,#182542, #1d314f);
+    overflow: visible;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .logout a {
@@ -204,6 +304,7 @@ body {
     border-radius: 8px;
     transition: all 0.3s ease;
     background: rgba(211, 47, 47, 0.1);
+    white-space: nowrap;
 }
 
 .logout a:hover {
@@ -211,6 +312,64 @@ body {
     color: #ff6b6b;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+/* Logout text — hide when collapsed */
+.logout .logout-text {
+    transition: opacity 0.2s ease, max-width 0.3s ease;
+    max-width: 200px;
+    overflow: hidden;
+}
+.sidebar.collapsed .logout .logout-text {
+    opacity: 0;
+    max-width: 0;
+}
+.sidebar.collapsed .logout a {
+    padding: 10px 0;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Logout tooltip */
+.logout .tooltip-label {
+    position: fixed;
+    left: 72px;
+    background: #0f2744;
+    color: #ffffff;
+    padding: 6px 13px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    z-index: 9999;
+    border: 1px solid rgba(0,180,216,0.35);
+    visibility: hidden;
+}
+.logout .tooltip-label::before {
+    content: '';
+    position: absolute;
+    right: 100%; top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: rgba(0,180,216,0.35);
+}
+.logout .tooltip-label::after {
+    content: '';
+    position: absolute;
+    right: calc(100% - 1px); top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #0f2744;
+}
+.sidebar.collapsed .logout:hover .tooltip-label {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
 }
 
 /* Add ripple effect on click */
@@ -221,10 +380,7 @@ body {
 /* Responsive adjustments */
 @media (max-width: 767px) {
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        z-index: 300;
+        width: 250px;
     }
     
     .menu {
@@ -248,6 +404,10 @@ body {
     flex-direction: column;
     transition: margin-left 0.3s ease, width 0.3s ease;
 }
+body.sidebar-collapsed .main-content {
+    margin-left: 62px;
+    width: calc(100% - 62px);
+}
 
 /* ============================================
    HEADER STYLES
@@ -269,6 +429,37 @@ header {
     transition: width 0.3s ease, left 0.3s ease;
     min-height: 79px; /* Fixed header height */
     max-height: 79px; /* Prevent header from growing */
+}
+body.sidebar-collapsed header {
+    width: calc(100% - 62px);
+    left: 62px;
+}
+
+/* ── Hamburger toggle button ── */
+.sidebar-toggle {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(255,255,255,0.12);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.22); }
+.sidebar-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
 }
 
 /* Title Row - Bank Left, Branch Right */
@@ -592,24 +783,32 @@ iframe {
 /* Tablet - Portrait & Mobile (max-width: 767px) */
 @media (max-width: 767px) {
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        z-index: 300;
+        width: 250px;
+    }
+    .sidebar.collapsed {
+        width: 62px;
     }
     
     .main-content {
-        margin-left: 0;
-        width: 100%;
+        margin-left: 62px;
+        width: calc(100% - 62px);
         height: auto;
         min-height: 100vh;
     }
+    body.sidebar-collapsed .main-content {
+        margin-left: 62px;
+        width: calc(100% - 62px);
+    }
     
     header {
-        width: 100%;
-        left: 0;
+        width: calc(100% - 62px);
+        left: 62px;
         padding: 6px 15px 5px 15px;
-        position: relative;
+        position: fixed;
+    }
+    body.sidebar-collapsed header {
+        width: calc(100% - 62px);
+        left: 62px;
     }
     
     .title-row {
@@ -656,6 +855,15 @@ iframe {
         width: 100%;
         min-height: calc(100vh - 250px);
         height: auto;
+    }
+
+    .menu {
+        padding: 15px 10px;
+    }
+    
+    .menu li a {
+        padding: 12px 14px;
+        font-size: 14px;
     }
 }
 
