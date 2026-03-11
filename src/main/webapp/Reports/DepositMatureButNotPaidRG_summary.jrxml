@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="DepositMatureButNotPaidRG_summary" language="groovy" pageWidth="653" pageHeight="842" columnWidth="613" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e9f4fc70-fb19-4311-8503-77b3909a3a92">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="as_on_date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="branch_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="report_title" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="to_date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT ROWNUM AS SRNO, A.*
+			 FROM ( SELECT B.ACCOUNT_CODE ,SUBSTR(B.ACCOUNT_CODE,5,3) AS PRODUCT_CODE,K.DESCRIPTION ,B.AMOUNTINMATUREDDEPOSIT, INITCAP(A.NAME) AS NAME ,
+       B.INTERESTRATE ,B.DEPOSITAMOUNT,
+			 B.UNITOFPERIOD, B.PERIODOFDEPOSIT, to_char(B.MATURITYDATE,'DD/MM/YYYY') AS B,
+       B.PROCESSFOR_MATURITY,to_char(A.DATEACCOUNTOPEN,'DD/MM/YYYY') AS A ,C.LEDGERBALANCE,
+			 (select MAX(txn_date)
+       from transaction.dailytxn
+			 where account_code=B.ACCOUNT_CODE and upper(particular) NOT like '%INTEREST%'
+			 and substr(transactionindicator_code, 3, 2) = 'CR') INT_DATE
+			 FROM ACCOUNT.ACCOUNTDEPOSIT B,ACCOUNT.ACCOUNT A, BALANCE.ACCOUNT C , HEADOFFICE.PRODUCT K
+			 WHERE B.ACCOUNT_CODE = A.ACCOUNT_CODE
+       AND B.ACCOUNT_CODE= C.ACCOUNT_CODE
+       AND SUBSTR(B.ACCOUNT_CODE,5,3)= K.PRODUCT_CODE
+			 --AND B.ACCOUNT_CODE LIKE '402'
+       --AND A.DATEACCOUNTCLOSE is NULL
+       --AND B.AMOUNTINMATUREDDEPOSIT > 0
+			 AND B.MATURITYDATE <= $P{to_date}
+			 order by B.ACCOUNT_CODE)A]]>
+	</queryString>
+	<field name="SRNO" class="java.math.BigDecimal"/>
+	<field name="ACCOUNT_CODE" class="java.lang.String"/>
+	<field name="PRODUCT_CODE" class="java.lang.String"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
+	<field name="AMOUNTINMATUREDDEPOSIT" class="java.math.BigDecimal"/>
+	<field name="NAME" class="java.lang.String"/>
+	<field name="INTERESTRATE" class="java.math.BigDecimal"/>
+	<field name="DEPOSITAMOUNT" class="java.math.BigDecimal"/>
+	<field name="UNITOFPERIOD" class="java.lang.String"/>
+	<field name="PERIODOFDEPOSIT" class="java.math.BigDecimal"/>
+	<field name="B" class="java.lang.String"/>
+	<field name="PROCESSFOR_MATURITY" class="java.lang.String"/>
+	<field name="A" class="java.lang.String"/>
+	<field name="LEDGERBALANCE" class="java.math.BigDecimal"/>
+	<field name="INT_DATE" class="java.sql.Timestamp"/>
+	<variable name="TOTAL_ACC" class="java.lang.String" calculation="Count">
+		<variableExpression><![CDATA[$F{ACCOUNT_CODE}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="50" splitType="Stretch"/>
+	</title>
+	<columnHeader>
+		<band height="35" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="613" height="1" uuid="73566512-9731-436d-820f-c9a680cff3f8"/>
+			</line>
+			<line>
+				<reportElement x="-1" y="34" width="614" height="1" uuid="ad8f9afe-34c3-46d1-9769-bcc5d16247a9"/>
+			</line>
+			<line>
+				<reportElement x="0" y="1" width="1" height="34" uuid="fac81de9-2fba-4359-b957-71ebdef6b308"/>
+			</line>
+			<line>
+				<reportElement x="47" y="1" width="1" height="34" uuid="dd162245-01da-4bec-8a6b-970fe6f18339"/>
+			</line>
+			<line>
+				<reportElement x="141" y="1" width="1" height="34" uuid="152f575e-74b4-4357-b24b-0289103ecc06"/>
+			</line>
+			<line>
+				<reportElement x="307" y="0" width="1" height="34" uuid="b175ce73-7d5b-49ed-8de6-23be7d884f1e"/>
+			</line>
+			<line>
+				<reportElement x="411" y="1" width="1" height="34" uuid="3b20f0d2-eefb-4737-b474-f57f499b864b"/>
+			</line>
+			<line>
+				<reportElement x="505" y="1" width="1" height="34" uuid="ceeeb54a-fc66-4fbc-8abf-ce9338b98788"/>
+			</line>
+			<line>
+				<reportElement x="613" y="1" width="1" height="34" uuid="657238bd-2f33-4d51-834e-7053efe82505"/>
+			</line>
+			<staticText>
+				<reportElement x="1" y="1" width="46" height="33" uuid="0f4717b1-2de6-41bb-8e96-175624283aa8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sr.No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="48" y="1" width="93" height="33" uuid="68739762-62bb-4e2b-bb0c-8d8283412fd6"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[PRODUCT CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="142" y="0" width="166" height="34" uuid="61c538af-b666-439f-8750-6ca4bc061686"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="308" y="2" width="104" height="33" uuid="3089d4b8-93a5-4e46-bbdd-4a8c18782146"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total No.Of Accounts]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="412" y="1" width="93" height="33" uuid="d23d06fe-51a8-40cd-aeb8-17d647f87f69"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[LEDGERBALANCE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="505" y="1" width="109" height="33" uuid="261ba679-3fd0-4041-be5e-c987fa310422"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DEPOSITAMOUNT]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="47" height="20" uuid="8d192067-2c53-4fed-8b71-e52fc3802454"/>
+				<textFieldExpression><![CDATA[$F{SRNO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="142" y="0" width="165" height="20" uuid="b7d6c06f-16b9-4a81-8000-4681b05e7183"/>
+				<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="412" y="0" width="93" height="20" uuid="f222f353-58a4-4a2b-bf4e-cd15c6f86744"/>
+				<textFieldExpression><![CDATA[$F{LEDGERBALANCE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="513" y="0" width="100" height="20" uuid="d85cc643-e2cf-437d-9277-fb38c230bef3"/>
+				<textFieldExpression><![CDATA[$F{DEPOSITAMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="48" y="0" width="94" height="20" uuid="024320e1-fbce-4f11-bc7e-7a3b9255c0d5"/>
+				<textFieldExpression><![CDATA[$F{PRODUCT_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="308" y="0" width="104" height="20" uuid="3b57a70e-16b5-429e-a1a2-b1e736a49e72"/>
+				<textFieldExpression><![CDATA[$V{TOTAL_ACC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

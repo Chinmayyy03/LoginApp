@@ -166,7 +166,7 @@ if ("download".equals(action)) {
 <head>
     <title>Reconciliation Difference Report</title>
     <link rel="stylesheet"
-href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+href="<%=request.getContextPath()%>/css/common-report.css">
 
 </head>
 
