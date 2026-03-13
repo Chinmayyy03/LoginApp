@@ -164,7 +164,7 @@ body::after {
 /* ── Hero scene ── */
 .hero-scene {
     width: 100%;
-    max-width: 460px;
+    max-width: 500px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -181,7 +181,7 @@ body::after {
 }
 
 .idsspl-logo-img {
-    height: 54px;
+    height: 100px;
     width: auto;
     opacity: 0.95;
     margin-bottom: 6px;
@@ -189,7 +189,7 @@ body::after {
 }
 
 .idsspl-tagline {
-    font-size: 10.5px;
+    font-size: 17.5px;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: rgba(255,255,255,0.4);
@@ -461,7 +461,7 @@ input[type="password"]::-webkit-password-toggle-button { display:none !important
 
             <!-- IDSSPL logo provided as image -->
             <div class="idsspl-title-block">
-                <img src="images/idsspl_logo.gif" alt="IDSSPL" class="idsspl-logo-img">
+                <img src="images/IDSSPL LOGO.jpeg" alt="IDSSPL" class="idsspl-logo-img">
                 <span class="idsspl-tagline">Info Dynamic Software Systems Pvt Ltd</span>
             </div>
 
