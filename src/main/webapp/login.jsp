@@ -73,6 +73,18 @@
             try { if (conn  != null) conn.close();  } catch (Exception ignored) {}
         }
     }
+
+    // ── Fetch CBS version from DB (used in product badge) ─────────────────────
+    String cbsVersion = "v3.1"; // fallback default
+    try (Connection connVer = DBConnection.getConnection();
+         PreparedStatement psVer = connVer.prepareStatement(
+             "SELECT CBS_VERSION FROM GLOBALCONFIG.UNIVERSALPARAMETER WHERE ROWNUM = 1")) {
+        ResultSet rsVer = psVer.executeQuery();
+        if (rsVer.next() && rsVer.getString("CBS_VERSION") != null) {
+            cbsVersion = rsVer.getString("CBS_VERSION").trim();
+        }
+        rsVer.close();
+    } catch (Exception ignored) {}
 %>
 
 <% if (showForm) { %>
@@ -113,21 +125,18 @@
         <div class="card-left">
             <div class="card-left-content">
 
-                <!-- IDSSPL logo INSIDE the left panel -->
                 <img src="images/IDSSPL_LOGO.png" alt="IDSSPL Logo" class="idsspl-logo-img">
 
-                <!-- Company label -->
                 <div class="idsspl-logo-label">IDSSPL TECHNOLOGIES PVT LTD</div>
 
-                <!-- Banking illustration -->
                 <img src="images/online_banking.png" alt="Online Banking" class="banking-img">
 
-                <!-- Product badge -->
+                <!-- Product badge — version from DB -->
                 <div class="product-badge">
                     <div class="product-badge-top">
                         <span class="product-dot"></span>
                         <span class="product-name">Core Banking Solution</span>
-                        <span class="product-version">v3.1</span>
+                        <span class="product-version"><%= cbsVersion %></span>
                     </div>
                 </div>
 
