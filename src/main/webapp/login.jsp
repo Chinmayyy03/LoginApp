@@ -90,7 +90,6 @@
 <!-- Arc pattern background -->
 <div class="bg-arc"></div>
 
-
 <!-- Licence modal overlay -->
 <div id="licenseOverlay">
     <div id="licenseBox">
@@ -105,27 +104,25 @@
     </div>
 </div>
 
-<!-- ── PAGE WRAPPER — logo above + card below ── -->
+<!-- ── PAGE WRAPPER ── -->
 <div class="page-wrapper">
-
-    
 
     <div class="login-card">
 
-        <!-- LEFT — illustration panel -->
+        <!-- LEFT — logo + illustration panel -->
         <div class="card-left">
             <div class="card-left-content">
-<!-- IDSSPL logo — above the card, centered -->
-    <div class="idsspl-above-card">
-        <img src="images/IDSSPL_LOGO.png" alt="IDSSPL Logo" class="idsspl-logo-img">
-    </div>
+
+                <!-- IDSSPL logo INSIDE the left panel -->
+                <img src="images/IDSSPL_LOGO.png" alt="IDSSPL Logo" class="idsspl-logo-img">
+
                 <!-- Company label -->
                 <div class="idsspl-logo-label">IDSSPL TECHNOLOGIES PVT LTD</div>
 
                 <!-- Banking illustration -->
                 <img src="images/online_banking.png" alt="Online Banking" class="banking-img">
 
-                <!-- Product badge — toned down -->
+                <!-- Product badge -->
                 <div class="product-badge">
                     <div class="product-badge-top">
                         <span class="product-dot"></span>
@@ -153,7 +150,7 @@
                         if (rsBank.next()) loginBankName = rsBank.getString("NAME");
                     } catch (Exception ignored) {}
                 %>
-                <%= loginBankName %>
+                THE <%= loginBankName.toUpperCase() %>
             </div>
 
             <form action="login.jsp" method="post" autocomplete="off">
@@ -220,8 +217,6 @@
                     <% } %>
                 <% } %>
 
-                <div class="signup-row">Don't have account? <a href="#">Sign up</a></div>
-
             </form>
         </div>
 
@@ -266,35 +261,6 @@ eyeIcon.addEventListener("click", function () {
         eyeIcon.src = "images/eye.png";
     }
 });
-
-/* Licence popup logic */
-<%
-    if (false) { // placeholder — replace with your license check logic if needed
-        String jsType    = "expired";
-        String jsMessage = "Your licence has expired.";
-        String jsIcon    = "🚫";
-        String jsTitle   = "Licence Expired";
-        String jsRedirect = "false";
-%>
-(function () {
-    var type     = '<%= "expired" %>';
-    var icon     = '<%= "🚫" %>';
-    var title    = '<%= "Licence Expired" %>';
-    var message  = '<%= "Your licence has expired." %>';
-    var redirect = false;
-
-    document.getElementById('licenseIcon').textContent  = icon;
-    document.getElementById('licenseIcon').className    = type;
-    document.getElementById('licenseTitle').textContent = title;
-    document.getElementById('licenseTitle').className   = type;
-    document.getElementById('licenseMessage').textContent = message;
-    document.getElementById('licenseOkBtn').className   = type;
-    window._licenseRedirect = redirect;
-    document.getElementById('licenseOverlay').classList.add('show');
-})();
-<%
-    }
-%>
 
 function handleLicenseOk() {
     document.getElementById('licenseOverlay').classList.remove('show');
