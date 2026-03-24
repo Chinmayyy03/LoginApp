@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MonthlyBranchIncludeExpStatementRG" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="882af5c1-d7ef-403a-9352-7e827632b49b">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="4"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="branch_code" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -14,6 +14,9 @@
 	</parameter>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="user_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[SELECT to_char(A.TXN_DATE,'DD-MON-YY') AS A,A.ACCOUNT_CODE ,B.DESCRIPTION ,A.PARTICULAR,A.AMOUNT,
@@ -149,16 +152,23 @@
 	<pageFooter>
 		<band height="30">
 			<textField>
-				<reportElement x="426" y="10" width="80" height="19" uuid="78294d68-2e44-4478-8bc8-ca6fc6d61b45"/>
-				<textElement textAlignment="Right"/>
+				<reportElement x="0" y="10" width="60" height="20" uuid="19d72290-a658-491f-a3a1-a782b58781a1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="437" y="10" width="80" height="20" uuid="39e7f35c-494e-42e1-a9d8-394bfed386da"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="508" y="10" width="40" height="19" uuid="394a1591-6754-48ef-80ac-f2aab70bdb4a"/>
+				<reportElement x="516" y="10" width="40" height="20" uuid="2ac7fba4-b6c2-4132-bc21-e09cb9e9be7f"/>
+				<textElement verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="1" y="10" width="100" height="20" uuid="d009d7fd-9623-480f-a476-9a475b54c53b"/>
+				<reportElement x="60" y="10" width="100" height="20" uuid="fbb69fc6-3ae3-4579-8b3c-ff7f57ea884d"/>
+				<textElement verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 		</band>

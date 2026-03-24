@@ -11,23 +11,42 @@
 <%@ page import="net.sf.jasperreports.engine.util.JRLoader" %>
 
 <%@ page import="db.DBConnection" %>
+<%
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
+    }
+}
+
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+%>
 
 <%
 String action = request.getParameter("action");
 String branchCode = request.getParameter("branch_code");
 String asOnDateUI = request.getParameter("as_on_date");
 
-if (branchCode == null) branchCode = "0002";
-if (asOnDateUI == null) {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    asOnDateUI = sdf.format(new java.util.Date());
+if (branchCode == null) branchCode = "";
+
+if (asOnDateUI == null || asOnDateUI.trim().isEmpty()) {
+    asOnDateUI = sessionDate;
 }
 
 /* =====================================================
    DOWNLOAD SECTION
 ===================================================== */
-if ("preview".equals(action) || "download".equals(action)) {
-	String userId = "admin";
+if ("download".equals(action)) {
+	String userId = (String) session.getAttribute("userId");
 
 
     String reporttype = request.getParameter("reporttype");
@@ -43,13 +62,14 @@ if ("preview".equals(action) || "download".equals(action)) {
         response.setDateHeader("Expires", 0);
 
         /* ===== ORACLE DATE FORMAT ===== */
-        String oracleDate;
+       String oracleDate = "";
+
 try {
     SimpleDateFormat inFmt  = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat outFmt = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
     oracleDate = outFmt.format(inFmt.parse(asOnDateUI)).toUpperCase();
 } catch (Exception e) {
-    oracleDate = "01-JAN-2025";  // fallback date
+    throw new Exception("Invalid date format");
 }
 
         conn = DBConnection.getConnection();
@@ -73,6 +93,7 @@ try {
         parameters.put("as_on_date", oracleDate);
         parameters.put("report_title", "Standing Instruction Register Report");
         parameters.put("SUBREPORT_DIR", reportsDir);
+        parameters.put("user_id", userId);
         parameters.put("IMAGE_PATH", application.getRealPath("/images/UPSB MONO.png"));
 
 
@@ -83,46 +104,54 @@ try {
         outStream = response.getOutputStream();
 
         /* ===== EXPORT TYPE ===== */
-        if ("pdf".equalsIgnoreCase(reporttype)) {
+       /* ===== EXPORT TYPE ===== */
 
-            response.reset();
-            response.setContentType("application/pdf");
+if ("pdf".equalsIgnoreCase(reporttype)) {
 
-            // 🔥 Always inline for preview
-            response.setHeader(
-                "Content-Disposition",
-                "inline; filename=\"StandingInstructionRegister_" 
-                + branchCode + ".pdf\""
-            );
+    response.reset();
 
-            response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setContentType("application/pdf");
 
-            JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+    response.setHeader(
+        "Content-Disposition",
+        "inline; filename=\"StandingInstructionRegister_" 
+        + branchCode + ".pdf\""
+    );
 
-            outStream.flush();
-            return;
-        
-         } else {
+    outStream = response.getOutputStream();
 
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader(
-                "Content-Disposition",
-                "attachment; filename=StandingInstructionRegister_" 
-                + branchCode + ".xls"
-            );
+    JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
 
-            JRXlsExporter exporter = new JRXlsExporter();
-            exporter.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint);
-            exporter.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, outStream);
-            exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
-            exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
-            exporter.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, Boolean.FALSE);
-            exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, Boolean.TRUE);
-            exporter.exportReport();
-        }
+    outStream.flush();
+    outStream.close();
 
-        outStream.flush();
-        return;
+    return;
+}
+else if ("xls".equalsIgnoreCase(reporttype)) {
+
+    response.reset();
+
+    response.setContentType("application/vnd.ms-excel");
+
+    response.setHeader(
+        "Content-Disposition",
+        "attachment; filename=\"StandingInstructionRegister_" 
+        + branchCode + ".xls\""
+    );
+
+    outStream = response.getOutputStream();
+
+    JRXlsExporter exporter = new JRXlsExporter();
+    exporter.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint);
+    exporter.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, outStream);
+
+    exporter.exportReport();
+
+    outStream.flush();
+    outStream.close();
+
+    return;
+}
 
     } catch (Exception e) {
         e.printStackTrace();
@@ -145,7 +174,38 @@ if (!"preview".equals(action) && !"download".equals(action)) {
 
     <link rel="stylesheet"
 href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
 
+<style>
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
 </head>
 
 <body>
@@ -159,18 +219,30 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
           target="_blank"
           id="reportForm">
 
-        <input type="hidden" name="action" value="preview"/>
-
+<input type="hidden" name="action" value="download"/>
         <div class="parameter-section">
 
             <div class="parameter-group">
                 <div class="parameter-label">Branch Code</div>
-                <input type="text"
-                       name="branch_code"
-                       class="input-field"
-                       required
-                       value="<%= branchCode %>">
+                <div class="input-box">
+    <input type="text"
+           name="branch_code"
+           id="branch_code"
+           class="input-field"
+           value="<%= branchCode %>"
+           required>
+
+    <button type="button"
+            class="icon-btn"
+            onclick="openBranchLookup()">…</button>
+</div>
             </div>
+            
+            <div class="parameter-group">
+    <div class="parameter-label">Description</div>
+    <input type="text" id="branch_name"
+           class="input-field" readonly>
+</div>
 
             <div class="parameter-group">
                 <div class="parameter-label">As On Date</div>
@@ -178,7 +250,7 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
                        name="as_on_date"
                        class="input-field"
                        required
-                       value="<%= asOnDateUI %>">
+                       value="<%= sessionDate %>">
             </div>
 
         </div>
@@ -209,6 +281,13 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 
 </div>
 
+<div id="branchModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
+        <div id="branchTable"></div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -236,11 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
 
-        previewBtn.disabled = true;
-        previewBtn.innerHTML = 'Generating Report...';
-        previewBtn.style.opacity = '0.7';
-
-        return true;
+       
     });
 
     window.addEventListener('pageshow', function(event) {
@@ -251,6 +326,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+});
+</script>
+<script>
+
+function openBranchLookup() {
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("branchTable").innerHTML = html;
+            document.getElementById("branchModal").style.display = "flex";
+        });
+}
+
+function closeBranchLookup() {
+    document.getElementById("branchModal").style.display = "none";
+}
+
+function selectBranch(code, name) {
+    document.getElementById("branch_code").value = code;
+    document.getElementById("branch_name").value = name;
+    closeBranchLookup();
+}
+
+document.getElementById("branch_code").addEventListener("blur", function() {
+    let code = this.value;
+
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
+        .then(res => res.text())
+        .then(name => {
+            document.getElementById("branch_name").value = name || "Not Found";
+        });
 });
 </script>
 

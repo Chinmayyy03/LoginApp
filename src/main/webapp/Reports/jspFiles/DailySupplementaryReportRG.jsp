@@ -14,6 +14,26 @@
 <%@ page import="net.sf.jasperreports.engine.util.JRLoader" %>
 
 <%@ page import="db.DBConnection" %>
+<%
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
+    }
+}
+
+// fallback
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+%>
 
 <%
 String action = request.getParameter("action");
@@ -141,14 +161,9 @@ if ("download".equals(action)) {
         parameters.put("CASH_PAYMENT", cashPayment);
         parameters.put("NET_POSITION", cashReceipt - cashPayment);
 
-        String userId = (String)session.getAttribute("user_id");
-
-        if(userId == null || userId.trim().equals("")){
-            userId = "admin";
-        }
+        String userId = (String) session.getAttribute("userId");
 
         parameters.put("user_id", userId);
-
         parameters.put("IMAGE_PATH",
         application.getRealPath("/images/UPSB MONO.png"));
 
@@ -254,7 +269,39 @@ if ("download".equals(action)) {
     <title>Daily Supplementary Report</title>
 
     <link rel="stylesheet"
-href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+     href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<style>
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
 </head>
 
 <body>
@@ -276,23 +323,36 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
         <div class="parameter-section">
             <div class="parameter-group">
                 <div class="parameter-label required">Branch Code</div>
-                <input type="text" 
-                       name="branch_code" 
-                       id="branch_code"
-                       class="input-field" 
-                       value="0002" 
-                       required
-                       placeholder="Enter branch code (e.g., 0002)">
-            </div>
+                <div class="input-box">
+       <input type="text" 
+           name="branch_code" 
+           id="branch_code"
+           class="input-field" 
+           required>
 
-            <div class="parameter-group">
-                <div class="parameter-label required">As On Date</div>
-                <input type="date" 
-       name="as_on_date" 
-       id="as_on_date"
-       class="input-field"
-       value="2025-12-01"
-       required>
+       <button type="button"
+            class="icon-btn"
+            onclick="openBranchLookup()">…</button>
+       </div>
+
+       </div>
+            
+       <div class="parameter-group">
+       <div class="parameter-label">Description</div>
+       <input type="text" 
+           id="branch_name"
+           class="input-field"
+           readonly>
+       </div>
+
+        <div class="parameter-group">
+        <div class="parameter-label required">As On Date</div>
+         <input type="date" 
+             name="as_on_date" 
+             id="as_on_date"
+             class="input-field"
+             value="<%=sessionDate%>"
+             required>
             </div>
         </div>
 
@@ -317,6 +377,13 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
         </button>
 
     </form>
+</div>
+<!-- POPUP -->
+<div id="branchModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
+        <div id="branchTable"></div>
+    </div>
 </div>
 
 
@@ -352,6 +419,41 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Generate Report';
     });
+    
+    /* =========================
+    POPUP FUNCTIONS
+    ========================= */
+
+ function openBranchLookup() {
+     fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
+         .then(res => res.text())
+         .then(html => {
+             document.getElementById("branchTable").innerHTML = html;
+             document.getElementById("branchModal").style.display = "flex";
+         });
+ }
+
+ function closeBranchLookup() {
+     document.getElementById("branchModal").style.display = "none";
+ }
+
+ function selectBranch(code, name) {
+     document.getElementById("branch_code").value = code;
+     document.getElementById("branch_name").value = name;
+     closeBranchLookup();
+ }
+
+ /* AUTO FETCH NAME */
+ document.getElementById("branch_code").addEventListener("blur", function() {
+
+     let code = this.value;
+
+     fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
+         .then(res => res.text())
+         .then(name => {
+             document.getElementById("branch_name").value = name || "Not Found";
+         });
+ });
 </script>
 
 </body>

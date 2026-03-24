@@ -14,21 +14,40 @@
 <%@ page import="db.DBConnection" %>
 
 <%
-    String action = request.getParameter("action");
-    String branchCode = request.getParameter("branch_code");
-    String asOnDateUI = request.getParameter("as_on_date");
-    
-    // If parameters are null (first load), set defaults
-    if (branchCode == null) branchCode = "0002";
-    if (asOnDateUI == null) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        asOnDateUI = sdf.format(new java.util.Date());
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
     }
+}
+
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+%>
+<%
+String action = request.getParameter("action");
+String branchCode = request.getParameter("branch_code");
+String asOnDateUI = request.getParameter("as_on_date");
+
+/* prevent null issues */
+if (branchCode == null) branchCode = "";
+if (asOnDateUI == null) asOnDateUI = "";
 
     if ("download".equals(action)) {
         String reportType = request.getParameter("reporttype");
-        String userId = "admin";
-        
+        String userId = (String) session.getAttribute("userId");
+
+        if (userId == null || userId.trim().equals("")) {
+            userId = "admin";
+        }        
         Connection conn = null;
         CallableStatement cstmt = null;
         PreparedStatement pstmt = null;
@@ -60,20 +79,24 @@
             /* =========================
                DATE HANDLING (FIXED FOR ORACLE)
                ========================= */
-            String oracleDate;
-            String sqlFormattedDate = "";
-            try {
-                SimpleDateFormat inFmt = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat outFmt = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
-                oracleDate = outFmt.format(inFmt.parse(asOnDateUI)).toUpperCase();
-                sqlFormattedDate = outFmt.format(inFmt.parse(asOnDateUI)).toUpperCase();
-            } catch (Exception e) {
-                // Default date if parsing fails
-                oracleDate = "29-MAR-2025";
-                sqlFormattedDate = "29-MAR-2025";
-            }
+            		   String oracleDate;
+               String sqlFormattedDate;
 
-            conn.setAutoCommit(false);
+               try {
+                   SimpleDateFormat inFmt = new SimpleDateFormat("yyyy-MM-dd");
+                   SimpleDateFormat outFmt = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+
+                   java.util.Date parsedDate = inFmt.parse(asOnDateUI);
+
+                   oracleDate = outFmt.format(parsedDate).toUpperCase();
+                   sqlFormattedDate = oracleDate;
+
+               } catch (Exception e) {
+                   throw new Exception("Invalid date format. Please use yyyy-MM-dd");
+               }
+
+               /* Transaction control (separate) */
+               conn.setAutoCommit(false);
 
             // Call the stored procedure
             System.out.println("Calling stored procedure with params: branch=" + branchCode + ", date=" + oracleDate + ", user=" + userId);
@@ -127,7 +150,7 @@
                                "   'CASH OPEN BAL/CLOSE BAL' AS DESCRIPTION, " +
                                "   SUM(CASE WHEN TRANSACTIONINDICATOR_CODE = 'CSDR' " +
                                "                THEN AMOUNT " +
-                               "                ELSE(CASE WHEN TRANSACTIONINDICator_code = 'CSCR' " +
+                               "                ELSE(CASE WHEN TRANSACTIONINDICATOR_CODE = 'CSCR' " +
                                "                     THEN -AMOUNT " +
                                "                     ELSE 0 END) " +
                                "           END) AS AMOUNT " +
@@ -460,6 +483,38 @@ if (!"download".equals(action)) {
     <title>Daily Supplementary Report_TForm</title>
 <link rel="stylesheet"
 href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<style>
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
 
 </head>
 
@@ -520,15 +575,26 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             <div class="parameter-section">
                 <div class="parameter-group">
                     <div class="parameter-label">Branch Code</div>
-                    <input type="text" name="branch_code" class="input-field" required
-                           placeholder="Enter branch code"
-                           value="<%= branchCode %>">
+                    <div class="input-box">
+    <input type="text" name="branch_code" id="branch_code"
+           class="input-field"
+           value="<%= branchCode %>" required>
+
+    <button type="button"
+            class="icon-btn"
+            onclick="openBranchLookup()">…</button>
+</div>
                 </div>
+                <div class="parameter-group">
+    <div class="parameter-label">Description</div>
+    <input type="text" id="branch_name"
+           class="input-field" readonly>
+</div>
                 
                 <div class="parameter-group">
                     <div class="parameter-label">As On Date</div>
                     <input type="date" name="as_on_date" class="input-field" required
-                           value="<%= asOnDateUI %>">
+                           value="<%= sessionDate %>">
                 </div>
             </div>
             
@@ -551,6 +617,13 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             </button>
         </form>
     </div>
+    
+    <div id="branchModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
+        <div id="branchTable"></div>
+    </div>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -560,17 +633,7 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             
             // Store original button text
             const originalBtnText = downloadBtn.innerHTML;
-            
-            // Set default date to today (only if not already set by server)
-            const asOnDateField = document.querySelector('input[name="as_on_date"]');
-            if (!asOnDateField.value) {
-                const today = new Date();
-                const dd = String(today.getDate()).padStart(2, '0');
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const yyyy = today.getFullYear();
-                asOnDateField.value = `${yyyy}-${mm}-${dd}`;
-            }
-            
+             
             // Handle form submission
             form.addEventListener('submit', function(e) {
                 const branchCode = document.querySelector('input[name="branch_code"]').value.trim();
@@ -620,6 +683,39 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             }
         });
     </script>
+    <script>
+
+/* POPUP */
+function openBranchLookup() {
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("branchTable").innerHTML = html;
+            document.getElementById("branchModal").style.display = "flex";
+        });
+}
+
+function closeBranchLookup() {
+    document.getElementById("branchModal").style.display = "none";
+}
+
+function selectBranch(code, name) {
+    document.getElementById("branch_code").value = code;
+    document.getElementById("branch_name").value = name;
+    closeBranchLookup();
+}
+
+/* AUTO NAME */
+document.getElementById("branch_code").addEventListener("blur", function() {
+    let code = this.value;
+
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
+        .then(res => res.text())
+        .then(name => {
+            document.getElementById("branch_name").value = name || "Not Found";
+        });
+});
+</script>
 </body>
 </html>
 <%

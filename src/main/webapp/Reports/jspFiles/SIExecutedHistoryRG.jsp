@@ -11,6 +11,26 @@
 <%@ page import="db.DBConnection" %>
 
 <%
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
+    }
+}
+
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+%>
+
+<%
 /* ==========================================
    GET PARAMETERS + DEFAULT VALUES
 ========================================== */
@@ -20,13 +40,10 @@ String action = request.getParameter("action");
 String branchCode = request.getParameter("branch_code");
 String asOnDate = request.getParameter("as_on_date");
 
-/* Default values for first load */
-if (branchCode == null || branchCode.trim().isEmpty()) {
-    branchCode = "0007";
-}
+if (branchCode == null) branchCode = "";
 
 if (asOnDate == null || asOnDate.trim().isEmpty()) {
-    asOnDate = "2014-09-18";   // yyyy-MM-dd (HTML format)
+    asOnDate = sessionDate;
 }
 
 /* ==========================================
@@ -74,6 +91,9 @@ if ("download".equals(action)) {
         parameters.put("report_title", "SI Executed History Report");
         parameters.put("as_on_date", formattedDate);
         parameters.put("SUBREPORT_DIR", reportsDir);
+        String userId = (String) session.getAttribute("userId");
+
+        parameters.put("user_id", userId);
 
         /* FILL REPORT */
         JasperPrint jasperPrint =
@@ -82,37 +102,55 @@ if ("download".equals(action)) {
         outStream = response.getOutputStream();
 
         /* EXPORT */
-        if ("pdf".equalsIgnoreCase(reporttype)) {
+       if ("pdf".equalsIgnoreCase(reporttype)) {
 
-            response.setContentType("application/pdf");
-            response.setHeader(
-                "Content-Disposition",
-                "inline; filename=\"SIExecutedHistory_" 
-                + branchCode + "_" + formattedDate + ".pdf\""
-            );
+    response.reset();
 
-            JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+    response.setContentType("application/pdf");
 
-        } else {
+    response.setHeader(
+        "Content-Disposition",
+        "inline; filename=\"SIExecutedHistory_" 
+        + branchCode + "_" + formattedDate + ".pdf\""
+    );
+
+    outStream = response.getOutputStream();   // ✅ FIXED
+
+    JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+
+    outStream.flush();
+    outStream.close();
+
+    return;
+
+    } else if ("xls".equalsIgnoreCase(reporttype)) {
+
+            response.reset();
 
             response.setContentType("application/vnd.ms-excel");
+
             response.setHeader(
                 "Content-Disposition",
                 "attachment; filename=\"SIExecutedHistory_" 
                 + branchCode + "_" + formattedDate + ".xls\""
             );
 
+            outStream = response.getOutputStream();   // ✅ FIXED
+
             JRXlsExporter exporter = new JRXlsExporter();
             exporter.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint);
             exporter.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, outStream);
             exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
             exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
+
             exporter.exportReport();
+
+            outStream.flush();
+            outStream.close();
+
+            return;
         }
-
-        outStream.flush();
-        return;
-
+        
     } catch (Exception e) {
         session.setAttribute("errorMessage",
                 "Error generating SI Executed History Report: " + e.getMessage());
@@ -141,6 +179,38 @@ if (!"download".equals(action)) {
     <!-- Common Report CSS -->
     <link rel="stylesheet"
 href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<style>
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
 
 </head>
 
@@ -173,19 +243,32 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 
             <div class="parameter-group">
                 <div class="parameter-label">Branch Code</div>
-                <input type="text"
-                       name="branch_code"
-                       class="input-field"
-                       value="<%= branchCode %>"
-                       required>
+                <div class="input-box">
+    <input type="text"
+           name="branch_code"
+           id="branch_code"
+           class="input-field"
+           value="<%= branchCode %>"
+           required>
+
+    <button type="button"
+            class="icon-btn"
+            onclick="openBranchLookup()">…</button>
+</div>
             </div>
+            
+            <div class="parameter-group">
+    <div class="parameter-label">Description</div>
+    <input type="text" id="branch_name"
+           class="input-field" readonly>
+</div>
 
             <div class="parameter-group">
                 <div class="parameter-label">As On Date</div>
                 <input type="date"
                        name="as_on_date"
                        class="input-field"
-                       value="<%= asOnDate %>"
+                       value="<%= sessionDate %>"
                        required>
             </div>
 
@@ -215,6 +298,44 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
     </form>
 
 </div>
+<div id="branchModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
+        <div id="branchTable"></div>
+    </div>
+</div>
+
+<script>
+
+function openBranchLookup() {
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("branchTable").innerHTML = html;
+            document.getElementById("branchModal").style.display = "flex";
+        });
+}
+
+function closeBranchLookup() {
+    document.getElementById("branchModal").style.display = "none";
+}
+
+function selectBranch(code, name) {
+    document.getElementById("branch_code").value = code;
+    document.getElementById("branch_name").value = name;
+    closeBranchLookup();
+}
+
+document.getElementById("branch_code").addEventListener("blur", function() {
+    let code = this.value;
+
+    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
+        .then(res => res.text())
+        .then(name => {
+            document.getElementById("branch_name").value = name || "Not Found";
+        });
+});
+</script>
 
 </body>
 </html>

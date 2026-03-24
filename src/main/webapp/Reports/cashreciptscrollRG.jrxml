@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="cashreciptscrollrg" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d89132de-b182-43fb-8181-31a543032f09">
 	<property name="ireport.zoom" value="2.4200000000000004"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="12"/>
 	<parameter name="branch_code" class="java.lang.String">
 		<defaultValueExpression><![CDATA["0002"]]></defaultValueExpression>
 	</parameter>
@@ -48,7 +48,7 @@
 	<title>
 		<band height="50">
 			<subreport>
-				<reportElement x="1" y="0" width="552" height="49" uuid="a6db0b96-c0f1-4af7-ae0a-b96bc7d5d420"/>
+				<reportElement x="41" y="0" width="472" height="49" uuid="a6db0b96-c0f1-4af7-ae0a-b96bc7d5d420"/>
 				<subreportParameter name="branch_code">
 					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -211,28 +211,28 @@
 			</line>
 		</band>
 	</detail>
-	<columnFooter>
-		<band height="1" splitType="Stretch"/>
-	</columnFooter>
 	<pageFooter>
-		<band height="25" splitType="Stretch">
+		<band height="29" splitType="Stretch">
 			<textField>
-				<reportElement x="1" y="5" width="35" height="20" uuid="269d6c20-1733-4782-b1de-e1f206e2a24b"/>
+				<reportElement x="1" y="9" width="35" height="20" uuid="269d6c20-1733-4782-b1de-e1f206e2a24b"/>
 				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="437" y="5" width="69" height="20" uuid="17630e4f-3a1f-4b52-983d-8cc1483da9d8"/>
+				<reportElement x="439" y="9" width="69" height="20" uuid="17630e4f-3a1f-4b52-983d-8cc1483da9d8"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="508" y="5" width="40" height="20" uuid="f0e36775-f26a-4670-b26b-647cf1f883f7"/>
+				<reportElement x="508" y="9" width="40" height="20" uuid="f0e36775-f26a-4670-b26b-647cf1f883f7"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="36" y="5" width="87" height="20" uuid="04724c17-47ef-4fdb-8d72-7af625489105"/>
+				<reportElement x="35" y="9" width="100" height="20" uuid="22fb851d-fb07-46f0-8f0d-7c60885d7192"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="-1" y="0" width="556" height="1" uuid="338b54d2-d2cd-42e3-a895-a6a1e90f587f"/>
+			</line>
 		</band>
 	</pageFooter>
 	<summary>
