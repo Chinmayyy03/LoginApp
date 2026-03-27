@@ -469,7 +469,7 @@
           <tr>
             <td><input type="checkbox" name="telephone_check"></td>
             <td>Telephone Bill</td>
-            <td><input id="date" type="date" name="telephone_expiry"></td>
+            <td><input  id="date" type="date" name="telephone_expiry"></td>
             <td><input type="text" name="telephone"></td>
           </tr>
           <tr>
