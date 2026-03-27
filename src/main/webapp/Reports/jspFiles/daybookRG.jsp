@@ -266,21 +266,6 @@ if ("download".equals(action)) {
 
 <div class="parameter-section">
 
-    <!-- BANK -->
-    <div class="parameter-group">
-        <div class="parameter-label">Bank Code</div>
-
-        <div class="input-box">
-            <input type="text" id="bankCode" name="bank_code" class="input-field">
-            <button type="button" class="icon-btn" onclick="openBankLookup()">…</button>
-        </div>
-    </div>
-
-    <div class="parameter-group">
-        <div class="parameter-label">Bank Name</div>
-        <input type="text" id="bankName" class="input-field" readonly>
-    </div>
-
     <!-- BRANCH -->
     <div class="parameter-group">
         <div class="parameter-label">Branch Code</div>
