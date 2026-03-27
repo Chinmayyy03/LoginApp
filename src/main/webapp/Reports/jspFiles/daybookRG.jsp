@@ -35,6 +35,14 @@ if (sessionDate == null || sessionDate.isEmpty()) {
    ========================= */
 String userId = (String) session.getAttribute("userId");
 if (userId == null) userId = "SYSTEM";
+
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
+
 %>
 
 <%
@@ -76,8 +84,8 @@ if ("download".equals(action)) {
                             .toUpperCase();
         }
 
-        if (bankCode == null || bankCode.isEmpty()) bankCode = "0100";
-        if (branchCode == null || branchCode.isEmpty()) branchCode = "0002";
+        if (bankCode == null || bankCode.isEmpty()) bankCode = "";
+        if (branchCode == null || branchCode.isEmpty()) branchCode = "";
 
         /* =========================
         TALLY MESSAGE (STRING ONLY)
@@ -274,18 +282,30 @@ var contextPath = "<%=request.getContextPath()%>";
 
     <!-- BRANCH -->
     <div class="parameter-group">
-        <div class="parameter-label">Branch Code</div>
+    <div class="parameter-label">Branch Code</div>
 
-        <div class="input-box">
-            <input type="text" id="branch_code" name="branch_code" class="input-field">
-            <button type="button" class="icon-btn" onclick="openLookup('branch')">…</button>
-        </div>
-    </div>
+    <div class="input-box">
 
-    <div class="parameter-group">
-        <div class="parameter-label">Branch Name</div>
-        <input type="text" id="branchName" class="input-field" readonly>
+        <input type="text"
+               id="branch_code"
+               name="branch_code"
+               class="input-field"
+               value="<%= !"Y".equalsIgnoreCase(isSupportUser != null ? isSupportUser.trim() : "") ? sessionBranchCode : "" %>"
+               <%= !"Y".equalsIgnoreCase(isSupportUser != null ? isSupportUser.trim() : "") ? "readonly" : "" %> >
+
+        <% if ("Y".equalsIgnoreCase(isSupportUser != null ? isSupportUser.trim() : "")) { %>
+            <button type="button"
+                    class="icon-btn"
+                    onclick="openLookup('branch')">…</button>
+        <% } %>
+
     </div>
+</div>
+
+<div class="parameter-group">
+    <div class="parameter-label">Branch Name</div>
+    <input type="text" id="branchName" class="input-field" readonly>
+</div>
 
     <!-- DATE -->
     <div class="parameter-group">
@@ -310,7 +330,6 @@ var contextPath = "<%=request.getContextPath()%>";
 
 </div>
 
-
 <!-- BRANCH POPUP -->
 <div id="lookupModal" class="modal">
     <div class="modal-content">
@@ -322,3 +341,4 @@ var contextPath = "<%=request.getContextPath()%>";
 
 </body>
 </html>
+

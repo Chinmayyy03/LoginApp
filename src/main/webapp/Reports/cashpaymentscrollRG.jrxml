@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="cashpaymentscrollrg" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e1968709-284c-44a8-9fb7-c7da0998cbc2">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="16"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA["29-JAN-2025"]]></defaultValueExpression>
 	</parameter>
@@ -28,11 +28,11 @@ SELECT TXN_NUMBER,
               TRANSACTION.DAILYTXN.OFFICER_ID
             FROM TRANSACTION.TRANSACTION_HT_VIEW  DAILYTXN , ACCOUNT.ACCOUNT
               WHERE TRANSACTION.DAILYTXN.ACCOUNT_CODE = ACCOUNT.ACCOUNT.ACCOUNT_CODE
-             --AND TRANSACTION.DAILYTXN.TRANSACTIONINDICATOR_CODE ='CSDR'
+             AND TRANSACTION.DAILYTXN.TRANSACTIONINDICATOR_CODE ='CSDR'
              AND TRANSACTION.DAILYTXN.TXN_NUMBER > 0
-             --AND  TRANSACTION.DAILYTXN.BRANCH_CODE ='0002'
-              --AND TRANSACTION.DAILYTXN.TXN_DATE = '29mar2025'
-            --AND TRANSACTION.DAILYTXN.TRANSACTIONSTATUS='A'
+             AND  TRANSACTION.DAILYTXN.BRANCH_CODE =$P{branch_code}
+             AND TRANSACTION.DAILYTXN.TXN_DATE = $P{as_on_date}
+             AND TRANSACTION.DAILYTXN.TRANSACTIONSTATUS='A'
  ORDER BY  TXN_NUMBER)]]>
 	</queryString>
 	<field name="SR" class="java.math.BigDecimal"/>
@@ -147,7 +147,7 @@ SELECT TXN_NUMBER,
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="25" splitType="Stretch">
+		<band height="24" splitType="Stretch">
 			<textField>
 				<reportElement x="1" y="0" width="39" height="22" uuid="6473489c-0640-4c5b-acc4-4eef2a18fefc"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
@@ -164,7 +164,7 @@ SELECT TXN_NUMBER,
 				<textFieldExpression><![CDATA[$F{ACCOUNT_CODE}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00">
-				<reportElement x="184" y="1" width="80" height="21" uuid="23d70eda-6f9a-4c58-be5d-001efc8b5c2f"/>
+				<reportElement x="184" y="1" width="78" height="21" uuid="23d70eda-6f9a-4c58-be5d-001efc8b5c2f"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 			</textField>
@@ -229,6 +229,9 @@ SELECT TXN_NUMBER,
 				<reportElement x="42" y="13" width="100" height="18" uuid="01834415-6eb0-4ab7-973a-93d179b17136"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="0" y="-2" width="555" height="1" uuid="a9d38d02-541b-4012-b4c5-43d9fae7fe36"/>
+			</line>
 		</band>
 	</pageFooter>
 	<summary>

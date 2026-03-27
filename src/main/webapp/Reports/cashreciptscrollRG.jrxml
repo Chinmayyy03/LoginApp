@@ -25,7 +25,7 @@
 			     TRANSACTION.DAILYTXN.USER_ID, TRANSACTION.DAILYTXN.OFFICER_ID
 			 FROM TRANSACTION.TRANSACTION_HT_VIEW  DAILYTXN , ACCOUNT.ACCOUNT
 			     WHERE TRANSACTION.DAILYTXN.ACCOUNT_CODE = ACCOUNT.ACCOUNT.ACCOUNT_CODE
-			  -- AND TRANSACTION.DAILYTXN.TRANSACTIONINDICATOR_CODE ='CSCR'
+			  AND TRANSACTION.DAILYTXN.TRANSACTIONINDICATOR_CODE ='CSCR'
 			    AND TRANSACTION.DAILYTXN.TXN_NUMBER > 0
 			     AND TRANSACTION.DAILYTXN.BRANCH_CODE =$P{branch_code}
 			     AND TRANSACTION.DAILYTXN.TXN_DATE = TO_DATE($P{as_on_date}, 'DD-MON-YYYY')
@@ -48,7 +48,7 @@
 	<title>
 		<band height="50">
 			<subreport>
-				<reportElement x="41" y="0" width="472" height="49" uuid="a6db0b96-c0f1-4af7-ae0a-b96bc7d5d420"/>
+				<reportElement x="18" y="0" width="495" height="49" uuid="a6db0b96-c0f1-4af7-ae0a-b96bc7d5d420"/>
 				<subreportParameter name="branch_code">
 					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -159,7 +159,7 @@
 				<textFieldExpression><![CDATA[$F{NAME}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00">
-				<reportElement x="199" y="0" width="69" height="23" uuid="c986be79-ce16-4fb4-ac0e-20b81dc7d4b8"/>
+				<reportElement x="204" y="0" width="58" height="23" uuid="c986be79-ce16-4fb4-ac0e-20b81dc7d4b8"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 			</textField>

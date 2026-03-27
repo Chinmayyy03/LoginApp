@@ -1,4 +1,3 @@
-
 // ===============================
 // COMMON LOOKUP JS (REUSABLE)
 // ===============================
@@ -15,6 +14,19 @@ function openLookup(type, extraParams) {
 
     let url = contextPath + "/CommonLookupServlet?type=" + type;
 
+    // 🔥 Auto-pass branch for account lookup
+	if (type === "account") {
+
+	    let branchField = document.getElementById("branch_code");
+	    let branch = branchField ? branchField.value : "";
+
+	    if (!branch) {
+	        alert("Please select branch first");
+	        return;
+	    }
+
+	    url += "&branchCode=" + encodeURIComponent(branch);
+	}
     if (extraParams) {
         url += "&" + extraParams;
     }
@@ -26,7 +38,8 @@ function openLookup(type, extraParams) {
             document.getElementById("lookupModal").style.display = "flex";
         })
         .catch(err => console.error("Lookup Error:", err));
-}
+} // ✅ IMPORTANT: THIS WAS MISSING
+
 
 // ===============================
 // 🔹 CLOSE LOOKUP
@@ -35,8 +48,9 @@ function closeLookup() {
     document.getElementById("lookupModal").style.display = "none";
 }
 
+
 // ===============================
-// 🔹 SELECT BRANCH (WITH DESCRIPTION)
+// 🔹 SELECT BRANCH
 // ===============================
 function selectBranch(code, name) {
 
@@ -49,8 +63,9 @@ function selectBranch(code, name) {
     closeLookup();
 }
 
+
 // ===============================
-// 🔹 SELECT PRODUCT (WITH DESCRIPTION)  ✅ UPDATED
+// 🔹 SELECT PRODUCT
 // ===============================
 function selectProduct(code, name, type) {
 
@@ -63,8 +78,9 @@ function selectProduct(code, name, type) {
     closeLookup();
 }
 
+
 // ===============================
-// 🔹 SELECT ACCOUNT (OPTIONAL)
+// 🔹 SELECT ACCOUNT
 // ===============================
 function selectAccount(code, name) {
 
@@ -77,6 +93,7 @@ function selectAccount(code, name) {
     closeLookup();
 }
 
+
 // ===============================
 // 🔹 AUTO FETCH BRANCH NAME
 // ===============================
@@ -84,7 +101,7 @@ function initBranchAutoFetch() {
 
     let field = document.getElementById("branch_code");
 
-    if (!field) return;
+    if (!field || field.readOnly) return; // 🔥 skip for non-support
 
     field.addEventListener("blur", function () {
 
@@ -95,17 +112,16 @@ function initBranchAutoFetch() {
         fetch(contextPath + "/CommonLookupServlet?type=branch&action=getName&code=" + encodeURIComponent(code))
             .then(res => res.text())
             .then(name => {
-
                 let desc = document.getElementById("branchName");
                 if (desc) desc.value = name || "Not Found";
-
             })
             .catch(err => console.error("Branch Fetch Error:", err));
     });
 }
 
+
 // ===============================
-// 🔹 AUTO FETCH PRODUCT NAME  ✅ NEW
+// 🔹 AUTO FETCH PRODUCT NAME
 // ===============================
 function initProductAutoFetch() {
 
@@ -122,13 +138,32 @@ function initProductAutoFetch() {
         fetch(contextPath + "/CommonLookupServlet?type=product&action=getName&code=" + encodeURIComponent(code))
             .then(res => res.text())
             .then(name => {
-
                 let desc = document.getElementById("productName");
                 if (desc) desc.value = name || "Not Found";
-
             })
             .catch(err => console.error("Product Fetch Error:", err));
     });
+}
+
+////////////////
+
+function loadBranchNameOnPageLoad() {
+
+    let branchField = document.getElementById("branch_code");
+    let nameField = document.getElementById("branchName");
+
+    if (!branchField || !nameField) return;
+
+    let code = branchField.value;
+
+    if (!code || code.trim() === "") return;
+
+    fetch(contextPath + "/CommonLookupServlet?type=branch&action=getName&code=" + encodeURIComponent(code))
+        .then(res => res.text())
+        .then(name => {
+            nameField.value = name || "Not Found";
+        })
+        .catch(err => console.error("Branch Load Error:", err));
 }
 
 // ===============================
@@ -136,6 +171,7 @@ function initProductAutoFetch() {
 // ===============================
 window.addEventListener("DOMContentLoaded", function () {
     initBranchAutoFetch();
-    initProductAutoFetch();  // ✅ NEW
-});
+    initProductAutoFetch();
+	loadBranchNameOnPageLoad();
 
+});

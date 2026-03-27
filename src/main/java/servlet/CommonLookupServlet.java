@@ -27,11 +27,59 @@ public class CommonLookupServlet extends HttpServlet {
                 return;
             }
 
+            // ✅ INIT CONNECTION FIRST
             conn = DBConnection.getConnection();
 
-            /* =========================
-               GET NAME (branch/account/bank)
-               ========================= */
+            // ===============================
+            // 🔥 SESSION + AUTO LOAD FROM DB
+            // ===============================
+            HttpSession session = request.getSession();
+
+            String isSupportUser = (String) session.getAttribute("isSupportUser");
+            String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+            if (isSupportUser == null || sessionBranchCode == null) {
+
+                String userId = (String) session.getAttribute("userId");
+
+                if (userId != null) {
+
+                    PreparedStatement psUser = conn.prepareStatement(
+                        "SELECT IS_SUPPORT_USER, BRANCH_CODE FROM ACL.USERREGISTER WHERE USER_ID=?"
+                    );
+                    psUser.setString(1, userId);
+
+                    ResultSet rsUser = psUser.executeQuery();
+
+                    if (rsUser.next()) {
+
+                        isSupportUser = rsUser.getString("IS_SUPPORT_USER");
+                        sessionBranchCode = rsUser.getString("BRANCH_CODE");
+
+                        // ✅ CLEAN VALUE
+                        if (isSupportUser != null) {
+                            isSupportUser = isSupportUser.trim().toUpperCase();
+                        } else {
+                            isSupportUser = "N";
+                        }
+
+                        // ✅ STORE IN SESSION
+                        session.setAttribute("isSupportUser", isSupportUser);
+                        session.setAttribute("branchCode", sessionBranchCode);
+                    }
+
+                    rsUser.close();
+                    psUser.close();
+                }
+            }
+
+            // fallback
+            if (isSupportUser == null) isSupportUser = "N";
+            if (sessionBranchCode == null) sessionBranchCode = "";
+
+            // ===============================
+            // 🔹 GET NAME
+            // ===============================
             if ("getName".equalsIgnoreCase(action)) {
 
                 response.setContentType("text/plain");
@@ -74,17 +122,17 @@ public class CommonLookupServlet extends HttpServlet {
 
             response.setContentType("text/html;charset=UTF-8");
 
-            /* =========================
-               LIST DATA
-               ========================= */
+            // ===============================
+            // 🔹 LIST DATA
+            // ===============================
             if ("branch".equalsIgnoreCase(type)) {
-                listBranch(conn, out, request);
+                listBranch(conn, out, request, isSupportUser, sessionBranchCode);
             } else if ("account".equalsIgnoreCase(type)) {
                 listAccount(conn, out, request);
             } else if ("bank".equalsIgnoreCase(type)) {
-                listBank(conn, out, request);
+                listBank(conn, out);
             } else if ("product".equalsIgnoreCase(type)) {
-                listProduct(conn, out, request);
+                listProduct(conn, out);
             } else {
                 out.println("<h3 style='color:red;'>Invalid type</h3>");
             }
@@ -97,9 +145,9 @@ public class CommonLookupServlet extends HttpServlet {
         }
     }
 
-    /* =========================
-       HEADER
-       ========================= */
+    // ===============================
+    // 🔹 HEADER
+    // ===============================
     private void printTableHeader(PrintWriter out, String title, String col1, String col2, boolean showCity) {
 
         out.println("<div class='lookup-container'>");
@@ -111,9 +159,7 @@ public class CommonLookupServlet extends HttpServlet {
         out.println("<th>" + col1 + "</th>");
         out.println("<th>" + col2 + "</th>");
 
-        if (showCity) {
-            out.println("<th>City Code</th>");
-        }
+        if (showCity) out.println("<th>City Code</th>");
 
         out.println("</tr>");
     }
@@ -122,17 +168,30 @@ public class CommonLookupServlet extends HttpServlet {
         out.println("</table></div></div>");
     }
 
-    /* =========================
-       BRANCH
-       ========================= */
-    private void listBranch(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
+    // ===============================
+    // 🔹 BRANCH (ROLE BASED)
+    // ===============================
+    private void listBranch(Connection conn, PrintWriter out,
+            HttpServletRequest request,
+            String isSupportUser,
+            String sessionBranchCode) throws Exception {
 
-        String showCityParam = request.getParameter("showCity");
-        boolean showCity = "true".equalsIgnoreCase(showCityParam);
+        boolean showCity = "true".equalsIgnoreCase(request.getParameter("showCity"));
 
-        String sql = "SELECT BRANCH_CODE, NAME, CITY_CODE FROM HEADOFFICE.BRANCH ORDER BY BRANCH_CODE";
+        String sql;
+
+        if ("Y".equalsIgnoreCase(isSupportUser)) {
+            sql = "SELECT BRANCH_CODE, NAME, CITY_CODE FROM HEADOFFICE.BRANCH ORDER BY BRANCH_CODE";
+        } else {
+            sql = "SELECT BRANCH_CODE, NAME, CITY_CODE FROM HEADOFFICE.BRANCH WHERE BRANCH_CODE = ?";
+        }
 
         PreparedStatement ps = conn.prepareStatement(sql);
+
+        if (!"Y".equalsIgnoreCase(isSupportUser)) {
+            ps.setString(1, sessionBranchCode);
+        }
+
         ResultSet rs = ps.executeQuery();
 
         printTableHeader(out, "Select Branch", "Code", "Description", showCity);
@@ -143,11 +202,9 @@ public class CommonLookupServlet extends HttpServlet {
             String name = rs.getString("NAME");
             String city = showCity ? rs.getString("CITY_CODE") : "";
 
-            if (city == null) city = "";
-
-            code = code.replace("'", "\\'");
-            name = name.replace("'", "\\'");
-            city = city.replace("'", "\\'");
+            code = code == null ? "" : code.replace("'", "\\'");
+            name = name == null ? "" : name.replace("'", "\\'");
+            city = city == null ? "" : city.replace("'", "\\'");
 
             out.println("<tr class='lookup-row' onclick=\"selectBranch('"
                     + code + "','" + name + "'" +
@@ -156,10 +213,7 @@ public class CommonLookupServlet extends HttpServlet {
 
             out.println("<td>" + code + "</td>");
             out.println("<td>" + name + "</td>");
-
-            if (showCity) {
-                out.println("<td>" + city + "</td>");
-            }
+            if (showCity) out.println("<td>" + city + "</td>");
 
             out.println("</tr>");
         }
@@ -170,9 +224,9 @@ public class CommonLookupServlet extends HttpServlet {
         ps.close();
     }
 
-    /* =========================
-       ACCOUNT
-       ========================= */
+    // ===============================
+    // 🔹 ACCOUNT
+    // ===============================
     private void listAccount(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
 
         String branchCode = request.getParameter("branchCode");
@@ -184,10 +238,7 @@ public class CommonLookupServlet extends HttpServlet {
 
         String sql =
             "SELECT ACCOUNT_CODE, NAME FROM ACCOUNT.ACCOUNT " +
-            "WHERE ACCOUNT_CODE LIKE ? " +
-            "AND ACCOUNT_STATUS = 'L' " +          // ✅ correct status
-            "AND DATEACCOUNTCLOSE IS NULL " +
-            "ORDER BY ACCOUNT_CODE";
+            "WHERE ACCOUNT_CODE LIKE ? AND ACCOUNT_STATUS='L' AND DATEACCOUNTCLOSE IS NULL ORDER BY ACCOUNT_CODE";
 
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setString(1, branchCode + "%");
@@ -196,10 +247,7 @@ public class CommonLookupServlet extends HttpServlet {
 
         printTableHeader(out, "Select Account", "Account Code", "Name", false);
 
-        boolean hasData = false;
-
         while (rs.next()) {
-            hasData = true;
 
             String code = rs.getString("ACCOUNT_CODE");
             String name = rs.getString("NAME");
@@ -215,25 +263,21 @@ public class CommonLookupServlet extends HttpServlet {
             out.println("</tr>");
         }
 
-        if (!hasData) {
-            out.println("<tr><td colspan='2' style='text-align:center;color:red;'>No accounts found</td></tr>");
-        }
-
         printTableFooter(out);
 
         rs.close();
         ps.close();
     }
-    
-    /* =========================
-       BANK  ✅ NEW
-       ========================= */
-    private void listBank(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
 
-        String sql =
-            "SELECT BANK_CODE, NAME FROM GLOBALCONFIG.BANK ORDER BY BANK_CODE";
+    // ===============================
+    // 🔹 BANK
+    // ===============================
+    private void listBank(Connection conn, PrintWriter out) throws Exception {
 
-        PreparedStatement ps = conn.prepareStatement(sql);
+        PreparedStatement ps = conn.prepareStatement(
+            "SELECT BANK_CODE, NAME FROM GLOBALCONFIG.BANK ORDER BY BANK_CODE"
+        );
+
         ResultSet rs = ps.executeQuery();
 
         printTableHeader(out, "Select Bank", "Bank Code", "Name", false);
@@ -242,12 +286,6 @@ public class CommonLookupServlet extends HttpServlet {
 
             String code = rs.getString("BANK_CODE");
             String name = rs.getString("NAME");
-
-            if (code == null) code = "";
-            if (name == null) name = "";
-
-            code = code.replace("'", "\\'");
-            name = name.replace("'", "\\'");
 
             out.println("<tr class='lookup-row' onclick=\"selectBank('"
                     + code + "','" + name + "')\">");
@@ -263,49 +301,29 @@ public class CommonLookupServlet extends HttpServlet {
         ps.close();
     }
 
-/* =========================
-PRODUCT  ✅ NEW
-========================= */
-    private void listProduct(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
+    // ===============================
+    // 🔹 PRODUCT
+    // ===============================
+    private void listProduct(Connection conn, PrintWriter out) throws Exception {
 
-        String sql =
-            "SELECT PRODUCT_CODE, DESCRIPTION, ACCOUNT_TYPE FROM HEADOFFICE.PRODUCT ORDER BY PRODUCT_CODE";
+        PreparedStatement ps = conn.prepareStatement(
+            "SELECT PRODUCT_CODE, DESCRIPTION, ACCOUNT_TYPE FROM HEADOFFICE.PRODUCT ORDER BY PRODUCT_CODE"
+        );
 
-        PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
 
-        out.println("<div class='lookup-container'>");
-        out.println("<div class='lookup-title'>Select Product</div>");
-        out.println("<div class='lookup-table-wrapper'>");
-        out.println("<table class='lookup-table'>");
-
-        out.println("<tr>");
-        out.println("<th>Product Code</th>");
-        out.println("<th>Description</th>");
-        out.println("<th>Account Type</th>");
-        out.println("</tr>");
+        printTableHeader(out, "Select Product", "Code", "Description", false);
 
         while (rs.next()) {
 
             String code = rs.getString("PRODUCT_CODE");
             String name = rs.getString("DESCRIPTION");
-            String type = rs.getString("ACCOUNT_TYPE");
-
-            if (code == null) code = "";
-            if (name == null) name = "";
-            if (type == null) type = "";
-
-            code = code.replace("'", "\\'");
-            name = name.replace("'", "\\'");
-            type = type.replace("'", "\\'");
 
             out.println("<tr class='lookup-row' onclick=\"selectProduct('"
-                    + code + "','" + name + "','" + type + "')\">");
+                    + code + "','" + name + "','')\">");
 
             out.println("<td>" + code + "</td>");
             out.println("<td>" + name + "</td>");
-            out.println("<td>" + type + "</td>");
-
             out.println("</tr>");
         }
 
@@ -313,4 +331,5 @@ PRODUCT  ✅ NEW
 
         rs.close();
         ps.close();
-    }}
+    }
+}

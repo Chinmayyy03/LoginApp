@@ -35,6 +35,37 @@
                         } else {
                             session.setAttribute("userId",     userId);
                             session.setAttribute("branchCode", branchCode);
+                         // 🔥 ADD THIS BLOCK HERE
+                            PreparedStatement roleStmt = null;
+                            ResultSet roleRs = null;
+
+                            try {
+                                String roleSql = "SELECT IS_SUPPORT_USER FROM ACL.USERREGISTER WHERE USER_ID=? AND BRANCH_CODE=?";
+                                roleStmt = conn.prepareStatement(roleSql);
+                                roleStmt.setString(1, userId);
+                                roleStmt.setString(2, branchCode);
+
+                                roleRs = roleStmt.executeQuery();
+
+                                if (roleRs.next()) {
+
+                                    String role = roleRs.getString("IS_SUPPORT_USER");
+
+                                    if (role != null) {
+                                        role = role.trim().toUpperCase();
+                                    } else {
+                                        role = "N";
+                                    }
+
+                                    session.setAttribute("isSupportUser", role);
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                try { if (roleRs != null) roleRs.close(); } catch (Exception e) {}
+                                try { if (roleStmt != null) roleStmt.close(); } catch (Exception e) {}
+                            }
                             PreparedStatement historyStmt = null;
                             try {
                                 String historySql = "INSERT INTO ACL.USERREGISTERLOGINHISTORY (USER_ID, BRANCH_CODE, LOGIN_TIME) VALUES (?, ?, SYSDATE)";
