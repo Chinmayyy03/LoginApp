@@ -40,11 +40,11 @@ public class AddCustomerDataLoader extends HttpServlet {
                 "SELECT SALUTATION_CODE AS val FROM GLOBALCONFIG.SALUTATION ORDER BY SALUTATION_CODE",
                 "val", "val"));
 
-            // 2. Relation with Guardian
+            // 2. Relation with Guardian          
             json.append(",\"relation\":");
             json.append(queryToJsonArray(conn,
-                "SELECT DESCRIPTION AS val FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID",
-                "val", "val"));
+                "SELECT RELATION_ID AS code, DESCRIPTION AS label FROM GLOBALCONFIG.RELATION ORDER BY RELATION_ID",
+                "code", "label"));
 
             // 3. Religion Code
             json.append(",\"religion\":");
@@ -55,8 +55,8 @@ public class AddCustomerDataLoader extends HttpServlet {
             // 4. Caste Code
             json.append(",\"caste\":");
             json.append(queryToJsonArray(conn,
-                "SELECT CASTE_CODE AS val FROM GLOBALCONFIG.RELIGIONCASTE ORDER BY CASTE_CODE",
-                "val", "val"));
+                "SELECT CASTE_CODE AS code, DESCRIPTION AS label FROM GLOBALCONFIG.RELIGIONCASTE ORDER BY CASTE_CODE",
+                "code", "label"));
 
             // 5. Category Code
             json.append(",\"category\":");
@@ -73,14 +73,20 @@ public class AddCustomerDataLoader extends HttpServlet {
             // 7. Occupation Code
             json.append(",\"occupation\":");
             json.append(queryToJsonArray(conn,
-                "SELECT DESCRIPTION AS val FROM GLOBALCONFIG.OCCUPATION ORDER BY OCCUPATION_ID",
-                "val", "val"));
+                "SELECT OCCUPATION_ID AS code, DESCRIPTION AS label FROM GLOBALCONFIG.OCCUPATION ORDER BY OCCUPATION_ID",
+                "code", "label"));
 
-            // 8. Residence Type
+            // 8.1. Residence Type
             json.append(",\"residenceType\":");
             json.append(queryToJsonArray(conn,
-                "SELECT DESCRIPTION AS val FROM GLOBALCONFIG.RESIDENCETYPE ORDER BY RESIDENCETYPE_ID",
-                "val", "val"));
+                "SELECT RESIDENCETYPE_ID AS code, DESCRIPTION AS label FROM GLOBALCONFIG.RESIDENCETYPE ORDER BY RESIDENCETYPE_ID",
+                "code", "label"));
+            
+            // 8.2. Residence Status
+            json.append(",\"residenceStatus\":");
+            json.append(queryToJsonArray(conn,
+                "SELECT RESIDENCESTATUS_ID AS code, DESCRIPTION AS label FROM GLOBALCONFIG.RESIDENCESTATUS ORDER BY RESIDENCESTATUS_ID",
+                "code", "label"));
 
             // 9. Country  (value = code, label = name)
             json.append(",\"country\":");
@@ -97,8 +103,8 @@ public class AddCustomerDataLoader extends HttpServlet {
             // 11. City
             json.append(",\"city\":");
             json.append(queryToJsonArray(conn,
-                "SELECT NAME AS val FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)",
-                "val", "val"));
+                "SELECT CITY_CODE AS code, NAME AS label FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)",
+                "code", "label"));
 
         } catch (Exception e) {
             // Append error note — partial data already written is still usable

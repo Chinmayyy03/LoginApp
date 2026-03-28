@@ -176,7 +176,7 @@
 
       <div>
         <label>Sub Category Code</label>
-        <input type="text" name="subCategoryCode" required>
+        <input type="text" name="subCategoryCode" value="0" required>
       </div>
 
       <!-- Row 5 -->
@@ -227,12 +227,12 @@
       <div>
         <label>Member Number</label>
         <input type="text" name="memberNumber" maxlength="2"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
       </div>
 
       <div>
         <label>CKYC No</label>
-        <input type="text" name="ckyNo" required>
+        <input type="text" name="ckyNo">
       </div>
 
       <!-- Row 7 -->
@@ -317,15 +317,11 @@
       </div>
 
       <div>
-        <label>Residence Status</label>
-        <select name="residenceStatus" required>
-          <option>NOT APPLICABLE</option>
-          <option>BANGLOW</option>
-          <option>ROW HOUSE</option>
-          <option>FLAT</option>
-          <option>OTHER</option>
-        </select>
-      </div>
+		  <label>Residence Status <span class="dd-spinner" id="sp-residenceStatus"></span></label>
+		  <select name="residenceStatus" required id="residenceStatus" class="dd-loading">
+		    <option value="">Loading...</option>
+		  </select>
+	  </div>
 
       <div>
         <label>Address 1</label>
@@ -624,19 +620,20 @@
 (function loadAllDropdowns() {
 
     /* ── Map: servletKey → { selectId, spinnerId, hasCodeLabel } ── */
-    const DD_MAP = {
-        salutation:    { id: 'salutationCode',   sp: 'sp-salutation',   codeLabel: false },
-        relation:      { id: 'relationGuardian', sp: 'sp-relation',     codeLabel: false },
-        religion:      { id: 'dd-religion',      sp: 'sp-religion',     codeLabel: false },
-        caste:         { id: 'dd-caste',         sp: 'sp-caste',        codeLabel: false },
-        category:      { id: 'dd-category',      sp: 'sp-category',     codeLabel: false },
-        constitution:  { id: 'constitutionCode', sp: 'sp-constitution', codeLabel: false },
-        occupation:    { id: 'dd-occupation',    sp: 'sp-occupation',   codeLabel: false },
-        residenceType: { id: 'dd-residenceType', sp: 'sp-residenceType',codeLabel: false },
-        country:       { id: 'dd-country',       sp: 'sp-country',      codeLabel: true  },
-        state:         { id: 'dd-state',         sp: 'sp-state',        codeLabel: true  },
-        city:          { id: 'dd-city',          sp: 'sp-city',         codeLabel: false }
-    };
+	const DD_MAP = {
+	    salutation:    { id: 'salutationCode',   sp: 'sp-salutation',   codeLabel: false },
+	    relation:      { id: 'relationGuardian', sp: 'sp-relation',     codeLabel: false },
+	    religion:      { id: 'dd-religion',      sp: 'sp-religion',     codeLabel: false },
+	    caste:         { id: 'dd-caste',         sp: 'sp-caste',        codeLabel: false },
+	    category:      { id: 'dd-category',      sp: 'sp-category',     codeLabel: false },
+	    constitution:  { id: 'constitutionCode', sp: 'sp-constitution', codeLabel: false },
+	    occupation:    { id: 'dd-occupation',    sp: 'sp-occupation',   codeLabel: false },
+	    residenceType: { id: 'dd-residenceType', sp: 'sp-residenceType',codeLabel: false },
+	    country:       { id: 'dd-country',       sp: 'sp-country',      codeLabel: true  },
+	    state:         { id: 'dd-state',         sp: 'sp-state',        codeLabel: true  },
+	    city:          { id: 'dd-city',          sp: 'sp-city',         codeLabel: false },
+	    residenceStatus: { id: 'residenceStatus', sp: 'sp-residenceStatus', codeLabel: false }  // ← ADD THIS
+	};
 
     /* ── Fill one <select> from an array of {v, l} objects ── */
     function fillSelect(selectEl, items, codeLabel) {
