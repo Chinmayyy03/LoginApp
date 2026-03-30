@@ -1114,3 +1114,58 @@ function closeCustomerModal() {
     // Optionally reset the form
     document.querySelector('form').reset();
 }
+
+// ========== AADHAR EXISTENCE CHECK ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const aadharField = document.getElementById('aadharNo');
+    const aadharStatus = document.getElementById('aadharStatus');
+    
+    if (aadharField) {
+        let aadharCheckTimeout;
+        
+        aadharField.addEventListener('blur', function() {
+            if (this.value.length === 12) {
+                checkAadharExists(this.value);
+            } else {
+                clearAadharStatus();
+            }
+        });
+        
+        aadharField.addEventListener('input', function() {
+            clearTimeout(aadharCheckTimeout);
+            clearAadharStatus();
+        });
+    }
+});
+
+function checkAadharExists(aadharNo) {
+    const aadharStatus = document.getElementById('aadharStatus');
+    
+    fetch(window.APP_CONTEXT_PATH + '/CheckAadharServlet?aadhar=' + aadharNo)
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                aadharStatus.style.color = '#d32f2f';
+                aadharStatus.textContent = '❌ Customer already exists - ID: ' + data.customerId;
+                showPopup('⚠️ Customer Already Exists\n\nAadhar: ' + aadharNo + 
+                         '\nCustomer ID: ' + data.customerId + 
+                         '\n\nCannot add duplicate customer.', 'error');
+                document.getElementById('aadharNo').style.borderColor = '#d32f2f';
+            } else {
+                aadharStatus.style.color = '#4caf50';
+                aadharStatus.textContent = '✓ Aadhar is available';
+                document.getElementById('aadharNo').style.borderColor = '#4caf50';
+            }
+        })
+        .catch(error => {
+            console.error('Aadhar check error:', error);
+            aadharStatus.style.color = '#ff9800';
+            aadharStatus.textContent = '⚠️ Could not verify aadhar';
+        });
+}
+function clearAadharStatus() {
+    const aadharStatus = document.getElementById('aadharStatus');
+    const aadharField = document.getElementById('aadharNo');
+    aadharStatus.textContent = '';
+    aadharField.style.borderColor = '';
+}

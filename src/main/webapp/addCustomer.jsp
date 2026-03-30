@@ -7,6 +7,7 @@
         response.sendRedirect("login.jsp");
         return;
     }
+    String contextPath = request.getContextPath();
     // NOTE: No DB calls on page load — all dropdowns load via AJAX after render.
 %>
 
@@ -63,6 +64,14 @@
           <label><input type="radio" name="isIndividual" value="no"> No</label>
         </div>
       </div>
+      
+      <div>
+		  <label>Aadhar No</label>
+		  <input type="text" name="aadharNo" id="aadharNo" maxlength="12"
+		         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);"
+		         required>
+		  <span id="aadharStatus" style="font-size: 11px; margin-top: 3px;"></span>
+		</div>
 
       <div>
         <label>Gender</label>
@@ -610,7 +619,9 @@
 
 <script src="js/addCustomer.js"></script>
 <script src="js/tabs-navigation.js"></script>
-
+<script>
+    window.APP_CONTEXT_PATH = '<%= contextPath %>';
+</script>
 <!-- ═══════════════════════════════════════════════════
      AJAX DROPDOWN LOADER
      Fires immediately after page renders.
@@ -661,7 +672,7 @@
     }
 
     /* ── Fetch all dropdown data in one call ── */
-    fetch('<%= request.getContextPath() %>/loaders/AddCustomerDataLoader')
+    fetch(window.APP_CONTEXT_PATH + '/loaders/AddCustomerDataLoader')
         .then(function(res) {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.json();
@@ -722,9 +733,9 @@
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function () {
 
-    function toggleFieldsByIndividual(isIndividual) {
-        var individualFields = ['birthDate','gender','salutationCode','motherName','fatherName',
-            'maritalStatus','isMinor1','isMinor2','maritalStatus1','maritalStatus2','children','dependents'];
+	function toggleFieldsByIndividual(isIndividual) {
+	    var individualFields = ['birthDate','gender','salutationCode','motherName','fatherName',
+	        'maritalStatus','isMinor1','isMinor2','maritalStatus1','maritalStatus2','children','dependents','aadharNo'];
         var nonIndividualFields = ['gstinNo','constitutionCode','registrationDate'];
 
         if (isIndividual) {
