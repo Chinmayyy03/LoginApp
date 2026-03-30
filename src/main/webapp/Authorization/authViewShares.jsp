@@ -3,7 +3,6 @@
 <%
     /* ────────────────────────────────────────────
        HANDLE ACTION REQUEST (AUTHORIZE / REJECT)
-       Called via fetch() — returns plain text only
     ──────────────────────────────────────────── */
     String action = request.getParameter("action");
 
@@ -21,7 +20,6 @@
         String certNo    = request.getParameter("certNumber");
         String newStatus = "AUTHORIZE".equalsIgnoreCase(action) ? "A" : "R";
 
-        /* ── Get officer ID from session (matches login.jsp setAttribute("userId",...)) ── */
         String officerId = (String) session.getAttribute("userId");
         if (officerId == null) officerId = (String) session.getAttribute("USER_ID");
         if (officerId == null) officerId = (String) session.getAttribute("username");
@@ -81,6 +79,7 @@
         return;
     }
 
+    /* ── 1. Share Holder Details ── */
     String accountName    = "";
     String branchCol      = "";
     String issueDate      = "";
@@ -147,6 +146,70 @@
         if (rs    != null) try { rs.close();    } catch (Exception ex) {}
         if (pstmt != null) try { pstmt.close(); } catch (Exception ex) {}
         if (conn  != null) try { conn.close();  } catch (Exception ex) {}
+    }
+
+    /* ── 2. Transfer / Cash Details ── */
+    java.util.List<String[]> transferList = new java.util.ArrayList<>();
+    String transferErrorMsg = "";
+    boolean isCash          = false;
+    String  cashAmount      = "";
+
+    if (dataFound && accountCode != null && !accountCode.trim().isEmpty()) {
+        Connection connT         = null;
+        PreparedStatement pstmtT = null;
+        ResultSet rsT            = null;
+        try {
+            connT = DBConnection.getConnection();
+
+            /* ── First check if this is a CASH (CSCR) transaction ── */
+            String sqlCheck =
+                "SELECT t.TRANSACTIONINDICATOR_CODE, t.AMOUNT " +
+                "FROM TRANSACTION.DAILYSCROLL t " +
+                "WHERE t.FORACCOUNT_CODE = ? " +
+                "  AND t.TRANSACTIONINDICATOR_CODE = 'CSCR' " +
+                "  AND ROWNUM = 1";
+
+            pstmtT = connT.prepareStatement(sqlCheck);
+            pstmtT.setString(1, accountCode);
+            rsT = pstmtT.executeQuery();
+
+            if (rsT.next()) {
+                isCash     = true;
+                cashAmount = rsT.getString("AMOUNT") != null ? rsT.getString("AMOUNT") : "";
+            }
+            rsT.close();
+            pstmtT.close();
+
+            /* ── If not cash, fetch TRDR debit accounts ── */
+            if (!isCash) {
+                String sqlT =
+                    "SELECT t.ACCOUNT_CODE, " +
+                    "       FN_GET_ACCOUNT_NAME(t.ACCOUNT_CODE) AS ACCOUNT_NAME, " +
+                    "       t.AMOUNT " +
+                    "FROM TRANSACTION.DAILYSCROLL t " +
+                    "WHERE t.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
+                    "  AND t.FORACCOUNT_CODE = ?";
+
+                pstmtT = connT.prepareStatement(sqlT);
+                pstmtT.setString(1, accountCode);
+                rsT = pstmtT.executeQuery();
+
+                while (rsT.next()) {
+                    String[] row = new String[3];
+                    row[0] = rsT.getString("ACCOUNT_CODE")  != null ? rsT.getString("ACCOUNT_CODE")  : "";
+                    row[1] = rsT.getString("ACCOUNT_NAME")  != null ? rsT.getString("ACCOUNT_NAME")  : "";
+                    row[2] = rsT.getString("AMOUNT")        != null ? rsT.getString("AMOUNT")        : "";
+                    transferList.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            transferErrorMsg = e.getClass().getName() + ": " + e.getMessage();
+        } finally {
+            if (rsT    != null) try { rsT.close();    } catch (Exception ex) {}
+            if (pstmtT != null) try { pstmtT.close(); } catch (Exception ex) {}
+            if (connT  != null) try { connT.close();  } catch (Exception ex) {}
+        }
     }
 %>
 <!DOCTYPE html>
@@ -224,6 +287,32 @@ legend {
     margin-bottom: 18px;
     word-break: break-word;
 }
+
+/* ── Transfer Accounts ── */
+.transfer-row {
+    display: grid;
+    grid-template-columns: 40px 2fr 4fr 1fr;
+    gap: 15px;
+    align-items: end;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+}
+.transfer-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.sr-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy-blue);
+    padding-bottom: 4px;
+}
+
 .btn-row-back {
     text-align: center;
     margin-top: 20px;
@@ -254,7 +343,6 @@ legend {
 .btn-reject    { background: linear-gradient(45deg, #dc3545, #e74c3c); }
 
 /* ── Modal ── */
-/* ── Modal Overlay ── */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -265,8 +353,6 @@ legend {
     align-items: center;
 }
 .modal-overlay.active { display: flex; }
-
-/* ── Modal Box ── */
 .modal-box {
     background: #ffffff;
     border-radius: 20px;
@@ -276,8 +362,6 @@ legend {
     text-align: center;
     box-shadow: 0 8px 40px rgba(0,0,0,0.18);
 }
-
-/* ── Modal Icon + Title row ── */
 .modal-icon {
     display: flex;
     align-items: center;
@@ -288,25 +372,16 @@ legend {
     color: #2b0d73;
     margin-bottom: 22px;
 }
-.modal-icon .icon-symbol {
-    font-size: 28px;
-}
+.modal-icon .icon-symbol { font-size: 28px; }
 .modal-box.authorize .icon-symbol { color: #28a745; }
 .modal-box.reject    .icon-symbol { color: #dc3545; }
-
-/* ── Modal body text ── */
 .modal-box p {
     font-size: 15px;
     color: #444;
     margin-bottom: 6px;
     line-height: 1.6;
 }
-.modal-box p span {
-    font-weight: 700;
-    color: #2b0d73;
-}
-
-/* ── Button row ── */
+.modal-box p span { font-weight: 700; color: #2b0d73; }
 .modal-btn-row {
     display: flex;
     justify-content: center;
@@ -325,7 +400,6 @@ legend {
     transition: background 0.2s;
 }
 .modal-cancel:hover { background: #cacaca; }
-
 .modal-confirm-auth {
     padding: 11px 36px;
     border: none;
@@ -338,7 +412,6 @@ legend {
     transition: background 0.2s;
 }
 .modal-confirm-auth:hover { background: #218838; }
-
 .modal-confirm-reject {
     padding: 11px 36px;
     border: none;
@@ -351,8 +424,6 @@ legend {
     transition: background 0.2s;
 }
 .modal-confirm-reject:hover { background: #c82333; }
-
-
 </style>
 </head>
 <body>
@@ -366,6 +437,7 @@ legend {
         <div class="error-box">No pending record found for Account: <%=accountCode%></div>
     <% } else { %>
 
+        <!-- ══ SHARE HOLDER DETAILS ══ -->
         <fieldset>
             <legend>Share Holder Details</legend>
             <div class="grid-row">
@@ -394,6 +466,53 @@ legend {
             </div>
         </fieldset>
 
+        <!-- ══ TRANSFER / CASH ACCOUNTS ══ -->
+        <fieldset>
+            <legend>Transfer Accounts Details</legend>
+
+            <% if (!transferErrorMsg.isEmpty()) { %>
+                <div class="error-box"><strong>Error loading transfer details:</strong> <%=transferErrorMsg%></div>
+
+            <% } else if (isCash) { %>
+                <!-- CASH MODE: show only By Cash + Cash Amount -->
+                <div class="grid-row">
+                    <div class="form-group">
+                        <label>Mode</label>
+                        <input type="text" value="By Cash" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Cash Amount</label>
+                        <input type="text" value="<%=cashAmount%>" readonly style="text-align:left;">
+                    </div>
+                </div>
+
+            <% } else if (transferList.isEmpty()) { %>
+                <p style="color:#888; font-size:13px; font-style:italic;">No transfer accounts found.</p>
+
+            <% } else {
+                   int srNo = 1;
+                   for (String[] row : transferList) { %>
+                <!-- TRANSFER MODE: show each debit account -->
+                <div class="transfer-row">
+                    <div class="sr-number"><%=srNo++%></div>
+                    <div class="form-group">
+                        <label>Account Code</label>
+                        <input type="text" value="<%=row[0]%>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" value="<%=row[1]%>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="text" value="<%=row[2]%>" readonly style="text-align:left;">
+                    </div>
+                </div>
+            <%  } %>
+            <% } %>
+        </fieldset>
+
+        <!-- ══ SHARE DETAILS ══ -->
         <fieldset>
             <legend>Share Details</legend>
             <div class="grid-row">
@@ -478,9 +597,7 @@ legend {
 <script>
     var MEMBER_NUMBER = document.getElementById("hiddenMemberNumber").value;
     var CERT_NUMBER   = document.getElementById("hiddenCertNumber").value;
-
-    /* ── FIXED: URL now matches the actual filename ── */
-    var ACTION_URL = "<%=request.getContextPath()%>/Authorization/authViewShares.jsp";
+    var ACTION_URL    = "<%=request.getContextPath()%>/Authorization/authViewShares.jsp";
 
     function goBackToList() {
         if (window.parent && window.parent.document) {
@@ -499,15 +616,12 @@ legend {
     function handleAuthorize() {
         document.getElementById("authorizeModal").classList.add("active");
     }
-
     function handleReject() {
         document.getElementById("rejectModal").classList.add("active");
     }
-
     function closeModal(id) {
         document.getElementById(id).classList.remove("active");
     }
-
     function confirmAuthorize() {
         closeModal("authorizeModal");
         fetch(ACTION_URL, {
@@ -520,7 +634,6 @@ legend {
         .then(function() { goBackToList(); })
         .catch(function() { goBackToList(); });
     }
-
     function confirmReject() {
         closeModal("rejectModal");
         fetch(ACTION_URL, {

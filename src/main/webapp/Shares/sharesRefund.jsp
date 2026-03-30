@@ -205,22 +205,24 @@
             overflow: hidden;
         }
 
-        /* ── 3-column modules row ── */
-        .modules-row {
+        /* ── Shared grid: middle column narrower (numbers only) ── */
+        .shared-grid {
             display: grid;
-            grid-template-columns: 22% 40% 38%;
-            align-items: stretch;
-            padding-top: 12px;
+            grid-template-columns: 22% 33% 45%;
         }
 
-        .module {
-            padding: 16px 14px;
+        .cell {
+            padding: 12px 20px 20px;
+            border-right: 1.5px dashed #e0e0f0;
             display: flex;
             flex-direction: column;
             gap: 9px;
-            border-right: 1.5px dashed #e0e0f0;
         }
-        .module:last-child { border-right: none; }
+        .cell:last-child { border-right: none; }
+
+        /* titles row */
+        .titles-row { padding-top: 16px; }
+        .titles-row .cell { padding-bottom: 0; }
 
         .mod-title {
             font-size: .75rem;
@@ -230,10 +232,11 @@
             text-transform: uppercase;
             padding-bottom: 8px;
             border-bottom: 1.5px solid #eeeef8;
+            display: block;
         }
 
-        .fg-row  { display: grid; grid-template-columns: 1fr 1fr;     gap: 8px; align-items: end; }
-        .fg-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end; }
+        .cell-inner { display: flex; gap: 8px; align-items: flex-end; }
+        .cell-inner .fg { flex: 1; min-width: 0; }
 
         .fg { display: flex; flex-direction: column; gap: 4px; width: 100%; }
         .fg > label { font-size: .76rem; font-weight: 700; color: #1a1464; }
@@ -300,7 +303,7 @@
         .btn-dot:disabled { background: #a0a8d8; cursor: default; }
 
         .btn-add {
-            height: 32px; padding: 0 12px;
+            height: 32px; padding: 0 16px;
             background: #2d3db0; color: #fff;
             border: none; border-radius: 7px;
             font-size: .82rem; font-weight: 700;
@@ -312,15 +315,15 @@
 
         .rg { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
         .rg label {
-            display: flex; align-items: center; gap: 6px;
-            padding: 0 11px; height: 30px;
+            display: flex; align-items: center; gap: 9px;
+            padding: 0 25px; height: 32px;
             border: 1.5px solid #c0c0e8; border-radius: 7px;
             font-size: .82rem; font-weight: 600; color: #2d2d6b;
             cursor: pointer; background: #f8f8ff;
             user-select: none; transition: border-color .15s, background .15s;
         }
         .rg label.on { border-color: #3d4db7; background: #eeeeff; font-weight: 700; }
-        .rg input[type=radio] { width: 14px; height: 14px; accent-color: #3d4db7; cursor: pointer; }
+        .rg input[type=radio] { width: 15px; height: 15px; accent-color: #3d4db7; cursor: pointer; }
 
         .spin {
             display: none; width: 14px; height: 14px;
@@ -372,8 +375,9 @@
 
         .act-bar { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 
+        /* FIX 2: Save & Clear button sizes reduced */
         .btn-primary {
-            height: 38px; padding: 0 40px;
+            height: 38px; padding: 0 48px;
             background: #2d3db0; color: #fff;
             border: none; border-radius: 9px;
             font-size: .88rem; font-weight: 700;
@@ -383,20 +387,20 @@
         .btn-primary:hover { background: #1d2d9f; }
 
         .btn-secondary {
-            height: 38px; padding: 0 20px;
+            height: 38px; padding: 0 32px;
             background: #fff; color: #2d2d6b;
             border: 1.5px solid #c0c0e8; border-radius: 9px;
-            font-size: .84rem; font-weight: 700;
+            font-size: .88rem; font-weight: 700;
             font-family: inherit; cursor: pointer;
             transition: background .12s;
         }
         .btn-secondary:hover { background: #f0f0ff; }
 
         .btn-danger {
-            height: 38px; padding: 0 20px;
+            height: 38px; padding: 0 32px;
             background: #fff; color: #c04040;
             border: 1.5px solid #e0b0b0; border-radius: 9px;
-            font-size: .84rem; font-weight: 700;
+            font-size: .88rem; font-weight: 700;
             font-family: inherit; cursor: pointer;
             transition: background .12s;
         }
@@ -449,16 +453,25 @@
 <body>
 
     <div class="page-title">Shares Refund</div>
-   
 
     <div class="box">
 
-        <div class="modules-row">
+        <!-- ── TITLES ROW ── -->
+        <div class="shared-grid titles-row">
+            <div class="cell">
+                <span class="mod-title">Account Info</span>
+            </div>
+            <div class="cell">
+                <span class="mod-title">Share Details</span>
+            </div>
+            <div class="cell">
+                <span class="mod-title">Transaction Details</span>
+            </div>
+        </div>
 
-            <!-- ░░ MODULE 1 : Account Info ░░ -->
-            <div class="module">
-                <div class="mod-title">Account Info</div>
-
+        <!-- ── ROW 1: Account Code | Totals (3 cols) | Mode of Payment + Amount ── -->
+        <div class="shared-grid">
+            <div class="cell">
                 <div class="fg">
                     <label>Account Code</label>
                     <div class="ib">
@@ -475,18 +488,9 @@
                     </div>
                     <span class="hint-xs">Type last 7 digits to search</span>
                 </div>
-
-                <div class="fg">
-                    <label>Account Name</label>
-                    <input type="text" id="accountName" readonly placeholder="—"/>
-                </div>
             </div>
-
-            <!-- ░░ MODULE 2 : Share Details ░░ -->
-            <div class="module">
-                <div class="mod-title">Share Details</div>
-
-                <div class="fg-row3">
+            <div class="cell">
+                <div class="cell-inner">
                     <div class="fg">
                         <label>Total No. of Shares</label>
                         <input type="text" id="totalNoShares" value="0" readonly class="amt-red"/>
@@ -500,24 +504,9 @@
                         <input type="text" id="totalAmount" value="0.00" readonly class="amt-red"/>
                     </div>
                 </div>
-
-                <div class="fg-row">
-                    <div class="fg">
-                        <label>Meeting Date</label>
-                        <input type="date" id="meetDate"/>
-                    </div>
-                    <div class="fg">
-                        <label>Remark</label>
-                        <input type="text" id="remark" placeholder="Enter remark"/>
-                    </div>
-                </div>
             </div>
-
-            <!-- ░░ MODULE 3 : Transaction Details ░░ -->
-            <div class="module">
-                <div class="mod-title">Transaction Details</div>
-
-                <div class="fg-row">
+            <div class="cell">
+                <div class="cell-inner">
                     <div class="fg">
                         <label>Mode of Payment</label>
                         <div class="rg">
@@ -541,9 +530,32 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="fg-row">
+        <!-- ── ROW 2: Account Name | Meeting Date + Particular | Transfer Code + Transfer Name ── -->
+        <div class="shared-grid">
+            <div class="cell">
+                <div class="fg">
+                    <label>Account Name</label>
+                    <input type="text" id="accountName" readonly placeholder="—"/>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="cell-inner">
                     <div class="fg">
+                        <label>Meeting Date</label>
+                        <input type="date" id="meetDate"/>
+                    </div>
+                    <div class="fg">
+                        <label>Particular</label>
+                        <input type="text" id="particular" placeholder="Enter particular"/>
+                    </div>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="cell-inner" style="align-items:flex-end;">
+                    <div class="fg" style="flex:1;min-width:0;">
                         <label>Transfer A/c. Code</label>
                         <div class="ib">
                             <div class="sw">
@@ -558,19 +570,14 @@
                             <span class="spin" id="spinTr"></span>
                         </div>
                     </div>
-                    <div class="fg">
+                    <div class="fg" style="flex:1;min-width:0;">
                         <label>Transfer A/c. Name</label>
                         <input type="text" id="trName" readonly placeholder="—"/>
                     </div>
                 </div>
-
-                <div class="fg">
-                    <label>Tr. Particular</label>
-                    <input type="text" id="trParticular" placeholder="Enter particular"/>
-                </div>
+                <span class="hint-xs">Type last 7 digits to search</span>
             </div>
-
-        </div><!-- /.modules-row -->
+        </div>
 
         <!-- ── Account Details Panel ── -->
         <div id="acDetails">
@@ -607,7 +614,6 @@
 
     </div><!-- /.box -->
 
-
     <!-- ── Action Buttons ── -->
     <div class="act-bar">
         <button class="btn-primary"   type="button" onclick="doSave()">Save</button>
@@ -621,18 +627,15 @@
         var _timer     = null;
         var _prev      = '';
 
-        /* ── Main account input ── */
         function onAcInput(v) {
             if (v !== _prev) { clearAcDetails(); _prev = v; }
             liveSearch(v, 'dropMain', 'main');
         }
 
-        /* ── Transfer account input ── */
         function onTrInput(v) {
             liveSearch(v, 'dropTr', 'tr');
         }
 
-        /* ── Generic live search ── */
         function liveSearch(val, dropId, target) {
             clearTimeout(_timer);
             var drop = document.getElementById(dropId);
@@ -650,7 +653,6 @@
 
         function doSearch(term, dropId, target) {
             var drop = document.getElementById(dropId);
-            /* use searchTr action for transfer field — excludes 901 accounts */
             var act  = (target === 'tr') ? 'searchTr' : 'search';
             var xhr  = new XMLHttpRequest();
             xhr.open('GET', PAGE_URL + '?action=' + act + '&term=' + encodeURIComponent(term), true);
@@ -687,7 +689,6 @@
                  + xe(text.substring(pos + search.length));
         }
 
-        /* ── Pick from inline dropdown ── */
         function pick(code, name, target) {
             if (target === 'tr') {
                 document.getElementById('dropTr').classList.remove('on');
@@ -716,7 +717,6 @@
             fetchTr(code);
         }
 
-        /* ── Fetch main account details ── */
         function fetchAc(code) {
             document.getElementById('spinMain').style.display = 'inline-block';
             setMsg('Fetching…', false);
@@ -747,7 +747,6 @@
             xhr.send();
         }
 
-        /* ── Fetch transfer account details ── */
         function fetchTr(code) {
             document.getElementById('spinTr').style.display = 'inline-block';
             var xhr = new XMLHttpRequest();
@@ -816,7 +815,7 @@
         function doCancel() {
             if (!confirm('Clear the form?')) return;
             clearAcDetails();
-            ['accountCode','trCode','trName','payAmt','trParticular','remark','meetDate'].forEach(function(id) {
+            ['accountCode','trCode','trName','payAmt','particular','meetDate'].forEach(function(id) {
                 var el = document.getElementById(id); if(el) el.value = '';
             });
             sv('totalNoShares','0'); sv('totalFaceValue','0.00'); sv('totalAmount','0.00');
@@ -827,7 +826,6 @@
             setMsg('Form cleared.', false);
         }
 
-        /* ── Close dropdowns on outside click ── */
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.sw') && !e.target.closest('.lk-modal')) {
                 document.getElementById('dropMain').classList.remove('on');
@@ -849,7 +847,6 @@
             document.getElementById('lkSearchInput').value = '';
             document.getElementById('lkTbody').innerHTML = '<tr><td colspan="3" class="lk-msg">Loading&#8230;</td></tr>';
             document.getElementById('lkStatus').textContent = 'Click a row to select.';
-            /* update badge label based on target */
             document.getElementById('lkBadge').textContent = (target === 'tr') ? 'TRANSFER A/C' : 'SHARES A/C';
             document.getElementById('lkOverlay').classList.add('open');
             setTimeout(function(){ document.getElementById('lkSearchInput').focus(); }, 80);
@@ -866,7 +863,6 @@
         function lkLoad(term) {
             var tbody = document.getElementById('lkTbody');
             tbody.innerHTML = '<tr><td colspan="3" class="lk-msg">Searching&#8230;</td></tr>';
-            /* use searchTr for transfer lookup — excludes 901 accounts */
             var act = (_lkTarget === 'tr') ? 'searchTr' : 'search';
             var xhr = new XMLHttpRequest();
             xhr.open('GET', PAGE_URL + '?action=' + act + '&term=' + encodeURIComponent(term), true);
@@ -943,6 +939,5 @@
             <div class="lk-status" id="lkStatus">Click a row to select.</div>
         </div>
     </div>
-
 </body>
 </html>
