@@ -12,31 +12,30 @@
     String errorMessage = null;
     boolean showForm    = true;
 
-    // ── Force Login ──────────────────────────────────────────────
+    // ── Force Login ──────────────────────────────────────────────────────────
     if ("forceLogin".equals(request.getParameter("action"))) {
         String forceUserId     = request.getParameter("userId");
         String forceBranchCode = request.getParameter("branchCode");
         String forcePassword   = request.getParameter("password");
 
-        Connection conn = null;
-        PreparedStatement ps = null;
+        Connection connForce = null;
+        PreparedStatement psForce = null;
 
         try {
-            conn = DBConnection.getConnection();
+            connForce = DBConnection.getConnection();
 
-            // 1. Reset CURRENTLOGIN_STATUS to 'U'
-            ps = conn.prepareStatement(
+            // Reset CURRENTLOGIN_STATUS to 'U'
+            psForce = connForce.prepareStatement(
                 "UPDATE ACL.USERREGISTER SET CURRENTLOGIN_STATUS = 'U' " +
                 "WHERE USER_ID = ? AND BRANCH_CODE = ?"
             );
-            ps.setString(1, forceUserId);
-            ps.setString(2, forceBranchCode);
-            ps.executeUpdate();
-            ps.close();
+            psForce.setString(1, forceUserId);
+            psForce.setString(2, forceBranchCode);
+            psForce.executeUpdate();
 
-            // 2. Redirect back to login with same credentials to login normally
-            response.sendRedirect("login.jsp?username=" + forceUserId + 
-                                  "&branch=" + forceBranchCode + 
+            // Redirect back to login with same credentials to auto-login
+            response.sendRedirect("login.jsp?username=" + forceUserId +
+                                  "&branch=" + forceBranchCode +
                                   "&password=" + java.net.URLEncoder.encode(forcePassword, "UTF-8") +
                                   "&autoLogin=true");
             showForm = false;
@@ -44,22 +43,24 @@
         } catch (Exception e) {
             errorMessage = "Force login failed: " + e.getMessage();
         } finally {
-            try { if (ps   != null) ps.close();  } catch (Exception ignored) {}
-            try { if (conn != null) conn.close(); } catch (Exception ignored) {}
+            try { if (psForce   != null) psForce.close();   } catch (Exception ignored) {}
+            try { if (connForce != null) connForce.close(); } catch (Exception ignored) {}
         }
     }
 
- // Auto login after force login redirect
+    // ── Auto Login after Force Login redirect ────────────────────────────────
     if ("true".equals(request.getParameter("autoLogin"))) {
         userId     = request.getParameter("username");
         password   = request.getParameter("password");
         branchCode = request.getParameter("branch");
     }
 
-    if (userId != null && password != null && branchCode != null) {
+    // ── Normal Login ─────────────────────────────────────────────────────────
+    if (showForm && userId != null && password != null && branchCode != null) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+
         try {
             conn = DBConnection.getConnection();
             String sql = "SELECT USER_ID, PASSWD, CURRENTLOGIN_STATUS FROM ACL.USERREGISTER WHERE USER_ID=? AND BRANCH_CODE=?";
@@ -71,45 +72,40 @@
             if (rs.next()) {
                 String encryptedPassword  = rs.getString("PASSWD");
                 String currentLoginStatus = rs.getString("CURRENTLOGIN_STATUS");
+
                 try {
                     String decryptedPassword = AESEncryption.decrypt(encryptedPassword);
+
                     if (decryptedPassword.equals(password)) {
                         if ("L".equals(currentLoginStatus)) {
                             errorMessage = "User is already logged in from another session. Please contact administrator.";
                         } else {
+                            // Set session attributes
                             session.setAttribute("userId",     userId);
                             session.setAttribute("branchCode", branchCode);
-                         // 🔥 ADD THIS BLOCK HERE
+
+                            // Fetch and set role
                             PreparedStatement roleStmt = null;
                             ResultSet roleRs = null;
-
                             try {
                                 String roleSql = "SELECT IS_SUPPORT_USER FROM ACL.USERREGISTER WHERE USER_ID=? AND BRANCH_CODE=?";
                                 roleStmt = conn.prepareStatement(roleSql);
                                 roleStmt.setString(1, userId);
                                 roleStmt.setString(2, branchCode);
-
                                 roleRs = roleStmt.executeQuery();
-
                                 if (roleRs.next()) {
-
                                     String role = roleRs.getString("IS_SUPPORT_USER");
-
-                                    if (role != null) {
-                                        role = role.trim().toUpperCase();
-                                    } else {
-                                        role = "N";
-                                    }
-
+                                    role = (role != null) ? role.trim().toUpperCase() : "N";
                                     session.setAttribute("isSupportUser", role);
                                 }
-
                             } catch (Exception e) {
                                 e.printStackTrace();
                             } finally {
-                                try { if (roleRs != null) roleRs.close(); } catch (Exception e) {}
+                                try { if (roleRs   != null) roleRs.close();   } catch (Exception e) {}
                                 try { if (roleStmt != null) roleStmt.close(); } catch (Exception e) {}
                             }
+
+                            // Insert login history
                             PreparedStatement historyStmt = null;
                             try {
                                 String historySql = "INSERT INTO ACL.USERREGISTERLOGINHISTORY (USER_ID, BRANCH_CODE, LOGIN_TIME) VALUES (?, ?, SYSDATE)";
@@ -117,8 +113,12 @@
                                 historyStmt.setString(1, userId);
                                 historyStmt.setString(2, branchCode);
                                 historyStmt.executeUpdate();
-                            } catch (Exception ignored) {}
-                            finally { try { if (historyStmt != null) historyStmt.close(); } catch (Exception e2) {} }
+                            } catch (Exception ignored) {
+                            } finally {
+                                try { if (historyStmt != null) historyStmt.close(); } catch (Exception e2) {}
+                            }
+
+                            // Update login status to 'L'
                             PreparedStatement statusStmt = null;
                             try {
                                 String statusSql = "UPDATE ACL.USERREGISTER SET CURRENTLOGIN_STATUS = 'L' WHERE USER_ID = ? AND BRANCH_CODE = ?";
@@ -126,8 +126,11 @@
                                 statusStmt.setString(1, userId);
                                 statusStmt.setString(2, branchCode);
                                 statusStmt.executeUpdate();
-                            } catch (Exception ignored) {}
-                            finally { try { if (statusStmt != null) statusStmt.close(); } catch (Exception e2) {} }
+                            } catch (Exception ignored) {
+                            } finally {
+                                try { if (statusStmt != null) statusStmt.close(); } catch (Exception e2) {}
+                            }
+
                             response.sendRedirect("main.jsp");
                             showForm = false;
                         }
@@ -149,8 +152,8 @@
         }
     }
 
-    // ── Fetch CBS version from DB (used in product badge) ─────────────────────
-    String cbsVersion = "v3.1"; // fallback default
+    // ── Fetch CBS version from DB ─────────────────────────────────────────────
+    String cbsVersion = "v3.1";
     try (Connection connVer = DBConnection.getConnection();
          PreparedStatement psVer = connVer.prepareStatement(
              "SELECT CBS_VERSION FROM GLOBALCONFIG.UNIVERSALPARAMETER WHERE ROWNUM = 1")) {
@@ -237,6 +240,7 @@
                 THE <%= loginBankName.toUpperCase() %>
             </div>
 
+            <!-- Main Login Form -->
             <form action="login.jsp" method="post" autocomplete="off">
 
                 <!-- Branch -->
@@ -253,9 +257,9 @@
                                     String bc = rsBr.getString("BRANCH_CODE");
                                     String bn = rsBr.getString("NAME");
                                     boolean sel = bc.equals(request.getParameter("branch"));
-                        %>
-                            <option value="<%= bc %>" <%= sel ? "selected" : "" %>><%= bc %> — <%= bn %></option>
-                        <%
+                            %>
+                                <option value="<%= bc %>" <%= sel ? "selected" : "" %>><%= bc %> — <%= bn %></option>
+                            <%
                                 }
                             } catch (Exception ex) {
                                 out.println("<option>Error loading branches</option>");
@@ -287,33 +291,13 @@
                 <button type="submit" class="btn-login">Login</button>
 
                 <!-- Error messages -->
-                <% if (errorMessage.contains("already logged in")) { %>
-			    <div class="alert alert-warning">
-			        <svg viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
-			        <%= errorMessage %>
-			    </div>
-
-			    <!-- Force Login Form -->
-			    <form action="login.jsp" method="post" style="margin-top: 10px;">
-			        <input type="hidden" name="action"     value="forceLogin">
-			        <input type="hidden" name="userId"     value="<%= userId %>">
-			        <input type="hidden" name="branchCode" value="<%= branchCode %>">
-			        <input type="hidden" name="password"   value="<%= password %>">
-			        <button type="submit" style="
-			            width: 100%;
-			            padding: 10px;
-			            background: #f59e0b;
-			            color: white;
-			            border: none;
-			            border-radius: 6px;
-			            font-size: 14px;
-			            font-weight: 600;
-			            cursor: pointer;">
-			            ⚡ Force Login — End Other Session & Login
-			        </button>
-			    </form>
-
-			<% } else { %>		
+                <% if (errorMessage != null) { %>
+                    <% if (errorMessage.contains("already logged in")) { %>
+                        <div class="alert alert-warning">
+                            <svg viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+                            <%= errorMessage %>
+                        </div>
+                    <% } else { %>
                         <div class="alert alert-error">
                             <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                             <%= errorMessage %>
@@ -322,6 +306,30 @@
                 <% } %>
 
             </form>
+
+            <!-- Force Login Form — outside main form, shown only on "already logged in" error -->
+            <% if (errorMessage != null && errorMessage.contains("already logged in")) { %>
+                <form action="login.jsp" method="post" style="margin-top: 10px;">
+                    <input type="hidden" name="action"     value="forceLogin">
+                    <input type="hidden" name="userId"     value="<%= userId %>">
+                    <input type="hidden" name="branchCode" value="<%= branchCode %>">
+                    <input type="hidden" name="password"   value="<%= password %>">
+                    <button type="submit" style="
+                        width: 100%;
+                        padding: 10px;
+                        background: #f59e0b;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: background 0.2s;">
+                        ⚡ Force Login — End Other Session & Login
+                    </button>
+                </form>
+            <% } %>
+
         </div>
 
     </div>
