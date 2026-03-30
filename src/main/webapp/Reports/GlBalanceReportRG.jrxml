@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="GlBalanceReportRG" language="groovy" pageWidth="704" pageHeight="842" columnWidth="664" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f819f237-d304-4052-b023-d16a14429e37">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="90"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -130,7 +130,7 @@ FROM (
 	<title>
 		<band height="48" splitType="Stretch">
 			<subreport>
-				<reportElement x="1" y="0" width="663" height="48" uuid="30fea78e-2fac-499d-a11a-36baa801c09d"/>
+				<reportElement x="68" y="0" width="545" height="48" uuid="30fea78e-2fac-499d-a11a-36baa801c09d"/>
 				<subreportParameter name="branch_code">
 					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -319,16 +319,16 @@ FROM (
 				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="30" y="37" width="96" height="17" uuid="c2b31567-b3ce-4b3e-ad42-72e09b3e1e69"/>
+				<reportElement x="44" y="37" width="96" height="17" uuid="c2b31567-b3ce-4b3e-ad42-72e09b3e1e69"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="537" y="33" width="58" height="20" uuid="28ba28ea-86db-4dbf-98c6-337b1d7d04df"/>
+				<reportElement x="569" y="34" width="58" height="20" uuid="28ba28ea-86db-4dbf-98c6-337b1d7d04df"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="594" y="33" width="34" height="20" uuid="40e16763-49e7-4473-bcf2-186a30528286"/>
+				<reportElement x="628" y="34" width="34" height="20" uuid="40e16763-49e7-4473-bcf2-186a30528286"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<line>

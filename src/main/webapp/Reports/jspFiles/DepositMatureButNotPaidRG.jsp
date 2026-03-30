@@ -31,6 +31,11 @@ if (sessionDate == null || sessionDate.isEmpty()) {
     sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
             .format(new java.util.Date());
 }
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
 %>
 
 <%
@@ -40,8 +45,16 @@ if ("download".equals(action)) {
 
     String reporttype  = request.getParameter("reporttype");
     String reportMode = request.getParameter("report_mode");
-    String branchCode  = request.getParameter("branch_code");
-    String asOnDate    = request.getParameter("as_on_date");
+    String branchCode = request.getParameter("branch_code");
+
+    if (branchCode == null || branchCode.trim().isEmpty()) {
+        branchCode = sessionBranchCode;
+    }
+
+    /* 🔒 SECURITY */
+    if (!"Y".equalsIgnoreCase(isSupportUser)) {
+        branchCode = sessionBranchCode;
+    }    String asOnDate    = request.getParameter("as_on_date");
     String productCode = request.getParameter("product_code");
     String singleAll   = request.getParameter("single_all");
 
@@ -148,12 +161,36 @@ if ("download".equals(action)) {
         }
 
         ResultSet rs = ps.executeQuery();
+        
+        if (!rs.isBeforeFirst()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         JRResultSetDataSource jrds =
             new JRResultSetDataSource(rs);
 
         JasperPrint jasperPrint =
             JasperFillManager.fillReport(jasperReport,parameters,jrds);
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         /* EXPORT */
 
@@ -227,6 +264,12 @@ if ("download".equals(action)) {
 <link rel="stylesheet"href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 <link rel="stylesheet"href="<%=request.getContextPath()%>/css/lookup.css">
 
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 <style>
 .radio-container{
     margin-top:8px;
@@ -295,14 +338,18 @@ DEPOSIT MATURE BUT NOT PAID
 
 <div class="input-box">
     <input type="text"
-           name="branch_code"
-           id="branch_code"
-           class="input-field"
-           required>
+       name="branch_code"
+       id="branch_code"
+       class="input-field"
+       value="<%= sessionBranchCode %>"
+       <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
+       required>
 
+    <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
     <button type="button"
             class="icon-btn"
-            onclick="openBranchLookup()">…</button>
+            onclick="openLookup('branch')">…</button>
+<% } %>
 </div>
 </div>
 
@@ -328,7 +375,7 @@ DEPOSIT MATURE BUT NOT PAID
 
     <button type="button"
             class="icon-btn"
-            onclick="openProductLookup()">…</button>
+            onclick="openLookup('product')">…</button>
 </div>
 
 <div class="radio-container">
@@ -456,62 +503,6 @@ function toggleProduct(){
 window.onload=function(){
     toggleProduct();
 }
-
-</script>
-
-<script>
-
-// 🔹 Branch Popup
-function openBranchLookup() {
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        });
-}
-
-// 🔹 Product Popup
-function openProductLookup() {
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=product")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        });
-}
-
-// 🔹 Close
-function closeLookup() {
-    document.getElementById("lookupModal").style.display = "none";
-}
-
-// 🔹 Select Branch (WITH DESCRIPTION)
-function selectBranch(code, name) {
-    document.getElementById("branch_code").value = code;
-    document.getElementById("branchName").value = name;
-    closeLookup();
-}
-
-// 🔹 Select Product (ONLY CODE)
-function selectProduct(code, name, type) {
-    document.getElementById("product_code").value = code;
-    closeLookup();
-}
-
-/* 🔹 AUTO FETCH BRANCH NAME */
-document.getElementById("branch_code").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    if (!code) return;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-        .then(res => res.text())
-        .then(name => {
-            document.getElementById("branchName").value = name || "Not Found";
-        });
-});
 
 </script>
 

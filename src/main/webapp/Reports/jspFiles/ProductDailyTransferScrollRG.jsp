@@ -32,20 +32,27 @@ if (sessionDate == null || sessionDate.isEmpty()) {
 }
 
 /* SESSION BRANCH */
-String branchCodeSession =
-    (String) session.getAttribute("branchCode");
 
 String branchDescSession =
     (String) session.getAttribute("branchDesc");
 
-if(branchCodeSession == null) branchCodeSession = "";
 if(branchDescSession == null) branchDescSession = "";
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String branchCodeSession = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (branchCodeSession == null) branchCodeSession = "";
 %>
 
 <%
 String action = request.getParameter("action");
 
 String branchCode = request.getParameter("branch_code");
+
+if (branchCode == null || branchCode.trim().isEmpty()) {
+    branchCode = branchCodeSession;
+}
 String txnDateUI = request.getParameter("txn_date");
 String productCode = request.getParameter("product_code");
 String singleAll = request.getParameter("single_all");
@@ -171,6 +178,19 @@ if ("download".equals(action)) {
 
         JasperPrint jasperPrint =
                 JasperFillManager.fillReport(jasperReport, params, jrDataSource);
+        
+        // 🔥 CHECK IF NO DATA
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         ServletOutputStream sos = response.getOutputStream();
         String reportType = request.getParameter("reporttype");
@@ -312,15 +332,18 @@ var contextPath = "<%=request.getContextPath()%>";
 
         <div class="input-box">
             <input type="text"
-                   name="branch_code"
-                   id="branch_code"
-                   class="input-field"
-                   value="<%=branchCodeSession%>"
-                   required>
+       name="branch_code"
+       id="branch_code"
+       class="input-field"
+       value="<%=branchCodeSession%>"
+       <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
+       required>
 
-            <button type="button"
-                    class="icon-btn"
-                    onclick="openLookup('branch')">…</button>
+            <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+    <button type="button"
+            class="icon-btn"
+            onclick="openLookup('branch')">…</button>
+<% } %>
         </div>
 
     </div>

@@ -345,15 +345,6 @@ ORDER BY
 			<line>
 				<reportElement x="2" y="3" width="1076" height="1" uuid="4c0de4d1-40a5-4bd6-b36f-e5e0ed9899f8"/>
 			</line>
-			<textField>
-				<reportElement x="949" y="126" width="80" height="20" uuid="b659f3db-308f-48ea-b461-5572b49046eb"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-			</textField>
-			<textField evaluationTime="Report">
-				<reportElement x="1034" y="126" width="40" height="20" uuid="a5e05f25-ee8d-4d98-a603-c187b30ff6d8"/>
-				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
-			</textField>
 			<subreport>
 				<reportElement x="83" y="58" width="921" height="44" uuid="f91a8eeb-d59f-4fd3-a1f0-15ca760e4156"/>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>

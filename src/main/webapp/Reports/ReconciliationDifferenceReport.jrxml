@@ -18,6 +18,9 @@
 	<parameter name="report_title" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="account_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT BRANCH_CODE, FN_GET_BR_NAME(BRANCH_CODE)BR_NAME, BAL HO_BAL_ATBRANCH,
 			 B.LEDGERBALANCE BRANCH_BAL_ATHO, BAL+B.LEDGERBALANCE DIFF FROM(
@@ -27,8 +30,8 @@
 			 AND GLACCOUNT_CODE = '00000000101143' AND BRANCH_CODE <> $P{branch_code}
 			 GROUP BY BRANCH_CODE) A FULL OUTER JOIN
 			 (SELECT SUBSTR(ACCOUNT_CODE,11,4)BRANCH,
-			 SYSTEM.FN_GET_BALANCE_ASON('29mar2025', ACCOUNT_CODE)LEDGERBALANCE
-			 FROM BALANCE.ACCOUNT WHERE ACCOUNT_CODE LIKE '0001151%') B
+			 SYSTEM.FN_GET_BALANCE_ASON($P{as_on_date}, ACCOUNT_CODE)LEDGERBALANCE
+			 FROM BALANCE.ACCOUNT WHERE ACCOUNT_CODE LIKE $P{account_code}) B
 			 ON A.BRANCH_CODE = B.BRANCH)
 			 WHERE BRANCH_CODE IS NOT NULL
 			 ORDER BY 1]]>
@@ -145,12 +148,12 @@
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{HO_BAL_ATBRANCH}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField isBlankWhenNull="true">
 				<reportElement x="310" y="0" width="128" height="20" uuid="e8bcf77e-daa2-4897-af38-4ee10e609a7f"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{BRANCH_BAL_ATHO}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField isBlankWhenNull="true">
 				<reportElement x="444" y="0" width="109" height="20" uuid="bc4dfd6d-c336-444c-82ca-f4d01fefa0c5"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{DIFF}]]></textFieldExpression>
@@ -201,12 +204,12 @@
 	</pageFooter>
 	<summary>
 		<band height="117" splitType="Stretch">
-			<textField pattern="#,##0.00">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="194" y="5" width="115" height="20" uuid="86f81e42-fc48-4410-bc17-2485793941eb"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$V{HO-Balance}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="310" y="4" width="133" height="20" uuid="b569aa96-0f8b-4f5b-b34e-340178a5b0e7"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$V{Branch Balance}]]></textFieldExpression>

@@ -18,6 +18,9 @@
 	<parameter name="user_id" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="product_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT ROWNUM SR_NO,TO_NUMBER(SUBSTR(A.ACCOUNT_CODE,8,14))
     			AC_NO,A.NAME,D.DEPOSITAMOUNT,D.UNITOFPERIOD,
@@ -30,7 +33,7 @@
        A.ACCOUNT_CODE=D.ACCOUNT_CODE
     			AND SUBSTR(A.ACCOUNT_CODE,1,4)=$P{branch_code}
     			AND FN_GET_BALANCE_ASON(TO_DATE($P{as_on_date}),A.ACCOUNT_CODE)<>0
-    			--AND SUBSTR(A.ACCOUNT_CODE,5,3)='115']]>
+    			AND SUBSTR(A.ACCOUNT_CODE,5,3)=$P{product_code}]]>
 	</queryString>
 	<field name="SR_NO" class="java.math.BigDecimal"/>
 	<field name="AC_NO" class="java.math.BigDecimal"/>

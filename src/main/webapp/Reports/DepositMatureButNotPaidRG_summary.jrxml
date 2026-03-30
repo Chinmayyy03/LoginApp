@@ -18,6 +18,9 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="product_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT ROWNUM AS SRNO, A.*
 			 FROM ( SELECT B.ACCOUNT_CODE ,SUBSTR(B.ACCOUNT_CODE,5,3) AS PRODUCT_CODE,K.DESCRIPTION ,B.AMOUNTINMATUREDDEPOSIT, INITCAP(A.NAME) AS NAME ,
@@ -32,11 +35,11 @@
 			 WHERE B.ACCOUNT_CODE = A.ACCOUNT_CODE
        AND B.ACCOUNT_CODE= C.ACCOUNT_CODE
        AND SUBSTR(B.ACCOUNT_CODE,5,3)= K.PRODUCT_CODE
-			 --AND B.ACCOUNT_CODE LIKE '402'
-       --AND A.DATEACCOUNTCLOSE is NULL
-       --AND B.AMOUNTINMATUREDDEPOSIT > 0
+			 AND B.ACCOUNT_CODE LIKE $P{product_code}
+       AND A.DATEACCOUNTCLOSE is NULL
+       AND B.AMOUNTINMATUREDDEPOSIT > 0
 			 AND B.MATURITYDATE <= $P{as_on_date}
-			 order by B.ACCOUNT_CODE)A     ]]>
+			 order by B.ACCOUNT_CODE)A]]>
 	</queryString>
 	<field name="SRNO" class="java.math.BigDecimal"/>
 	<field name="ACCOUNT_CODE" class="java.lang.String"/>

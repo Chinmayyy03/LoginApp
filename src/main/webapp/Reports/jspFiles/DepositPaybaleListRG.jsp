@@ -32,18 +32,29 @@ if (sessionDate == null || sessionDate.isEmpty()) {
 }
 
 /* ===== SESSION BRANCH ===== */
-String branchCodeSession = (String) session.getAttribute("branchCode");
 
-if(branchCodeSession == null || branchCodeSession.trim().equals("")){
-    branchCodeSession = "0001";
-}
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
 %>
 
 <%
 String action = request.getParameter("action");
 
 String branchCode = request.getParameter("branch_code");
-String toDateUI = request.getParameter("to_date");
+
+if (branchCode == null || branchCode.trim().isEmpty()) {
+    branchCode = sessionBranchCode;
+}
+
+/* 🔒 SECURITY */
+if (!"Y".equalsIgnoreCase(isSupportUser)) {
+    branchCode = sessionBranchCode;
+}
+String toDateUI = request.getParameter("as_on_date");
 String productCode = request.getParameter("product_code");
 String singleAll = request.getParameter("single_all");
 
@@ -150,6 +161,18 @@ if ("download".equals(action)) {
         pstmt.setString(idx++, oracleDate);
 
         rs = pstmt.executeQuery();
+        
+        if (!rs.isBeforeFirst()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         /* =========================
            LOAD JASPER REPORT
@@ -178,6 +201,19 @@ if ("download".equals(action)) {
 
         JasperPrint jasperPrint =
                 JasperFillManager.fillReport(jasperReport, params, jrDataSource);
+        
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         ServletOutputStream sos = response.getOutputStream();
         String reportType = request.getParameter("reporttype");
@@ -239,6 +275,13 @@ if ("download".equals(action)) {
 
 <link rel="stylesheet"href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 <style>
 .input-box { display:flex; gap:10px; }
 .icon-btn {
@@ -297,15 +340,19 @@ session.removeAttribute("errorMessage");
 <div class="parameter-label">Branch Code</div>
 <div class="input-box">
     <input type="text"
-           name="branch_code"
-           id="branch_code"
-           class="input-field"
-           value="<%=branchCodeSession%>"
-           required>
+       name="branch_code"
+       id="branch_code"
+       class="input-field"
+       value="<%=sessionBranchCode%>"
+       <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
+       required>
 
-    <button type="button"
-            class="icon-btn"
-            onclick="openBranchLookup()">…</button>
+    <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+<button type="button"
+        class="icon-btn"
+        onclick="openLookup('branch')">…</button>
+<% } %>
+
 </div>
 </div>
 
@@ -343,7 +390,7 @@ session.removeAttribute("errorMessage");
 
     <button type="button"
             class="icon-btn"
-            onclick="openProductLookup()">…</button>
+             onclick="openLookup('product')">…</button>
 </div>
 </div>
 
@@ -415,85 +462,6 @@ function toggleProduct(){
  }
 }
 
-/* =========================
-OPEN BRANCH POPUP
-========================= */
-function openBranchLookup() {
- fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-     .then(res => res.text())
-     .then(html => {
-         document.getElementById("lookupTable").innerHTML = html;
-         document.getElementById("lookupModal").style.display = "flex";
-     });
-}
-
-/* =========================
-OPEN PRODUCT POPUP
-========================= */
-function openProductLookup() {
- fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=product")
-     .then(res => res.text())
-     .then(html => {
-         document.getElementById("lookupTable").innerHTML = html;
-         document.getElementById("lookupModal").style.display = "flex";
-     });
-}
-
-/* =========================
-CLOSE POPUP
-========================= */
-function closeLookup() {
- document.getElementById("lookupModal").style.display = "none";
-}
-
-/* =========================
-SELECT BRANCH
-========================= */
-function selectBranch(code, name) {
- document.getElementById("branch_code").value = code;
- document.getElementById("branchName").value = name;
- closeLookup();
-}
-
-/* =========================
-SELECT PRODUCT
-========================= */
-function selectProduct(code, name, type) {
- document.getElementById("product_code").value = code;
- closeLookup();
-}
-
-/* =========================
-FETCH BRANCH NAME
-========================= */
-function fetchBranchName(code){
-
- if (!code) return;
-
- fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-     .then(res => res.text())
-     .then(name => {
-         document.getElementById("branchName").value = name || "Not Found";
-     });
-}
-
-/* =========================
-PAGE LOAD
-========================= */
-window.onload = function(){
-
- toggleProduct();
-
- let code = document.getElementById("branch_code").value;
-
- if(code){
-     fetchBranchName(code);
- }
-
- document.getElementById("branch_code").addEventListener("blur", function() {
-     fetchBranchName(this.value);
- });
-};
 </script>
 
 </body>

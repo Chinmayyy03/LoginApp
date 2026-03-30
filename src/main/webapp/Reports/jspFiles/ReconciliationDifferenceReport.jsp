@@ -27,6 +27,12 @@ if (sessionDate == null || sessionDate.isEmpty()) {
     sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
             .format(new java.util.Date());
 }
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
 %>
 
 <%
@@ -39,7 +45,10 @@ if ("download".equals(action)) {
 
     String reporttype = request.getParameter("reporttype");
     String branchCode = request.getParameter("branch_code");
-    String asOnDate   = request.getParameter("as_on_date");
+
+    if (branchCode == null || branchCode.trim().isEmpty()) {
+        branchCode = sessionBranchCode;
+    }    String asOnDate   = request.getParameter("as_on_date");
 
     Connection conn = null;
 
@@ -86,6 +95,20 @@ if ("download".equals(action)) {
 
         JasperPrint jp =
                 JasperFillManager.fillReport(jasperReport, parameters, conn);
+        
+        // 🔥 CHECK IF NO DATA
+       if (jp.getPages().isEmpty()) {
+
+    response.reset();
+    response.setContentType("text/html");
+
+    out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+    out.println("No Records Found!");
+    out.println("</h2>");
+
+    return;
+}
+        
         if ("pdf".equalsIgnoreCase(reporttype)) {
 
             response.reset();   // VERY IMPORTANT
@@ -145,6 +168,12 @@ if ("download".equals(action)) {
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
 
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 <style>
 .input-box { display:flex; gap:10px; }
 .icon-btn {
@@ -194,11 +223,17 @@ if ("download".equals(action)) {
         <div class="parameter-label">Branch Code</div>
 
         <div class="input-box">
-            <input type="text" id="branchCode" name="branch_code"
-                   class="input-field">
+            <input type="text"
+       id="branch_code"
+       name="branch_code"
+       class="input-field"
+       value="<%= sessionBranchCode %>"
+       <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %> >
 
-            <button type="button" class="icon-btn"
-                    onclick="openBranchLookup()">…</button>
+            <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+    <button type="button" class="icon-btn"
+            onclick="openLookup('branch')">…</button>
+<% } %>
         </div>
     </div>
 
@@ -233,52 +268,13 @@ if ("download".equals(action)) {
 </div>
 
 <!-- POPUP -->
-<div id="branchModal" class="modal">
+<div id="lookupModal" class="modal">
     <div class="modal-content">
-        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
-        <div id="branchTable"></div>
+        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <div id="lookupTable"></div>
     </div>
 </div>
 
-<script>
-
-/* =========================
-   🔹 CALL SERVLET (UPDATED)
-   ========================= */
-function openBranchLookup() {
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("branchTable").innerHTML = html;
-            document.getElementById("branchModal").style.display = "flex";
-        });
-}
-
-function closeBranchLookup() {
-    document.getElementById("branchModal").style.display = "none";
-}
-
-function selectBranch(code, name) {
-    document.getElementById("branchCode").value = code;
-    document.getElementById("branchName").value = name;
-    closeBranchLookup();
-}
-
-/* =========================
-   🔹 FETCH NAME FROM SERVLET
-   ========================= */
-document.getElementById("branchCode").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-        .then(res => res.text())
-        .then(name => {
-            document.getElementById("branchName").value = name || "Not Found";
-        });
-});
-
-</script>
 
 </body>
 </html>

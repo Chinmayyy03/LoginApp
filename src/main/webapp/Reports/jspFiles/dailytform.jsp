@@ -32,6 +32,14 @@ if (sessionDate == null || sessionDate.isEmpty()) {
             .format(new java.util.Date());
 }
 %>
+
+<%
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
+%>
 <%
 String action = request.getParameter("action");
 String branchCode = request.getParameter("branch_code");
@@ -398,6 +406,19 @@ if (asOnDateUI == null) asOnDateUI = "";
                ========================= */
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, conn);
             
+            // 🔥 CHECK IF NO DATA
+            if (jasperPrint.getPages().isEmpty()) {
+
+                response.reset();
+                response.setContentType("text/html");
+
+                out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+                out.println("No Records Found!");
+                out.println("</h2>");
+
+                return;
+            }
+            
             // Debug: Check number of pages
             int pageCount = jasperPrint.getPages().size();
             System.out.println("Report filled successfully. Total pages: " + pageCount);
@@ -481,9 +502,14 @@ if (!"download".equals(action)) {
 <html>
 <head>
     <title>Daily Supplementary Report_TForm</title>
-<link rel="stylesheet"
-href="<%=request.getContextPath()%>/css/common-report.css?v=4">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
 
 <style>
 .input-box { display:flex; gap:10px; }
@@ -574,21 +600,27 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             
             <div class="parameter-section">
                 <div class="parameter-group">
-                    <div class="parameter-label">Branch Code</div>
-                    <div class="input-box">
-    <input type="text" name="branch_code" id="branch_code"
-           class="input-field"
-           value="<%= branchCode %>" required>
+    <div class="parameter-label">Branch Code</div>
+    <div class="input-box">
 
-    <button type="button"
-            class="icon-btn"
-            onclick="openBranchLookup()">…</button>
+        <input type="text"
+               id="branch_code"
+               name="branch_code"
+               class="input-field"
+               value="<%= sessionBranchCode %>"
+               <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %> >
+
+        <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+            <button type="button"
+                    class="icon-btn"
+                    onclick="openLookup('branch')">…</button>
+        <% } %>
+
+    </div>
 </div>
-                </div>
-                <div class="parameter-group">
-    <div class="parameter-label">Description</div>
-    <input type="text" id="branch_name"
-           class="input-field" readonly>
+               <div class="parameter-group">
+    <div class="parameter-label">Branch Name</div>
+    <input type="text" id="branchName" class="input-field" readonly>
 </div>
                 
                 <div class="parameter-group">
@@ -618,10 +650,10 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
         </form>
     </div>
     
-    <div id="branchModal" class="modal">
+   <div id="lookupModal" class="modal">
     <div class="modal-content">
-        <button onclick="closeBranchLookup()" style="float:right;">✖</button>
-        <div id="branchTable"></div>
+        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <div id="lookupTable"></div>
     </div>
 </div>
 
@@ -683,39 +715,7 @@ href="<%=request.getContextPath()%>/css/common-report.css?v=4">
             }
         });
     </script>
-    <script>
-
-/* POPUP */
-function openBranchLookup() {
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("branchTable").innerHTML = html;
-            document.getElementById("branchModal").style.display = "flex";
-        });
-}
-
-function closeBranchLookup() {
-    document.getElementById("branchModal").style.display = "none";
-}
-
-function selectBranch(code, name) {
-    document.getElementById("branch_code").value = code;
-    document.getElementById("branch_name").value = name;
-    closeBranchLookup();
-}
-
-/* AUTO NAME */
-document.getElementById("branch_code").addEventListener("blur", function() {
-    let code = this.value;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-        .then(res => res.text())
-        .then(name => {
-            document.getElementById("branch_name").value = name || "Not Found";
-        });
-});
-</script>
+   
 </body>
 </html>
 <%

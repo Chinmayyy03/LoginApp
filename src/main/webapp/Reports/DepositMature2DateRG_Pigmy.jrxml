@@ -21,6 +21,9 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["C:\\Users\\prajk\\eclipse-workspace\\LoginApp\\src\\main\\webapp\\Reports\\"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="user_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select ROWNUM AS SRNO,a.account_code , a.name , to_char(A.DATEACCOUNTOPEN,'dd/mm/yyyy') ACCOUNTOPEN_D,
 		   to_char(P.MATURITYDATE,'dd/mm/yyyy')  MATURITY_D, P.INSTALLMENTAMOUNT ,
@@ -51,7 +54,7 @@
 	<title>
 		<band height="67" splitType="Stretch">
 			<subreport>
-				<reportElement x="1" y="0" width="866" height="67" uuid="698207e5-7d28-4a8b-a797-e87b3732ae90"/>
+				<reportElement x="164" y="0" width="608" height="67" uuid="698207e5-7d28-4a8b-a797-e87b3732ae90"/>
 				<subreportParameter name="branch_code">
 					<subreportParameterExpression><![CDATA[$P{branch_code}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -251,21 +254,25 @@
 	<pageFooter>
 		<band height="40" splitType="Stretch">
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="1" y="19" width="100" height="20" uuid="abd71c3a-1a60-4912-a7fb-5856690bad31"/>
+				<reportElement x="64" y="20" width="100" height="20" uuid="abd71c3a-1a60-4912-a7fb-5856690bad31"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="746" y="18" width="80" height="20" uuid="6c4df5a6-b333-457f-a29d-df52438e26ef"/>
+				<reportElement x="746" y="20" width="80" height="20" uuid="6c4df5a6-b333-457f-a29d-df52438e26ef"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="826" y="18" width="40" height="20" uuid="88851bd6-5a1d-46df-995e-95bfe15a00f6"/>
+				<reportElement x="826" y="20" width="40" height="20" uuid="88851bd6-5a1d-46df-995e-95bfe15a00f6"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="-1" y="1" width="867" height="1" uuid="10588a06-a995-4555-950c-76ae62d841f5"/>
 			</line>
+			<textField>
+				<reportElement x="-1" y="20" width="64" height="20" uuid="ada79cb6-ef65-4cf1-8db0-2ae365103c4f"/>
+				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageFooter>
 	<summary>
