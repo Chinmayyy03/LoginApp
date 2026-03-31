@@ -37,6 +37,12 @@ if (sessionDate == null || sessionDate.isEmpty()) {
             .format(new java.util.Date());
 }
 
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
+
 %>
 
 <%
@@ -46,7 +52,16 @@ if ("download".equals(action)) {
 
     String reporttype  = request.getParameter("reporttype");
     String accountCode = request.getParameter("account_code");
-    String branchCode  = request.getParameter("branch_code");
+    String branchCode = request.getParameter("branch_code");
+
+    if (branchCode == null || branchCode.trim().isEmpty()) {
+        branchCode = sessionBranchCode;
+    }
+
+    /* 🔒 SECURITY */
+    if (!"Y".equalsIgnoreCase(isSupportUser)) {
+        branchCode = sessionBranchCode;
+    }
     String asOnDate    = request.getParameter("as_on_date");
 
     Connection conn = null;
@@ -117,8 +132,8 @@ if ("download".equals(action)) {
         parameters.put("as_on_date", oracleDateStr);
 
         String userId = (String) session.getAttribute("userId");
-
         parameters.put("user_id", userId);
+
         parameters.put("SUBREPORT_DIR",
             application.getRealPath("/Reports/"));
         parameters.put("IMAGE_PATH",
@@ -129,6 +144,19 @@ if ("download".equals(action)) {
            ========================= */
         JasperPrint jasperPrint =
             JasperFillManager.fillReport(jasperReport, parameters, conn);
+        
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         /* =========================
            EXPORT
@@ -199,6 +227,12 @@ if ("download".equals(action)) {
     <link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
     
+    <script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+    
     <style>
 .input-box { display:flex; gap:10px; }
 .icon-btn {
@@ -249,15 +283,20 @@ if ("download".equals(action)) {
             <div class="parameter-group">
                 <div class="parameter-label">Branch Code</div>
                 <div class="input-box">
-        <input type="text"
-               id="branchCode"
-               name="branch_code"
-               class="input-field"
-               required>
+       <input type="text"
+id="branch_code"
+name="branch_code"
+class="input-field"
+value="<%=sessionBranchCode%>"
+<%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
+required>
 
-        <button type="button"
-                class="icon-btn"
-                onclick="openBranchLookup()">…</button>
+        <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+<button type="button"
+class="icon-btn"
+onclick="openLookup('branch')">…</button>
+<% } %>
+
     </div>
             </div>
             
@@ -279,7 +318,7 @@ if ("download".equals(action)) {
         <!-- 🔥 POPUP BUTTON -->
         <button type="button"
                 class="icon-btn"
-                onclick="openAccountLookup()">…</button>
+                onclick="openLookup('account')">…</button>
     </div>
 
             </div>
@@ -335,133 +374,6 @@ if ("download".equals(action)) {
 
     </div>
 </div>
-
-<script>
-
-/* =========================
-   🔹 OPEN BRANCH LOOKUP
-   ========================= */
-function openBranchLookup() {
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-
-        .then(res => res.text())
-
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        })
-
-        .catch(err => console.error("Branch lookup error:", err));
-}
-
-
-/* =========================
-   🔹 OPEN ACCOUNT LOOKUP
-   ========================= */
-function openAccountLookup() {
-
-    let branch = document.getElementById("branchCode").value;
-
-    // validation
-    if (!branch || branch.trim() === "") {
-        alert("Please select branch first");
-        return;
-    }
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=account&branchCode=" + encodeURIComponent(branch))
-
-        .then(res => res.text())
-
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        })
-
-        .catch(err => console.error("Account lookup error:", err));
-}
-
-
-/* =========================
-   🔹 CLOSE POPUP
-   ========================= */
-function closeLookup() {
-    document.getElementById("lookupModal").style.display = "none";
-}
-
-
-/* =========================
-   🔹 SELECT BRANCH
-   ========================= */
-function selectBranch(code, name) {
-
-    document.getElementById("branchCode").value = code;
-    document.getElementById("branchName").value = name;
-
-    // clear account when branch changes
-    document.getElementById("account_code").value = "";
-    document.getElementById("account_name").value = "";
-
-    closeLookup();
-}
-
-
-/* =========================
-   🔹 SELECT ACCOUNT
-   ========================= */
-function selectAccount(code, name) {
-
-    document.getElementById("account_code").value = code;
-
-    let accName = document.getElementById("account_name");
-    if (accName) accName.value = name;
-
-    closeLookup();
-}
-
-
-/* =========================
-   🔹 AUTO FETCH BRANCH NAME
-   ========================= */
-document.getElementById("branchCode").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    if (!code) return;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-
-        .then(res => res.text())
-
-        .then(name => {
-            document.getElementById("branchName").value = name || "Not Found";
-        })
-
-        .catch(err => console.error(err));
-});
-
-
-/* =========================
-   🔹 AUTO FETCH ACCOUNT NAME
-   ========================= */
-document.getElementById("account_code").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    if (!code) return;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=account&action=getName&code=" + code)
-
-        .then(res => res.text())
-
-        .then(name => {
-            document.getElementById("account_name").value = name || "Not Found";
-        })
-
-        .catch(err => console.error(err));
-});
-
-</script>
 
 </body>
 </html>

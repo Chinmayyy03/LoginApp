@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subReport" language="groovy" pageWidth="595" pageHeight="841" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6b51c081-321b-4cb2-a925-c56b8fed044d">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="branch_code" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT a.name AS BANK_NAME,
+               b.name AS BRANCH_NAME
+        FROM globalconfig.bank a,
+             headoffice.branch b
+        WHERE a.bank_code = '0100'
+          AND b.branch_code = $P{branch_code}]]>
+	</queryString>
+	<field name="BANK_NAME" class="java.lang.String"/>
+	<field name="BRANCH_NAME" class="java.lang.String"/>
+	<detail>
+		<band height="40">
+			<textField>
+				<reportElement x="139" y="0" width="277" height="20" uuid="b2f82d9e-f0fb-44e4-ad6a-7aa5d35f7794"/>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{BANK_NAME}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="213" y="20" width="95" height="20" uuid="3606f20d-7f43-4982-afb6-7e7db840c701"/>
+				<textElement textAlignment="Left">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{BRANCH_NAME}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -32,6 +32,12 @@ if (sessionDate == null || sessionDate.isEmpty()) {
     sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
             .format(new java.util.Date());
 }
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
 %>
 
 <%
@@ -39,13 +45,21 @@ if (sessionDate == null || sessionDate.isEmpty()) {
    REMOVE DEFAULTS → USE REQUEST DIRECTLY
    ============================== */
 
-String branchCode = request.getParameter("branch_code");
-String accountCode = request.getParameter("account_code");
+		   String branchCode = request.getParameter("branch_code");
+
+   if (branchCode == null || branchCode.trim().isEmpty()) {
+       branchCode = sessionBranchCode;
+   }
+
+   /* 🔒 SECURITY */
+   if (!"Y".equalsIgnoreCase(isSupportUser)) {
+       branchCode = sessionBranchCode;
+   }
+  String accountCode = request.getParameter("account_code");
 String fromDate = request.getParameter("from_date");
 String toDate = request.getParameter("to_date");
 
 // avoid null issues
-if (branchCode == null) branchCode = "";
 if (accountCode == null) accountCode = "";
 if (fromDate == null) fromDate = "";
 if (toDate == null) toDate = "";
@@ -98,6 +112,18 @@ if ("download".equals(action)) {
 
         JasperPrint jasperPrint =
                 JasperFillManager.fillReport(jasperReport, parameters, conn);
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         /* ==========================
            PDF EXPORT
@@ -177,6 +203,13 @@ if ("download".equals(action)) {
 <title>Saving Bank Interest Certificate</title>
 <link rel="stylesheet"href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 <link rel="stylesheet"href="<%=request.getContextPath()%>/css/lookup.css">
+
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 <style>
 .input-box { display:flex; gap:10px; }
 
@@ -228,20 +261,26 @@ if ("download".equals(action)) {
 <div class="parameter-group">
 <div class="parameter-label">Branch Code</div>
 <div class="input-box">
-    <input type="text" name="branch_code"
-           id="branch_code"
-           class="input-field"
-           required>
+    <input type="text"
+name="branch_code"
+id="branch_code"
+class="input-field"
+value="<%=sessionBranchCode%>"
+<%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
+required>
 
-    <button type="button"
-            class="icon-btn"
-            onclick="openBranchLookup()">…</button>
+    <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+<button type="button"
+class="icon-btn"
+onclick="openLookup('branch')">…</button>
+<% } %>
+
 </div>
 </div>
 
 <div class="parameter-group">
     <div class="parameter-label">Branch Name</div>
-    <input type="text" id="branch_name"
+    <input type="text" id="branchName"
            class="input-field" readonly>
 </div>
 
@@ -255,7 +294,7 @@ if ("download".equals(action)) {
 
     <button type="button"
             class="icon-btn"
-            onclick="openAccountLookup()">…</button>
+            onclick="openLookup('account')">…</button>
 </div>
 </div>
 
@@ -311,78 +350,5 @@ Generate Certificate
     </div>
 </div>
 
-<script>
-
-// OPEN BRANCH LOOKUP
-function openBranchLookup() {
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        });
-}
-
-// OPEN ACCOUNT LOOKUP
-function openAccountLookup() {
-
-    let branch = document.getElementById("branch_code").value;
-
-    if (!branch || branch.trim() === "") {
-        alert("Please select branch first");
-        return;
-    }
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=account&branchCode=" + encodeURIComponent(branch))
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("lookupTable").innerHTML = html;
-            document.getElementById("lookupModal").style.display = "flex";
-        });
-}
-
-// CLOSE MODAL
-function closeLookup() {
-    document.getElementById("lookupModal").style.display = "none";
-}
-
-// SELECT BRANCH
-function selectBranch(code, name) {
-    document.getElementById("branch_code").value = code;
-    document.getElementById("branch_name").value = name;
-    closeLookup();
-}
-
-// SELECT ACCOUNT
-function selectAccount(code, name) {
-    document.getElementById("account_code").value = code;
-    document.getElementById("account_name").value = name;
-    closeLookup();
-}
-
-// FETCH NAME ON BLUR
-document.getElementById("branch_code").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=branch&action=getName&code=" + code)
-        .then(res => res.text())
-        .then(name => {
-            document.getElementById("branch_name").value = name || "Not Found";
-        });
-});
-
-document.getElementById("account_code").addEventListener("blur", function() {
-
-    let code = this.value;
-
-    fetch("<%=request.getContextPath()%>/CommonLookupServlet?type=account&action=getName&code=" + code)
-        .then(res => res.text())
-        .then(name => {
-            document.getElementById("account_name").value = name || "Not Found";
-        });
-});
-
-</script>
 </body>
 </html>

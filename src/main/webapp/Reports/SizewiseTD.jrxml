@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SizewiseTD" language="groovy" pageWidth="579" pageHeight="842" columnWidth="539" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0a4bb450-ffc8-4839-bd10-a962bbf44ee6">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="191"/>
 	<parameter name="branch_code" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
@@ -25,6 +25,9 @@
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<parameter name="CITY_CODE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="user_id" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<queryString>
@@ -183,7 +186,7 @@ order by slab]]>
 	<pageFooter>
 		<band height="22" splitType="Stretch">
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="1" y="2" width="100" height="20" uuid="8bb9aaa6-b843-4b86-bbc3-47f61540e77b"/>
+				<reportElement x="54" y="2" width="100" height="20" uuid="8bb9aaa6-b843-4b86-bbc3-47f61540e77b"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<textField>
@@ -194,6 +197,10 @@ order by slab]]>
 			<textField evaluationTime="Report">
 				<reportElement x="503" y="1" width="36" height="20" uuid="4fd77eec-03ef-4705-b8fd-cfb460eba208"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="-1" y="2" width="54" height="20" uuid="0995bacd-75b9-4fb4-a2f4-58f7a2a9d5ea"/>
+				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>

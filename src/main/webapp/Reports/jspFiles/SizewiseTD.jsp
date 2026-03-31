@@ -14,6 +14,34 @@
 <%@ page import="db.DBConnection" %>
 
 <%
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
+    }
+}
+
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+%>
+
+<%
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
+%>
+
+<%
 
 String action = request.getParameter("action");
 
@@ -22,8 +50,26 @@ if ("download".equals(action)) {
     String reportType  = request.getParameter("reporttype");
     String reportName  = request.getParameter("report_name");
 
-    String branchCode  = request.getParameter("branch_code");
-    String branchCodeTo= request.getParameter("branch_code_to");
+    String branchCode = request.getParameter("branch_code");
+
+    if (branchCode == null || branchCode.trim().isEmpty()) {
+        branchCode = sessionBranchCode;
+    }
+
+    /* 🔒 SECURITY */
+    if (!"Y".equalsIgnoreCase(isSupportUser)) {
+        branchCode = sessionBranchCode;
+    }
+    String branchCodeTo = request.getParameter("branch_code_to");
+
+    if (branchCodeTo == null || branchCodeTo.trim().isEmpty()) {
+        branchCodeTo = sessionBranchCode;
+    }
+
+    /* 🔒 SECURITY */
+    if (!"Y".equalsIgnoreCase(isSupportUser)) {
+        branchCodeTo = sessionBranchCode;
+    }
     String prCodeFr    = request.getParameter("pr_code_fr");
     String prCodeTo    = request.getParameter("pr_code_to");
     String asOnDate    = request.getParameter("as_on_date");
@@ -95,8 +141,8 @@ if ("download".equals(action)) {
                     new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH)
                             .format(new java.util.Date()).toUpperCase();
         }
-
-        /* SELECT REPORT FILE */
+        
+         /* SELECT REPORT FILE */
 
         String jasperFileName = "";
 
@@ -137,10 +183,8 @@ if ("download".equals(action)) {
         parameters.put("SUBREPORT_DIR",
                 application.getRealPath("/Reports/"));
 
-        String userId = (String) session.getAttribute("user_id");
-
-        if(userId == null) userId = "admin";
-
+        /* ✅ USER ID (FIXED) */
+        String userId = (String) session.getAttribute("userId");
         parameters.put("user_id", userId);
 
         parameters.put("IMAGE_PATH",
@@ -148,6 +192,18 @@ if ("download".equals(action)) {
 
         JasperPrint jasperPrint =
                 JasperFillManager.fillReport(jasperReport, parameters, conn);
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         /* EXPORT */
 
@@ -206,8 +262,45 @@ if ("download".equals(action)) {
 
 <title>SIZEWISE TERM DEPOSIT REPORT</title>
 
-<link rel="stylesheet"
-href="<%=request.getContextPath()%>/css/common-report.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
+<style>
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
 
 </head>
 
@@ -232,18 +325,40 @@ autocomplete="off">
 
 <div class="parameter-group">
 <div class="parameter-label">From Branch Code</div>
+<div class="input-box">
 <input type="text"
 name="branch_code"
+id="branch_code"
 class="input-field"
+value="<%=sessionBranchCode%>"
+<%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
 required>
+
+<% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+<button type="button"
+class="icon-btn"
+onclick="openLookup('branch')">…</button>
+<% } %>
+</div>
 </div>
 
 <div class="parameter-group">
 <div class="parameter-label">To Branch Code</div>
+<div class="input-box">
 <input type="text"
 name="branch_code_to"
+id="branch_code_to"
 class="input-field"
+value="<%=sessionBranchCode%>"
+<%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
 required>
+
+<% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+<button type="button"
+class="icon-btn"
+onclick="openLookup('branch')">…</button>
+<% } %>
+</div>
 </div>
 
 </div>
@@ -254,18 +369,31 @@ required>
 
 <div class="parameter-group">
 <div class="parameter-label">From Product Code</div>
+<div class="input-box">
 <input type="text"
 name="pr_code_fr"
+id="product_code"
 class="input-field"
 required>
+
+<button type="button"
+class="icon-btn"
+onclick="openLookup('product')">…</button>
+</div>
 </div>
 
 <div class="parameter-group">
 <div class="parameter-label">To Product Code</div>
+<div class="input-box">
 <input type="text"
 name="pr_code_to"
 class="input-field"
 required>
+
+<button type="button"
+class="icon-btn"
+onclick="openLookup('product')">…</button>
+</div>
 </div>
 
 </div>
@@ -279,6 +407,7 @@ required>
 <input type="date"
 name="as_on_date"
 class="input-field"
+value="<%=sessionDate%>" 
 required>
 </div>
 
@@ -339,6 +468,13 @@ Generate Report
 
 </form>
 
+</div>
+
+<div id="lookupModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <div id="lookupTable"></div>
+    </div>
 </div>
 
 </body>

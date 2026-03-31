@@ -15,6 +15,9 @@
 	<parameter name="as_on_date" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="user_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT ROWNUM as SR_NO, AMOUNT_FROM, AMOUNT_TO, cust_code, CUST_NAME, BALANCE_AMT
 FROM (
@@ -28,9 +31,9 @@ FROM (
              CUSTOMER.CUSTOMER C,
              ACCOUNT.ACCOUNT T
         WHERE A.ACCOUNT_CODE = T.ACCOUNT_CODE
-          --AND T.CUSTOMER_ID = C.CUSTOMER_ID
-         --AND A.balance >= S.amount_from
-         --AND A.balance <= S.amount_to
+          AND T.CUSTOMER_ID = C.CUSTOMER_ID
+         AND A.balance >= S.amount_from
+         AND A.balance <= S.amount_to
           AND A.branch_code BETWEEN '$P!{branch_code}'
           AND '$P!{branch_code}'
     ) TEMP
@@ -198,22 +201,26 @@ ORDER BY SR_NO]]>
 	</detail>
 	<pageFooter>
 		<band height="22" splitType="Stretch">
-			<textField>
-				<reportElement x="467" y="1" width="52" height="20" uuid="1bac6ce8-ff0a-4106-b3c5-0cdcf5d12f78"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-			</textField>
-			<textField evaluationTime="Report">
-				<reportElement x="519" y="1" width="36" height="20" uuid="6ebff2ac-14d2-433a-803d-2b24a079ea35"/>
-				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
-			</textField>
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="0" y="2" width="100" height="20" uuid="10c74308-3f2c-4e4b-91ab-338a271a6708"/>
+				<reportElement x="52" y="2" width="100" height="20" uuid="10c74308-3f2c-4e4b-91ab-338a271a6708"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="0" y="0" width="555" height="1" uuid="50951f4b-76d1-4c8f-af33-172610de562d"/>
 			</line>
+			<textField>
+				<reportElement x="0" y="2" width="52" height="20" uuid="367da66b-6cbf-40ef-b100-17db5dc93697"/>
+				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="435" y="2" width="80" height="20" uuid="d2ea09ee-717b-4925-967b-916fa95e8cb2"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="514" y="2" width="40" height="20" uuid="7eee70af-ce25-4651-bd17-fbaf11f6f384"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageFooter>
 	<summary>

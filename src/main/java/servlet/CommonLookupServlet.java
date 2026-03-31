@@ -101,6 +101,8 @@ public class CommonLookupServlet extends HttpServlet {
                     query = "SELECT NAME FROM GLOBALCONFIG.BANK WHERE BANK_CODE=?";
                 } else if ("product".equalsIgnoreCase(type)) {
                     query = "SELECT DESCRIPTION FROM HEADOFFICE.PRODUCT WHERE PRODUCT_CODE=?";
+                }    else if ("gl".equalsIgnoreCase(type)) {
+                    query = "SELECT DESCRIPTION FROM HEADOFFICE.GLACCOUNT WHERE GLACCOUNT_CODE=?";
                 } else {
                     out.print("");
                     return;
@@ -132,7 +134,11 @@ public class CommonLookupServlet extends HttpServlet {
             } else if ("bank".equalsIgnoreCase(type)) {
                 listBank(conn, out);
             } else if ("product".equalsIgnoreCase(type)) {
-                listProduct(conn, out);
+            	listProduct(conn, out, request);
+            } else if ("accountType".equalsIgnoreCase(type)) {
+                listAccountType(conn, out);	
+            } else if ("glByAccountType".equalsIgnoreCase(type)) {
+                listGLByAccountType(conn, out, request);
             } else {
                 out.println("<h3 style='color:red;'>Invalid type</h3>");
             }
@@ -304,32 +310,146 @@ public class CommonLookupServlet extends HttpServlet {
     // ===============================
     // 🔹 PRODUCT
     // ===============================
-    private void listProduct(Connection conn, PrintWriter out) throws Exception {
+ 
+ private void listProduct(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
 
-        PreparedStatement ps = conn.prepareStatement(
-            "SELECT PRODUCT_CODE, DESCRIPTION, ACCOUNT_TYPE FROM HEADOFFICE.PRODUCT ORDER BY PRODUCT_CODE"
-        );
+     String sql =
+         "SELECT PRODUCT_CODE, DESCRIPTION, ACCOUNT_TYPE FROM HEADOFFICE.PRODUCT ORDER BY PRODUCT_CODE";
 
-        ResultSet rs = ps.executeQuery();
+     PreparedStatement ps = conn.prepareStatement(sql);
+     ResultSet rs = ps.executeQuery();
 
-        printTableHeader(out, "Select Product", "Code", "Description", false);
+     out.println("<div class='lookup-container'>");
+     out.println("<div class='lookup-title'>Select Product</div>");
+     out.println("<div class='lookup-table-wrapper'>");
+     out.println("<table class='lookup-table'>");
 
-        while (rs.next()) {
+     // ✅ HEADER (ADDED ACCOUNT TYPE COLUMN)
+     out.println("<tr>");
+     out.println("<th>Product Code</th>");
+     out.println("<th>Description</th>");
+     out.println("<th>Account Type</th>");
+     out.println("</tr>");
 
-            String code = rs.getString("PRODUCT_CODE");
-            String name = rs.getString("DESCRIPTION");
+     while (rs.next()) {
 
-            out.println("<tr class='lookup-row' onclick=\"selectProduct('"
-                    + code + "','" + name + "','')\">");
+         String code = rs.getString("PRODUCT_CODE");
+         String name = rs.getString("DESCRIPTION");
+         String type = rs.getString("ACCOUNT_TYPE");
 
-            out.println("<td>" + code + "</td>");
-            out.println("<td>" + name + "</td>");
-            out.println("</tr>");
-        }
+         if (code == null) code = "";
+         if (name == null) name = "";
+         if (type == null) type = "";
 
-        printTableFooter(out);
+         code = code.replace("'", "\\'");
+         name = name.replace("'", "\\'");
+         type = type.replace("'", "\\'");
 
-        rs.close();
-        ps.close();
-    }
+         // ✅ PASS ACCOUNT TYPE ALSO
+         out.println("<tr class='lookup-row' onclick=\"selectProduct('"
+                 + code + "','" + name + "','" + type + "')\">");
+
+         out.println("<td>" + code + "</td>");
+         out.println("<td>" + name + "</td>");
+         out.println("<td>" + type + "</td>");
+
+         out.println("</tr>");
+     }
+
+     printTableFooter(out);
+
+     rs.close();
+     ps.close();
+ }
+ 
+ private void listAccountType(Connection conn, PrintWriter out) throws Exception {
+
+	    String sql =
+	        "SELECT ACCOUNT_TYPE, NAME FROM HEADOFFICE.ACCOUNTTYPE ORDER BY ACCOUNT_TYPE";
+
+	    PreparedStatement ps = conn.prepareStatement(sql);
+	    ResultSet rs = ps.executeQuery();
+
+	    out.println("<table>");
+
+	    while (rs.next()) {
+	        String type = rs.getString("ACCOUNT_TYPE");
+	        String name = rs.getString("NAME");
+
+	        out.println("<tr onclick=\"loadGL('" + type + "')\">");
+	        out.println("<td>" + type + "</td>");
+	        out.println("<td>" + name + "</td>");
+	        out.println("</tr>");
+	    }
+
+	    out.println("</table>");
+
+	    rs.close();
+	    ps.close();
+	}
+ 
+ private void listGLByAccountType(Connection conn, PrintWriter out, HttpServletRequest request) throws Exception {
+
+	 String accType = request.getParameter("accountType");
+
+	 String sql;
+	 PreparedStatement ps;
+
+	 if (accType == null || accType.trim().isEmpty()) {
+
+	     // ✅ CURRENT MODE (DIRECT ALL GL)
+	     sql = "SELECT DISTINCT GLACCOUNT_CODE , DESCRIPTION FROM HEADOFFICE.GLACCOUNT ORDER BY GLACCOUNT_CODE";
+	     ps = conn.prepareStatement(sql);
+
+	 } else {
+
+	     // ✅ FUTURE MODE (FILTER BY ACCOUNT TYPE)
+	     sql =
+	         "SELECT DISTINCT G.GLACCOUNT_CODE , G.DESCRIPTION " +
+	         "FROM HEADOFFICE.GLACCOUNT G " +
+	         "JOIN HEADOFFICE.PRODUCT P ON G.PRODUCT_CODE = P.PRODUCT_CODE " +
+	         "WHERE P.ACCOUNT_TYPE = ? " +
+	         "ORDER BY G.GLACCOUNT_CODE";
+
+	     ps = conn.prepareStatement(sql);
+	     ps.setString(1, accType);
+	 }
+
+	 ResultSet rs = ps.executeQuery();
+
+	    out.println("<div class='lookup-container'>");
+	    out.println("<div class='lookup-title'>Select GL Account</div>");
+	    out.println("<div class='lookup-table-wrapper'>");
+	    out.println("<table class='lookup-table'>");
+
+	    out.println("<tr>");
+	    out.println("<th>GL Account Code</th>");
+	    out.println("<th>Description</th>");
+	    out.println("</tr>");
+
+	    while (rs.next()) {
+
+	    	String glCode = rs.getString("GLACCOUNT_CODE");
+	    	String desc = rs.getString("DESCRIPTION");
+
+	    	if (glCode == null) glCode = "";
+	    	if (desc == null) desc = "";
+
+	    	glCode = glCode.replace("'", "\\'");
+	    	desc = desc.replace("'", "\\'");
+
+	        out.println("<tr class='lookup-row' onclick=\"selectGL('"
+	                + glCode + "','" + desc + "')\">");
+
+	        out.println("<td>" + glCode + "</td>");
+	        out.println("<td>" + desc + "</td>");
+	        out.println("</tr>");
+	    }
+
+	    printTableFooter(out);
+
+	    rs.close();
+	    ps.close();
+	}
+ 
 }

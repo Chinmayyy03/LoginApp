@@ -31,15 +31,28 @@ if (sessionDate == null || sessionDate.isEmpty()) {
     sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
             .format(new java.util.Date());
 }
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
 %>
 
 <%
 String action = request.getParameter("action");
 
 String branchCode = request.getParameter("branch_code");
-String toDateUI = request.getParameter("to_date");
 
-if(branchCode==null) branchCode="";
+if (branchCode == null || branchCode.trim().isEmpty()) {
+    branchCode = sessionBranchCode;
+}
+
+/* 🔒 SECURITY */
+if (!"Y".equalsIgnoreCase(isSupportUser)) {
+    branchCode = sessionBranchCode;
+}
+String toDateUI = request.getParameter("to_date");
 
 if(toDateUI==null || toDateUI.trim().isEmpty()){
     toDateUI = sessionDate;
@@ -149,6 +162,18 @@ if("download".equals(action)){
 
         JasperPrint jasperPrint =
         JasperFillManager.fillReport(jasperReport,params,jrds);
+        
+        if (jasperPrint.getPages().isEmpty()) {
+
+            response.reset();
+            response.setContentType("text/html");
+
+            out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+            out.println("No Records Found!");
+            out.println("</h2>");
+
+            return;
+        }
 
         ServletOutputStream sos = response.getOutputStream();
 
@@ -229,6 +254,12 @@ var contextPath = "<%=request.getContextPath()%>";
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css?v=4">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
 
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 <style>
 
 .input-field:disabled{
@@ -306,12 +337,16 @@ target="_blank">
 name="branch_code"
 id="branch_code"
 class="input-field"
-value="<%=branchCode%>"
+value="<%=sessionBranchCode%>"
+<%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %>
 required>
 
+<% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
 <button type="button"
 class="icon-btn"
 onclick="openLookup('branch')">…</button>
+<% } %>
+
 </div>
 
 </div>

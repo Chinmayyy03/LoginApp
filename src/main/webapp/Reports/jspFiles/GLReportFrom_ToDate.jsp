@@ -14,6 +14,33 @@
 <%@ page import="db.DBConnection" %>
 
 <%
+Object obj = session.getAttribute("workingDate");
+
+String sessionDate = "";
+
+if (obj != null) {
+    if (obj instanceof java.sql.Date) {
+        sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                .format((java.sql.Date) obj);
+    } else {
+        sessionDate = obj.toString();
+    }
+}
+
+if (sessionDate == null || sessionDate.isEmpty()) {
+    sessionDate = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            .format(new java.util.Date());
+}
+
+String isSupportUser = (String) session.getAttribute("isSupportUser");
+String sessionBranchCode = (String) session.getAttribute("branchCode");
+
+if (isSupportUser == null) isSupportUser = "N";
+if (sessionBranchCode == null) sessionBranchCode = "";
+%>
+
+
+<%
 
 String action = request.getParameter("action");
 
@@ -87,13 +114,9 @@ parameters.put("report_title","GL BALANCE REPORT");
 parameters.put("SUBREPORT_DIR",
 application.getRealPath("/Reports/"));
 
-String userId=(String)session.getAttribute("user_id");
-
-if(userId==null || userId.trim().equals("")){
-userId="admin";
-}
-
-parameters.put("user_id",userId);
+/* ✅ USER ID (FIXED) */
+String userId = (String) session.getAttribute("userId");
+parameters.put("user_id", userId);
 
 parameters.put("IMAGE_PATH",
 application.getRealPath("/images/UPSB MONO.png"));
@@ -153,6 +176,18 @@ parameters.put(JRParameter.REPORT_CONNECTION, conn);
 jasperPrint =
 JasperFillManager.fillReport(jasperReport,parameters,jrRS);
 
+if (jasperPrint.getPages().isEmpty()) {
+
+    response.reset();
+    response.setContentType("text/html");
+
+    out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+    out.println("No Records Found!");
+    out.println("</h2>");
+
+    return;
+}
+
 }
 
 /* ---------------- CONSOLIDATED REPORT ---------------- */
@@ -197,6 +232,19 @@ parameters.put(JRParameter.REPORT_CONNECTION, conn);
 
 jasperPrint =
 JasperFillManager.fillReport(jasperReport,parameters,jrRS2);
+
+//🔥 CHECK IF NO DATA
+if (jasperPrint.getPages().isEmpty()) {
+
+    response.reset();
+    response.setContentType("text/html");
+
+    out.println("<h2 style='color:red;text-align:center;margin-top:50px;'>");
+    out.println("No Records Found!");
+    out.println("</h2>");
+
+    return;
+}
 
 }
 
@@ -284,8 +332,15 @@ try{conn.close();}catch(Exception ignored){}
 
 <title>GL Balance Report</title>
 
-<link rel="stylesheet"
-href="<%=request.getContextPath()%>/css/common-report.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/common-report.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/lookup.css">
+
+<script>
+var contextPath = "<%=request.getContextPath()%>";
+</script>
+
+<script src="<%=request.getContextPath()%>/js/lookup.js"></script>
+
 
 <style>
 
@@ -293,6 +348,35 @@ href="<%=request.getContextPath()%>/css/common-report.css">
 display:flex;
 gap:40px;
 margin-top:6px;
+}
+
+.input-box { display:flex; gap:10px; }
+
+.icon-btn {
+    background:#2D2B80;
+    color:white;
+    border:none;
+    width:40px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:#f5f5f5;
+    width:80%;
+    max-height:85%;
+    padding:20px;
+    border-radius:8px;
 }
 
 </style>
@@ -317,26 +401,56 @@ autocomplete="off">
 <div class="parameter-section">
 
 <div class="parameter-group">
-<div class="parameter-label">Branch Code</div>
+                <div class="parameter-label">Branch Code</div>
+                <div class="input-box">
 
-<input type="text"
-name="branch_code"
-class="input-field"
-value="<%= session.getAttribute("branch_code")!=null ? session.getAttribute("branch_code") : "0002" %>"
-required>
+        <input type="text"
+               id="branch_code"
+               name="branch_code"
+               class="input-field"
+               value="<%= sessionBranchCode %>"
+               <%= !"Y".equalsIgnoreCase(isSupportUser.trim()) ? "readonly" : "" %> >
 
+        <% if ("Y".equalsIgnoreCase(isSupportUser.trim())) { %>
+            <button type="button"
+                    class="icon-btn"
+                    onclick="openLookup('branch')">…</button>
+        <% } %>
+
+    </div>
+            </div>
+            
+            <div class="parameter-group">
+    <div class="parameter-label">Branch Name</div>
+    <input type="text" id="branchName" class="input-field" readonly>
 </div>
 
 <div class="parameter-group">
-<div class="parameter-label">GL Account Code</div>
+    <div class="parameter-label">GL Account Code</div>
 
-<input type="text"
-name="glaccount_code"
-class="input-field"
-value="00000000101143"
-placeholder="Optional">
+    <div class="input-box">
 
+        <input type="text"
+               id="product_code"
+               name="glaccount_code"
+               class="input-field"
+               placeholder="Select GL Account">
+
+        <!-- 🔥 LOOKUP BUTTON -->
+        <button type="button"
+                class="icon-btn"
+                onclick="openLookup('glByAccountType')">…</button>
+
+    </div>
 </div>
+
+<div class="parameter-group">
+    <div class="parameter-label">Account Name</div>
+    <input type="text" id="productName" class="input-field" readonly>
+</div>
+
+<!-- 🔥 IMPORTANT -->
+<input type="hidden" id="account_type" name="account_type">
 
 <div class="parameter-group">
 <div class="parameter-label">From Date</div>
@@ -344,7 +458,7 @@ placeholder="Optional">
 <input type="date"
 name="from_date"
 class="input-field"
-value="2025-03-29"
+value="<%= sessionDate %>"
 required>
 
 </div>
@@ -355,7 +469,6 @@ required>
 <input type="date"
 name="to_date"
 class="input-field"
-value="2025-03-29"
 required>
 
 </div>
@@ -471,6 +584,13 @@ Consolidated Report
 
 </form>
 
+</div>
+
+<div id="lookupModal" class="modal">
+    <div class="modal-content">
+        <button onclick="closeLookup()" style="float:right;">✖</button>
+        <div id="lookupTable"></div>
+    </div>
 </div>
 
 </body>

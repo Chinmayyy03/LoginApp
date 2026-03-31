@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SizewiseTDDetail" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="116d943f-a0ab-4da4-aa2b-cb02bb698f77">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="31"/>
+	<property name="ireport.y" value="71"/>
 	<parameter name="branch_code" class="java.lang.String"/>
 	<parameter name="report_title" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
@@ -25,6 +25,9 @@
 	<parameter name="CITY_CODE" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="user_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select p, description, slab, noac, total, ainner
 from(
@@ -33,12 +36,12 @@ from(
   substr(account_code, 5, 3) p,b. ainner
 from BANKDATA.SIZEWISEAMOUNT a, BANKDATA.SIZEWISE b
   where b.branch_code = '$P!{branch_code}'
--- and b.balance>=a.amount_from
- --and  b.balance<=a.amount_to
+and b.balance>=a.amount_from
+ and  b.balance<=a.amount_to
   group by (a.amount_from || ' To ' || a.amount_to) , b.ainner, substr(account_code, 5, 3)
  ) , headoffice.product
   where p = product_code
- -- order by p, ainner]]>
+ order by p, ainner]]>
 	</queryString>
 	<field name="P" class="java.lang.String"/>
 	<field name="DESCRIPTION" class="java.lang.String"/>
@@ -218,7 +221,7 @@ from BANKDATA.SIZEWISEAMOUNT a, BANKDATA.SIZEWISE b
 	<pageFooter>
 		<band height="20">
 			<textField pattern="dd/MM/yyyy h.mm a">
-				<reportElement x="1" y="0" width="100" height="20" uuid="01a33168-2c99-4407-8083-d7f914ccf043"/>
+				<reportElement x="47" y="0" width="100" height="20" uuid="01a33168-2c99-4407-8083-d7f914ccf043"/>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<textField>
@@ -233,6 +236,10 @@ from BANKDATA.SIZEWISEAMOUNT a, BANKDATA.SIZEWISE b
 			<line>
 				<reportElement x="0" y="0" width="556" height="1" uuid="5c760ec5-3475-460f-a6c8-99201c0696e9"/>
 			</line>
+			<textField>
+				<reportElement x="1" y="0" width="46" height="20" uuid="040af7d4-87fc-4ae2-ac91-b6f162c7d701"/>
+				<textFieldExpression><![CDATA[$P{user_id}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageFooter>
 	<summary>
