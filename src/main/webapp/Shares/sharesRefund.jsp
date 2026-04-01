@@ -24,7 +24,9 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #eaeaf5; min-height: 100vh; padding: 24px 28px 44px; color: #1a1a6e; }
         .page-title { text-align: center; font-size: 1.45rem; font-weight: 800; color: #1a1a6e; margin-bottom: 4px; }
-        .box { background: #fff; border: 1.5px solid #c0c0e0; border-radius: 12px; position: relative; margin-bottom: 16px; overflow: hidden; }
+
+        .box { background: #fff; border: 1.5px solid #c0c0e0; border-radius: 12px; position: relative; margin-bottom: 20px; padding: 0 0 18px; }
+
         .shared-grid { display: grid; grid-template-columns: 22% 33% 45%; }
         .cell { padding: 12px 20px 20px; border-right: 1.5px dashed #dcdcf0; display: flex; flex-direction: column; gap: 9px; }
         .cell:last-child { border-right: none; }
@@ -39,6 +41,12 @@
         input:focus { border-color: #5050b0; box-shadow: 0 0 0 2px rgba(80,80,176,.10); }
         input[readonly], input[disabled] { background: #ebebf5; color: #6060a0; border-color: #d0d0e8; cursor: default; }
         input::placeholder { color: #a0a0c8; font-size: .82rem; }
+
+        /* ── Field error state ── */
+        input.field-error { border-color: #cc2222 !important; box-shadow: 0 0 0 2px rgba(200,30,30,.18) !important; }
+        .field-error-msg { color: #cc2222; font-size: .70rem; margin-top: 2px; display: none; }
+        .field-error-msg.show { display: block; }
+
         .hint-xs { color: #8080b0; font-size: .70rem; margin-top: 1px; }
         .ib { display: flex; gap: 5px; align-items: center; width: 100%; }
         .ib input { flex: 1; min-width: 0; }
@@ -66,7 +74,7 @@
         @keyframes sp { to { transform: rotate(360deg); } }
 
         /* ── Payment / Transfer Tables ── */
-        .tr-table-wrap { display: none; border-top: 1.5px solid #4a4aaa; overflow: hidden; margin: 0; }
+        .tr-table-wrap { display: none; border: 1.5px solid #4a4aaa; border-radius: 0; overflow: hidden; margin: 20px 16px 0; }
         .tr-table-wrap.show { display: block; }
         .tr-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
         .tr-table thead tr { background: #3a3a9a; color: #fff; }
@@ -84,12 +92,11 @@
         .btn-remove:hover { background: #fff0f0; }
 
         /* ── Panels ── */
-        #acDetails { display: none; padding: 20px 24px 24px; background: #eaeaf5; }
+        #acDetails { display: none; margin: 24px 16px 0; }
         #acDetails.show { display: block; }
-        #trDetails { display: none; padding: 20px 24px 24px; background: #eaeaf5; }
+        #trDetails { display: none; margin: 24px 16px 0; }
         #trDetails.show { display: block; }
-        /* Transfer row-click detail panel — sits below the tr table */
-        #trRowDetails { display: none; padding: 20px 24px 24px; background: #eaeaf5; }
+        #trRowDetails { display: none; margin: 24px 16px 0; }
         #trRowDetails.show { display: block; }
 
         .ac-info-box { background: #fff; border: 1.5px solid #c0c0e0; border-radius: 12px; padding: 22px 20px 20px; position: relative; }
@@ -146,6 +153,13 @@
         .btn-ok-red:hover  { background: #aa1a1a !important; }
         .btn-ok-grey { background: #909090 !important; }
         .btn-ok-grey:hover { background: #707070 !important; }
+        .toast-wrap { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #c0c0e0; border-left: 4px solid #3535a0; border-radius: 8px; padding: 11px 16px 11px 14px; font-size: .84rem; color: #1a1a6e; box-shadow: 0 4px 18px rgba(30,30,100,.13); pointer-events: all; min-width: 260px; max-width: 420px; animation: toastIn .22s ease; }
+        .toast-icon { width: 20px; height: 20px; background: #3535a0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: .72rem; font-weight: 900; line-height: 20px; text-align: center; }
+        .toast-msg { flex: 1; line-height: 1.45; }
+        .toast-close { background: none; border: none; cursor: pointer; color: #9898c8; font-size: 1rem; line-height: 1; padding: 0 0 0 6px; flex-shrink: 0; }
+        .toast-close:hover { color: #3535a0; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -175,6 +189,7 @@
                         <span class="spin" id="spinMain"></span>
                     </div>
                     <span class="hint-xs">Type last 7 digits to search</span>
+                    <span class="field-error-msg" id="errAccountCode">Account code is required</span>
                 </div>
             </div>
             <div class="cell">
@@ -199,6 +214,7 @@
                             <input type="number" id="payAmt" placeholder="0.00" min="0" step="0.01"/>
                             <button class="btn-add" type="button" onclick="doAddPayment()">Add</button>
                         </div>
+                        <span class="field-error-msg" id="errPayment">Please add a payment entry</span>
                     </div>
                 </div>
             </div>
@@ -211,8 +227,17 @@
             </div>
             <div class="cell">
                 <div class="cell-inner">
-                    <div class="fg"><label>Meeting Date</label><input type="date" id="meetDate"/></div>
-                    <div class="fg"><label>Particular</label>  <input type="text" id="particular" placeholder="Enter particular"/></div>
+                    <div class="fg">
+                        <label>Meeting Date</label>
+                        <input type="date" id="meetDate"
+                               oninput="clearFieldError('meetDate','errMeetDate');"/>
+                        <span class="field-error-msg" id="errMeetDate">Meeting date is required</span>
+                    </div>
+                    <div class="fg">
+                        <label>Particular</label>
+                        <input type="text" id="particular" placeholder="Enter particular"/>
+                        <span class="field-error-msg" id="errParticular">Particular is required</span>
+                    </div>
                 </div>
             </div>
             <div class="cell">
@@ -296,7 +321,7 @@
             </div>
         </div>
 
-        <!-- ══ Main Account Details Panel (focused on accountCode) ══ -->
+        <!-- ══ Main Account Details Panel ══ -->
         <div id="acDetails">
             <div class="ac-info-box">
                 <div class="ac-info-title">Account Information</div>
@@ -311,7 +336,7 @@
             </div>
         </div>
 
-        <!-- ══ Transfer Account Details Panel (focused on trCode field) ══ -->
+        <!-- ══ Transfer Account Details Panel ══ -->
         <div id="trDetails">
             <div class="ac-info-box">
                 <div class="ac-info-title">
@@ -336,6 +361,18 @@
     <div class="act-bar">
         <button class="btn-primary" type="button" onclick="doSave()">Save</button>
         <button class="btn-danger"  type="button" onclick="doCancel()">Clear</button>
+    </div>
+
+    <!-- ── Success Popup ── -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-modal">
+            <div class="success-tick" style="color:#22aa55;">&#10003;</div>
+            <div class="success-title">Shares Refund Processed!</div>
+            <div class="success-info">
+                Scroll No &nbsp;: &nbsp;<strong id="sc-scrollNo">&mdash;</strong>
+            </div>
+            <button class="btn-ok" onclick="closeSuccess()">OK</button>
+        </div>
     </div>
 
     <!-- ── Confirm Clear Popup ── -->
@@ -373,6 +410,8 @@
         </div>
     </div>
 
+    <div class="toast-wrap" id="toastWrap"></div>
+
     <script>
         var PAGE_URL   = '<%= request.getContextPath() %>/sharesRefund';
         var SEARCH_MIN = 3;
@@ -380,10 +419,46 @@
 
         var _timer = null, _prev = '', _ledgerBal = 0;
         var _maxRefundAmt = 0, _maxShares = 0;
-        /* Arrays that mirror the allotment pattern */
-        var _payEntries  = [];   /* Cash entries  */
-        var _trEntries   = [];   /* Transfer entries */
-        var _trLedgerMap = {};   /* code → ledger balance, for new-balance calc */
+        var _payEntries  = [];
+        var _trEntries   = [];
+        var _trLedgerMap = {};
+
+        /* ═══════════════════════════════════════════════
+           TOAST
+        ═══════════════════════════════════════════════ */
+        function showToast(msg, duration) {
+            duration = duration || 3500;
+            var wrap = document.getElementById('toastWrap');
+            var t = document.createElement('div');
+            t.className = 'toast';
+            t.innerHTML = '<div class="toast-icon">i</div>'
+                        + '<div class="toast-msg">' + xe(msg) + '</div>'
+                        + '<button class="toast-close" onclick="this.parentNode.remove()">&#215;</button>';
+            wrap.appendChild(t);
+            setTimeout(function() { if (t.parentNode) t.remove(); }, duration);
+        }
+
+        /* ═══════════════════════════════════════════════
+           FIELD ERROR HELPERS
+        ═══════════════════════════════════════════════ */
+        function setFieldError(inputId, msgId) {
+            var el = document.getElementById(inputId);
+            var mg = document.getElementById(msgId);
+            if (el) el.classList.add('field-error');
+            if (mg) mg.classList.add('show');
+        }
+        function clearFieldError(inputId, msgId) {
+            var el = document.getElementById(inputId);
+            var mg = document.getElementById(msgId);
+            if (el) el.classList.remove('field-error');
+            if (mg) mg.classList.remove('show');
+        }
+        function clearAllErrors() {
+            [['accountCode','errAccountCode'],['meetDate','errMeetDate'],['particular','errParticular']]
+                .forEach(function(p) { clearFieldError(p[0], p[1]); });
+            var pm = document.getElementById('errPayment');
+            if (pm) pm.classList.remove('show');
+        }
 
         /* ═══════════════════════════════════════════════
            PANEL SWITCHING
@@ -405,6 +480,7 @@
            LIVE SEARCH
         ═══════════════════════════════════════════════ */
         function onAcInput(v) {
+            clearFieldError('accountCode', 'errAccountCode');
             if (v !== _prev) { clearAcDetails(); _prev = v; }
             liveSearch(v, 'dropMain', 'main');
         }
@@ -467,6 +543,7 @@
                 document.getElementById('accountCode').value = code;
                 sv('accountName', name);
                 _prev = code;
+                clearFieldError('accountCode', 'errAccountCode');
                 fetchAc(code);
             }
         }
@@ -503,15 +580,13 @@
                     fetchShares(code);
                 } else {
                     clearAcDetails();
-                    alert(d && d.error ? d.error : 'Account not found.');
+                    showToast(d && d.error ? d.error : 'Account not found.');
                 }
             }, function() { hideSpin('spinMain'); clearAcDetails(); });
         }
 
         /* ═══════════════════════════════════════════════
            FETCH TRANSFER ACCOUNT DETAILS
-           Shows in the trDetails panel (focused state)
-           AND pre-calculates new ledger balance
         ═══════════════════════════════════════════════ */
         function fetchTrDetails(code) {
             if (!code) { hideTrDetails(); return; }
@@ -531,7 +606,6 @@
                     svBal('trLedgerBal',  d.lb);
                     svBal('trAvailBal',   d.ab);
 
-                    /* Refund ADDS to transfer account balance */
                     var refundAmt = parseFloat(document.getElementById('payAmt').value) || 0;
                     svBal('trNewLedgerBal', (lb + refundAmt).toFixed(2));
 
@@ -540,12 +614,11 @@
                     hideTrRowDetails();
                 } else {
                     clearTrDetails();
-                    alert(d && d.error ? d.error : 'Account not found.');
+                    showToast(d && d.error ? d.error : 'Account not found.');
                 }
             }, function() { hideSpin('spinTrDetails'); clearTrDetails(); });
         }
 
-        /* Hides the focused transfer panel and clears it */
         function hideTrDetails() {
             document.getElementById('trDetails').style.display = 'none';
             ['trDispCode','trDispName','trGlCode','trGlName','trCustId','trLedgerBal','trAvailBal','trNewLedgerBal'].forEach(function(id) {
@@ -570,7 +643,6 @@
                     sv('formNo',  (d.formNo || '0') + ' \u2014 ' + (d.toNo || '0'));
                     _maxRefundAmt = parseFloat(d.ta)  || 0;
                     _maxShares    = parseInt(d.ts, 10) || 0;
-                    /* Pre-fill amount with total refundable */
                     var payEl = document.getElementById('payAmt');
                     if (payEl && _maxRefundAmt > 0) {
                         payEl.value = _maxRefundAmt.toFixed(2);
@@ -591,6 +663,11 @@
             document.getElementById('btnTr').disabled  = !isT;
             document.getElementById('lblTransfer').classList.toggle('on',  isT);
             document.getElementById('lblCash').classList.toggle('on', !isT);
+
+            // ── Auto-set Particular based on mode ──
+            document.getElementById('particular').value = isT ? 'By Transfer' : 'By Cash';
+            clearFieldError('particular', 'errParticular');
+
             if (!isT) {
                 sv('trCode', ''); sv('trName', '');
                 document.getElementById('dropTr').classList.remove('on');
@@ -611,60 +688,57 @@
             var maxAmt   = _maxRefundAmt;
 
             if (isNaN(payAmt) || payAmt <= 0) {
-                alert('Please enter a valid amount greater than 0.');
+                showToast('Please enter a valid amount greater than 0.');
                 return;
             }
             if (maxAmt > 0 && payAmt > maxAmt + 0.001) {
-                alert('Refund amount \u20B9' + payAmt.toFixed(2) + ' cannot exceed total share amount \u20B9' + maxAmt.toFixed(2));
+                showToast('Refund amount \u20B9' + payAmt.toFixed(2) + ' cannot exceed total share amount \u20B9' + maxAmt.toFixed(2));
                 document.getElementById('payAmt').value = maxAmt.toFixed(2);
                 return;
             }
 
             if (isT) {
-                /* ── Transfer entry ── */
                 var trCode = document.getElementById('trCode').value.trim();
                 var trName = document.getElementById('trName').value.trim();
-                if (!trCode) { alert('Please select a Transfer Account Code.'); return; }
+                if (!trCode) { showToast('Please select a Transfer Account Code.'); return; }
 
-                /* Prevent same-account transfer */
                 var mainCode = document.getElementById('accountCode').value.trim();
-                if (trCode === mainCode) { alert('Transfer account cannot be the same as the main account.'); return; }
+                if (trCode === mainCode) { showToast('Transfer account cannot be the same as the main account.'); return; }
 
-                /* Prevent duplicate code */
                 for (var i = 0; i < _trEntries.length; i++) {
-                    if (_trEntries[i].code === trCode) { alert('This transfer account is already added.'); return; }
+                    if (_trEntries[i].code === trCode) { showToast('This transfer account is already added.'); return; }
                 }
 
-                /* Total already queued + new must not exceed max */
                 var already = _trEntries.reduce(function(s, e) { return s + e.amount; }, 0);
                 if (already + payAmt > maxAmt + 0.001) {
-                    alert('Total transfer amount cannot exceed \u20B9' + maxAmt.toFixed(2));
+                    showToast('Total transfer amount cannot exceed \u20B9' + maxAmt.toFixed(2));
                     return;
                 }
 
                 _trEntries.push({ code: trCode, name: trName, amount: payAmt });
 
-                /* Reset transfer input row */
                 sv('trCode', ''); sv('trName', '');
                 document.getElementById('payAmt').value = '';
                 document.getElementById('dropTr').classList.remove('on');
                 hideTrDetails();
                 hideTrRowDetails();
                 renderTrTable();
-                /* Keep acDetails hidden while transfer table is visible */
                 document.getElementById('acDetails').style.display = 'none';
+                // clear payment error if user has now added an entry
+                document.getElementById('errPayment').classList.remove('show');
 
             } else {
-                /* ── Cash entry (only one allowed, must equal total) ── */
-                if (_payEntries.length > 0) { alert('Cash entry already added.'); return; }
+                if (_payEntries.length > 0) { showToast('Cash entry already added.'); return; }
                 if (Math.abs(payAmt - maxAmt) > 0.001 && maxAmt > 0) {
-                    alert('Cash refund amount must equal total share amount \u20B9' + maxAmt.toFixed(2));
+                    showToast('Cash refund amount must equal total share amount \u20B9' + maxAmt.toFixed(2));
                     return;
                 }
                 var particular = document.getElementById('particular').value.trim() || 'By Cash';
                 _payEntries.push({ mode: 'Cash', amount: payAmt, particular: particular });
                 renderPayTable();
                 document.getElementById('acDetails').style.display = 'none';
+                // clear payment error if user has now added an entry
+                document.getElementById('errPayment').classList.remove('show');
             }
         }
 
@@ -717,7 +791,6 @@
                 var tr = document.createElement('tr');
                 tr.setAttribute('data-code', e.code);
 
-                /* Clickable cells → show row detail panel */
                 var clickCells = [ String(i + 1), 'TRCR', xe(e.code), xe(e.name) ];
                 for (var j = 0; j < clickCells.length; j++) {
                     var td = document.createElement('td');
@@ -750,10 +823,8 @@
 
         /* ═══════════════════════════════════════════════
            ROW CLICK → show trRowDetails panel
-           Refund ADDS to the transfer account balance
         ═══════════════════════════════════════════════ */
         function showTrRowDetails(code, rowAmt) {
-            /* Hide the focused-field trDetails panel while showing row detail */
             document.getElementById('trDetails').style.display = 'none';
             document.getElementById('acDetails').style.display = 'none';
 
@@ -771,7 +842,6 @@
                     document.getElementById('trRowCustId').value   = d.ci || '';
                     svBal('trRowLedger',    d.lb);
                     svBal('trRowAvail',     d.ab);
-                    /* Refund → balance INCREASES */
                     svBal('trRowNewLedger', (lb + rowAmt).toFixed(2));
 
                     document.getElementById('trRowDetails').style.display = 'block';
@@ -818,31 +888,44 @@
            SAVE
         ═══════════════════════════════════════════════ */
         function doSave() {
-            var acCode   = document.getElementById('accountCode').value.trim();
-            if (!acCode) { alert('Please select an Account Code.'); return; }
+            clearAllErrors();
 
-            var meetDate = document.getElementById('meetDate').value.trim();
-            if (!meetDate) { alert('Please select a Meeting Date.'); return; }
+            var acCode     = document.getElementById('accountCode').value.trim();
+            var meetDate   = document.getElementById('meetDate').value.trim();
+            var particular = document.getElementById('particular').value.trim();
+            var isT        = document.getElementById('modeTransfer').checked;
+            var maxAmt     = _maxRefundAmt;
+            var hasError   = false;
 
-            var isT      = document.getElementById('modeTransfer').checked;
-            var maxAmt   = _maxRefundAmt;
+            if (!acCode) {
+                setFieldError('accountCode', 'errAccountCode');
+                hasError = true;
+            }
+            if (!meetDate) {
+                setFieldError('meetDate', 'errMeetDate');
+                hasError = true;
+            }
+            if (!particular) {
+                setFieldError('particular', 'errParticular');
+                hasError = true;
+            }
 
             if (isT) {
                 var t = _trEntries.reduce(function(s, e) { return s + e.amount; }, 0);
                 if (_trEntries.length === 0 || (maxAmt > 0 && Math.abs(t - maxAmt) >= 0.001)) {
-                    alert('Please add transfer entries that equal the total refund amount \u20B9' + maxAmt.toFixed(2));
-                    return;
+                    document.getElementById('errPayment').classList.add('show');
+                    hasError = true;
                 }
             } else {
                 var p = _payEntries.reduce(function(s, e) { return s + e.amount; }, 0);
                 if (_payEntries.length === 0 || (maxAmt > 0 && Math.abs(p - maxAmt) >= 0.001)) {
-                    alert('Please add a cash payment entry equal to the total refund amount \u20B9' + maxAmt.toFixed(2));
-                    return;
+                    document.getElementById('errPayment').classList.add('show');
+                    hasError = true;
                 }
             }
 
-            var mode      = isT ? 'Transfer' : 'Cash';
-            var particular = document.getElementById('particular').value.trim();
+            if (hasError) return;
+
             if (!particular) particular = isT ? 'By Transfer' : 'By Cash';
 
             var trCodes = '[]';
@@ -856,7 +939,8 @@
 
             var body = 'accountCode=' + encodeURIComponent(acCode)
                      + '&meetDate='   + encodeURIComponent(meetDate)
-                     + '&mode='       + encodeURIComponent(mode)
+                     + '&noShares='   + encodeURIComponent(_maxShares)
+                     + '&mode='       + encodeURIComponent(isT ? 'Transfer' : 'Cash')
                      + '&trCodes='    + encodeURIComponent(trCodes)
                      + '&particular=' + encodeURIComponent(particular);
 
@@ -868,16 +952,24 @@
                 btnSave.disabled    = false;
                 btnSave.textContent = 'Save';
                 if (d && d.ok === true) {
-                    alert('Shares refund processed successfully.');
-                    clearForm();
+                    document.getElementById('sc-scrollNo').textContent = d.scrollNo || '\u2014';
+                    document.getElementById('successOverlay').classList.add('open');
                 } else {
-                    alert((d && d.error) ? d.error : 'Save failed.');
+                    showToast((d && d.error) ? d.error : 'Save failed.');
                 }
             }, function() {
                 btnSave.disabled    = false;
                 btnSave.textContent = 'Save';
-                alert('Network error. Please try again.');
+                showToast('Network error. Please try again.');
             });
+        }
+
+        /* ═══════════════════════════════════════════════
+           SUCCESS POPUP
+        ═══════════════════════════════════════════════ */
+        function closeSuccess() {
+            document.getElementById('successOverlay').classList.remove('open');
+            clearForm();
         }
 
         /* ═══════════════════════════════════════════════
@@ -889,9 +981,11 @@
 
         function clearForm() {
             clearAcDetails();
-            ['accountCode','trCode','trName','payAmt','particular','meetDate'].forEach(function(id) {
+            clearAllErrors();
+            ['accountCode','trCode','trName','payAmt','meetDate'].forEach(function(id) {
                 var el = document.getElementById(id); if (el) el.value = '';
             });
+            document.getElementById('particular').value = 'By Cash';
             document.getElementById('dropMain').classList.remove('on');
             document.getElementById('dropTr').classList.remove('on');
             document.getElementById('modeCash').checked = true;
@@ -976,6 +1070,7 @@
                 document.getElementById('accountCode').value = code;
                 sv('accountName', name);
                 _prev = code;
+                clearFieldError('accountCode', 'errAccountCode');
                 fetchAc(code);
             }
         }
@@ -1045,6 +1140,9 @@
            INIT
         ═══════════════════════════════════════════════ */
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default particular on load
+            document.getElementById('particular').value = 'By Cash';
+
             document.addEventListener('click', function(e) {
                 if (!e.target.closest || !e.target.closest('.sw')) {
                     document.getElementById('dropMain').classList.remove('on');

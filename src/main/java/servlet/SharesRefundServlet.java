@@ -16,7 +16,7 @@ import java.util.List;
 public class SharesRefundServlet extends HttpServlet {
 
     private static final String AC_TYPE_SHARES   = "901";
-    private static final String AC_TYPE_TRANSFER = "901"; // Changed: Transfer A/c also searches savings (901)
+    private static final String AC_TYPE_TRANSFER = "201"; // Savings accounts
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -197,6 +197,7 @@ public class SharesRefundServlet extends HttpServlet {
         String ac = nvl(req.getParameter("code")).trim();
         if (ac.isEmpty()) { pw.print("{\"error\":\"Code required\"}"); return; }
 
+        // Totals across ALL active certificates for this account
         String sqlTotals =
             "SELECT NVL(SUM(NUMBEROF_SHARES), 0)               AS TOTAL_SHARES, " +
             "       NVL(SUM(TOTAL_SHARESAMOUNT), 0)            AS TOTAL_AMT, " +
@@ -205,6 +206,7 @@ public class SharesRefundServlet extends HttpServlet {
             "WHERE ACCOUNT_NUMBER = ? " +
             "  AND STATUS = 'A'";
 
+        // Latest certificate details (for display only)
         String sqlLatest =
             "SELECT * FROM (" +
             "  SELECT CERTIFICATE_NUMBER, MEMBER_NUMBER, FROM_NUMBER, TO_NUMBER " +
@@ -269,6 +271,9 @@ public class SharesRefundServlet extends HttpServlet {
         }
     }
 
+    // =========================================================================
+    // SAVE — Refund Logic
+    // =========================================================================
     private void handleSave(HttpServletRequest req, PrintWriter pw) {
 
         HttpSession session   = req.getSession(false);
@@ -284,6 +289,7 @@ public class SharesRefundServlet extends HttpServlet {
         String particular     = nvl(req.getParameter("particular")).trim();
         if (particular.isEmpty()) particular = "Share Refund";
 
+        // Basic validations
         if (mainAccCode.isEmpty()) { pw.print("{\"error\":\"Account code required\"}");  return; }
         if (meetDateStr.isEmpty()) { pw.print("{\"error\":\"Meeting date required\"}");   return; }
         if (noSharesStr.isEmpty()) { pw.print("{\"error\":\"No. of shares required\"}");  return; }
@@ -293,8 +299,8 @@ public class SharesRefundServlet extends HttpServlet {
         catch (Exception ex) { pw.print("{\"error\":\"Invalid shares count\"}"); return; }
         if (noShares < 1) { pw.print("{\"error\":\"Minimum 1 share required\"}"); return; }
 
-        java.sql.Date issueDate;
-        try { issueDate = java.sql.Date.valueOf(meetDateStr); }
+        java.sql.Date meetingDate;
+        try { meetingDate = java.sql.Date.valueOf(meetDateStr); }
         catch (Exception ex) { pw.print("{\"error\":\"Invalid meeting date\"}"); return; }
 
         boolean isTransfer  = "Transfer".equals(modeOfPay);
@@ -306,17 +312,18 @@ public class SharesRefundServlet extends HttpServlet {
             con = DBConnection.getConnection();
             con.setAutoCommit(false);
 
-            BigDecimal totalAmt   = new BigDecimal(noShares * 100L);
+            BigDecimal totalAmt       = new BigDecimal(noShares * 100L);
             java.sql.Date workingDate = getWorkingDate(con, branchCode);
 
-            String receiverTrnIndVal = isTransfer ? "TRCR" : "CSCR";
+            // ── VALIDATION via Fn_Get_Valid_Transaction for shares account ──
+            String sharesAccTrnInd = isTransfer ? "TRDR" : "CSDR";
             CallableStatement cs = null;
             try {
                 cs = con.prepareCall("{? = call Fn_Get_Valid_Transaction(?, ?, ?, ?)}");
                 cs.registerOutParameter(1, Types.CHAR);
                 cs.setString    (2, mainAccCode);
                 cs.setDate      (3, workingDate);
-                cs.setString    (4, receiverTrnIndVal);
+                cs.setString    (4, sharesAccTrnInd);
                 cs.setBigDecimal(5, totalAmt);
                 cs.execute();
                 String result = cs.getString(1);
@@ -328,21 +335,22 @@ public class SharesRefundServlet extends HttpServlet {
                 try { if (cs != null) cs.close(); } catch (Exception ex) { /* ignore */ }
             }
 
+            // ── Validate each transfer (receiving) account — TRCR ──
             if (isTransfer) {
                 for (String[] tr : trList) {
-                    String payerCode  = tr[0];
-                    BigDecimal payerAmt = new BigDecimal(tr[1]);
+                    String     recvCode = tr[0];
+                    BigDecimal recvAmt  = new BigDecimal(tr[1]);
                     try {
                         cs = con.prepareCall("{? = call Fn_Get_Valid_Transaction(?, ?, ?, ?)}");
                         cs.registerOutParameter(1, Types.CHAR);
-                        cs.setString    (2, payerCode);
+                        cs.setString    (2, recvCode);
                         cs.setDate      (3, workingDate);
-                        cs.setString    (4, "TRDR");
-                        cs.setBigDecimal(5, payerAmt);
+                        cs.setString    (4, "TRCR");
+                        cs.setBigDecimal(5, recvAmt);
                         cs.execute();
                         String result = cs.getString(1);
                         if (result != null && result.charAt(0) == 'Y') {
-                            pw.print("{\"error\":\"Account " + payerCode + ": "
+                            pw.print("{\"error\":\"Account " + recvCode + ": "
                                      + jsonSafe(result.substring(1).trim()) + "\"}");
                             return;
                         }
@@ -352,20 +360,18 @@ public class SharesRefundServlet extends HttpServlet {
                 }
             }
 
-            long existingCertNo = 0, existingMemNo = 0;
+            // ── Fetch the latest active certificate number (for success response only) ──
+            long existingCertNo = 0;
             ps = con.prepareStatement(
                 "SELECT * FROM (" +
-                "  SELECT CERTIFICATE_NUMBER, MEMBER_NUMBER " +
+                "  SELECT CERTIFICATE_NUMBER " +
                 "  FROM SHARES.CERTIFICATE_MASTER " +
                 "  WHERE ACCOUNT_NUMBER = ? AND STATUS = 'A' " +
                 "  ORDER BY CERTIFICATE_NUMBER DESC" +
                 ") WHERE ROWNUM = 1");
             ps.setString(1, mainAccCode);
             rs = ps.executeQuery();
-            if (rs.next()) {
-                existingCertNo = rs.getLong("CERTIFICATE_NUMBER");
-                existingMemNo  = rs.getLong("MEMBER_NUMBER");
-            }
+            if (rs.next()) existingCertNo = rs.getLong("CERTIFICATE_NUMBER");
             rs.close(); ps.close();
 
             if (existingCertNo == 0) {
@@ -373,57 +379,73 @@ public class SharesRefundServlet extends HttpServlet {
                 return;
             }
 
+            // ── Update ALL active certificate rows for this account ──
+            // Sets TR_STATUS='W' and TR_USERID on every STATUS='A' row, not just the latest
             ps = con.prepareStatement(
-                "UPDATE SHARES.CERTIFICATE_MASTER SET STATUS = 'R' " +
-                "WHERE CERTIFICATE_NUMBER = ? AND ACCOUNT_NUMBER = ?");
-            ps.setLong  (1, existingCertNo);
+                "UPDATE SHARES.CERTIFICATE_MASTER " +
+                "SET TR_STATUS = 'W', TR_USERID = ? " +
+                "WHERE ACCOUNT_NUMBER = ? AND STATUS = 'A'");
+            ps.setString(1, userId);
             ps.setString(2, mainAccCode);
-            ps.executeUpdate(); ps.close();
+            ps.executeUpdate();
+            ps.close();
 
+            // ── One scroll number for the whole transaction ──
             long scrollNo  = getNextScrollNumber(con);
             int  subScroll = 1;
 
-            String mainGlCode        = getGlCode(con, mainAccCode);
+            // ── GL and balance info for shares account ──
+            String     mainGlCode    = getGlCode(con, mainAccCode);
             BigDecimal mainLedgerBal = getLedgerBalance(con, mainAccCode);
 
-            String forAccCodeReceiver = mainAccCode;
+            // ── Determine FORACCOUNT_CODE for the shares account row ──
+            // For Transfer: use the transfer account with the HIGHEST amount
+            // For Cash: use mainAccCode itself
+            String forAccCodeSharesRow = mainAccCode;
             if (isTransfer && !trList.isEmpty()) {
                 String[]   highestPayer = trList.get(0);
                 BigDecimal highestAmt   = new BigDecimal(highestPayer[1]);
                 for (String[] tr : trList) {
                     BigDecimal amt = new BigDecimal(tr[1]);
-                    if (amt.compareTo(highestAmt) > 0) { highestAmt = amt; highestPayer = tr; }
+                    if (amt.compareTo(highestAmt) > 0) {
+                        highestAmt   = amt;
+                        highestPayer = tr;
+                    }
                 }
-                forAccCodeReceiver = highestPayer[0];
+                forAccCodeSharesRow = highestPayer[0];
             }
 
-            String     receiverTrnInd = isTransfer ? "TRCR" : "CSCR";
-            BigDecimal receiverNewBal = mainLedgerBal.subtract(totalAmt);
-            BigDecimal mainGlBal      = getGlBalance(con, branchCode, mainGlCode);
-            BigDecimal mainNewGlBal   = mainGlBal.subtract(totalAmt);
+            // ── Insert shares account row (SUBSCROLL = 1) ──
+            // Shares account is DEBITED for refund
+            String     sharesRowTrnInd = isTransfer ? "TRDR" : "CSDR";
+            BigDecimal sharesNewBal    = mainLedgerBal.subtract(totalAmt);
+            BigDecimal mainGlBal       = getGlBalance(con, branchCode, mainGlCode);
+            BigDecimal mainNewGlBal    = mainGlBal.subtract(totalAmt);
 
-            insertDailyScroll(con, ps,
+            insertDailyScroll(con,
                 branchCode, workingDate, scrollNo, subScroll++,
-                mainAccCode, mainGlCode, forAccCodeReceiver,
-                receiverTrnInd, totalAmt,
-                receiverNewBal, mainNewGlBal,
+                mainAccCode, mainGlCode, forAccCodeSharesRow,
+                sharesRowTrnInd, totalAmt,
+                sharesNewBal, mainNewGlBal,
                 userId, particular);
 
+            // ── Insert transfer account rows (SUBSCROLL = 2, 3, ...) ──
+            // Transfer accounts are CREDITED (receive the refund money)
             if (isTransfer) {
                 for (String[] tr : trList) {
-                    String     payerCode     = tr[0];
-                    BigDecimal payerAmt      = new BigDecimal(tr[1]);
-                    String     payerGlCode   = getGlCode(con, payerCode);
-                    BigDecimal payerLedgerBal = getLedgerBalance(con, payerCode);
-                    BigDecimal payerNewBal    = payerLedgerBal.add(payerAmt);
-                    BigDecimal payerGlBal     = getGlBalance(con, branchCode, payerGlCode);
-                    BigDecimal payerNewGlBal  = payerGlBal.add(payerAmt);
+                    String     recvCode      = tr[0];
+                    BigDecimal recvAmt       = new BigDecimal(tr[1]);
+                    String     recvGlCode    = getGlCode(con, recvCode);
+                    BigDecimal recvLedgerBal = getLedgerBalance(con, recvCode);
+                    BigDecimal recvNewBal    = recvLedgerBal.add(recvAmt);
+                    BigDecimal recvGlBal     = getGlBalance(con, branchCode, recvGlCode);
+                    BigDecimal recvNewGlBal  = recvGlBal.add(recvAmt);
 
-                    insertDailyScroll(con, ps,
+                    insertDailyScroll(con,
                         branchCode, workingDate, scrollNo, subScroll++,
-                        payerCode, payerGlCode, mainAccCode,
-                        "TRDR", payerAmt,
-                        payerNewBal, payerNewGlBal,
+                        recvCode, recvGlCode, mainAccCode,
+                        "TRCR", recvAmt,
+                        recvNewBal, recvNewGlBal,
                         userId, particular);
                 }
             }
@@ -443,11 +465,10 @@ public class SharesRefundServlet extends HttpServlet {
     }
 
     // =========================================================================
-    // DB HELPERS
+    // INSERT DAILY SCROLL
     // =========================================================================
-
     private void insertDailyScroll(
-            Connection con, PreparedStatement ps,
+            Connection con,
             String branchCode, java.sql.Date scrollDate,
             long scrollNo, int subScrollNo,
             String accountCode, String glCode, String forAccountCode,
@@ -455,7 +476,7 @@ public class SharesRefundServlet extends HttpServlet {
             BigDecimal accountBalance, BigDecimal glBalance,
             String userId, String particular) throws SQLException {
 
-        ps = con.prepareStatement(
+        PreparedStatement ps = con.prepareStatement(
             "INSERT INTO TRANSACTION.DAILYSCROLL " +
             "  (BRANCH_CODE, SCROLL_DATE, SCROLL_NUMBER, SUBSCROLL_NUMBER, " +
             "   ACCOUNT_CODE, GLACCOUNT_CODE, FORACCOUNT_CODE, " +
@@ -465,24 +486,30 @@ public class SharesRefundServlet extends HttpServlet {
             "   GLBRANCH_CODE, CREATED_DATE, MODIFIED_DATE, RECON_CODE) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'N', 'E', " +
             "        0, NULL, NULL, NULL, SYSTIMESTAMP, SYSTIMESTAMP, NULL)");
-
-        ps.setString    (1,  branchCode);
-        ps.setDate      (2,  scrollDate);
-        ps.setLong      (3,  scrollNo);
-        ps.setInt       (4,  subScrollNo);
-        ps.setString    (5,  accountCode);
-        ps.setString    (6,  glCode);
-        if (forAccountCode != null) ps.setString(7, forAccountCode);
-        else                        ps.setNull  (7, java.sql.Types.CHAR);
-        ps.setString    (8,  trnInd);
-        ps.setBigDecimal(9,  amount);
-        ps.setBigDecimal(10, accountBalance);
-        ps.setBigDecimal(11, glBalance);
-        ps.setString    (12, particular);
-        ps.setString    (13, userId);
-        ps.executeUpdate();
-        ps.close();
+        try {
+            ps.setString    (1,  branchCode);
+            ps.setDate      (2,  scrollDate);
+            ps.setLong      (3,  scrollNo);
+            ps.setInt       (4,  subScrollNo);
+            ps.setString    (5,  accountCode);
+            ps.setString    (6,  glCode);
+            if (forAccountCode != null) ps.setString(7, forAccountCode);
+            else                        ps.setNull  (7, java.sql.Types.CHAR);
+            ps.setString    (8,  trnInd);
+            ps.setBigDecimal(9,  amount);
+            ps.setBigDecimal(10, accountBalance);
+            ps.setBigDecimal(11, glBalance);
+            ps.setString    (12, particular);
+            ps.setString    (13, userId);
+            ps.executeUpdate();
+        } finally {
+            try { ps.close(); } catch (Exception ex) { /* ignore */ }
+        }
     }
+
+    // =========================================================================
+    // DB HELPERS
+    // =========================================================================
 
     private String getGlCode(Connection con, String accountCode) throws SQLException {
         PreparedStatement ps = null; ResultSet rs = null;
