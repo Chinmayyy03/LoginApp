@@ -163,7 +163,7 @@
 			        </div>
 			        
 			        <!-- Tallied Message -->
-			        <div id="talliedMessage" style="display: none; color: green; font-weight: bold; font-size: 16px; margin-left: 20px;">
+			        <div id="talliedMessage" style="display: none; color: green; font-weight: bold; font-size: 16px;">
 			            ✓ Transaction tallied
 			        </div>
 			    </div>
