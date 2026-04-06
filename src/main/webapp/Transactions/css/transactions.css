@@ -125,12 +125,11 @@
         }
 
         .radio-group-inline {
-            display: flex;
             align-items: center;
         }
 
         .radio-group-inline .label {
-            margin-bottom: 0;
+            margin-bottom: 8px;
             margin-right: 10px;
         }
 
