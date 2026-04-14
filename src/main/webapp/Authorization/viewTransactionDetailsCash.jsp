@@ -50,7 +50,6 @@
         psTransaction = conn.prepareStatement(
             "SELECT " +
             "  BRANCH_CODE, " +
-            "  SCROLL_DATE, " +
             "  SCROLL_NUMBER, " +
             "  SUBSCROLL_NUMBER, " +
             "  ACCOUNT_CODE, " +
@@ -67,15 +66,8 @@
             "  TRANIDENTIFICATION_ID, " +
             "  PARTICULAR, " +
             "  USER_ID, " +
-            "  IS_PASSBOOK_PRINTED, " +
-            "  TRANSACTIONSTATUS, " +
-            "  OFFICER_ID, " +
-            "  AUTHORISE_DATE, " +
             "  CASHHANDLING_NUMBER, " +
-            "  GLBRANCH_CODE, " +
-            "  CREATED_DATE, " +
-            "  MODIFIED_DATE, " +
-            "  RECON_CODE " +
+            "  GLBRANCH_CODE " +
             "FROM TRANSACTION.DAILYSCROLL " +
             "WHERE SCROLL_NUMBER = ? " +
             "  AND TRANSACTIONSTATUS = 'E' " +
@@ -173,10 +165,6 @@
           <input readonly value="<%= getStringSafe(rsTransaction, "BRANCH_CODE") %>">
         </div>
         <div>
-          <label>SCROLL DATE</label>
-          <input readonly value="<%= formatDateForInput(rsTransaction, "SCROLL_DATE") %>">
-        </div>
-        <div>
           <label>SCROLL NUMBER</label>
           <input readonly value="<%= getStringSafe(rsTransaction, "SCROLL_NUMBER") %>">
         </div>
@@ -241,40 +229,12 @@
           <input readonly value="<%= getStringSafe(rsTransaction, "USER_ID") %>">
         </div>
         <div>
-          <label>IS_PASSBOOK_PRINTED</label>
-          <input readonly value="<%= getStringSafe(rsTransaction, "IS_PASSBOOK_PRINTED") %>">
-        </div>
-        <div>
-          <label>TRANSACTIONSTATUS</label>
-          <input readonly value="<%= getStringSafe(rsTransaction, "TRANSACTIONSTATUS") %>">
-        </div>
-        <div>
-          <label>OFFICER_ID</label>
-          <input readonly value="<%= getStringSafe(rsTransaction, "OFFICER_ID") %>">
-        </div>
-        <div>
-          <label>AUTHORISE_DATE</label>
-          <input readonly value="<%= formatDateForInput(rsTransaction, "AUTHORISE_DATE") %>">
-        </div>
-        <div>
           <label>CASHHANDLING_NUMBER</label>
           <input readonly value="<%= getStringSafe(rsTransaction, "CASHHANDLING_NUMBER") %>">
         </div>
         <div>
           <label>GLBRANCH_CODE</label>
           <input readonly value="<%= getStringSafe(rsTransaction, "GLBRANCH_CODE") %>">
-        </div>
-        <div>
-          <label>CREATED_DATE</label>
-          <input readonly value="<%= formatDateForInput(rsTransaction, "CREATED_DATE") %>">
-        </div>
-        <div>
-          <label>MODIFIED_DATE</label>
-          <input readonly value="<%= formatDateForInput(rsTransaction, "MODIFIED_DATE") %>">
-        </div>
-        <div>
-          <label>RECON_CODE</label>
-          <input readonly value="<%= getStringSafe(rsTransaction, "RECON_CODE") %>">
         </div>
       </div>
     </fieldset>
