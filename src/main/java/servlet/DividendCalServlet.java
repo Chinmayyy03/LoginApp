@@ -20,7 +20,6 @@ import java.util.Date;
 @WebServlet("/dividendCal")
 public class DividendCalServlet extends HttpServlet {
 
-    // ── Safe string for JSON ──
     private String jsonSafe(String s) {
         if (s == null) return "";
         return s.trim()
@@ -56,7 +55,6 @@ public class DividendCalServlet extends HttpServlet {
         String branchCode = nvl((String) sess.getAttribute("branchCode"));
         String userId     = nvl((String) sess.getAttribute("userId"));
 
-        // ── PDF action: streams binary, does NOT use JSON writer ──
         if ("reportPDF".equals(action)) {
             generatePDF(req, res, branchCode, userId);
             return;
@@ -68,6 +66,7 @@ public class DividendCalServlet extends HttpServlet {
 
         try {
             switch (action) {
+                case "getDefaults":    getDefaults(pw);                                 break;
                 case "getMemberTypes": getMemberTypes(pw);                              break;
                 case "getAccounts":    getAccounts(req, pw);                            break;
                 case "calculate":      calculate(req, pw, branchCode, userId);          break;
@@ -82,10 +81,53 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
+    // ACTION 0 — Auto-fill defaults from SHARES.SHARES_PARAMETER
+    //
+    //   FINANCIAL_YEARFROM  → yearBegin   (YYYY-MM-DD for HTML date input)
+    //   FINANCIAL_YEARTO    → yearEnd
+    //   NEXT_RESERVE_DATE   → divBalDate
+    //   DIVIDENT_PERCENTAGE → percentage
+    //
+    // Using BRANCH_CODE = '0100' as fixed reference for parameters.
+    // Change this to use the session branchCode when you're ready.
+    // ══════════════════════════════════════════
+    private void getDefaults(PrintWriter pw) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            String sql =
+            	    "SELECT TO_CHAR(FINANCIAL_YEARFROM,'YYYY-MM-DD') AS YEAR_FROM," +
+            	    " TO_CHAR(FINANCIAL_YEARTO,'YYYY-MM-DD') AS YEAR_TO," +
+            	    " TO_CHAR(NEXT_RESERVE_DATE,'YYYY-MM-DD') AS DIV_BAL_DATE," +
+            	    " DIVIDENT_PERCENTAGE" +
+            	    " FROM SHARES.SHARES_PARAMETER" +
+            	    " WHERE ROWNUM = 1";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                String yearFrom  = jsonSafe(rs.getString("YEAR_FROM"));
+                String yearTo    = jsonSafe(rs.getString("YEAR_TO"));
+                String balDate   = jsonSafe(rs.getString("DIV_BAL_DATE"));
+                String pct       = jsonSafe(rs.getString("DIVIDENT_PERCENTAGE"));
+                pw.print("{\"success\":true,"
+                    + "\"yearBegin\":\""  + yearFrom + "\","
+                    + "\"yearEnd\":\""    + yearTo   + "\","
+                    + "\"divBalDate\":\"" + balDate  + "\","
+                    + "\"percentage\":\""  + pct     + "\"}");
+            } else {
+            	pw.print("{\"success\":false,\"message\":\"No record found in SHARES.SHARES_PARAMETER\"}");
+            }
+        } catch (Exception e) {
+            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+        } finally {
+            closeQuietly(rs, ps, conn);
+        }
+    }
+
+    // ══════════════════════════════════════════
     // ACTION 1 — Get Member Types for Lookup Popup
-    // SUBSTR(ACCOUNT_NUMBER, 5, 3) extracts product code (901/902)
-    // from account number format e.g. 00029020051055 → 902
-    // Only STATUS = 'A' active accounts
     // ══════════════════════════════════════════
     private void getMemberTypes(PrintWriter pw) {
         Connection conn = null;
@@ -116,8 +158,6 @@ public class DividendCalServlet extends HttpServlet {
             sb.append("]");
             pw.print(sb.toString());
         } catch (Exception e) {
-            // FIX 4: Return error object instead of silently swallowing the exception.
-            // Previously returned "[]" which made the dropdown appear empty with no feedback.
             pw.print("{\"error\":\"" + jsonSafeErr(e) + "\"}");
         } finally {
             closeQuietly(rs, ps, conn);
@@ -126,8 +166,6 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 2 — Get count of active accounts
-    // Filters by MEMBER_TYPE and SUBSTR(ACCOUNT_NUMBER,5,3) = productCode
-    // Only STATUS = 'A'
     // ══════════════════════════════════════════
     private void getAccounts(HttpServletRequest req, PrintWriter pw) {
         String memberType  = nvl(req.getParameter("memberType"));
@@ -159,7 +197,6 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 3 — Calculate Dividend
-    // Calls sp_dividend_calc stored procedure
     // ══════════════════════════════════════════
     private void calculate(HttpServletRequest req, PrintWriter pw,
                            String branchCode, String userId) {
@@ -171,14 +208,9 @@ public class DividendCalServlet extends HttpServlet {
         CallableStatement cs = null;
         try {
             conn = DBConnection.getConnection();
-            // sp_dividend_calc(branch, working_date, div_bal_date, y_begin, y_end, mem_product)
             cs = conn.prepareCall("{call sp_dividend_calc(?,?,?,?,?,?)}");
             cs.setString(1, branchCode);
-            // FIX 2: p_working_date must be today's actual date, not yearBegin.
-            // Previously yearBegin was passed for both param 2 (working_date) and param 4 (y_begin_date),
-            // which caused sp_dividend_pay to skip posting because its date guard
-            // (IF p_working_date = v_div_post_date) never matched.
-            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
+            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime())); // working_date = today
             cs.setDate(3, java.sql.Date.valueOf(divBalDate));
             cs.setDate(4, java.sql.Date.valueOf(yearBegin));
             cs.setDate(5, java.sql.Date.valueOf(yearEnd));
@@ -194,16 +226,12 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 4 — Report (JSON for on-screen grid)
-    // Reads from shares.dividend_calc
-    //
-    // FIX 1: Filter by PRODUCT CODE (e.g. '901'/'902'), NOT member type letter ('A'/'B').
-    // sp_dividend_calc inserts p_mem_product_type (the product code) into the MEMBER_TYPE
-    // column of dividend_calc. The old code passed memberType ('A'/'B') which never
-    // matched the stored product code — causing the report to always return 0 rows.
+    // NOTE: productCode is passed as MEMBER_TYPE filter because
+    // sp_dividend_calc stores the product code in that column.
     // ══════════════════════════════════════════
     private void report(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
-        String memberType  = nvl(req.getParameter("memberType"));  // kept for reference/summary only
+        String memberType  = nvl(req.getParameter("memberType"));
         String yearBegin   = nvl(req.getParameter("yearBegin"));
         String yearEnd     = nvl(req.getParameter("yearEnd"));
         String divBalDate  = nvl(req.getParameter("divBalDate"));
@@ -223,8 +251,6 @@ public class DividendCalServlet extends HttpServlet {
                 "AND Y_BEGIN_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
                 "AND Y_END_DATE    = TO_DATE(?,'YYYY-MM-DD') " +
                 "AND DIV_BAL_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
-                // FIX 1: Use productCode here — the procedure stores product code ('901'/'902')
-                // in MEMBER_TYPE column, not the letter ('A'/'B').
                 "AND MEMBER_TYPE   = ? " +
                 "ORDER BY MEMBER_CODE";
             ps = conn.prepareStatement(sql);
@@ -232,7 +258,7 @@ public class DividendCalServlet extends HttpServlet {
             ps.setString(2, yearBegin);
             ps.setString(3, yearEnd);
             ps.setString(4, divBalDate);
-            ps.setString(5, productCode);   // FIX 1: was memberType, now productCode
+            ps.setString(5, productCode); // SP stores productCode in MEMBER_TYPE column
             rs = ps.executeQuery();
             double total = 0;
             int count = 0;
@@ -269,10 +295,6 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 7 — Generate PDF Report
-    // Streams a PDF directly to the browser (opens in new tab via JS window.open)
-    // Uses OpenPDF (com.github.librepdf:openpdf) — drop openpdf-x.x.x.jar in WEB-INF/lib
-    //
-    // FIX 3: Filter by productCode (not memberType) — same root cause as report() fix.
     // ══════════════════════════════════════════
     private void generatePDF(HttpServletRequest req, HttpServletResponse res,
                               String branchCode, String userId) throws IOException {
@@ -288,7 +310,6 @@ public class DividendCalServlet extends HttpServlet {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        // ── Colour palette matching the UI theme ──
         Color NAVY      = new Color(0x1a, 0x14, 0x64);
         Color LAVENDER  = new Color(0xE6, 0xE6, 0xFA);
         Color WHITE     = Color.WHITE;
@@ -310,8 +331,6 @@ public class DividendCalServlet extends HttpServlet {
                 "AND Y_BEGIN_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
                 "AND Y_END_DATE    = TO_DATE(?,'YYYY-MM-DD') " +
                 "AND DIV_BAL_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
-                // FIX 3: Use productCode here — same fix as report(). The procedure stores
-                // product code ('901'/'902') in MEMBER_TYPE, not the letter ('A'/'B').
                 "AND MEMBER_TYPE   = ? " +
                 "ORDER BY MEMBER_CODE";
             ps = conn.prepareStatement(sql);
@@ -319,10 +338,9 @@ public class DividendCalServlet extends HttpServlet {
             ps.setString(2, yearBegin);
             ps.setString(3, yearEnd);
             ps.setString(4, divBalDate);
-            ps.setString(5, productCode);   // FIX 3: was memberType, now productCode
+            ps.setString(5, productCode);
             rs = ps.executeQuery();
 
-            // ── collect rows first (need count/total for header) ──
             java.util.List<Object[]> dataRows = new java.util.ArrayList<>();
             double grandTotal = 0;
             while (rs.next()) {
@@ -342,7 +360,6 @@ public class DividendCalServlet extends HttpServlet {
                 });
             }
 
-            // ── stream PDF ──
             res.reset();
             res.setContentType("application/pdf");
             res.setHeader("Content-Disposition",
@@ -351,7 +368,6 @@ public class DividendCalServlet extends HttpServlet {
             Document doc = new Document(PageSize.A4.rotate(), 28, 28, 36, 28);
             PdfWriter writer = PdfWriter.getInstance(doc, res.getOutputStream());
 
-            // ── Page number footer via page events ──
             writer.setPageEvent(new PdfPageEventHelper() {
                 Font footFont = FontFactory.getFont(FontFactory.HELVETICA, 7, Color.GRAY);
                 @Override
@@ -361,98 +377,74 @@ public class DividendCalServlet extends HttpServlet {
                                        + "  |  shares.dividend_calc";
                     String footRight = "** System Generated Report **    Page " + w.getPageNumber();
                     ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
-                        new Phrase(footLeft, footFont),
-                        d.leftMargin(), d.bottomMargin() - 10, 0);
+                        new Phrase(footLeft, footFont), d.leftMargin(), d.bottomMargin() - 10, 0);
                     ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT,
-                        new Phrase(footRight, footFont),
-                        d.right() - d.rightMargin(), d.bottomMargin() - 10, 0);
+                        new Phrase(footRight, footFont), d.right() - d.rightMargin(), d.bottomMargin() - 10, 0);
                 }
             });
 
             doc.open();
 
             Font titleFont   = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, WHITE);
-            Font subFont     = FontFactory.getFont(FontFactory.HELVETICA,      9,  WHITE);
-            Font boldSmall   = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8,  NAVY);
-            Font normalSmall = FontFactory.getFont(FontFactory.HELVETICA,      8,  NAVY);
-            Font colHdr      = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7,  WHITE);
-            Font cellFont    = FontFactory.getFont(FontFactory.HELVETICA,      7,  NAVY);
-            Font cellFontB   = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7,  NAVY);
-            Font footTotFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8,  WHITE);
+            Font subFont     = FontFactory.getFont(FontFactory.HELVETICA,       9, WHITE);
+            Font boldSmall   = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  8, NAVY);
+            Font colHdr      = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  7, WHITE);
+            Font cellFont    = FontFactory.getFont(FontFactory.HELVETICA,        7, NAVY);
+            Font cellFontB   = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  7, NAVY);
+            Font footTotFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  8, WHITE);
 
-            // ── HEADER BANNER ──
+            // Banner
             PdfPTable banner = new PdfPTable(2);
             banner.setWidthPercentage(100);
             banner.setWidths(new float[]{3f, 1.6f});
             banner.setSpacingAfter(8);
-
             PdfPCell orgCell = new PdfPCell();
-            orgCell.setBackgroundColor(NAVY);
-            orgCell.setBorder(Rectangle.NO_BORDER);
-            orgCell.setPadding(10);
+            orgCell.setBackgroundColor(NAVY); orgCell.setBorder(Rectangle.NO_BORDER); orgCell.setPadding(10);
             orgCell.addElement(new Phrase("Co-operative Bank", titleFont));
             orgCell.addElement(new Phrase("Shares Division  —  Dividend Calculation Report", subFont));
             banner.addCell(orgCell);
-
             String today = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
             PdfPCell metaCell = new PdfPCell();
-            metaCell.setBackgroundColor(NAVY);
-            metaCell.setBorder(Rectangle.NO_BORDER);
-            metaCell.setPadding(10);
-            metaCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            metaCell.setBackgroundColor(NAVY); metaCell.setBorder(Rectangle.NO_BORDER);
+            metaCell.setPadding(10); metaCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             metaCell.addElement(new Phrase("Branch : " + branchCode + "    User : " + userId, subFont));
             metaCell.addElement(new Phrase("Date   : " + today, subFont));
             banner.addCell(metaCell);
             doc.add(banner);
 
-            // ── SUMMARY PILLS ──
+            // Summary pills
             PdfPTable summary = new PdfPTable(8);
-            summary.setWidthPercentage(100);
-            summary.setSpacingAfter(10);
-            String[] sumLabels = {
-                "Product Code", "Member Type", "Year Begin", "Year End",
-                "Div Bal Date", "Rate %", "Total Members", "Total Dividend"
-            };
-            String yb  = fmtDate(yearBegin);
-            String ye  = fmtDate(yearEnd);
-            String dbd = fmtDate(divBalDate);
-            String[] sumVals = {
-                productCode, memberType, yb, ye, dbd, percentage + "%",
-                String.valueOf(dataRows.size()),
-                "\u20B9 " + String.format("%,.2f", grandTotal)
-            };
+            summary.setWidthPercentage(100); summary.setSpacingAfter(10);
+            String[] sumLabels = { "Product Code","Member Type","Year Begin","Year End",
+                                   "Div Bal Date","Rate %","Total Members","Total Dividend" };
+            String[] sumVals   = { productCode, memberType, fmtDate(yearBegin), fmtDate(yearEnd),
+                                   fmtDate(divBalDate), percentage + "%",
+                                   String.valueOf(dataRows.size()),
+                                   "\u20B9 " + String.format("%,.2f", grandTotal) };
             for (int i = 0; i < sumLabels.length; i++) {
                 PdfPCell sc = new PdfPCell();
                 sc.setBackgroundColor(LAVENDER);
-                sc.setBorderColor(new Color(0xB8, 0xB8, 0xE6));
-                sc.setBorderWidth(0.5f);
-                sc.setPadding(5);
+                sc.setBorderColor(new Color(0xB8, 0xB8, 0xE6)); sc.setBorderWidth(0.5f); sc.setPadding(5);
                 sc.addElement(new Phrase(sumLabels[i], FontFactory.getFont(FontFactory.HELVETICA, 6.5f, NAVY)));
-                sc.addElement(new Phrase(sumVals[i],   boldSmall));
+                sc.addElement(new Phrase(sumVals[i], boldSmall));
                 summary.addCell(sc);
             }
             doc.add(summary);
 
-            // ── DATA TABLE ──
+            // Data table
             PdfPTable tbl = new PdfPTable(11);
             tbl.setWidthPercentage(100);
-            tbl.setWidths(new float[]{0.5f, 1.4f, 1.8f, 1.8f, 1.4f, 0.7f, 1.3f, 1.3f, 1.0f, 0.9f, 1.1f});
+            tbl.setWidths(new float[]{0.5f,1.4f,1.8f,1.8f,1.4f,0.7f,1.3f,1.3f,1.0f,0.9f,1.1f});
             tbl.setHeaderRows(1);
-
-            String[] headers = {
-                "#", "Member Code", "Payable Account", "SB Account",
-                "Bal for Div (\u20B9)", "Rate %",
-                "Div Amount (\u20B9)", "Post Amount (\u20B9)",
-                "Warrant No", "Status", "Txn Date"
-            };
+            String[] headers = { "#","Member Code","Payable Account","SB Account",
+                                  "Bal for Div (\u20B9)","Rate %",
+                                  "Div Amount (\u20B9)","Post Amount (\u20B9)",
+                                  "Warrant No","Status","Txn Date" };
             for (String h : headers) {
                 PdfPCell hc = new PdfPCell(new Phrase(h, colHdr));
-                hc.setBackgroundColor(NAVY);
-                hc.setBorder(Rectangle.NO_BORDER);
-                hc.setPaddingTop(5);
-                hc.setPaddingBottom(5);
-                hc.setPaddingLeft(4);
-                hc.setPaddingRight(4);
+                hc.setBackgroundColor(NAVY); hc.setBorder(Rectangle.NO_BORDER);
+                hc.setPaddingTop(5); hc.setPaddingBottom(5);
+                hc.setPaddingLeft(4); hc.setPaddingRight(4);
                 hc.setHorizontalAlignment(Element.ALIGN_CENTER);
                 tbl.addCell(hc);
             }
@@ -460,38 +452,35 @@ public class DividendCalServlet extends HttpServlet {
             int sr = 0;
             for (Object[] row : dataRows) {
                 sr++;
-                Color bg = (sr % 2 == 0) ? new Color(0xF0, 0xF0, 0xFA) : WHITE;
+                Color bg     = (sr % 2 == 0) ? new Color(0xF0,0xF0,0xFA) : WHITE;
+                String memCode  = nvlStr(row[0]);
+                String payAc    = nvlStr(row[1]);
+                String crAc     = nvlStr(row[2]);
+                double bal      = (Double) row[3];
+                double pct      = (Double) row[4];
+                double divAmt   = (Double) row[5];
+                double postAmt  = (Double) row[6];
+                long   warrNo   = (Long)   row[7];
+                long   txnNo    = (Long)   row[8];
+                String txnDate  = nvlStr(row[9]);
+                boolean posted  = txnNo != 0;
 
-                String  memCode  = nvlStr(row[0]);
-                String  payAc    = nvlStr(row[1]);
-                String  crAc     = nvlStr(row[2]);
-                double  bal      = (Double)  row[3];
-                double  pct      = (Double)  row[4];
-                double  divAmt   = (Double)  row[5];
-                double  postAmt  = (Double)  row[6];
-                long    warrNo   = (Long)    row[7];
-                long    txnNo    = (Long)    row[8];
-                String  txnDate  = nvlStr(row[9]);
-                boolean posted   = txnNo != 0;
+                tbl.addCell(tblCell(String.valueOf(sr),                                   cellFont,  bg, Element.ALIGN_CENTER));
+                tbl.addCell(tblCell(memCode,                                              cellFont,  bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(payAc,                                                cellFontB, bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(crAc.isEmpty() || "0".equals(crAc) ? "-" : crAc,    cellFont,  bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(String.format("%,.2f", bal),                         cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(pct + "%",                                           cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.format("%,.2f", divAmt),                     cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.format("%,.2f", postAmt),                    cellFontB, bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.valueOf(warrNo),                              cellFont,  bg, Element.ALIGN_CENTER));
 
-                tbl.addCell(tblCell(String.valueOf(sr),                         cellFont,  bg, Element.ALIGN_CENTER));
-                tbl.addCell(tblCell(memCode,                                    cellFont,  bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(payAc,                                      cellFontB, bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(crAc.isEmpty() || "0".equals(crAc) ? "-" : crAc, cellFont, bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(String.format("%,.2f", bal),                cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(pct + "%",                                  cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.format("%,.2f", divAmt),             cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.format("%,.2f", postAmt),            cellFontB, bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.valueOf(warrNo),                     cellFont,  bg, Element.ALIGN_CENTER));
-
-                // Status badge cell
                 PdfPCell statusCell = new PdfPCell(new Phrase(posted ? "Posted" : "Pending",
                     FontFactory.getFont(FontFactory.HELVETICA_BOLD, 6.5f,
-                        posted ? new Color(0x0F, 0x6E, 0x56) : new Color(0x85, 0x4F, 0x0B))));
+                        posted ? new Color(0x0F,0x6E,0x56) : new Color(0x85,0x4F,0x0B))));
                 statusCell.setBackgroundColor(posted ? GREEN_BG : ORANGE_BG);
                 statusCell.setBorderColor(posted ? GREEN_BD : ORANGE);
-                statusCell.setBorderWidth(0.5f);
-                statusCell.setPadding(3);
+                statusCell.setBorderWidth(0.5f); statusCell.setPadding(3);
                 statusCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 statusCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 tbl.addCell(statusCell);
@@ -500,27 +489,18 @@ public class DividendCalServlet extends HttpServlet {
                                     cellFont, bg, Element.ALIGN_CENTER));
             }
 
-            // ── FOOTER TOTAL ROW ──
             PdfPCell totLabel = new PdfPCell(new Phrase("Total Dividend to Post :", footTotFont));
-            totLabel.setColspan(7);
-            totLabel.setBackgroundColor(NAVY);
-            totLabel.setBorder(Rectangle.NO_BORDER);
-            totLabel.setPadding(5);
+            totLabel.setColspan(7); totLabel.setBackgroundColor(NAVY);
+            totLabel.setBorder(Rectangle.NO_BORDER); totLabel.setPadding(5);
             totLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
             tbl.addCell(totLabel);
-
             PdfPCell totVal = new PdfPCell(new Phrase("\u20B9 " + String.format("%,.2f", grandTotal), footTotFont));
-            totVal.setBackgroundColor(NAVY);
-            totVal.setBorder(Rectangle.NO_BORDER);
-            totVal.setPadding(5);
-            totVal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            totVal.setBackgroundColor(NAVY); totVal.setBorder(Rectangle.NO_BORDER);
+            totVal.setPadding(5); totVal.setHorizontalAlignment(Element.ALIGN_RIGHT);
             tbl.addCell(totVal);
-
             PdfPCell totBlank = new PdfPCell(new Phrase(""));
-            totBlank.setColspan(3);
-            totBlank.setBackgroundColor(NAVY);
-            totBlank.setBorder(Rectangle.NO_BORDER);
-            totBlank.setPadding(5);
+            totBlank.setColspan(3); totBlank.setBackgroundColor(NAVY);
+            totBlank.setBorder(Rectangle.NO_BORDER); totBlank.setPadding(5);
             tbl.addCell(totBlank);
 
             doc.add(tbl);
@@ -537,35 +517,26 @@ public class DividendCalServlet extends HttpServlet {
         }
     }
 
-    // ── Helper: build a plain data cell ──
     private PdfPCell tblCell(String text, Font f, Color bg, int align) {
         PdfPCell c = new PdfPCell(new Phrase(text == null ? "" : text, f));
         c.setBackgroundColor(bg);
-        c.setBorderColor(new Color(0xD8, 0xD8, 0xF0));
-        c.setBorderWidth(0.4f);
-        c.setPaddingTop(4);
-        c.setPaddingBottom(4);
-        c.setPaddingLeft(4);
-        c.setPaddingRight(4);
-        c.setHorizontalAlignment(align);
-        c.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        c.setBorderColor(new Color(0xD8, 0xD8, 0xF0)); c.setBorderWidth(0.4f);
+        c.setPaddingTop(4); c.setPaddingBottom(4);
+        c.setPaddingLeft(4); c.setPaddingRight(4);
+        c.setHorizontalAlignment(align); c.setVerticalAlignment(Element.ALIGN_MIDDLE);
         return c;
     }
 
-    // ── Helper: format YYYY-MM-DD → DD-MM-YYYY ──
     private String fmtDate(String d) {
         if (d == null || d.length() < 10) return d;
-        try {
-            String[] p = d.split("-");
-            return p[2] + "-" + p[1] + "-" + p[0];
-        } catch (Exception e) { return d; }
+        try { String[] p = d.split("-"); return p[2] + "-" + p[1] + "-" + p[0]; }
+        catch (Exception e) { return d; }
     }
 
     private String nvlStr(Object o) { return o == null ? "" : o.toString().trim(); }
 
     // ══════════════════════════════════════════
     // ACTION 5 — Posting Payable
-    // Calls sp_dividend_pay stored procedure
     // ══════════════════════════════════════════
     private void postingPayable(HttpServletRequest req, PrintWriter pw,
                                 String branchCode, String userId) {
@@ -577,7 +548,6 @@ public class DividendCalServlet extends HttpServlet {
         CallableStatement cs = null;
         try {
             conn = DBConnection.getConnection();
-            // sp_dividend_pay(branch, working_date, div_bal_date, y_begin, y_end, mem_product, user_id)
             cs = conn.prepareCall("{call sp_dividend_pay(?,?,?,?,?,?,?)}");
             cs.setString(1, branchCode);
             cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
@@ -597,10 +567,8 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 6 — Posting SB
-    // Posts dividend to SB savings accounts
-    // NOTE: Currently calls the same sp_dividend_pay procedure as postingPayable.
-    // If a separate SB-specific procedure exists (e.g. sp_dividend_pay_sb),
-    // replace the prepareCall string below with that procedure name.
+    // NOTE: Replace sp_dividend_pay with sp_dividend_pay_sb if a separate
+    // SB procedure exists in your DB.
     // ══════════════════════════════════════════
     private void postingSB(HttpServletRequest req, PrintWriter pw,
                            String branchCode, String userId) {
@@ -629,7 +597,6 @@ public class DividendCalServlet extends HttpServlet {
         }
     }
 
-    // ── Helper: close DB resources ──
     private void closeQuietly(ResultSet rs, Statement st, Connection conn) {
         try { if (rs   != null) rs.close();  } catch (Exception ignored) {}
         try { if (st   != null) st.close();  } catch (Exception ignored) {}

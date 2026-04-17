@@ -118,6 +118,12 @@
     cursor: default;
   }
 
+  /* Highlight auto-filled fields slightly so user can see they were populated */
+  input.autofilled {
+    background: #f0f0ff;
+    border-color: #9090d0;
+  }
+
   .input-btn { display: flex; gap: 5px; align-items: center; }
   .input-btn input { flex: 1; }
 
@@ -155,7 +161,6 @@
     border-color: #1a1464;
   }
 
-  /* ── PDF button — distinct red-accent style ── */
   .btn-pdf {
     height: 36px;
     padding: 0 18px;
@@ -173,7 +178,6 @@
     transition: background 0.12s;
   }
   .btn-pdf:hover { background: #fff0f0; }
-  .btn-pdf svg  { flex-shrink: 0; }
 
   .btn-cancel {
     height: 36px;
@@ -225,7 +229,6 @@
     margin-bottom: 10px;
   }
 
-  /* ── Lookup Popup ── */
   .popup-overlay {
     display: none;
     position: fixed;
@@ -279,7 +282,6 @@
   .lookup-tbl tbody tr:hover { background: #dde0f5; }
   .lookup-tbl tbody td { padding: 10px 16px; border-bottom: 1px solid #E0E0F0; color: #1a1464; font-weight: 600; }
 
-  /* ── Result Table ── */
   .result-card {
     background: #E6E6FA;
     border: 1.5px solid #B8B8E6;
@@ -332,12 +334,10 @@
 
 <div class="page-title">Dividend Calculation</div>
 <div class="meta-bar">
-  <span>Branch: <b><%= branchCode %></b></span>
-  <span>User: <b><%= user %></b></span>
-  <span>Date: <b><%= today %></b></span>
+ 
 </div>
 
-<!-- ── Lookup Popup ── -->
+<!-- Lookup Popup -->
 <div class="popup-overlay" id="lookupPopup">
   <div class="popup-box">
     <div class="popup-header">
@@ -346,9 +346,7 @@
     </div>
     <div class="popup-body">
       <table class="lookup-tbl">
-        <thead>
-          <tr><th>Product Code</th><th>Member Type</th></tr>
-        </thead>
+        <thead><tr><th>Product Code</th><th>Member Type</th></tr></thead>
         <tbody id="lookupBody">
           <tr><td colspan="2" style="text-align:center;color:#888;padding:14px;">Loading...</td></tr>
         </tbody>
@@ -357,7 +355,7 @@
   </div>
 </div>
 
-<!-- ── Form ── -->
+<!-- Form -->
 <div class="section-card">
   <span class="card-title">Report Details</span>
 
@@ -401,21 +399,19 @@
 <!-- Message -->
 <div class="message-bar">
   <span class="msg-label">Message :</span>
-  <input type="text" id="messageBox" readonly value="Please select Product Code to begin." />
+  <input type="text" id="messageBox" readonly value="Select Product Code to begin." />
 </div>
 
 <!-- Action Buttons Row 1 -->
 <div class="action-bar">
-  <button class="btn-action active"  type="button" onclick="validateForm()">Validate</button>
-  <button class="btn-action"         type="button" onclick="calculate()">Calculate</button>
-  <button class="btn-action"         type="button" onclick="showReport('normal')">Report</button>
-  <button class="btn-action"         type="button" onclick="showReport('sb')">SB Report</button>
-  <button class="btn-action"         type="button" onclick="showReport('sbXls')">SB Report XLS</button>
-  <button class="btn-action"         type="button" onclick="showReport('payable')">Payable Report</button>
-  <button class="btn-action"         type="button" onclick="showReport('payableXls')">Payable Report XLS</button>
-
-  <!-- ── NEW: Report PDF button — opens PDF in new browser tab ── -->
-  <button class="btn-pdf" type="button" onclick="openReportPDF()">
+  <button class="btn-action active" type="button" onclick="validateForm()">Validate</button>
+  <button class="btn-action"        type="button" onclick="calculate()">Calculate</button>
+  <button class="btn-action"        type="button" onclick="showReport('normal')">Report</button>
+  <button class="btn-action"        type="button" onclick="showReport('sb')">SB Report</button>
+  <button class="btn-action"        type="button" onclick="showReport('sbXls')">SB Report XLS</button>
+  <button class="btn-action"        type="button" onclick="showReport('payable')">Payable Report</button>
+  <button class="btn-action"        type="button" onclick="showReport('payableXls')">Payable Report XLS</button>
+  <button class="btn-pdf"           type="button" onclick="openReportPDF()">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="2" y="1" width="9" height="12" rx="1" stroke="#b52020" stroke-width="1.3"/>
       <path d="M11 1l3 3v9a1 1 0 01-1 1H5" stroke="#b52020" stroke-width="1.3" stroke-linecap="round"/>
@@ -424,7 +420,6 @@
     </svg>
     Report PDF
   </button>
-
   <button class="btn-cancel" type="button" onclick="cancelForm()">Cancel</button>
 </div>
 
@@ -485,7 +480,22 @@
     }).join('&');
   }
 
-  // ── STEP 1: Open lookup popup and load member types ──
+  // ══════════════════════════════════════════
+  // NO autofill on page load — fields stay empty until product is selected
+  // Message just guides the user to start with the lookup button
+  // ══════════════════════════════════════════
+  window.addEventListener('load', function() {
+    setMessage('Select Product Code using the [...] button to begin.', false);
+  });
+
+  // Remove autofilled highlight when user manually edits a field
+  ['yearBegin','yearEnd','divBalDate','percentage'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function() {
+      this.classList.remove('autofilled');
+    });
+  });
+
+  // ── Lookup popup ──
   function lookupProduct() {
     document.getElementById('lookupPopup').classList.add('show');
     ajaxPost(PAGE_URL, buildBody({ action: 'getMemberTypes' }), function(data) {
@@ -511,27 +521,65 @@
     document.getElementById('lookupPopup').classList.remove('show');
   }
 
-  // ── STEP 2: User selects member type → fetch account count ──
-  // Passes both productCode and memberType so servlet filters correctly
+  // ══════════════════════════════════════════
+  // selectMemberType — sets product/member fields, then fetches
+  // defaults (yearBegin, yearEnd, divBalDate, percentage) from servlet,
+  // then fetches the active account count.
+  // All field autofill happens HERE, not on page load.
+  // ══════════════════════════════════════════
   function selectMemberType(productCode, memberType) {
     closePopup();
+
+    // Set the two readonly fields immediately
     document.getElementById('productCode').value = productCode;
     document.getElementById('memberType').value  = memberType;
-    setMessage('Fetching active accounts for Member Type ' + memberType + ' (Product: ' + productCode + ')...', false);
 
+    setMessage('Loading defaults for Product ' + productCode + ' ...', false);
+
+    // Step 1: fetch defaults and autofill all date + percentage fields
+    ajaxPost(PAGE_URL, buildBody({ action: 'getDefaults' }), function(data) {
+      if (data.success) {
+        var yb  = document.getElementById('yearBegin');
+        var ye  = document.getElementById('yearEnd');
+        var dbd = document.getElementById('divBalDate');
+        var pct = document.getElementById('percentage');
+
+        if (data.yearBegin)  { yb.value  = data.yearBegin;  yb.classList.add('autofilled');  }
+        if (data.yearEnd)    { ye.value  = data.yearEnd;    ye.classList.add('autofilled');  }
+        if (data.divBalDate) { dbd.value = data.divBalDate; dbd.classList.add('autofilled'); }
+        if (data.percentage) { pct.value = data.percentage; pct.classList.add('autofilled'); }
+
+        // Step 2: after defaults loaded, fetch the account count
+        fetchAccountCount(productCode, memberType);
+      } else {
+        setMessage('Defaults not found: ' + (data.message || 'Unknown error') + '. Fill fields manually.', true);
+        // Still fetch account count even if defaults failed
+        fetchAccountCount(productCode, memberType);
+      }
+    }, function() {
+      setMessage('Network error loading defaults. Fill fields manually.', true);
+      fetchAccountCount(productCode, memberType);
+    });
+  }
+
+  // ── Fetch active account count after product selection ──
+  function fetchAccountCount(productCode, memberType) {
     ajaxPost(PAGE_URL, buildBody({
       action:      'getAccounts',
       memberType:  memberType,
       productCode: productCode
     }), function(data) {
       if (data.success) {
-        setMessage(data.count + ' active member accounts found for Type '
-          + data.memberType + ' (Product: ' + productCode + '). Fill remaining fields and click Calculate.', false);
+        setMessage(
+          data.count + ' active accounts found for Type ' + data.memberType +
+          ' (Product: ' + productCode + '). Defaults loaded. Click Calculate when ready.',
+          false
+        );
       } else {
-        setMessage('Error: ' + (data.message || 'Could not fetch accounts.'), true);
+        setMessage('Defaults loaded. Error fetching accounts: ' + (data.message || ''), true);
       }
     }, function() {
-      setMessage('Network error fetching accounts.', true);
+      setMessage('Defaults loaded. Network error fetching account count.', true);
     });
   }
 
@@ -543,13 +591,13 @@
     var ye  = document.getElementById('yearEnd').value;
     var dbd = document.getElementById('divBalDate').value;
     var pct = document.getElementById('percentage').value;
-    if (!pc)       { setMessage('Please select Product Code first.', true);         return false; }
-    if (!mt)       { setMessage('Please select Member Type first.', true);          return false; }
-    if (!yb)       { setMessage('Year Begin is required.', true);                   return false; }
-    if (!ye)       { setMessage('Year End is required.', true);                     return false; }
-    if (!dbd)      { setMessage('Div. Balance Date is required.', true);            return false; }
-    if (!pct)      { setMessage('Percentage is required.', true);                   return false; }
-    if (yb >= ye)  { setMessage('Year End must be after Year Begin.', true);        return false; }
+    if (!pc)       { setMessage('Please select Product Code first.', true);      return false; }
+    if (!mt)       { setMessage('Please select Member Type first.', true);       return false; }
+    if (!yb)       { setMessage('Year Begin is required.', true);                return false; }
+    if (!ye)       { setMessage('Year End is required.', true);                  return false; }
+    if (!dbd)      { setMessage('Div. Balance Date is required.', true);         return false; }
+    if (!pct)      { setMessage('Percentage is required.', true);                return false; }
+    if (yb >= ye)  { setMessage('Year End must be after Year Begin.', true);     return false; }
     setMessage('Form validated successfully. You can now click Calculate.', false);
     return true;
   }
@@ -573,7 +621,7 @@
     });
   }
 
-  // ── Report — passes memberType so servlet WHERE clause filters correctly ──
+  // ── Report ──
   function showReport(type) {
     if (!validateForm()) return;
     setMessage('Loading report...', false);
@@ -655,16 +703,10 @@
       '</tr>';
   }
 
-  // ══════════════════════════════════════════
-  // NEW: Open PDF report in a new browser tab
-  // Builds a GET URL with all params and calls window.open()
-  // The servlet streams application/pdf with Content-Disposition: inline
-  // so the browser renders it directly instead of downloading
-  // ══════════════════════════════════════════
+  // ── PDF ──
   function openReportPDF() {
     if (!validateForm()) return;
     setMessage('Generating PDF... it will open in a new tab.', false);
-
     var params = [
       'action=reportPDF',
       'productCode=' + encodeURIComponent(document.getElementById('productCode').value),
@@ -674,8 +716,6 @@
       'divBalDate='  + encodeURIComponent(document.getElementById('divBalDate').value),
       'percentage='  + encodeURIComponent(document.getElementById('percentage').value)
     ].join('&');
-
-    // window.open triggers a GET; session cookie is sent automatically by browser
     window.open(PAGE_URL + '?' + params, '_blank');
   }
 
@@ -728,8 +768,11 @@
       document.getElementById('yearEnd').value     = '';
       document.getElementById('divBalDate').value  = '';
       document.getElementById('percentage').value  = '';
+      ['yearBegin','yearEnd','divBalDate','percentage'].forEach(function(id) {
+        document.getElementById(id).classList.remove('autofilled');
+      });
       document.getElementById('resultCard').style.display = 'none';
-      setMessage('Form cleared.', false);
+      setMessage('Form cleared. Select Product Code to begin again.', false);
     }
   }
 </script>
