@@ -222,6 +222,40 @@ public class UpdateTransactionStatusServlet extends HttpServlet {
                 } finally {
                     try { if (csValidate != null) csValidate.close(); } catch (Exception ignore) {}
                 }
+                
+             // ============================================================
+             // STEP 2.6: For CSDR, check if amount exceeds account balance
+             // ============================================================
+             if ("CSDR".equals(txnCode)) {
+                 PreparedStatement balCheckPs = null;
+                 ResultSet balCheckRs = null;
+                 try {
+                     balCheckPs = conn.prepareStatement(
+                         "SELECT LEDGERBALANCE, AVAILABLEBALANCE FROM BALANCE.ACCOUNT WHERE ACCOUNT_CODE = ?");
+                     balCheckPs.setString(1, accountCode);
+                     balCheckRs = balCheckPs.executeQuery();
+
+                     if (balCheckRs.next()) {
+                         double ledgerBalance    = balCheckRs.getDouble("LEDGERBALANCE");
+                         double availableBalance = balCheckRs.getDouble("AVAILABLEBALANCE");
+
+                         if (amount > ledgerBalance || amount > availableBalance) {
+                             conn.rollback();
+                             String msg = "Insufficient balance. "
+                                 + "Amount: " + amount
+                                 + " | Ledger Balance: " + ledgerBalance
+                                 + " | Available Balance: " + availableBalance;
+                             response.sendRedirect("viewTransactionDetailsCash.jsp?scrollNumber="
+                                 + scrollNumber + "&balanceError="
+                                 + java.net.URLEncoder.encode(msg, "UTF-8"));
+                             return;
+                         }
+                     }
+                 } finally {
+                     try { if (balCheckRs != null) balCheckRs.close(); } catch (Exception ignore) {}
+                     try { if (balCheckPs != null) balCheckPs.close(); } catch (Exception ignore) {}
+                 }
+             }
 
                 // ============================================================
                 // STEP 3: Update BALANCE.ACCOUNT

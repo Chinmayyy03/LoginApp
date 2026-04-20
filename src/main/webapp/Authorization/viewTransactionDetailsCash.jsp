@@ -99,14 +99,31 @@
   <link rel="stylesheet" href="../css/authViewCustomers.css">
   <script src="<%= request.getContextPath() %>/js/breadcrumb-auto.js"></script>
   <script>
-    window.onload = function() {
-        if (window.parent && window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb(
-                window.buildBreadcrumbPath('viewTransactionDetailsCash.jsp', 'authorizationPendingTransactionCash.jsp')
-            );
-        }
-    };
+	  window.onload = function() {
+		    var params = new URLSearchParams(window.location.search);
+		    if (params.get('balanceError')) {
+		        var msg = decodeURIComponent(params.get('balanceError'));
+		        var parts = msg.split('|');
+		        var html = parts.map(function(p) { return p.trim(); }).join('<br>');
+		        document.getElementById('balanceErrorMsg').innerHTML = html;
+		        document.getElementById('balanceErrorModal').style.display = 'block';
+		    }
+	
+		    if (window.parent && window.parent.updateParentBreadcrumb) {
+		        window.parent.updateParentBreadcrumb(
+		            window.buildBreadcrumbPath('viewTransactionDetailsCash.jsp', 'authorizationPendingTransactionCash.jsp')
+		        );
+		    }
+		};
 
+		
+		function closeBalanceErrorModal() {
+		    document.getElementById('balanceErrorModal').style.display = 'none';
+		    var url = new URL(window.location.href);
+		    url.searchParams.delete('balanceError');
+		    window.history.replaceState({}, '', url);
+		}
+		
     function goBackToList() {
         if (window.parent && window.parent.updateParentBreadcrumb) {
             window.parent.updateParentBreadcrumb(
@@ -190,18 +207,21 @@
     window.onclick = function(event) {
         const authorizeModal       = document.getElementById('authorizeModal');
         const rejectModal          = document.getElementById('rejectModal');
-        const validationErrorModal = document.getElementById('validationErrorModal'); 
+        const validationErrorModal = document.getElementById('validationErrorModal');
+        const balanceErrorModal    = document.getElementById('balanceErrorModal');   // ADD THIS
 
         if (event.target === authorizeModal)       closeAuthorizeModal();
         if (event.target === rejectModal)          closeRejectModal();
-        if (event.target === validationErrorModal) closeValidationErrorModal(); 
+        if (event.target === validationErrorModal) closeValidationErrorModal();
+        if (event.target === balanceErrorModal)    closeBalanceErrorModal();          // ADD THIS
     }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeAuthorizeModal();
             closeRejectModal();
-            closeValidationErrorModal(); 
+            closeValidationErrorModal();
+            closeBalanceErrorModal();   // ADD THIS
         }
     });
     
@@ -368,6 +388,21 @@
         <div class="confirmation-modal-buttons">
             <button class="confirmation-btn confirmation-btn-cancel"
                     onclick="closeValidationErrorModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= BALANCE ERROR MODAL ================= -->
+<div id="balanceErrorModal" class="confirmation-modal">
+    <div class="confirmation-modal-content">
+        <h2 style="color:#dc3545;">&#9888; Authorization Failed</h2>
+        <p style="color:#888; font-size:13px; margin:0 0 10px;">Insufficient Account Balance</p>
+        <p id="balanceErrorMsg" style="color:#333; font-size:15px; 
+           background:#fdf2f2; border:1px solid #f5c6c6; 
+           border-radius:6px; padding:12px; line-height:2;"></p>
+        <div class="confirmation-modal-buttons">
+            <button class="confirmation-btn confirmation-btn-cancel"
+                    onclick="closeBalanceErrorModal()">Close</button>
         </div>
     </div>
 </div>
