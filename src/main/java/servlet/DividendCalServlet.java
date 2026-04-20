@@ -55,11 +55,19 @@ public class DividendCalServlet extends HttpServlet {
         String branchCode = nvl((String) sess.getAttribute("branchCode"));
         String userId     = nvl((String) sess.getAttribute("userId"));
 
+        // ── File-streaming actions: must be handled BEFORE JSON PrintWriter is opened ──
         if ("reportPDF".equals(action)) {
             generatePDF(req, res, branchCode, userId);
             return;
         }
+        if ("reportXLS".equals(action) || "reportSBXls".equals(action) || "reportCRXls".equals(action)) {
+            String mode = "reportSBXls".equals(action) ? "SB"
+                        : "reportCRXls".equals(action) ? "CR" : "ALL";
+            generateExcelCSV(req, res, branchCode, mode);
+            return;
+        }
 
+        // ── All other actions return JSON ──
         res.reset();
         res.setContentType("application/json; charset=UTF-8");
         PrintWriter pw = res.getWriter();
@@ -71,6 +79,9 @@ public class DividendCalServlet extends HttpServlet {
                 case "getAccounts":    getAccounts(req, pw);                            break;
                 case "calculate":      calculate(req, pw, branchCode, userId);          break;
                 case "report":         report(req, pw, branchCode);                     break;
+                case "reportMain":     reportMain(req, pw, branchCode);                 break;
+                case "reportSB":       reportSB(req, pw, branchCode);                   break;
+                case "reportCR":       reportCR(req, pw, branchCode);                   break;
                 case "postingPayable": postingPayable(req, pw, branchCode, userId);     break;
                 case "postingSB":      postingSB(req, pw, branchCode, userId);          break;
                 default:               pw.print("{\"success\":false,\"message\":\"Unknown action\"}");
@@ -82,14 +93,6 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 0 — Auto-fill defaults from SHARES.SHARES_PARAMETER
-    //
-    //   FINANCIAL_YEARFROM  → yearBegin   (YYYY-MM-DD for HTML date input)
-    //   FINANCIAL_YEARTO    → yearEnd
-    //   NEXT_RESERVE_DATE   → divBalDate
-    //   DIVIDENT_PERCENTAGE → percentage
-    //
-    // Using BRANCH_CODE = '0100' as fixed reference for parameters.
-    // Change this to use the session branchCode when you're ready.
     // ══════════════════════════════════════════
     private void getDefaults(PrintWriter pw) {
         Connection conn = null;
@@ -98,26 +101,26 @@ public class DividendCalServlet extends HttpServlet {
         try {
             conn = DBConnection.getConnection();
             String sql =
-            	    "SELECT TO_CHAR(FINANCIAL_YEARFROM,'YYYY-MM-DD') AS YEAR_FROM," +
-            	    " TO_CHAR(FINANCIAL_YEARTO,'YYYY-MM-DD') AS YEAR_TO," +
-            	    " TO_CHAR(NEXT_RESERVE_DATE,'YYYY-MM-DD') AS DIV_BAL_DATE," +
-            	    " DIVIDENT_PERCENTAGE" +
-            	    " FROM SHARES.SHARES_PARAMETER" +
-            	    " WHERE ROWNUM = 1";
+                "SELECT TO_CHAR(FINANCIAL_YEARFROM,'YYYY-MM-DD') AS YEAR_FROM," +
+                " TO_CHAR(FINANCIAL_YEARTO,'YYYY-MM-DD') AS YEAR_TO," +
+                " TO_CHAR(NEXT_RESERVE_DATE,'YYYY-MM-DD') AS DIV_BAL_DATE," +
+                " DIVIDENT_PERCENTAGE" +
+                " FROM SHARES.SHARES_PARAMETER" +
+                " WHERE ROWNUM = 1";
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
-                String yearFrom  = jsonSafe(rs.getString("YEAR_FROM"));
-                String yearTo    = jsonSafe(rs.getString("YEAR_TO"));
-                String balDate   = jsonSafe(rs.getString("DIV_BAL_DATE"));
-                String pct       = jsonSafe(rs.getString("DIVIDENT_PERCENTAGE"));
+                String yearFrom = jsonSafe(rs.getString("YEAR_FROM"));
+                String yearTo   = jsonSafe(rs.getString("YEAR_TO"));
+                String balDate  = jsonSafe(rs.getString("DIV_BAL_DATE"));
+                String pct      = jsonSafe(rs.getString("DIVIDENT_PERCENTAGE"));
                 pw.print("{\"success\":true,"
                     + "\"yearBegin\":\""  + yearFrom + "\","
                     + "\"yearEnd\":\""    + yearTo   + "\","
                     + "\"divBalDate\":\"" + balDate  + "\","
                     + "\"percentage\":\""  + pct     + "\"}");
             } else {
-            	pw.print("{\"success\":false,\"message\":\"No record found in SHARES.SHARES_PARAMETER\"}");
+                pw.print("{\"success\":false,\"message\":\"No record found in SHARES.SHARES_PARAMETER\"}");
             }
         } catch (Exception e) {
             pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
@@ -128,6 +131,7 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 1 — Get Member Types for Lookup Popup
+    // Source: SHARES.CERTIFICATE_MASTER — only table that has MEMBER_TYPE + product code together
     // ══════════════════════════════════════════
     private void getMemberTypes(PrintWriter pw) {
         Connection conn = null;
@@ -210,7 +214,7 @@ public class DividendCalServlet extends HttpServlet {
             conn = DBConnection.getConnection();
             cs = conn.prepareCall("{call sp_dividend_calc(?,?,?,?,?,?)}");
             cs.setString(1, branchCode);
-            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime())); // working_date = today
+            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
             cs.setDate(3, java.sql.Date.valueOf(divBalDate));
             cs.setDate(4, java.sql.Date.valueOf(yearBegin));
             cs.setDate(5, java.sql.Date.valueOf(yearEnd));
@@ -225,9 +229,8 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // ACTION 4 — Report (JSON for on-screen grid)
-    // NOTE: productCode is passed as MEMBER_TYPE filter because
-    // sp_dividend_calc stores the product code in that column.
+    // ACTION 4 — Original report (existing grid, no NAME column)
+    // Kept as-is for backward compatibility
     // ══════════════════════════════════════════
     private void report(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
@@ -258,7 +261,7 @@ public class DividendCalServlet extends HttpServlet {
             ps.setString(2, yearBegin);
             ps.setString(3, yearEnd);
             ps.setString(4, divBalDate);
-            ps.setString(5, productCode); // SP stores productCode in MEMBER_TYPE column
+            ps.setString(5, productCode);
             rs = ps.executeQuery();
             double total = 0;
             int count = 0;
@@ -291,6 +294,365 @@ public class DividendCalServlet extends HttpServlet {
         } finally {
             closeQuietly(rs, ps, conn);
         }
+    }
+
+    // ══════════════════════════════════════════
+    // ACTION reportMain — Dividend_Calculation query
+    // All members, joined with ACCOUNT.ACCOUNT for NAME
+    // ══════════════════════════════════════════
+    private void reportMain(HttpServletRequest req, PrintWriter pw, String branchCode) {
+        String productCode = nvl(req.getParameter("productCode"));
+        String yearBegin   = nvl(req.getParameter("yearBegin"));
+        String yearEnd     = nvl(req.getParameter("yearEnd"));
+        String divBalDate  = nvl(req.getParameter("divBalDate"));
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            // Matches Dividend_Calculation Jasper query exactly
+            // product code is stored in DIVIDEND_CALC.MEMBER_TYPE by the SP
+            String sql =
+                "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
+                "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE " +
+                "FROM (" +
+                "  SELECT TO_NUMBER(SUBSTR(A.MEMBER_CODE,8)) AS MEMBER_CODE, " +
+                "         TRIM(B.NAME) AS NAME, " +
+                "         A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, " +
+                "         DECODE(TO_CHAR(TO_NUMBER(DECODE(TRIM(A.CR_ACCOUNT_CODE),'0','0'," +
+                "           TRIM(SUBSTR(A.CR_ACCOUNT_CODE,8))))),'0',''," +
+                "           TO_CHAR(TO_NUMBER(DECODE(TRIM(A.CR_ACCOUNT_CODE),'0','0'," +
+                "           TRIM(SUBSTR(A.CR_ACCOUNT_CODE,8)))))) AS CR_ACCOUNT_CODE, " +
+                "         A.DIV_PERCENTAGE " +
+                "  FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                "  WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                "  AND SUBSTR(A.MEMBER_CODE,1,4) = ? " +
+                "  AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                "  AND A.Y_BEGIN_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "  AND A.Y_END_DATE    = TO_DATE(?,'YYYY-MM-DD') " +
+                "  AND A.DIV_BAL_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "  ORDER BY TO_NUMBER(SUBSTR(A.MEMBER_CODE,8))" +
+                ")";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchCode);
+            ps.setString(2, productCode);
+            ps.setString(3, yearBegin);
+            ps.setString(4, yearEnd);
+            ps.setString(5, divBalDate);
+            rs = ps.executeQuery();
+            double total = 0;
+            int count = 0;
+            StringBuilder rows = new StringBuilder("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) rows.append(",");
+                double postAmt = rs.getDouble("DIV_AMOUNT_POST");
+                total += postAmt;
+                count++;
+                rows.append("{")
+                    .append("\"srNo\":").append(rs.getInt("SR_NO")).append(",")
+                    .append("\"memberCode\":\"").append(jsonSafe(rs.getString("MEMBER_CODE"))).append("\",")
+                    .append("\"name\":\"").append(jsonSafe(rs.getString("NAME"))).append("\",")
+                    .append("\"balForDiv\":").append(rs.getDouble("BAL_SHARES_FOR_DIV")).append(",")
+                    .append("\"divAmount\":").append(rs.getDouble("DIV_AMOUNT")).append(",")
+                    .append("\"divAmountPost\":").append(postAmt).append(",")
+                    .append("\"crAccountCode\":\"").append(jsonSafe(rs.getString("CR_ACCOUNT_CODE"))).append("\",")
+                    .append("\"divPercentage\":").append(rs.getDouble("DIV_PERCENTAGE"))
+                    .append("}");
+                first = false;
+            }
+            rows.append("]");
+            pw.print("{\"success\":true,\"count\":" + count + ",\"total\":" + total + ",\"rows\":" + rows + "}");
+        } catch (Exception e) {
+            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+        } finally {
+            closeQuietly(rs, ps, conn);
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // ACTION reportSB — Dividend_Calculation_SB query
+    // Only members with SB-linked accounts (CR_ACCOUNT_CODE char 5 = '2')
+    // ══════════════════════════════════════════
+    private void reportSB(HttpServletRequest req, PrintWriter pw, String branchCode) {
+        String productCode = nvl(req.getParameter("productCode"));
+        String yearBegin   = nvl(req.getParameter("yearBegin"));
+        String yearEnd     = nvl(req.getParameter("yearEnd"));
+        String divBalDate  = nvl(req.getParameter("divBalDate"));
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            // Matches Dividend_Calculation_SB Jasper query exactly
+            String sql =
+                "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
+                "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE, BRANCH_CODE " +
+                "FROM (" +
+                "  SELECT TO_NUMBER(SUBSTR(A.MEMBER_CODE,8)) AS MEMBER_CODE, " +
+                "         B.NAME, " +
+                "         A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, " +
+                "         SUBSTR(A.CR_ACCOUNT_CODE,3,2)||'/'||" +
+                "           TO_NUMBER(SUBSTR(A.CR_ACCOUNT_CODE,8)) AS CR_ACCOUNT_CODE, " +
+                "         A.DIV_PERCENTAGE, " +
+                "         SUBSTR(A.CR_ACCOUNT_CODE,1,4) AS BRANCH_CODE " +
+                "  FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                "  WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                "  AND SUBSTR(A.MEMBER_CODE,1,4) = ? " +
+                "  AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                "  AND A.Y_BEGIN_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "  AND A.Y_END_DATE    = TO_DATE(?,'YYYY-MM-DD') " +
+                "  AND A.DIV_BAL_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "  AND SUBSTR(A.CR_ACCOUNT_CODE,5,1) = '2' " +
+                "  ORDER BY TO_NUMBER(SUBSTR(A.MEMBER_CODE,8))" +
+                ") ORDER BY BRANCH_CODE";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchCode);
+            ps.setString(2, productCode);
+            ps.setString(3, yearBegin);
+            ps.setString(4, yearEnd);
+            ps.setString(5, divBalDate);
+            rs = ps.executeQuery();
+            double total = 0;
+            int count = 0;
+            StringBuilder rows = new StringBuilder("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) rows.append(",");
+                double postAmt = rs.getDouble("DIV_AMOUNT_POST");
+                total += postAmt;
+                count++;
+                rows.append("{")
+                    .append("\"srNo\":").append(rs.getInt("SR_NO")).append(",")
+                    .append("\"memberCode\":\"").append(jsonSafe(rs.getString("MEMBER_CODE"))).append("\",")
+                    .append("\"name\":\"").append(jsonSafe(rs.getString("NAME"))).append("\",")
+                    .append("\"balForDiv\":").append(rs.getDouble("BAL_SHARES_FOR_DIV")).append(",")
+                    .append("\"divAmount\":").append(rs.getDouble("DIV_AMOUNT")).append(",")
+                    .append("\"divAmountPost\":").append(postAmt).append(",")
+                    .append("\"crAccountCode\":\"").append(jsonSafe(rs.getString("CR_ACCOUNT_CODE"))).append("\",")
+                    .append("\"divPercentage\":").append(rs.getDouble("DIV_PERCENTAGE")).append(",")
+                    .append("\"branchCode\":\"").append(jsonSafe(rs.getString("BRANCH_CODE"))).append("\"")
+                    .append("}");
+                first = false;
+            }
+            rows.append("]");
+            pw.print("{\"success\":true,\"count\":" + count + ",\"total\":" + total + ",\"rows\":" + rows + "}");
+        } catch (Exception e) {
+            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+        } finally {
+            closeQuietly(rs, ps, conn);
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // ACTION reportCR — Dividend_Calculation_CR query
+    // Only members with no linked account (CR_ACCOUNT_CODE = '0')
+    // ══════════════════════════════════════════
+    private void reportCR(HttpServletRequest req, PrintWriter pw, String branchCode) {
+        String productCode = nvl(req.getParameter("productCode"));
+        String yearBegin   = nvl(req.getParameter("yearBegin"));
+        String yearEnd     = nvl(req.getParameter("yearEnd"));
+        String divBalDate  = nvl(req.getParameter("divBalDate"));
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            // Matches Dividend_Calculation_CR Jasper query exactly
+            String sql =
+                "SELECT A.MEMBER_CODE, TRIM(B.NAME) AS NAME, " +
+                "       A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, A.DIV_PERCENTAGE " +
+                "FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                "WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                "AND SUBSTR(A.MEMBER_CODE,1,4) = ? " +
+                "AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                "AND A.Y_BEGIN_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "AND A.Y_END_DATE    = TO_DATE(?,'YYYY-MM-DD') " +
+                "AND A.DIV_BAL_DATE  = TO_DATE(?,'YYYY-MM-DD') " +
+                "AND TRIM(A.CR_ACCOUNT_CODE) = '0' " +
+                "ORDER BY A.MEMBER_CODE";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchCode);
+            ps.setString(2, productCode);
+            ps.setString(3, yearBegin);
+            ps.setString(4, yearEnd);
+            ps.setString(5, divBalDate);
+            rs = ps.executeQuery();
+            double total = 0;
+            int count = 0;
+            StringBuilder rows = new StringBuilder("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) rows.append(",");
+                double postAmt = rs.getDouble("DIV_AMOUNT_POST");
+                total += postAmt;
+                count++;
+                rows.append("{")
+                    .append("\"memberCode\":\"").append(jsonSafe(rs.getString("MEMBER_CODE"))).append("\",")
+                    .append("\"name\":\"").append(jsonSafe(rs.getString("NAME"))).append("\",")
+                    .append("\"balForDiv\":").append(rs.getDouble("BAL_SHARES_FOR_DIV")).append(",")
+                    .append("\"divAmount\":").append(rs.getDouble("DIV_AMOUNT")).append(",")
+                    .append("\"divAmountPost\":").append(postAmt).append(",")
+                    .append("\"divPercentage\":").append(rs.getDouble("DIV_PERCENTAGE"))
+                    .append("}");
+                first = false;
+            }
+            rows.append("]");
+            pw.print("{\"success\":true,\"count\":" + count + ",\"total\":" + total + ",\"rows\":" + rows + "}");
+        } catch (Exception e) {
+            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+        } finally {
+            closeQuietly(rs, ps, conn);
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // Excel / CSV download — mode: ALL | SB | CR
+    // Uses UTF-8 BOM so Excel opens Indian names correctly
+    // Called via GET (window.location.href) — browser shows Save dialog
+    // ══════════════════════════════════════════
+    private void generateExcelCSV(HttpServletRequest req, HttpServletResponse res,
+                                   String branchCode, String mode) throws IOException {
+        String productCode = nvl(req.getParameter("productCode"));
+        String yearBegin   = nvl(req.getParameter("yearBegin"));
+        String yearEnd     = nvl(req.getParameter("yearEnd"));
+        String divBalDate  = nvl(req.getParameter("divBalDate"));
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            String sql;
+            if ("SB".equals(mode)) {
+                sql =
+                    "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
+                    "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE, BRANCH_CODE " +
+                    "FROM (" +
+                    "  SELECT TO_NUMBER(SUBSTR(A.MEMBER_CODE,8)) MEMBER_CODE, B.NAME, " +
+                    "         A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, " +
+                    "         SUBSTR(A.CR_ACCOUNT_CODE,3,2)||'/'||TO_NUMBER(SUBSTR(A.CR_ACCOUNT_CODE,8)) CR_ACCOUNT_CODE, " +
+                    "         A.DIV_PERCENTAGE, SUBSTR(A.CR_ACCOUNT_CODE,1,4) BRANCH_CODE " +
+                    "  FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                    "  WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                    "  AND SUBSTR(A.MEMBER_CODE,1,4) = ? AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                    "  AND A.Y_BEGIN_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  AND A.Y_END_DATE   = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  AND A.DIV_BAL_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  AND SUBSTR(A.CR_ACCOUNT_CODE,5,1) = '2' " +
+                    "  ORDER BY TO_NUMBER(SUBSTR(A.MEMBER_CODE,8))" +
+                    ") ORDER BY BRANCH_CODE";
+            } else if ("CR".equals(mode)) {
+                sql =
+                    "SELECT A.MEMBER_CODE, TRIM(B.NAME) NAME, " +
+                    "       A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, A.DIV_PERCENTAGE " +
+                    "FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                    "WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                    "AND SUBSTR(A.MEMBER_CODE,1,4) = ? AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                    "AND A.Y_BEGIN_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "AND A.Y_END_DATE   = TO_DATE(?,'YYYY-MM-DD') " +
+                    "AND A.DIV_BAL_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "AND TRIM(A.CR_ACCOUNT_CODE) = '0' " +
+                    "ORDER BY A.MEMBER_CODE";
+            } else {
+                // ALL
+                sql =
+                    "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
+                    "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE " +
+                    "FROM (" +
+                    "  SELECT TO_NUMBER(SUBSTR(A.MEMBER_CODE,8)) MEMBER_CODE, TRIM(B.NAME) NAME, " +
+                    "         A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, " +
+                    "         DECODE(TO_CHAR(TO_NUMBER(DECODE(TRIM(A.CR_ACCOUNT_CODE),'0','0'," +
+                    "           TRIM(SUBSTR(A.CR_ACCOUNT_CODE,8))))),'0',''," +
+                    "           TO_CHAR(TO_NUMBER(DECODE(TRIM(A.CR_ACCOUNT_CODE),'0','0'," +
+                    "           TRIM(SUBSTR(A.CR_ACCOUNT_CODE,8)))))) CR_ACCOUNT_CODE, " +
+                    "         A.DIV_PERCENTAGE " +
+                    "  FROM SHARES.DIVIDEND_CALC A, ACCOUNT.ACCOUNT B " +
+                    "  WHERE A.MEMBER_CODE = B.ACCOUNT_CODE " +
+                    "  AND SUBSTR(A.MEMBER_CODE,1,4) = ? AND SUBSTR(B.ACCOUNT_CODE,5,3) = ? " +
+                    "  AND A.Y_BEGIN_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  AND A.Y_END_DATE   = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  AND A.DIV_BAL_DATE = TO_DATE(?,'YYYY-MM-DD') " +
+                    "  ORDER BY TO_NUMBER(SUBSTR(A.MEMBER_CODE,8))" +
+                    ")";
+            }
+
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchCode);
+            ps.setString(2, productCode);
+            ps.setString(3, yearBegin);
+            ps.setString(4, yearEnd);
+            ps.setString(5, divBalDate);
+            rs = ps.executeQuery();
+
+            String filename = "Dividend_" + mode + "_" + productCode + "_" + yearBegin + ".csv";
+            res.reset();
+            res.setContentType("text/csv; charset=UTF-8");
+            res.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+            PrintWriter out = res.getWriter();
+            out.write('\uFEFF'); // UTF-8 BOM — Excel needs this for correct encoding
+
+            if ("SB".equals(mode)) {
+                out.println("Sr No,Member Code,Name,Bal Shares for Div,Div Amount,Post Amount,SB Account,Div %,Branch");
+                while (rs.next()) {
+                    out.println(
+                        rs.getString("SR_NO") + "," +
+                        rs.getString("MEMBER_CODE") + "," +
+                        csvSafe(rs.getString("NAME")) + "," +
+                        rs.getString("BAL_SHARES_FOR_DIV") + "," +
+                        rs.getString("DIV_AMOUNT") + "," +
+                        rs.getString("DIV_AMOUNT_POST") + "," +
+                        csvSafe(rs.getString("CR_ACCOUNT_CODE")) + "," +
+                        rs.getString("DIV_PERCENTAGE") + "," +
+                        csvSafe(rs.getString("BRANCH_CODE"))
+                    );
+                }
+            } else if ("CR".equals(mode)) {
+                out.println("Member Code,Name,Bal Shares for Div,Div Amount,Post Amount,Div %");
+                while (rs.next()) {
+                    out.println(
+                        rs.getString("MEMBER_CODE") + "," +
+                        csvSafe(rs.getString("NAME")) + "," +
+                        rs.getString("BAL_SHARES_FOR_DIV") + "," +
+                        rs.getString("DIV_AMOUNT") + "," +
+                        rs.getString("DIV_AMOUNT_POST") + "," +
+                        rs.getString("DIV_PERCENTAGE")
+                    );
+                }
+            } else {
+                out.println("Sr No,Member Code,Name,Bal Shares for Div,Div Amount,Post Amount,CR Account,Div %");
+                while (rs.next()) {
+                    out.println(
+                        rs.getString("SR_NO") + "," +
+                        rs.getString("MEMBER_CODE") + "," +
+                        csvSafe(rs.getString("NAME")) + "," +
+                        rs.getString("BAL_SHARES_FOR_DIV") + "," +
+                        rs.getString("DIV_AMOUNT") + "," +
+                        rs.getString("DIV_AMOUNT_POST") + "," +
+                        csvSafe(rs.getString("CR_ACCOUNT_CODE")) + "," +
+                        rs.getString("DIV_PERCENTAGE")
+                    );
+                }
+            }
+            out.flush();
+
+        } catch (Exception e) {
+            if (!res.isCommitted()) {
+                res.reset();
+                res.setContentType("application/json; charset=UTF-8");
+                res.getWriter().print("{\"success\":false,\"message\":\"Excel error: " + jsonSafeErr(e) + "\"}");
+            }
+        } finally {
+            closeQuietly(rs, ps, conn);
+        }
+    }
+
+    private String csvSafe(String s) {
+        if (s == null) return "";
+        s = s.trim();
+        if (s.contains(",") || s.contains("\"") || s.contains("\n"))
+            return "\"" + s.replace("\"", "\"\"") + "\"";
+        return s;
     }
 
     // ══════════════════════════════════════════
@@ -452,28 +814,28 @@ public class DividendCalServlet extends HttpServlet {
             int sr = 0;
             for (Object[] row : dataRows) {
                 sr++;
-                Color bg     = (sr % 2 == 0) ? new Color(0xF0,0xF0,0xFA) : WHITE;
-                String memCode  = nvlStr(row[0]);
-                String payAc    = nvlStr(row[1]);
-                String crAc     = nvlStr(row[2]);
-                double bal      = (Double) row[3];
-                double pct      = (Double) row[4];
-                double divAmt   = (Double) row[5];
-                double postAmt  = (Double) row[6];
-                long   warrNo   = (Long)   row[7];
-                long   txnNo    = (Long)   row[8];
-                String txnDate  = nvlStr(row[9]);
-                boolean posted  = txnNo != 0;
+                Color bg    = (sr % 2 == 0) ? new Color(0xF0,0xF0,0xFA) : WHITE;
+                String memCode = nvlStr(row[0]);
+                String payAc   = nvlStr(row[1]);
+                String crAc    = nvlStr(row[2]);
+                double bal     = (Double) row[3];
+                double pct     = (Double) row[4];
+                double divAmt  = (Double) row[5];
+                double postAmt = (Double) row[6];
+                long   warrNo  = (Long)   row[7];
+                long   txnNo   = (Long)   row[8];
+                String txnDate = nvlStr(row[9]);
+                boolean posted = txnNo != 0;
 
-                tbl.addCell(tblCell(String.valueOf(sr),                                   cellFont,  bg, Element.ALIGN_CENTER));
-                tbl.addCell(tblCell(memCode,                                              cellFont,  bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(payAc,                                                cellFontB, bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(crAc.isEmpty() || "0".equals(crAc) ? "-" : crAc,    cellFont,  bg, Element.ALIGN_LEFT));
-                tbl.addCell(tblCell(String.format("%,.2f", bal),                         cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(pct + "%",                                           cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.format("%,.2f", divAmt),                     cellFont,  bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.format("%,.2f", postAmt),                    cellFontB, bg, Element.ALIGN_RIGHT));
-                tbl.addCell(tblCell(String.valueOf(warrNo),                              cellFont,  bg, Element.ALIGN_CENTER));
+                tbl.addCell(tblCell(String.valueOf(sr),                                  cellFont,  bg, Element.ALIGN_CENTER));
+                tbl.addCell(tblCell(memCode,                                             cellFont,  bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(payAc,                                               cellFontB, bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(crAc.isEmpty() || "0".equals(crAc) ? "-" : crAc,   cellFont,  bg, Element.ALIGN_LEFT));
+                tbl.addCell(tblCell(String.format("%,.2f", bal),                        cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(pct + "%",                                          cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.format("%,.2f", divAmt),                    cellFont,  bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.format("%,.2f", postAmt),                   cellFontB, bg, Element.ALIGN_RIGHT));
+                tbl.addCell(tblCell(String.valueOf(warrNo),                             cellFont,  bg, Element.ALIGN_CENTER));
 
                 PdfPCell statusCell = new PdfPCell(new Phrase(posted ? "Posted" : "Pending",
                     FontFactory.getFont(FontFactory.HELVETICA_BOLD, 6.5f,
@@ -567,35 +929,36 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 6 — Posting SB
-    // NOTE: Replace sp_dividend_pay with sp_dividend_pay_sb if a separate
-    // SB procedure exists in your DB.
     // ══════════════════════════════════════════
     private void postingSB(HttpServletRequest req, PrintWriter pw,
-                           String branchCode, String userId) {
-        String productCode = nvl(req.getParameter("productCode"));
-        String yearBegin   = nvl(req.getParameter("yearBegin"));
-        String yearEnd     = nvl(req.getParameter("yearEnd"));
-        String divBalDate  = nvl(req.getParameter("divBalDate"));
-        Connection conn    = null;
-        CallableStatement cs = null;
-        try {
-            conn = DBConnection.getConnection();
-            cs = conn.prepareCall("{call sp_dividend_pay(?,?,?,?,?,?,?)}");
-            cs.setString(1, branchCode);
-            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
-            cs.setDate(3, java.sql.Date.valueOf(divBalDate));
-            cs.setDate(4, java.sql.Date.valueOf(yearBegin));
-            cs.setDate(5, java.sql.Date.valueOf(yearEnd));
-            cs.setString(6, productCode);
-            cs.setString(7, userId);
-            cs.execute();
-            pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts successfully!\"}");
-        } catch (Exception e) {
-            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
-        } finally {
-            closeQuietly(null, cs, conn);
-        }
-    }
+            String branchCode, String userId) {
+			String productCode = nvl(req.getParameter("productCode"));
+			String yearBegin   = nvl(req.getParameter("yearBegin"));
+			String yearEnd     = nvl(req.getParameter("yearEnd"));
+			String divBalDate  = nvl(req.getParameter("divBalDate"));
+			Connection conn    = null;
+			CallableStatement cs = null;
+			try {
+				conn = DBConnection.getConnection();
+				// ✅ FIXED: call sp_dividend_post instead of sp_dividend_pay
+				// ✅ FIXED: 8 parameters (added p_ho_br_code as last param)
+				cs = conn.prepareCall("{call sp_dividend_post(?,?,?,?,?,?,?,?)}");
+				cs.setString(1, branchCode);
+				cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
+				cs.setDate(3, java.sql.Date.valueOf(divBalDate));
+				cs.setDate(4, java.sql.Date.valueOf(yearBegin));
+				cs.setDate(5, java.sql.Date.valueOf(yearEnd));
+				cs.setString(6, productCode);
+				cs.setString(7, userId);
+				cs.setString(8, branchCode); // p_ho_br_code (default '0001', adjust if needed)
+				cs.execute();
+			pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts successfully!\"}");
+			} catch (Exception e) {
+			pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+		} finally {
+			closeQuietly(null, cs, conn);
+	}
+}
 
     private void closeQuietly(ResultSet rs, Statement st, Connection conn) {
         try { if (rs   != null) rs.close();  } catch (Exception ignored) {}

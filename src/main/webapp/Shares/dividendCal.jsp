@@ -118,7 +118,6 @@
     cursor: default;
   }
 
-  /* Highlight auto-filled fields slightly so user can see they were populated */
   input.autofilled {
     background: #f0f0ff;
     border-color: #9090d0;
@@ -160,6 +159,24 @@
     color: #fff;
     border-color: #1a1464;
   }
+
+  .btn-xls {
+    height: 36px;
+    padding: 0 18px;
+    background: #fff;
+    color: #1a6e2a;
+    border: 1.5px solid #1a6e2a;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.12s;
+  }
+  .btn-xls:hover { background: #f0fff4; }
 
   .btn-pdf {
     height: 36px;
@@ -289,7 +306,7 @@
     padding: 24px 20px 18px;
     margin-bottom: 18px;
     position: relative;
-    max-width: 1100px;
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -316,7 +333,7 @@
   .summary-item span { font-weight: 400; color: #3a3a7a; margin-left: 5px; }
 
   .table-wrap { overflow-x: auto; border-radius: 8px; border: 1.5px solid #B8B8E6; }
-  table.res-tbl { width: 100%; border-collapse: collapse; font-size: 0.78rem; background: #fff; min-width: 800px; }
+  table.res-tbl { width: 100%; border-collapse: collapse; font-size: 0.78rem; background: #fff; min-width: 900px; }
   table.res-tbl thead tr { background: #1a1464; color: #fff; }
   table.res-tbl thead th { padding: 8px 10px; text-align: left; font-weight: 700; white-space: nowrap; border-right: 1px solid #2a2474; }
   table.res-tbl thead th:last-child { border-right: none; }
@@ -333,9 +350,7 @@
 <body>
 
 <div class="page-title">Dividend Calculation</div>
-<div class="meta-bar">
- 
-</div>
+<div class="meta-bar"></div>
 
 <!-- Lookup Popup -->
 <div class="popup-overlay" id="lookupPopup">
@@ -408,11 +423,17 @@
   <button class="btn-action"        type="button" onclick="calculate()">Calculate</button>
   <button class="btn-action"        type="button" onclick="showReport('normal')">Report</button>
   <button class="btn-action"        type="button" onclick="showReport('sb')">SB Report</button>
-  <button class="btn-action"        type="button" onclick="showReport('sbXls')">SB Report XLS</button>
+  <button class="btn-xls"           type="button" onclick="showReport('sbXls')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#1a6e2a" stroke-width="1.2"/><path d="M4 5l2.5 3L4 11M8 11h4" stroke="#1a6e2a" stroke-width="1.1" stroke-linecap="round"/></svg>
+    SB Report XLS
+  </button>
   <button class="btn-action"        type="button" onclick="showReport('payable')">Payable Report</button>
-  <button class="btn-action"        type="button" onclick="showReport('payableXls')">Payable Report XLS</button>
+  <button class="btn-xls"           type="button" onclick="showReport('payableXls')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#1a6e2a" stroke-width="1.2"/><path d="M4 5l2.5 3L4 11M8 11h4" stroke="#1a6e2a" stroke-width="1.1" stroke-linecap="round"/></svg>
+    Payable Report XLS
+  </button>
   <button class="btn-pdf"           type="button" onclick="openReportPDF()">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
       <rect x="2" y="1" width="9" height="12" rx="1" stroke="#b52020" stroke-width="1.3"/>
       <path d="M11 1l3 3v9a1 1 0 01-1 1H5" stroke="#b52020" stroke-width="1.3" stroke-linecap="round"/>
       <path d="M11 1v3h3" stroke="#b52020" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -480,15 +501,10 @@
     }).join('&');
   }
 
-  // ══════════════════════════════════════════
-  // NO autofill on page load — fields stay empty until product is selected
-  // Message just guides the user to start with the lookup button
-  // ══════════════════════════════════════════
   window.addEventListener('load', function() {
     setMessage('Select Product Code using the [...] button to begin.', false);
   });
 
-  // Remove autofilled highlight when user manually edits a field
   ['yearBegin','yearEnd','divBalDate','percentage'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', function() {
       this.classList.remove('autofilled');
@@ -521,39 +537,25 @@
     document.getElementById('lookupPopup').classList.remove('show');
   }
 
-  // ══════════════════════════════════════════
-  // selectMemberType — sets product/member fields, then fetches
-  // defaults (yearBegin, yearEnd, divBalDate, percentage) from servlet,
-  // then fetches the active account count.
-  // All field autofill happens HERE, not on page load.
-  // ══════════════════════════════════════════
   function selectMemberType(productCode, memberType) {
     closePopup();
-
-    // Set the two readonly fields immediately
     document.getElementById('productCode').value = productCode;
     document.getElementById('memberType').value  = memberType;
-
     setMessage('Loading defaults for Product ' + productCode + ' ...', false);
 
-    // Step 1: fetch defaults and autofill all date + percentage fields
     ajaxPost(PAGE_URL, buildBody({ action: 'getDefaults' }), function(data) {
       if (data.success) {
         var yb  = document.getElementById('yearBegin');
         var ye  = document.getElementById('yearEnd');
         var dbd = document.getElementById('divBalDate');
         var pct = document.getElementById('percentage');
-
         if (data.yearBegin)  { yb.value  = data.yearBegin;  yb.classList.add('autofilled');  }
         if (data.yearEnd)    { ye.value  = data.yearEnd;    ye.classList.add('autofilled');  }
         if (data.divBalDate) { dbd.value = data.divBalDate; dbd.classList.add('autofilled'); }
         if (data.percentage) { pct.value = data.percentage; pct.classList.add('autofilled'); }
-
-        // Step 2: after defaults loaded, fetch the account count
         fetchAccountCount(productCode, memberType);
       } else {
         setMessage('Defaults not found: ' + (data.message || 'Unknown error') + '. Fill fields manually.', true);
-        // Still fetch account count even if defaults failed
         fetchAccountCount(productCode, memberType);
       }
     }, function() {
@@ -562,7 +564,6 @@
     });
   }
 
-  // ── Fetch active account count after product selection ──
   function fetchAccountCount(productCode, memberType) {
     ajaxPost(PAGE_URL, buildBody({
       action:      'getAccounts',
@@ -621,21 +622,39 @@
     });
   }
 
-  // ── Report ──
+  // ── showReport — routes to correct servlet action or triggers file download ──
   function showReport(type) {
     if (!validateForm()) return;
+
+    // XLS types: trigger file download via GET, do not use AJAX
+    if (type === 'sbXls') {
+      openExcelDownload('reportSBXls');
+      return;
+    }
+    if (type === 'payableXls') {
+      openExcelDownload('reportXLS');
+      return;
+    }
+
+    // Map report type to servlet action
+    var actionMap = {
+      'normal':  'reportMain',
+      'sb':      'reportSB',
+      'payable': 'reportCR'   // Payable report = members with no linked SB account (CR_ACCOUNT='0')
+    };
+    var action = actionMap[type] || 'reportMain';
+
     setMessage('Loading report...', false);
     ajaxPost(PAGE_URL, buildBody({
-      action:      'report',
+      action:      action,
       productCode: document.getElementById('productCode').value,
       memberType:  document.getElementById('memberType').value,
       yearBegin:   document.getElementById('yearBegin').value,
       yearEnd:     document.getElementById('yearEnd').value,
-      divBalDate:  document.getElementById('divBalDate').value,
-      reportType:  type
+      divBalDate:  document.getElementById('divBalDate').value
     }), function(data) {
       if (!data.success) { setMessage(data.message || 'Error loading report.', true); return; }
-      if (data.count === 0) { setMessage('No records found in dividend_calc for these parameters.', true); return; }
+      if (data.count === 0) { setMessage('No records found for these parameters.', true); return; }
       renderReport(data, type);
       setMessage(data.count + ' records found. Review before posting.', false);
     }, function() {
@@ -643,6 +662,23 @@
     });
   }
 
+  // ── Excel download — uses GET so browser shows Save dialog ──
+  function openExcelDownload(action) {
+    if (!validateForm()) return;
+    setMessage('Preparing Excel file for download...', false);
+    var params = [
+      'action='      + encodeURIComponent(action),
+      'productCode=' + encodeURIComponent(document.getElementById('productCode').value),
+      'memberType='  + encodeURIComponent(document.getElementById('memberType').value),
+      'yearBegin='   + encodeURIComponent(document.getElementById('yearBegin').value),
+      'yearEnd='     + encodeURIComponent(document.getElementById('yearEnd').value),
+      'divBalDate='  + encodeURIComponent(document.getElementById('divBalDate').value)
+    ].join('&');
+    window.location.href = PAGE_URL + '?' + params;
+    setTimeout(function() { setMessage('Download started. Check your downloads folder.', false); }, 1000);
+  }
+
+  // ── renderReport — builds the on-screen grid, now with NAME column ──
   function renderReport(data, type) {
     document.getElementById('resultCard').style.display = 'block';
     var pc  = document.getElementById('productCode').value;
@@ -650,12 +686,13 @@
     var yb  = document.getElementById('yearBegin').value;
     var ye  = document.getElementById('yearEnd').value;
     var pct = document.getElementById('percentage').value;
-    var isSB = (type === 'sb' || type === 'sbXls');
+    var isSB      = (type === 'sb');
+    var isPayable = (type === 'payable');
 
     document.getElementById('resultTitle').textContent =
-      isSB ? 'SB Report — shares.dividend_calc' :
-      (type === 'payable' || type === 'payableXls') ? 'Payable Report — shares.dividend_calc' :
-      'Dividend Report — shares.dividend_calc';
+      isSB      ? 'SB Report — shares.dividend_calc' :
+      isPayable ? 'Payable (CR) Report — shares.dividend_calc' :
+                  'Dividend Report — shares.dividend_calc';
 
     document.getElementById('summaryBar').innerHTML =
       '<div class="summary-item">Total Members <span>' + data.count + '</span></div>' +
@@ -665,41 +702,47 @@
       '<div class="summary-item">Rate <span>' + pct + '%</span></div>' +
       '<div class="summary-item">Total Dividend <span>&#8377; ' + parseFloat(data.total).toFixed(2) + '</span></div>';
 
-    document.getElementById('resultHead').innerHTML =
-      '<tr>' +
-      '<th>#</th><th>Member Account</th><th>Payable Account</th>' +
-      (isSB ? '<th>SB Account</th>' : '') +
+    // Headers — NAME column added, SB report gets Branch column too
+    var hdr = '<tr>' +
+      '<th>#</th><th>Member Code</th><th>Name</th>' +
       '<th>Bal. for Div (&#8377;)</th><th>Rate %</th>' +
-      '<th>Div Amount (&#8377;)</th><th>Post Amount (&#8377;)</th>' +
-      '<th>Warrant No</th><th>Status</th><th>Txn Date</th>' +
-      '</tr>';
+      '<th>Div Amount (&#8377;)</th><th>Post Amount (&#8377;)</th>';
+    if (!isPayable) hdr += '<th>CR / SB Account</th>';
+    if (isSB)       hdr += '<th>Branch</th>';
+    hdr += '</tr>';
+    document.getElementById('resultHead').innerHTML = hdr;
 
     var html = '';
+    var colCount = isPayable ? 7 : (isSB ? 9 : 8);
+
     data.rows.forEach(function(r, i) {
-      var txnNo  = parseInt(r.payableTxnNo) || 0;
-      var status = txnNo === 0
-        ? '<span class="badge-pending">Pending</span>'
-        : '<span class="badge-posted">Posted</span>';
+      var memberDisplay = r.memberCode || r.member_code || '-';
+      var nameDisplay   = r.name || '-';
+      var balDisplay    = parseFloat(r.balForDiv   || r.bal_shares_for_div || 0).toFixed(2);
+      var pctDisplay    = r.divPercentage || r.div_percentage || 0;
+      var amtDisplay    = parseFloat(r.divAmount   || r.div_amount || 0).toFixed(2);
+      var postDisplay   = parseFloat(r.divAmountPost || r.div_amount_post || 0).toFixed(2);
+      var crDisplay     = r.crAccountCode || r.cr_account_code || '';
+      var brDisplay     = r.branchCode    || r.branch_code    || '';
+
       html += '<tr>' +
         '<td>' + (i+1) + '</td>' +
-        '<td>' + (r.memberCode || '-') + '</td>' +
-        '<td><b>' + (r.payableAc || '-') + '</b></td>' +
-        (isSB ? '<td>' + (r.crAccountCode && r.crAccountCode !== '0' ? r.crAccountCode : '-') + '</td>' : '') +
-        '<td style="text-align:right">' + parseFloat(r.balForDiv).toFixed(2) + '</td>' +
-        '<td style="text-align:right">' + r.divPercentage + '%</td>' +
-        '<td style="text-align:right">' + parseFloat(r.divAmount).toFixed(2) + '</td>' +
-        '<td style="text-align:right;font-weight:700">' + parseFloat(r.divAmountPost).toFixed(2) + '</td>' +
-        '<td style="text-align:center">' + r.divWarrNo + '</td>' +
-        '<td>' + status + '</td>' +
-        '<td>' + (r.payableTxnDate || '-') + '</td>' +
-        '</tr>';
+        '<td>' + memberDisplay + '</td>' +
+        '<td>' + nameDisplay + '</td>' +
+        '<td style="text-align:right">' + balDisplay + '</td>' +
+        '<td style="text-align:right">' + pctDisplay + '%</td>' +
+        '<td style="text-align:right">' + amtDisplay + '</td>' +
+        '<td style="text-align:right;font-weight:700">' + postDisplay + '</td>';
+      if (!isPayable) html += '<td>' + (crDisplay && crDisplay !== '0' ? crDisplay : '-') + '</td>';
+      if (isSB)       html += '<td>' + (brDisplay || '-') + '</td>';
+      html += '</tr>';
     });
+
     document.getElementById('resultBody').innerHTML = html;
     document.getElementById('resultFoot').innerHTML =
       '<tr>' +
-      '<td colspan="' + (isSB ? '7' : '6') + '" style="text-align:right">Total Dividend to Post :</td>' +
+      '<td colspan="' + (colCount - 1) + '" style="text-align:right">Total Dividend to Post :</td>' +
       '<td style="text-align:right">&#8377; ' + parseFloat(data.total).toFixed(2) + '</td>' +
-      '<td colspan="3"></td>' +
       '</tr>';
   }
 
