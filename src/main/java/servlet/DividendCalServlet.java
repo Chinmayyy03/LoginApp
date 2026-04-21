@@ -131,7 +131,6 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 1 — Get Member Types for Lookup Popup
-    // Source: SHARES.CERTIFICATE_MASTER — only table that has MEMBER_TYPE + product code together
     // ══════════════════════════════════════════
     private void getMemberTypes(PrintWriter pw) {
         Connection conn = null;
@@ -229,8 +228,7 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // ACTION 4 — Original report (existing grid, no NAME column)
-    // Kept as-is for backward compatibility
+    // ACTION 4 — Original report (backward compat)
     // ══════════════════════════════════════════
     private void report(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
@@ -297,8 +295,7 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // ACTION reportMain — Dividend_Calculation query
-    // All members, joined with ACCOUNT.ACCOUNT for NAME
+    // ACTION reportMain
     // ══════════════════════════════════════════
     private void reportMain(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
@@ -310,8 +307,6 @@ public class DividendCalServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-            // Matches Dividend_Calculation Jasper query exactly
-            // product code is stored in DIVIDEND_CALC.MEMBER_TYPE by the SP
             String sql =
                 "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
                 "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE " +
@@ -371,8 +366,7 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // ACTION reportSB — Dividend_Calculation_SB query
-    // Only members with SB-linked accounts (CR_ACCOUNT_CODE char 5 = '2')
+    // ACTION reportSB
     // ══════════════════════════════════════════
     private void reportSB(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
@@ -384,7 +378,6 @@ public class DividendCalServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-            // Matches Dividend_Calculation_SB Jasper query exactly
             String sql =
                 "SELECT ROWNUM SR_NO, MEMBER_CODE, NAME, BAL_SHARES_FOR_DIV, " +
                 "       DIV_AMOUNT, DIV_AMOUNT_POST, CR_ACCOUNT_CODE, DIV_PERCENTAGE, BRANCH_CODE " +
@@ -445,8 +438,7 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // ACTION reportCR — Dividend_Calculation_CR query
-    // Only members with no linked account (CR_ACCOUNT_CODE = '0')
+    // ACTION reportCR
     // ══════════════════════════════════════════
     private void reportCR(HttpServletRequest req, PrintWriter pw, String branchCode) {
         String productCode = nvl(req.getParameter("productCode"));
@@ -458,7 +450,6 @@ public class DividendCalServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-            // Matches Dividend_Calculation_CR Jasper query exactly
             String sql =
                 "SELECT A.MEMBER_CODE, TRIM(B.NAME) AS NAME, " +
                 "       A.BAL_SHARES_FOR_DIV, A.DIV_AMOUNT, A.DIV_AMOUNT_POST, A.DIV_PERCENTAGE " +
@@ -507,9 +498,7 @@ public class DividendCalServlet extends HttpServlet {
     }
 
     // ══════════════════════════════════════════
-    // Excel / CSV download — mode: ALL | SB | CR
-    // Uses UTF-8 BOM so Excel opens Indian names correctly
-    // Called via GET (window.location.href) — browser shows Save dialog
+    // Excel / CSV download
     // ══════════════════════════════════════════
     private void generateExcelCSV(HttpServletRequest req, HttpServletResponse res,
                                    String branchCode, String mode) throws IOException {
@@ -590,7 +579,7 @@ public class DividendCalServlet extends HttpServlet {
             res.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
             PrintWriter out = res.getWriter();
-            out.write('\uFEFF'); // UTF-8 BOM — Excel needs this for correct encoding
+            out.write('\uFEFF'); // UTF-8 BOM for Excel
 
             if ("SB".equals(mode)) {
                 out.println("Sr No,Member Code,Name,Bal Shares for Div,Div Amount,Post Amount,SB Account,Div %,Branch");
@@ -899,6 +888,8 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 5 — Posting Payable
+    // Calls sp_dividend_pay — credits the PAYABLE account per member
+    // and inserts DIVIDEND_WARR_PAID_UNPAID rows as 'UP'
     // ══════════════════════════════════════════
     private void postingPayable(HttpServletRequest req, PrintWriter pw,
                                 String branchCode, String userId) {
@@ -929,36 +920,44 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 6 — Posting SB
+    // FIX: was calling sp_dividend_pay (WRONG — same as Posting Payable).
+    // Corrected to call sp_dividend_post which:
+    //   - debits the payable account
+    //   - credits the member's SB savings account (CR_ACCOUNT_CODE)
+    //   - updates DIVIDEND_WARR_PAID_UNPAID status from 'UP' to 'PD'
+    //   - stamps CR_TXN_NO on SHARES.DIVIDEND_CALC
+    // NOTE: sp_dividend_post has 8 parameters. The 8th (p_ho_br_code) defaults
+    // to '0001' but MUST be passed explicitly as branchCode, otherwise the cursor
+    // will filter on branch '0001' and skip all members if your branch differs.
     // ══════════════════════════════════════════
     private void postingSB(HttpServletRequest req, PrintWriter pw,
-            String branchCode, String userId) {
-			String productCode = nvl(req.getParameter("productCode"));
-			String yearBegin   = nvl(req.getParameter("yearBegin"));
-			String yearEnd     = nvl(req.getParameter("yearEnd"));
-			String divBalDate  = nvl(req.getParameter("divBalDate"));
-			Connection conn    = null;
-			CallableStatement cs = null;
-			try {
-				conn = DBConnection.getConnection();
-				// ✅ FIXED: call sp_dividend_post instead of sp_dividend_pay
-				// ✅ FIXED: 8 parameters (added p_ho_br_code as last param)
-				cs = conn.prepareCall("{call sp_dividend_post(?,?,?,?,?,?,?,?)}");
-				cs.setString(1, branchCode);
-				cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
-				cs.setDate(3, java.sql.Date.valueOf(divBalDate));
-				cs.setDate(4, java.sql.Date.valueOf(yearBegin));
-				cs.setDate(5, java.sql.Date.valueOf(yearEnd));
-				cs.setString(6, productCode);
-				cs.setString(7, userId);
-				cs.setString(8, branchCode); // p_ho_br_code (default '0001', adjust if needed)
-				cs.execute();
-			pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts successfully!\"}");
-			} catch (Exception e) {
-			pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
-		} finally {
-			closeQuietly(null, cs, conn);
-	}
-}
+                           String branchCode, String userId) {
+        String productCode = nvl(req.getParameter("productCode"));
+        String yearBegin   = nvl(req.getParameter("yearBegin"));
+        String yearEnd     = nvl(req.getParameter("yearEnd"));
+        String divBalDate  = nvl(req.getParameter("divBalDate"));
+        Connection conn    = null;
+        CallableStatement cs = null;
+        try {
+            conn = DBConnection.getConnection();
+            // FIX: changed from sp_dividend_pay(7 params) to sp_dividend_post(8 params)
+            cs = conn.prepareCall("{call sp_dividend_post(?,?,?,?,?,?,?,?)}");
+            cs.setString(1, branchCode);                                          // p_branch_code
+            cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));     // p_working_date
+            cs.setDate(3, java.sql.Date.valueOf(divBalDate));                     // p_div_bal_date
+            cs.setDate(4, java.sql.Date.valueOf(yearBegin));                      // p_y_begin_date
+            cs.setDate(5, java.sql.Date.valueOf(yearEnd));                        // p_y_end_date
+            cs.setString(6, productCode);                                         // p_mem_product_type
+            cs.setString(7, userId);                                              // p_user_id
+            cs.setString(8, branchCode);                                          // p_ho_br_code (FIX: pass branchCode, not default '0001')
+            cs.execute();
+            pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts successfully!\"}");
+        } catch (Exception e) {
+            pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
+        } finally {
+            closeQuietly(null, cs, conn);
+        }
+    }
 
     private void closeQuietly(ResultSet rs, Statement st, Connection conn) {
         try { if (rs   != null) rs.close();  } catch (Exception ignored) {}

@@ -428,6 +428,8 @@
     SB Report XLS
   </button>
   <button class="btn-action"        type="button" onclick="showReport('payable')">Payable Report</button>
+  <!-- FIX: was openExcelDownload('reportXLS') — changed to 'reportCRXls' so it correctly
+       downloads only CR (no-SB-account) members, not ALL members -->
   <button class="btn-xls"           type="button" onclick="showReport('payableXls')">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#1a6e2a" stroke-width="1.2"/><path d="M4 5l2.5 3L4 11M8 11h4" stroke="#1a6e2a" stroke-width="1.1" stroke-linecap="round"/></svg>
     Payable Report XLS
@@ -626,13 +628,15 @@
   function showReport(type) {
     if (!validateForm()) return;
 
-    // XLS types: trigger file download via GET, do not use AJAX
+    // XLS types: trigger file download via GET
     if (type === 'sbXls') {
       openExcelDownload('reportSBXls');
       return;
     }
+    // FIX: was 'reportXLS' (downloads ALL members).
+    // Corrected to 'reportCRXls' so only CR/payable members are downloaded.
     if (type === 'payableXls') {
-      openExcelDownload('reportXLS');
+      openExcelDownload('reportCRXls');
       return;
     }
 
@@ -640,7 +644,7 @@
     var actionMap = {
       'normal':  'reportMain',
       'sb':      'reportSB',
-      'payable': 'reportCR'   // Payable report = members with no linked SB account (CR_ACCOUNT='0')
+      'payable': 'reportCR'
     };
     var action = actionMap[type] || 'reportMain';
 
@@ -678,7 +682,7 @@
     setTimeout(function() { setMessage('Download started. Check your downloads folder.', false); }, 1000);
   }
 
-  // ── renderReport — builds the on-screen grid, now with NAME column ──
+  // ── renderReport ──
   function renderReport(data, type) {
     document.getElementById('resultCard').style.display = 'block';
     var pc  = document.getElementById('productCode').value;
@@ -702,7 +706,6 @@
       '<div class="summary-item">Rate <span>' + pct + '%</span></div>' +
       '<div class="summary-item">Total Dividend <span>&#8377; ' + parseFloat(data.total).toFixed(2) + '</span></div>';
 
-    // Headers — NAME column added, SB report gets Branch column too
     var hdr = '<tr>' +
       '<th>#</th><th>Member Code</th><th>Name</th>' +
       '<th>Bal. for Div (&#8377;)</th><th>Rate %</th>' +
