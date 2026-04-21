@@ -2692,3 +2692,98 @@ function closeAuthorizationModal() {
     const modal = document.getElementById('authorizationModal');
     modal.style.display = 'none';
 }
+
+// ========== VOUCHER MODAL FUNCTIONS ==========
+
+// Store scroll number for voucher popup
+let voucherScrollNumber = null;
+
+function showVoucherPopup() {
+    // Get scroll number from modal
+    const scrollText = document.getElementById('authScrollNumber').textContent;
+    voucherScrollNumber = scrollText.replace('Scroll Number: ', '').trim();
+    
+    const sessionWorkingDate = typeof workingDate !== 'undefined' ? workingDate : 
+        new Date().toLocaleDateString('en-GB').replace(/\//g, '/');
+    
+    // Fetch voucher data
+    fetchVoucherData(voucherScrollNumber, sessionWorkingDate);
+    
+    // Show voucher modal
+    document.getElementById('voucherModal').style.display = 'flex';
+}
+
+function closeVoucherModal() {
+    document.getElementById('voucherModal').style.display = 'none';
+}
+
+function fetchVoucherData(scrollNumber, workingDate) {
+    const tableContainer = document.getElementById('voucherTableContainer');
+    tableContainer.innerHTML = '<p style="text-align: center; color: #8066E8;">Loading voucher data...</p>';
+    
+    const params = new URLSearchParams({
+        scrollNumber: scrollNumber,
+        workingDate: workingDate
+    });
+    
+    fetch('GetDailyScrollData.jsp?' + params.toString())
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                tableContainer.innerHTML = '<p style="color: #e74c3c; text-align: center;">Error: ' + data.error + '</p>';
+                return;
+            }
+            
+            if (data.rows && data.rows.length > 0) {
+                displayVoucherTable(data.rows);
+            } else {
+                tableContainer.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No voucher records found</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching voucher data:', error);
+            tableContainer.innerHTML = '<p style="color: #e74c3c; text-align: center;">Failed to load voucher data</p>';
+        });
+}
+
+function displayVoucherTable(rows) {
+    let html = '<table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">';
+    
+    // Table header
+    html += '<thead style="background-color: #373279; color: white;">';
+    html += '<tr>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 5%;">SR NO</th>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 10%;">SCROLL NO</th>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 8%;">SUB SR</th>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 12%;">ACCOUNT CODE</th>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 12%;">FOR ACCOUNT CODE</th>';
+    html += '<th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 10%;">TRANSACTION INDICATOR</th>';
+    html += '<th style="padding: 12px; text-align: right; border: 1px solid #ddd; width: 10%;">AMOUNT</th>';
+    html += '<th style="padding: 12px; text-align: left; border: 1px solid #ddd; width: 20%;">PARTICULAR</th>';
+    html += '</tr>';
+    html += '</thead>';
+    
+    // Table body
+    html += '<tbody>';
+    
+    rows.forEach(function(row, index) {
+        const bgColor = index % 2 === 0 ? '#f9f9f9' : '#ffffff';
+        const amount = parseFloat(row.amount) || 0;
+        
+        html += '<tr style="background-color: ' + bgColor + ';">';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + row.srNo + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + row.scrollNumber + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + row.subscrollNumber + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + row.accountCode + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + (row.forAccountCode || '-') + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + (row.transactionIndicator || '-') + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹ ' + amount.toFixed(2) + '</td>';
+        html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (row.particular || '-') + '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody>';
+    html += '</table>';
+    
+    document.getElementById('voucherTableContainer').innerHTML = html;
+}

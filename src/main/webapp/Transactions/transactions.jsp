@@ -362,22 +362,42 @@
             Scroll Number: 12345
         </div>
         
-        <button onclick="closeAuthorizationModal()" style="
-            background: #2ecc71;
-            color: white;
-            border: none;
-            padding: 12px 50px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        " onmouseover="this.style.background='#27ae60'" 
-           onmouseout="this.style.background='#2ecc71'">
-            OK
-        </button>
+        <!-- ADD THESE TWO BUTTONS -->
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="showVoucherPopup()" style="
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 12px 50px;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.3s;
+            " onmouseover="this.style.background='#2980b9'" 
+               onmouseout="this.style.background='#3498db'">
+                Voucher
+            </button>
+            
+            <button onclick="closeAuthorizationModal()" style="
+                background: #2ecc71;
+                color: white;
+                border: none;
+                padding: 12px 50px;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.3s;
+            " onmouseover="this.style.background='#27ae60'" 
+               onmouseout="this.style.background='#2ecc71'">
+                OK
+            </button>
+        </div>
     </div>
 </div>
+
+
 
 <!-- Validation Error Modal -->
 <div id="validationErrorModal" style="
@@ -436,6 +456,49 @@
     <div style="background:white; width:80%; max-height:80%; overflow:auto; padding:20px; border-radius:6px;">
         <button onclick="closeLookup()" style="float:right; cursor:pointer; background:#f44336; color:white; border:none; padding:8px 12px; border-radius:4px; font-size:16px;">✖</button>
         <div id="lookupContent"></div>
+    </div>
+</div>
+
+<!-- Voucher Modal -->
+<div id="voucherModal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+    overflow: auto;
+">
+    <div style="
+        background: white;
+        width: 90%;
+        max-width: 1200px;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        margin: 20px auto;
+    ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #333;">Transaction Voucher</h2>
+            <button onclick="closeVoucherModal()" style="
+                background: #e74c3c;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: bold;
+            ">Close</button>
+        </div>
+        
+        <div id="voucherTableContainer" style="overflow-x: auto;">
+            <!-- Table will be loaded here -->
+        </div>
     </div>
 </div>
 
