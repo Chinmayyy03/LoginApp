@@ -181,12 +181,10 @@ public class DividendCalServlet extends HttpServlet {
             String sql =
                 "SELECT COUNT(*) AS total " +
                 "FROM SHARES.CERTIFICATE_MASTER " +
-                "WHERE MEMBER_TYPE = ? " +
-                "AND   SUBSTR(ACCOUNT_NUMBER, 5, 3) = ? " +
+                "WHERE SUBSTR(ACCOUNT_NUMBER, 5, 3) = ? " +
                 "AND   STATUS = 'A'";
             ps = conn.prepareStatement(sql);
-            ps.setString(1, memberType);
-            ps.setString(2, productCode);
+            ps.setString(1, productCode);
             rs = ps.executeQuery();
             int count = 0;
             if (rs.next()) count = rs.getInt("total");
@@ -888,8 +886,9 @@ public class DividendCalServlet extends HttpServlet {
 
     // ══════════════════════════════════════════
     // ACTION 5 — Posting Payable
-    // Calls sp_dividend_pay — credits the PAYABLE account per member
-    // and inserts DIVIDEND_WARR_PAID_UNPAID rows as 'UP'
+    // FIX: After sp_dividend_pay runs, Java inserts warrant rows directly.
+    // The old procedure had the INSERT outside the loop causing a constraint
+    // violation which was silently rolled back — so warrant table was never populated.
     // ══════════════════════════════════════════
     private void postingPayable(HttpServletRequest req, PrintWriter pw,
                                 String branchCode, String userId) {
@@ -899,8 +898,12 @@ public class DividendCalServlet extends HttpServlet {
         String divBalDate  = nvl(req.getParameter("divBalDate"));
         Connection conn    = null;
         CallableStatement cs = null;
+        PreparedStatement ps = null;
         try {
             conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // Step 1 — call sp_dividend_pay as before (credits payable accounts)
             cs = conn.prepareCall("{call sp_dividend_pay(?,?,?,?,?,?,?)}");
             cs.setString(1, branchCode);
             cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
@@ -910,25 +913,75 @@ public class DividendCalServlet extends HttpServlet {
             cs.setString(6, productCode);
             cs.setString(7, userId);
             cs.execute();
-            pw.print("{\"success\":true,\"message\":\"Dividend posted successfully to all accounts!\"}");
+
+            // Step 2 — insert warrant rows from Java directly
+            // NOT EXISTS guard prevents duplicates if re-run
+            // Uses payable_ac as web_account_code (same as procedure intended)
+            // branchCode used only in WHERE filter — not stored in warrant table
+            String sql =
+                "INSERT INTO shares.dividend_warr_paid_unpaid " +
+                "    (warrent_date, warrent_no, div_from_year, div_to_year, " +
+                "     acnotype, actype, ac_no, total_shares, total_shares_amount, " +
+                "     dividend_amount, dividend_status, user_code, officer_code, " +
+                "     web_account_code, is_cbs_paid) " +
+                "SELECT " +
+                "    d.working_date, " +
+                "    d.div_warr_no, " +
+                "    EXTRACT(YEAR FROM d.y_begin_date), " +
+                "    EXTRACT(YEAR FROM d.y_end_date), " +
+                "    '', '', " +
+                "    TO_NUMBER(SUBSTR(d.member_code, 8, 14)), " +
+                "    0, " +
+                "    d.bal_shares_for_div, " +
+                "    d.div_amount_post, " +
+                "    'UP', " +
+                "    d.cr_officer_id, " +
+                "    d.cr_officer_id, " +
+                "    d.payable_ac, " +
+                "    'N' " +
+                "FROM shares.dividend_calc d " +
+                "WHERE d.branch_code  = ? " +
+                "AND   d.y_begin_date = TO_DATE(?, 'YYYY-MM-DD') " +
+                "AND   d.y_end_date   = TO_DATE(?, 'YYYY-MM-DD') " +
+                "AND   d.div_bal_date = TO_DATE(?, 'YYYY-MM-DD') " +
+                "AND   d.member_type  = ? " +
+                "AND   d.div_amount_post > 0 " +
+                "AND   NVL(d.payable_txn_no, 0) <> 0 " +   // only rows that were just posted
+                "AND NOT EXISTS ( " +
+                "    SELECT 1 FROM shares.dividend_warr_paid_unpaid w " +
+                "    WHERE TRIM(w.web_account_code) = TRIM(d.payable_ac) " +
+                "    AND   w.div_from_year = EXTRACT(YEAR FROM d.y_begin_date) " +
+                "    AND   w.div_to_year   = EXTRACT(YEAR FROM d.y_end_date) " +
+                ")";
+
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchCode);
+            ps.setString(2, yearBegin);
+            ps.setString(3, yearEnd);
+            ps.setString(4, divBalDate);
+            ps.setString(5, productCode);
+            int rowsInserted = ps.executeUpdate();
+
+            conn.commit();
+
+            pw.print("{\"success\":true,\"message\":\"Dividend posted to payable accounts. "
+                     + rowsInserted + " warrant records created.\"}");
+
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
         } finally {
+            closeQuietly(null, ps, null);
             closeQuietly(null, cs, conn);
         }
     }
 
     // ══════════════════════════════════════════
     // ACTION 6 — Posting SB
-    // FIX: was calling sp_dividend_pay (WRONG — same as Posting Payable).
-    // Corrected to call sp_dividend_post which:
-    //   - debits the payable account
-    //   - credits the member's SB savings account (CR_ACCOUNT_CODE)
-    //   - updates DIVIDEND_WARR_PAID_UNPAID status from 'UP' to 'PD'
-    //   - stamps CR_TXN_NO on SHARES.DIVIDEND_CALC
-    // NOTE: sp_dividend_post has 8 parameters. The 8th (p_ho_br_code) defaults
-    // to '0001' but MUST be passed explicitly as branchCode, otherwise the cursor
-    // will filter on branch '0001' and skip all members if your branch differs.
+    // FIX 1: calls sp_dividend_post (not sp_dividend_pay)
+    // FIX 2: passes branchCode as p_ho_br_code so cursor finds correct members
+    // FIX 3: after procedure runs, Java updates warrant status UP -> PD
+    //        using cr_txn_no <> 0 as confirmation that sp_dividend_post ran
     // ══════════════════════════════════════════
     private void postingSB(HttpServletRequest req, PrintWriter pw,
                            String branchCode, String userId) {
@@ -938,9 +991,12 @@ public class DividendCalServlet extends HttpServlet {
         String divBalDate  = nvl(req.getParameter("divBalDate"));
         Connection conn    = null;
         CallableStatement cs = null;
+        PreparedStatement ps = null;
         try {
             conn = DBConnection.getConnection();
-            // FIX: changed from sp_dividend_pay(7 params) to sp_dividend_post(8 params)
+            conn.setAutoCommit(false);
+
+            // Step 1 — call sp_dividend_post (credits SB accounts, stamps cr_txn_no)
             cs = conn.prepareCall("{call sp_dividend_post(?,?,?,?,?,?,?,?)}");
             cs.setString(1, branchCode);                                          // p_branch_code
             cs.setDate(2, new java.sql.Date(new java.util.Date().getTime()));     // p_working_date
@@ -949,12 +1005,60 @@ public class DividendCalServlet extends HttpServlet {
             cs.setDate(5, java.sql.Date.valueOf(yearEnd));                        // p_y_end_date
             cs.setString(6, productCode);                                         // p_mem_product_type
             cs.setString(7, userId);                                              // p_user_id
-            cs.setString(8, branchCode);                                          // p_ho_br_code (FIX: pass branchCode, not default '0001')
+            cs.setString(8, branchCode);                                          // p_ho_br_code (pass branchCode not default '0001')
             cs.execute();
-            pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts successfully!\"}");
+
+            // Step 2 — update warrant rows UP -> PD from Java
+            // EXISTS subquery confirms sp_dividend_post actually ran for this member
+            // (cr_txn_no will be non-zero only if posting succeeded)
+            // cbs_cr_branch_code stored here as branch is relevant for SB posting
+            String sql =
+                "UPDATE shares.dividend_warr_paid_unpaid w " +
+                "SET    w.dividend_status      = 'PD', " +
+                "       w.div_paid_date        = ?, " +
+                "       w.cbs_paid_update_date = ?, " +
+                "       w.cbs_cr_branch_code   = ? " +
+                "WHERE  w.div_from_year  = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY-MM-DD'), 'YYYY')) " +
+                "AND    w.div_to_year    = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY-MM-DD'), 'YYYY')) " +
+                "AND    w.dividend_status = 'UP' " +
+                "AND EXISTS ( " +
+                "    SELECT 1 FROM shares.dividend_calc d " +
+                "    WHERE  TRIM(d.payable_ac)  = TRIM(w.web_account_code) " +
+                "    AND    d.branch_code        = ? " +
+                "    AND    d.y_begin_date       = TO_DATE(?, 'YYYY-MM-DD') " +
+                "    AND    d.y_end_date         = TO_DATE(?, 'YYYY-MM-DD') " +
+                "    AND    d.div_bal_date       = TO_DATE(?, 'YYYY-MM-DD') " +
+                "    AND    d.member_type        = ? " +
+                "    AND    NVL(d.cr_txn_no, 0) <> 0 " +   // confirms sp_dividend_post ran for this member
+                ")";
+
+            ps = conn.prepareStatement(sql);
+            // SET params
+            ps.setDate(1, new java.sql.Date(new java.util.Date().getTime())); // div_paid_date
+            ps.setDate(2, new java.sql.Date(new java.util.Date().getTime())); // cbs_paid_update_date
+            ps.setString(3, branchCode);                                       // cbs_cr_branch_code
+            // WHERE year params
+            ps.setString(4, yearBegin);   // div_from_year
+            ps.setString(5, yearEnd);     // div_to_year
+            // EXISTS subquery params
+            ps.setString(6, branchCode);
+            ps.setString(7, yearBegin);
+            ps.setString(8, yearEnd);
+            ps.setString(9, divBalDate);
+            ps.setString(10, productCode);
+
+            int rowsUpdated = ps.executeUpdate();
+
+            conn.commit();
+
+            pw.print("{\"success\":true,\"message\":\"Dividend posted to SB accounts. "
+                     + rowsUpdated + " warrant records marked as Paid.\"}");
+
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             pw.print("{\"success\":false,\"message\":\"" + jsonSafeErr(e) + "\"}");
         } finally {
+            closeQuietly(null, ps, null);
             closeQuietly(null, cs, conn);
         }
     }
