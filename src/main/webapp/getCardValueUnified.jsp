@@ -9,9 +9,8 @@
         return;
     }
     
-    // Get card type and identifier
-    String cardType = request.getParameter("type");      // "dashboard", "view", "auth"
-    String cardId = request.getParameter("id");          // Card identifier
+    String cardType = request.getParameter("type");
+    String cardId = request.getParameter("id");
     
     if (cardType == null || cardId == null) {
         out.print("{\"error\": \"Missing parameters\"}");
@@ -24,14 +23,12 @@
     
     try {
         conn = DBConnection.getConnection();
-        String value = "N/A";  // Default for missing/invalid data
+        String value = "N/A";
         
-        // Get working date from session
         Date workingDate = (Date) session.getAttribute("workingDate");
         
         switch(cardType.toLowerCase()) {
             case "dashboard":
-                // Dashboard cards - use function calls
                 ps = conn.prepareStatement(
                     "SELECT FUNCATION_NAME, PARAMITAR, TABLE_NAME, DESCRIPTION " +
                     "FROM GLOBALCONFIG.DASHBOARD " +
@@ -39,12 +36,10 @@
                 );
                 ps.setString(1, cardId);
                 rs = ps.executeQuery();
-                
                 if (rs.next()) {
                     String functionName = rs.getString("FUNCATION_NAME");
                     String parameters = rs.getString("PARAMITAR");
                     String tableName = rs.getString("TABLE_NAME");
-                    
                     if (functionName != null && !functionName.trim().isEmpty()) {
                         value = executeCardFunction(conn, functionName, parameters, tableName, branchCode);
                     } else {
@@ -56,11 +51,9 @@
                 break;
                 
             case "view":
-                // View page cards
                 if ("total_accounts".equals(cardId)) {
                     ps = conn.prepareStatement(
-                        "SELECT COUNT(*) as TOTAL " +
-                        "FROM ACCOUNT.ACCOUNT " +
+                        "SELECT COUNT(*) as TOTAL FROM ACCOUNT.ACCOUNT " +
                         "WHERE SUBSTR(ACCOUNT_CODE, 1, 4) = ?"
                     );
                     ps.setString(1, branchCode);
@@ -104,12 +97,10 @@
                 );
                 ps.setString(1, cardId);
                 rs = ps.executeQuery();
-                
                 if (rs.next()) {
                     String functionName = rs.getString("FUNCATION_NAME");
                     String parameters = rs.getString("PARAMITAR");
                     String tableName = rs.getString("TABLE_NAME");
-                    
                     if (functionName != null && !functionName.trim().isEmpty()) {
                         value = executeCardFunction(conn, functionName, parameters, tableName, branchCode);
                     } else {
@@ -128,12 +119,10 @@
                 );
                 ps.setString(1, cardId);
                 rs = ps.executeQuery();
-                
                 if (rs.next()) {
                     String functionName = rs.getString("FUNCATION_NAME");
                     String parameters = rs.getString("PARAMITAR");
                     String tableName = rs.getString("TABLE_NAME");
-                    
                     if (functionName != null && !functionName.trim().isEmpty()) {
                         value = executeCardFunction(conn, functionName, parameters, tableName, branchCode);
                     } else {
@@ -145,7 +134,6 @@
                 break;
                 
             case "auth":
-                // Authorization pending cards
                 if ("pending_customers".equals(cardId)) {
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM CUSTOMERS " +
@@ -217,6 +205,7 @@
                     } else {
                         value = "N/A";
                     }
+
                 } else if ("pending_shares".equals(cardId)) {
                     ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM SHARES.CERTIFICATE_MASTER " +
@@ -226,6 +215,22 @@
                     ps.setString(1, branchCode);
                     rs = ps.executeQuery();
                     value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
+
+                } else if ("pending_shares_modes".equals(cardId)) {
+                    if (workingDate != null) {
+                        ps = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM TRANSACTION.DAILYSCROLL " +
+                            "WHERE BRANCH_CODE = ? AND TRANSACTIONSTATUS = 'E' " +
+                            "AND TRANSACTIONINDICATOR_CODE IN ('TRCD', 'CSCR', 'TRCR', 'CSDR') " +
+                            "AND TRUNC(SCROLL_DATE) = TRUNC(?)"
+                        );
+                        ps.setString(1, branchCode);
+                        ps.setDate(2, workingDate);
+                        rs = ps.executeQuery();
+                        value = rs.next() ? String.valueOf(rs.getInt(1)) : "0";
+                    } else {
+                        value = "N/A";
+                    }
                 }
                 break;
 
@@ -234,7 +239,6 @@
                 return;
         }
         
-        // Return success response
         out.print("{\"value\": \"" + value.replace("\"", "\\\"") + "\", \"status\": \"success\"}");
         
     } catch (Exception e) {
@@ -248,7 +252,6 @@
 %>
 
 <%!
-    // Helper method to execute dashboard card functions - Returns raw database value
     private String executeCardFunction(Connection conn, String functionName, String parameters, 
                                       String tableName, String branchCode) 
                                       throws SQLException {
@@ -257,18 +260,15 @@
             return "N/A";
         }
         
-        // Parse parameters
         String[] params = parameters != null && !parameters.trim().isEmpty() 
                          ? parameters.split(",") 
                          : new String[0];
         
-        // Build SQL with function call
         StringBuilder sql = new StringBuilder("SELECT ").append(functionName).append("(");
         
         int paramCount = 0;
         for (int i = 0; i < params.length; i++) {
             if (paramCount > 0) sql.append(", ");
-            
             String param = params[i].trim().toUpperCase();
             if (param.equals("DATE")) {
                 sql.append("SYSDATE");
@@ -289,7 +289,6 @@
         try {
             ps = conn.prepareStatement(sql.toString());
             
-            // Set parameters
             int paramIndex = 1;
             for (int i = 0; i < params.length; i++) {
                 String param = params[i].trim().toUpperCase();
@@ -307,7 +306,6 @@
                 String result = rs.getString(1);
                 return (result == null || result.trim().isEmpty()) ? "0" : result.trim();
             }
-            
             return "0";
             
         } catch (SQLException e) {
