@@ -164,7 +164,6 @@ function nextPage() {
     if (currentPage < totalPages) displayTransactions(transactions, currentPage + 1);
 }
 
-// ✅ FIXED: now points to viewSharesModeDetails.jsp
 function viewTransaction(scrollNumber) {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb(
@@ -211,6 +210,19 @@ window.onload = function() {
     </tr>
 </thead>
 <tbody>
+<%-- Data is loaded into allTransactions[] via JS below. Table body is rendered by displayTransactions(). --%>
+</tbody>
+</table>
+</div>
+
+<div class="pagination-container">
+    <button id="prevBtn" class="pagination-btn" onclick="previousPage()">← Previous</button>
+    <span id="pageInfo" class="page-info">Page 1</span>
+    <button id="nextBtn" class="pagination-btn" onclick="nextPage()">Next →</button>
+</div>
+
+<%-- Load all data into JS array only — no HTML rows rendered here --%>
+<script>
 <%
 try (Connection conn = DBConnection.getConnection()) {
 
@@ -219,24 +231,37 @@ try (Connection conn = DBConnection.getConnection()) {
     PreparedStatement ps = conn.prepareStatement(
         "SELECT " +
         "  d.SCROLL_NUMBER, " +
+        "  d.TRANSACTIONINDICATOR_CODE, " +
         "  CASE " +
         "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
-        "      THEN d.FORACCOUNT_CODE " +
+        "          THEN d.FORACCOUNT_CODE " +
+        "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "           AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          THEN d.FORACCOUNT_CODE " +
         "      ELSE d.ACCOUNT_CODE " +
         "  END AS ACCOUNT_CODE, " +
         "  CASE " +
         "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
-        "      THEN Fn_Get_Account_name(d.FORACCOUNT_CODE) " +
+        "          THEN Fn_Get_Account_name(d.FORACCOUNT_CODE) " +
+        "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "           AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          THEN Fn_Get_Account_name(d.FORACCOUNT_CODE) " +
         "      ELSE Fn_Get_Account_name(d.ACCOUNT_CODE) " +
         "  END AS ACCOUNT_NAME, " +
         "  CASE " +
         "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
-        "      THEN Fn_Get_Account_name(FN_GET_AC_GL(d.FORACCOUNT_CODE)) " +
+        "          THEN Fn_Get_Account_name(FN_GET_AC_GL(d.FORACCOUNT_CODE)) " +
+        "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "           AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          THEN Fn_Get_Account_name(FN_GET_AC_GL(d.FORACCOUNT_CODE)) " +
         "      ELSE Fn_Get_Account_name(FN_GET_AC_GL(d.ACCOUNT_CODE)) " +
         "  END AS GL_ACCOUNT_NAME, " +
         "  CASE " +
         "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
-        "      THEN NVL(d.ACCOUNT_CODE, '') " +
+        "          THEN NVL(d.ACCOUNT_CODE, '') " +
+        "      WHEN d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "           AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          THEN NVL(d.ACCOUNT_CODE, '') " +
         "      ELSE NVL(d.FORACCOUNT_CODE, '') " +
         "  END AS FORACCOUNT_CODE, " +
         "  d.AMOUNT, " +
@@ -250,8 +275,20 @@ try (Connection conn = DBConnection.getConnection()) {
         "      (d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
         "          AND SUBSTR(d.ACCOUNT_CODE, 5, 3) = '901') " +
         "      OR " +
+        "      (d.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "          AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          AND SUBSTR(d.ACCOUNT_CODE,    5, 3) != '901') " +
+        "      OR " +
         "      (d.TRANSACTIONINDICATOR_CODE = 'TRDR' " +
-        "          AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901') " +
+        "          AND SUBSTR(d.FORACCOUNT_CODE, 5, 3) = '901' " +
+        "          AND NOT EXISTS ( " +
+        "              SELECT 1 FROM TRANSACTION.DAILYSCROLL d2 " +
+        "              WHERE d2.SCROLL_NUMBER = d.SCROLL_NUMBER " +
+        "              AND   d2.BRANCH_CODE   = d.BRANCH_CODE " +
+        "              AND   d2.TRANSACTIONINDICATOR_CODE = 'TRCR' " +
+        "              AND  (SUBSTR(d2.ACCOUNT_CODE,    5, 3) = '901' " +
+        "                OR  SUBSTR(d2.FORACCOUNT_CODE, 5, 3) = '901') " +
+        "          )) " +
         "  ) " +
         (workingDate != null ? "  AND TRUNC(d.SCROLL_DATE) = TRUNC(?) " : "") +
         "ORDER BY d.SCROLL_NUMBER DESC"
@@ -263,10 +300,7 @@ try (Connection conn = DBConnection.getConnection()) {
     }
 
     ResultSet rs = ps.executeQuery();
-
-    boolean hasData  = false;
-    int displayCount = 0;
-    int srNo         = 1;
+    boolean hasData = false;
 
     while (rs.next()) {
         hasData = true;
@@ -279,12 +313,11 @@ try (Connection conn = DBConnection.getConnection()) {
         String amount         = rs.getString("AMOUNT")          != null ? rs.getString("AMOUNT")          : "0.00";
         String particular     = rs.getString("PARTICULAR")      != null ? rs.getString("PARTICULAR")      : "";
 
-        // Sanitize for JS
-        String safeAccountName   = accountName.replace("'", "\\'").replace(".", "");
-        String safeGlAccountName = glAccountName.replace("'", "\\'").replace(".", "");
-        String safeParticular    = particular.replace("'", "\\'");
+        // Sanitize for JS string literals
+        String safeAccountName   = accountName.replace("\\", "\\\\").replace("'", "\\'").replace(".", "");
+        String safeGlAccountName = glAccountName.replace("\\", "\\\\").replace("'", "\\'").replace(".", "");
+        String safeParticular    = particular.replace("\\", "\\\\").replace("'", "\\'");
 
-        out.println("<script>");
         out.println("allTransactions.push({");
         out.println("  scrollNumber: '"   + scrollNumber      + "',");
         out.println("  accountCode: '"    + accountCode       + "',");
@@ -294,51 +327,16 @@ try (Connection conn = DBConnection.getConnection()) {
         out.println("  amount: '"         + amount            + "',");
         out.println("  particular: '"     + safeParticular    + "'");
         out.println("});");
-        out.println("</script>");
-
-        if (displayCount < recordsPerPage) {
-            out.println("<tr>");
-            out.println("<td>" + srNo + "</td>");
-            out.println("<td>" + scrollNumber + "</td>");
-            out.println("<td>" + accountCode + "</td>");
-            out.println("<td>" + (accountName.equals(".") ? "" : accountName) + "</td>");
-            out.println("<td>" + (glAccountName.equals(".") ? "" : glAccountName) + "</td>");
-            out.println("<td>" + forAccountCode + "</td>");
-            out.println("<td style='text-align:right;'>" + amount + "</td>");
-            out.println("<td>" + particular + "</td>");
-            out.println("<td><button class='view-details-btn' onclick=\"viewTransaction('" + scrollNumber + "'); return false;\">View Details</button></td>");
-            out.println("</tr>");
-            displayCount++;
-            srNo++;
-        }
     }
 
     if (!hasData) {
-        out.println("<tr><td colspan='9' class='no-data'>No pending shares transactions found.</td></tr>");
+        out.println("// No data found");
     }
 
 } catch (Exception e) {
-    out.println("<tr><td colspan='9' class='no-data'>Error: " + e.getMessage() + "</td></tr>");
+    out.println("console.error('DB Error: " + e.getMessage().replace("'", "\\'") + "');");
 }
 %>
-</tbody>
-</table>
-</div>
-
-<div class="pagination-container">
-    <button id="prevBtn" class="pagination-btn" onclick="previousPage()">← Previous</button>
-    <span id="pageInfo" class="page-info">Page 1</span>
-    <button id="nextBtn" class="pagination-btn" onclick="nextPage()">Next →</button>
-</div>
-
-<script>
-(function() {
-    var totalPages = Math.ceil(allTransactions.length / recordsPerPage);
-    document.getElementById("prevBtn").disabled = true;
-    document.getElementById("nextBtn").disabled = (totalPages <= 1);
-    document.getElementById("pageInfo").textContent = "Page 1 of " + Math.max(1, totalPages);
-    sessionStorage.setItem('authSharesTxnPage', '1');
-})();
 </script>
 
 </body>

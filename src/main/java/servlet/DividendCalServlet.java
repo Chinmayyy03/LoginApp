@@ -60,7 +60,7 @@ public class DividendCalServlet extends HttpServlet {
             generatePDF(req, res, branchCode, userId);
             return;
         }
-        if ("reportXLS".equals(action) || "reportSBXls".equals(action) || "reportCRXls".equals(action)) {
+        if ("reportXLS".equals(action) || "reportMainXls".equals(action) || "reportSBXls".equals(action) || "reportCRXls".equals(action)) {
             String mode = "reportSBXls".equals(action) ? "SB"
                         : "reportCRXls".equals(action) ? "CR" : "ALL";
             generateExcelCSV(req, res, branchCode, mode);
