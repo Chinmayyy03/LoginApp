@@ -33,6 +33,32 @@
       to   { opacity: 1;   transform: scale(1.1); }
     }
     .dd-spinner.done { display: none; }
+    
+    
+    .input-icon-box {
+	  position: relative;
+	  width: 90%;
+	}
+	
+	.input-icon-box input {
+	  width: 100%;
+	  padding-right: 40px;
+	  height: 30px;
+	  cursor: pointer;
+	  box-sizing: border-box;
+	}
+	
+	.input-icon-box .inside-icon-btn {
+	  position: absolute;
+	  right: 5px;
+	  top: 50%;
+	  transform: translateY(-50%);
+	  background: none;
+	  border: none;
+	  font-size: 16px;
+	  cursor: pointer;
+	  color: #373279;
+	}
   </style>
 </head>
 <body>
@@ -40,59 +66,34 @@
 <form action="LockerIssueServlet" method="post" onsubmit="return validateForm()">
 
   <!-- ══════════════════════════════════════════════════ -->
-  <!-- FIELDSET 1: LOCKER DETAILS                        -->
+  <!-- FIELDSET 0: LOCKER TYPE DETAILS (Availability)    -->
   <!-- ══════════════════════════════════════════════════ -->
   <fieldset>
-    <legend>Locker Details</legend>
+    <legend>Locker Type Details</legend>
     <div class="form-grid">
 
       <div>
+        <label>Locker Type</label>
+		<div class="input-icon-box">
+		  <input type="text" name="lockerTypeSearch" id="lockerTypeSearch"
+		         oninput="this.value = this.value.toUpperCase();" readonly>
+		  <button type="button" class="inside-icon-btn" title="Search Locker Type">🔍</button>
+		</div>
+      </div>
+
+      <div>
         <label>Locker Number</label>
-        <input type="text" name="lockerNumber" id="lockerNumber" required
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();">
+        <div style="display:flex; gap:4px;">
+          <button type="button" style="padding:2px 8px;">...</button>
+          <input type="text" name="lockerNumberSearch" id="lockerNumberSearch"
+                 oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();" style="flex:1;">
+        </div>
       </div>
 
-      <div>
-        <label>Locker Size <span class="dd-spinner" id="sp-lockerSize"></span></label>
-        <select name="lockerSize" id="lockerSize" required class="dd-loading">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Locker Type <span class="dd-spinner" id="sp-lockerType"></span></label>
-        <select name="lockerType" id="lockerType" required class="dd-loading">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Branch Code</label>
-        <input type="text" name="issueBranchCode" id="issueBranchCode"
-               value="<%= branchCode %>" readonly>
-      </div>
-
-      <div>
-        <label>Key Number</label>
-        <input type="text" name="keyNumber" id="keyNumber" required
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();">
-      </div>
-
-      <div>
-        <label>Duplicate Key Number</label>
-        <input type="text" name="duplicateKeyNumber" id="duplicateKeyNumber"
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();">
-      </div>
-
-      <div>
-        <label>Issue Date</label>
-        <input type="date" name="issueDate" id="issueDate" required>
-      </div>
-
-      <div>
-        <label>Locker Location / Vault No.</label>
-        <input type="text" name="lockerLocation" id="lockerLocation"
-               oninput="this.value = this.value.toUpperCase();">
+      <div style="display:flex; align-items:flex-end;">
+        <button type="button" id="checkAvailabilityBtn" onclick="checkLockerAvailability()">
+          Check Availability
+        </button>
       </div>
 
     </div>
@@ -100,180 +101,115 @@
 
 
   <!-- ══════════════════════════════════════════════════ -->
-  <!-- FIELDSET 2: CUSTOMER & ACCOUNT INFORMATION        -->
+  <!-- FIELDSET 0B: LOCKER ACCOUNT DETAILS               -->
   <!-- ══════════════════════════════════════════════════ -->
   <fieldset>
-    <legend>Customer &amp; Account Information</legend>
+    <legend>Locker Account Details</legend>
     <div class="form-grid">
 
       <div>
-        <label>Customer ID</label>
-        <input type="text" name="customerId" id="customerId" required
-               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        <label>Key No</label>
+        <input type="text" name="keyNo" id="keyNo" readonly>
+      </div>
+
+
+      <div>
+        <label>Customer Id</label>
+        <div style="display:flex; gap:4px;">
+          <button type="button" style="padding:2px 8px;">...</button>
+          <input type="text" name="customerIdLookup" id="customerIdLookup"
+                 oninput="this.value = this.value.replace(/[^0-9]/g,'')" style="flex:1;">
+        </div>
       </div>
 
       <div>
         <label>Customer Name</label>
-        <input type="text" name="customerName" id="customerName" readonly>
+        <input type="text" name="customerNameDisplay" id="customerNameDisplay" readonly>
       </div>
 
       <div>
-        <label>Account Number</label>
-        <input type="text" name="accountNumber" id="accountNumber" required
-               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        <label>Name of Hire</label>
+        <input type="text" name="nameOfHire" id="nameOfHire">
       </div>
 
       <div>
-        <label>Account Type <span class="dd-spinner" id="sp-accountType"></span></label>
-        <select name="accountType" id="accountType" required class="dd-loading">
-          <option value="">Loading...</option>
+        <label>Category</label>
+        <input type="text" name="category" id="category" value="PUBLIC" readonly>
+      </div>
+
+      <div>
+        <label>Address 1</label>
+        <input type="text" name="dispAddress1" id="dispAddress1" readonly>
+      </div>
+
+      <div>
+        <label>Mobile No.</label>
+        <input type="text" name="dispMobile" id="dispMobile" readonly>
+      </div>
+
+      <div>
+        <label>Address 2</label>
+        <input type="text" name="dispAddress2" id="dispAddress2" readonly>
+      </div>
+
+      <div>
+        <label>Telephone Res.</label>
+        <input type="text" name="dispTelRes" id="dispTelRes" readonly>
+      </div>
+
+      <div>
+        <label>Address 3</label>
+        <input type="text" name="dispAddress3" id="dispAddress3" readonly>
+      </div>
+
+      <div>
+        <label>Telephone Office</label>
+        <input type="text" name="dispTelOffice" id="dispTelOffice" readonly>
+      </div>
+
+      <div>
+        <label>City</label>
+        <input type="text" name="dispCity" id="dispCity" readonly>
+      </div>
+
+      <div>
+        <label>Pin</label>
+        <input type="text" name="dispPin" id="dispPin" readonly>
+      </div>
+
+      <div>
+        <label>Rent Paid Till Date</label>
+        <input type="date" name="rentPaidTillDate" id="rentPaidTillDate" readonly>
+      </div>
+
+      <div>
+        <label>Mode of Operation</label>
+        <select name="modeOfOperation" id="modeOfOperation">
+          <option value="JOINT">JOINT</option>
+          <option value="SINGLE">SINGLE</option>
+          <option value="EITHER_OR_SURVIVOR">EITHER OR SURVIVOR</option>
+          <option value="ANYONE_OR_SURVIVOR">ANYONE OR SURVIVOR</option>
         </select>
       </div>
 
       <div>
-        <label>Mobile Number</label>
-        <input type="text" name="mobileNumber" id="mobileNumber"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+        <label>Lessor Agre.</label>
+        <input type="text" name="lessorAgre" id="lessorAgre">
       </div>
 
       <div>
-        <label>Email ID</label>
-        <input type="email" name="email" id="email">
-      </div>
-
-      <div>
-        <label>Aadhar Number</label>
-        <input type="text" name="aadharNumber" id="aadharNumber" maxlength="12"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);" required>
-      </div>
-
-      <div>
-        <label>PAN Number</label>
-        <input type="text" name="panNumber" id="panNumber" maxlength="10"
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 10);">
-      </div>
-
-    </div>
-  </fieldset>
-
-
-  <!-- ══════════════════════════════════════════════════ -->
-  <!-- FIELDSET 3: RENT & DEPOSIT DETAILS                -->
-  <!-- ══════════════════════════════════════════════════ -->
-  <fieldset>
-    <legend>Rent &amp; Deposit Details</legend>
-    <div class="form-grid">
-
-      <div>
-        <label>Annual Rent Amount (₹)</label>
-        <input type="number" name="annualRent" id="annualRent" min="0" step="0.01" required>
-      </div>
-
-      <div>
-        <label>Rent Frequency <span class="dd-spinner" id="sp-rentFrequency"></span></label>
-        <select name="rentFrequency" id="rentFrequency" required class="dd-loading">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Security Deposit (₹)</label>
-        <input type="number" name="securityDeposit" id="securityDeposit" min="0" step="0.01" required>
-      </div>
-
-      <div>
-        <label>First Rent Due Date</label>
-        <input type="date" name="firstRentDueDate" id="firstRentDueDate" required>
-      </div>
-
-      <div>
-        <label>Rent Paid Upto Date</label>
-        <input type="date" name="rentPaidUptoDate" id="rentPaidUptoDate">
-      </div>
-
-      <div>
-        <label>Mode of Rent Payment <span class="dd-spinner" id="sp-paymentMode"></span></label>
-        <select name="paymentMode" id="paymentMode" required class="dd-loading">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Debit Account for Rent</label>
-        <input type="text" name="debitAccount" id="debitAccount"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-      </div>
-
-      <div>
-        <label>Remarks</label>
-        <input type="text" name="remarks" id="remarks" maxlength="200">
-      </div>
-
-    </div>
-  </fieldset>
-
-
-  <!-- ══════════════════════════════════════════════════ -->
-  <!-- FIELDSET 4: AUTHORIZATION & TERMS                 -->
-  <!-- ══════════════════════════════════════════════════ -->
-  <fieldset>
-    <legend>Authorization &amp; Terms</legend>
-    <div class="form-grid">
-
-      <div>
-        <label>Authorized By (Officer ID)</label>
-        <input type="text" name="authorizedBy" id="authorizedBy" required
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();">
-      </div>
-
-      <div>
-        <label>Witness Name</label>
-        <input type="text" name="witnessName" id="witnessName"
-               oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').replace(/\s{2,}/g,' ').replace(/^\s+/g,'').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());">
-      </div>
-
-      <div>
-        <label>Agreement Reference No.</label>
-        <input type="text" name="agreementRefNo" id="agreementRefNo"
-               oninput="this.value = this.value.toUpperCase();">
-      </div>
-
-      <div>
-        <label>Agreement Date</label>
-        <input type="date" name="agreementDate" id="agreementDate">
-      </div>
-
-      <div>
-        <label>Is Locker Active</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="isActive" value="yes" checked required> Yes</label>
-          <label><input type="radio" name="isActive" value="no"> No</label>
+        <label>Nominee</label>
+        <div style="flex-direction:row;" class="radio-group">
+          <label><input type="radio" name="nomineeFlag" value="yes"> Yes</label>
+          <label><input type="radio" name="nomineeFlag" value="no" checked> No</label>
         </div>
       </div>
 
       <div>
-        <label>Is Insurance Required</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="insuranceRequired" value="yes" required> Yes</label>
-          <label><input type="radio" name="insuranceRequired" value="no" checked> No</label>
-        </div>
-      </div>
-
-      <div>
-        <label>Can Joint Access</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label><input type="radio" name="jointAccess" value="yes" required> Yes</label>
-          <label><input type="radio" name="jointAccess" value="no" checked> No</label>
-        </div>
-      </div>
-
-      <div>
-        <label>Declaration Accepted</label>
-        <div style="flex-direction: row;" class="radio-group">
-          <label>
-            <input type="checkbox" name="declarationAccepted" id="declarationAccepted" required>
-            I confirm all locker issue details are correct
-          </label>
+        <label>Join Operation</label>
+        <div style="flex-direction:row;" class="radio-group">
+          <label><input type="radio" name="joinOperation" value="yes"> Yes</label>
+          <label><input type="radio" name="joinOperation" value="no" checked> No</label>
         </div>
       </div>
 
@@ -355,6 +291,39 @@ window.onload = function() {
         );
     }
 };
+
+function checkLockerAvailability() {
+    var lockerType   = document.getElementById('lockerTypeSearch').value.trim();
+    var lockerNumber = document.getElementById('lockerNumberSearch').value.trim();
+    if (!lockerType && !lockerNumber) {
+        alert('Please enter Locker Type or Locker Number to check availability.');
+        return;
+    }
+    fetch(window.APP_CONTEXT_PATH + '/loaders/LockerAvailabilityLoader'
+        + '?lockerType=' + encodeURIComponent(lockerType)
+        + '&lockerNumber=' + encodeURIComponent(lockerNumber))
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.available) {
+            // Auto-fill display fields
+            document.getElementById('keyNo').value           = data.keyNo        || '';
+            document.getElementById('customerNameDisplay').value = data.customerName || '';
+            document.getElementById('dispAddress1').value    = data.address1     || '';
+            document.getElementById('dispAddress2').value    = data.address2     || '';
+            document.getElementById('dispAddress3').value    = data.address3     || '';
+            document.getElementById('dispMobile').value      = data.mobile       || '';
+            document.getElementById('dispTelRes').value      = data.telRes       || '';
+            document.getElementById('dispTelOffice').value   = data.telOffice    || '';
+            document.getElementById('dispCity').value        = data.city         || '';
+            document.getElementById('dispPin').value         = data.pin          || '';
+            document.getElementById('rentPaidTillDate').value= data.rentPaidTill || '';
+            alert('Locker is Available!');
+        } else {
+            alert('Locker is NOT available or not found.');
+        }
+    })
+    .catch(function(err) { console.error('Availability check error:', err); });
+}
 </script>
 </body>
 </html>
