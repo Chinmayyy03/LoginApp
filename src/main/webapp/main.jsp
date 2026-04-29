@@ -1007,6 +1007,9 @@ function loadNavigationStack() {
 }
 
 function addToNavigationStack(page, breadcrumbPath) {
+    // SANITIZE: Ensure page is always a relative path
+    page = getRelativePath(page);
+    
     const entry = { page, breadcrumbPath };
     
     const currentIndex = navigationStack.findIndex(e => e.breadcrumbPath === breadcrumbPath);
@@ -1219,15 +1222,26 @@ function navigateToBreadcrumbByIndex(index) {
     for (let i = navStack.length - 1; i >= 0; i--) {
         if (navStack[i].breadcrumbPath === targetPath) {
             const targetPage = navStack[i].page;
-            document.getElementById("contentFrame").src = targetPage;
+            
+            // Handle both absolute and relative paths
+            let iframeSrc = targetPage;
+            
+            // Ensure path starts with proper format
+            if (iframeSrc && !iframeSrc.startsWith('/')) {
+                // Add context path if needed
+                iframeSrc = iframeSrc;
+            }
+            
+            console.log('Navigating to:', iframeSrc);  // Debug log
+            
+            document.getElementById("contentFrame").src = iframeSrc;
             updateBreadcrumb(targetPath);
-            sessionStorage.setItem('currentPage', targetPage);
+            sessionStorage.setItem('currentPage', iframeSrc);
             return;
         }
     }
     
-    cconsole.warn('No navigation history found for:', targetPath);
- // Fallback: try to match by label in PAGE_EXCEPTIONS
+    // Fallback: try to match by label in PAGE_EXCEPTIONS
     if (typeof PAGE_EXCEPTIONS !== 'undefined') {
         for (var url in PAGE_EXCEPTIONS) {
             if (PAGE_EXCEPTIONS[url] === targetPath.split(' > ').pop()) {
@@ -1239,17 +1253,51 @@ function navigateToBreadcrumbByIndex(index) {
             }
         }
     }
+    
+    console.warn('No navigation history found for:', targetPath);
 }
+
+//Helper: Extract relative path from absolute or relative URL
+function getRelativePath(urlOrPath) {
+    if (!urlOrPath) return '';
+    
+    // If it's already a relative path, return as-is
+    if (!urlOrPath.startsWith('http')) {
+        return urlOrPath.startsWith('/') ? urlOrPath.substring(1) : urlOrPath;
+    }
+    
+    // Extract path from absolute URL
+    var pathPart = urlOrPath.replace(/^https?:\/\/[^\/]+/, '');
+    
+    // Remove context path (e.g., /LoginApp)
+    var contextSegments = window.location.pathname.split('/').filter(s => s);
+    if (contextSegments.length > 0) {
+        var contextPath = '/' + contextSegments[0];
+        if (pathPart.startsWith(contextPath)) {
+            pathPart = pathPart.substring(contextPath.length);
+        }
+    }
+    
+    // Remove leading slash and query params
+    return pathPart.replace(/^\//, '').split('?')[0];
+}
+
+window.pushNavigationHistory = function(label, pageUrl) {
+    var cleanPageUrl = getRelativePath(pageUrl);
+    var breadcrumbPath = buildBreadcrumbPath(cleanPageUrl);
+    addToNavigationStack(cleanPageUrl, breadcrumbPath);
+};
 
 window.updateParentBreadcrumb = function(path, currentPage) {
     if (currentPage) {
-        addToNavigationStack(currentPage, path);
+        var cleanPage = getRelativePath(currentPage);
+        addToNavigationStack(cleanPage, path);
     } else {
         // Auto-derive page from current iframe src
         var iframe = document.getElementById('contentFrame');
         if (iframe && iframe.src) {
-            var src = iframe.src.replace(window.location.origin + '/', '').split('?')[0];
-            addToNavigationStack(src, path);
+            var cleanSrc = getRelativePath(iframe.src);
+            addToNavigationStack(cleanSrc, path);
         }
     }
     sessionStorage.setItem('currentBreadcrumb', path);

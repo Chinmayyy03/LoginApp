@@ -88,21 +88,48 @@ window.onload = function () {
 };
 
 function openPage(page) {
-    var config = PAGE_CONFIG[page];
-    if (!config) return;
-
     if (window.parent && window.parent.document) {
-        var iframe = window.parent.document.getElementById('contentFrame');
+        const iframe = window.parent.document.getElementById("contentFrame");
         if (iframe) {
-            iframe.src = config.url;
-        }
-        if (window.parent.updateParentBreadcrumb) {
-            window.parent.updateParentBreadcrumb('Lockers > ' + config.label);
-        }
-        // Push both Lockers and the sub-page into history
-        if (window.parent.pushNavigationHistory) {
-            window.parent.pushNavigationHistory('Lockers', 'Lockers/locker.jsp');
-            window.parent.pushNavigationHistory(config.label, config.url);
+            let url = '';
+            let breadcrumbLabel = '';
+            
+            switch(page) {
+                case 'lockerIssues':
+                    url = 'Lockers/lockerIssues.jsp';
+                    breadcrumbLabel = 'Locker Issues';
+                    break;
+                case 'lockerAttendance':
+                    url = 'Lockers/lockerAttendance.jsp';
+                    breadcrumbLabel = 'Locker Attendance';
+                    break;
+                case 'lockerSurrender':
+                    url = 'Lockers/lockerSurrender.jsp';
+                    breadcrumbLabel = 'Locker Surrender';
+                    break;
+                case 'lockerTransaction':
+                    url = 'Lockers/lockerTransaction.jsp';
+                    breadcrumbLabel = 'Locker Transaction';
+                    break;
+                case 'lockerNominee':
+                    url = 'Lockers/lockerNominee.jsp';  // ← Correct path
+                    breadcrumbLabel = 'Locker Nominee';
+                    break;
+                case 'lockerJointHolder':
+                    url = 'Lockers/lockerJointHolder.jsp';  // ← Correct path
+                    breadcrumbLabel = 'Locker JointHolder';
+                    break;
+            }
+            
+            if (url) {
+                // Direct iframe navigation (bypassing main.jsp breadcrumb issue)
+                iframe.src = url;
+                
+                // Update breadcrumb separately
+                if (window.parent.updateParentBreadcrumb) {
+                    window.parent.updateParentBreadcrumb('Lockers > ' + breadcrumbLabel);
+                }
+            }
         }
     }
 }
