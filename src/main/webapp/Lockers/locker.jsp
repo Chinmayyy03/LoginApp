@@ -67,6 +67,18 @@
             <p class="size-1">→</p>
         </div>
 
+        <!-- Card 5: Locker Nominee -->
+        <div class="card" onclick="openPage('lockerNominee')">
+            <h3>Locker Nominee</h3>
+            <p class="size-1">→</p>
+        </div>
+
+        <!-- Card 6: Locker JointHolder -->
+        <div class="card" onclick="openPage('lockerJointHolder')">
+            <h3>Locker JointHolder</h3>
+            <p class="size-1">→</p>
+        </div>
+
     </div>
 </div>
 
@@ -75,100 +87,46 @@ window.onload = function () {
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb('Lockers');
     }
-    
-    // Load card values
-    loadCardValues();
 };
-
-async function loadCardValues() {
-    // Card 1: Locker Issues
-    loadSingleCard('locker-issues', 'Locker Issues');
-    
-    // Card 2: Locker Attendance
-    loadSingleCard('locker-attendance', 'Locker Attendance');
-    
-    // Card 3: Locker Surrender
-    loadSingleCard('locker-surrender', 'Locker Surrender');
-    
-    // Card 4: Locker Transaction
-    loadSingleCard('locker-transaction', 'Locker Transaction');
-}
-
-async function loadSingleCard(cardId, cardName) {
-    try {
-        // Replace with your actual endpoint that returns count/value
-        const response = await fetch('../getCardValueUnified.jsp?type=locker&id=' + cardId);
-        const data = await response.json();
-        
-        const valueElement = document.getElementById('value-' + cardId);
-        if (valueElement) {
-            if (data.error) {
-                valueElement.textContent = 'Error';
-            } else {
-                valueElement.textContent = data.value;
-            }
-            valueElement.classList.remove('loading');
-            
-            // Remove all size classes first
-            valueElement.className = valueElement.className.replace(/size-\d+/g, '').trim();
-            
-            // Calculate appropriate size class based on text length
-            const length = data.value.length;
-            let sizeClass = 'size-1';
-            
-            if (length <= 12) {
-                sizeClass = 'size-1';
-            } else if (length <= 16) {
-                sizeClass = 'size-2';
-            } else if (length <= 20) {
-                sizeClass = 'size-3';
-            } else if (length <= 25) {
-                sizeClass = 'size-4';
-            } else if (length <= 32) {
-                sizeClass = 'size-5';
-            } else if (length <= 40) {
-                sizeClass = 'size-6';
-            } else {
-                sizeClass = 'size-7';
-            }
-            
-            valueElement.classList.add(sizeClass);
-        }
-    } catch (error) {
-        console.error('Error loading card:', error);
-        const valueElement = document.getElementById('value-' + cardId);
-        if (valueElement) {
-            valueElement.textContent = 'Error';
-            valueElement.classList.remove('loading');
-        }
-    }
-}
 
 function openPage(page) {
     if (window.parent && window.parent.document) {
         const iframe = window.parent.document.getElementById("contentFrame");
         if (iframe) {
             let url = '';
+            let breadcrumbLabel = '';
             
             switch(page) {
                 case 'lockerIssues':
-                    url = '../View/lockerIssues.jsp';
+                    url = '../Lockers/lockerIssues.jsp';
+                    breadcrumbLabel = 'Locker Issues';
                     break;
                 case 'lockerAttendance':
-                    url = '../View/lockerAttendance.jsp';
+                    url = '../Lockers/lockerAttendance.jsp';
+                    breadcrumbLabel = 'Locker Attendance';
                     break;
                 case 'lockerSurrender':
-                    url = '../View/lockerSurrender.jsp';
+                    url = '../Lockers/lockerSurrender.jsp';
+                    breadcrumbLabel = 'Locker Surrender';
                     break;
                 case 'lockerTransaction':
-                    url = '../View/lockerTransaction.jsp';
+                    url = '../Lockers/lockerTransaction.jsp';
+                    breadcrumbLabel = 'Locker Transaction';
+                    break;
+                case 'lockerNominee':
+                    url = 'Lockers/lockerNominee.jsp';
+                    breadcrumbLabel = 'Locker Nominee';
+                    break;
+                case 'lockerJointHolder':
+                    url = 'Lockers/lockerJointHolder.jsp';
+                    breadcrumbLabel = 'Locker JointHolder';
                     break;
             }
             
             if (url) {
                 iframe.src = url;
                 if (window.parent.updateParentBreadcrumb) {
-                    window.parent.updateParentBreadcrumb('Lockers > ' + page);
+                    window.parent.updateParentBreadcrumb('Lockers > ' + breadcrumbLabel);
                 }
             }
         }
