@@ -284,9 +284,9 @@
         <div class="card-left">
             <div class="card-left-content">
 
-                <img src="images/IDSSPL_LOGO.png" alt="IDSSPL Logo" class="idsspl-logo-img">
+                <!--  <img src="images/IDSSPL_LOGO.png" alt="IDSSPL Logo" class="idsspl-logo-img">
 
-                <div class="idsspl-logo-label">IDSSPL TECHNOLOGIES PVT LTD</div>
+                <div class="idsspl-logo-label">IDSSPL TECHNOLOGIES PVT LTD</div> -->
 
                 <img src="images/online_banking.png" alt="Online Banking" class="banking-img">
 
