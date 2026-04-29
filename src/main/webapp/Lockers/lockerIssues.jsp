@@ -59,11 +59,36 @@
 	  cursor: pointer;
 	  color: #373279;
 	}
+	
+	.form-buttons {
+	  display: flex !important;
+	}
+	
+	#checkAvailabilityBtn {
+	  background-color: #373279;
+	  color: white;
+	  border: none;
+	  padding: 10px 25px;
+	  border-radius: 6px;
+	  font-size: 14px;
+	  font-weight: bold;
+	  cursor: pointer;
+	  transition: background-color 0.3s ease, transform 0.2s ease;
+	}
+	
+	#checkAvailabilityBtn:hover {
+	  background-color: #2b0d73;
+	  transform: scale(1.05);
+	}
+	
+	#checkAvailabilityBtn:active {
+	  transform: scale(0.97);
+	}
   </style>
 </head>
 <body>
 
-<form action="LockerIssueServlet" method="post" onsubmit="return validateForm()">
+<form action="LockerIssueServlet" method="post">
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- FIELDSET 0: LOCKER TYPE DETAILS (Availability)    -->
@@ -226,69 +251,15 @@
   <!-- ══════════════════════════════════════════════════ -->
   <!-- BUTTON SECTION                                    -->
   <!-- ══════════════════════════════════════════════════ -->
-  <div class="form-buttons">
+<div class="form-buttons">
     <button type="submit">Issue Locker</button>
-    <button type="reset">Reset</button>
-  </div>
+    <button type="button" onclick="resetLockerForm()">Reset</button>
+</div>
 
 </form>
 
 <script>
 window.APP_CONTEXT_PATH = '<%= contextPath %>';
-
-const DD_MAP = {
-    lockerSize:    { id: 'lockerSize',    sp: 'sp-lockerSize',    codeLabel: false },
-    lockerType:    { id: 'lockerType',    sp: 'sp-lockerType',    codeLabel: false },
-    accountType:   { id: 'accountType',   sp: 'sp-accountType',   codeLabel: false },
-    rentFrequency: { id: 'rentFrequency', sp: 'sp-rentFrequency', codeLabel: false },
-    paymentMode:   { id: 'paymentMode',   sp: 'sp-paymentMode',   codeLabel: false }
-};
-
-function fillSelect(selectEl, items, codeLabel) {
-    selectEl.innerHTML = '';
-    const blank = document.createElement('option');
-    blank.value = ''; blank.textContent = '-- Select --';
-    selectEl.appendChild(blank);
-    items.forEach(function(item) {
-        const opt = document.createElement('option');
-        opt.value = item.v;
-        opt.textContent = codeLabel ? item.v + ' — ' + item.l : item.l;
-        selectEl.appendChild(opt);
-    });
-    selectEl.classList.remove('dd-loading');
-    selectEl.style.color = ''; selectEl.style.fontStyle = '';
-}
-
-(function loadAllDropdowns() {
-    fetch(window.APP_CONTEXT_PATH + '/loaders/LockerIssueDataLoader')
-        .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-        .then(function(data) {
-            Object.keys(DD_MAP).forEach(function(key) {
-                var cfg = DD_MAP[key];
-                var selectEl = document.getElementById(cfg.id);
-                if (!selectEl) return;
-                var items = data[key];
-                if (Array.isArray(items)) { fillSelect(selectEl, items, cfg.codeLabel); }
-                else { selectEl.innerHTML = '<option value="">-- Error loading --</option>'; selectEl.classList.remove('dd-loading'); }
-                if (document.getElementById(cfg.sp)) document.getElementById(cfg.sp).classList.add('done');
-            });
-        })
-        .catch(function(err) {
-            console.error('Dropdown error:', err);
-            Object.keys(DD_MAP).forEach(function(key) {
-                var cfg = DD_MAP[key];
-                var selectEl = document.getElementById(cfg.id);
-                if (selectEl) { selectEl.innerHTML = '<option value="">-- Error: reload page --</option>'; selectEl.classList.remove('dd-loading'); selectEl.style.borderColor = '#f44336'; }
-            });
-        });
-})();
-
-function validateForm() {
-    var aadhar = document.getElementById('aadharNumber').value;
-    if (aadhar.length !== 12) { alert('Aadhar Number must be exactly 12 digits'); return false; }
-    if (!document.getElementById('declarationAccepted').checked) { alert('Please accept the declaration'); return false; }
-    return true;
-}
 
 window.onload = function() {
     if (window.parent && window.parent.updateParentBreadcrumb) {
@@ -329,6 +300,22 @@ function checkLockerAvailability() {
         }
     })
     .catch(function(err) { console.error('Availability check error:', err); });
+}
+
+function resetLockerForm() {
+    document.querySelector('form').reset();
+    // Clear readonly fields that reset() won't clear
+    document.getElementById('keyNo').value = '';
+    document.getElementById('customerNameDisplay').value = '';
+    document.getElementById('dispAddress1').value = '';
+    document.getElementById('dispAddress2').value = '';
+    document.getElementById('dispAddress3').value = '';
+    document.getElementById('dispMobile').value = '';
+    document.getElementById('dispTelRes').value = '';
+    document.getElementById('dispTelOffice').value = '';
+    document.getElementById('dispCity').value = '';
+    document.getElementById('dispPin').value = '';
+    document.getElementById('rentPaidTillDate').value = '';
 }
 </script>
 </body>
