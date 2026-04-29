@@ -98,19 +98,19 @@ function openPage(page) {
             
             switch(page) {
                 case 'lockerIssues':
-                    url = '../Lockers/lockerIssues.jsp';
+                    url = 'Lockers/lockerIssues.jsp';
                     breadcrumbLabel = 'Locker Issues';
                     break;
                 case 'lockerAttendance':
-                    url = '../Lockers/lockerAttendance.jsp';
+                    url = 'Lockers/lockerAttendance.jsp';
                     breadcrumbLabel = 'Locker Attendance';
                     break;
                 case 'lockerSurrender':
-                    url = '../Lockers/lockerSurrender.jsp';
+                    url = 'Lockers/lockerSurrender.jsp';
                     breadcrumbLabel = 'Locker Surrender';
                     break;
                 case 'lockerTransaction':
-                    url = '../Lockers/lockerTransaction.jsp';
+                    url = 'Lockers/lockerTransaction.jsp';
                     breadcrumbLabel = 'Locker Transaction';
                     break;
                 case 'lockerNominee':
