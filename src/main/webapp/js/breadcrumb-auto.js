@@ -49,7 +49,17 @@ const PAGE_EXCEPTIONS = {
 		'Master/editRow.jsp': 'Edit Record',
 		
 		// User Profile page
-		'userProfile.jsp': 'User Profile'
+		'userProfile.jsp': 'User Profile',
+		
+		
+		// ── Locker pages ──────────────────────────────
+		'Lockers/locker.jsp':            'Lockers',
+		'Lockers/lockerIssues.jsp':      'Locker Issues',
+		'Lockers/lockerAttendance.jsp':  'Locker Attendance',
+		'Lockers/lockerSurrender.jsp':   'Locker Surrender',
+		'Lockers/lockerTransaction.jsp': 'Locker Transaction',
+		'Lockers/lockerNominee.jsp':     'Locker Nominee',
+		'Lockers/lockerJointHolder.jsp': 'Locker Joint Holder'
 
 	
 	//Transactions
