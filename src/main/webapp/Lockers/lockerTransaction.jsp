@@ -78,24 +78,39 @@
     }
     .inline-radio-row label { white-space: nowrap; }
 
-    /* ── Cheque detail row ─────────────────────────────────────────── */
-    .cheque-detail-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .cheque-detail-row > div {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .cheque-detail-row input,
-    .cheque-detail-row select {
-      height: 30px;
+    /* ── Cheque wrapper styling ────────────────────────────────────── */
+    #chequeTypeWrapper select,
+    #chequeSeriesWrapper input,
+    #chequeDateWrapper input,
+    #chequeNoWrapper input {
+      border: 1px solid #c9c5e8;
+      border-radius: 4px;
+      padding: 0 6px;
+      font-family: inherit;
       box-sizing: border-box;
+      background-color: #fff;
+      color: #333;
+      transition: border-color 0.2s;
     }
-
+    
+    #chequeTypeWrapper select:focus,
+    #chequeSeriesWrapper input:focus,
+    #chequeDateWrapper input:focus,
+    #chequeNoWrapper input:focus {
+      outline: none;
+      border-color: #373279;
+      box-shadow: 0 0 0 2px rgba(55, 50, 121, 0.15);
+    }
+    
+    #chequeTypeWrapper select:disabled,
+    #chequeSeriesWrapper input:disabled,
+    #chequeDateWrapper input:disabled,
+    #chequeNoWrapper input:disabled {
+      background-color: #f0eef8;
+      color: #999;
+      border-color: #ddd;
+      cursor: not-allowed;
+    }
 
     /* ── Action buttons (bottom bar) ───────────────────────────────── */
     .action-btn {
@@ -224,8 +239,6 @@
         <input type="text" name="customerName" id="customerName" readonly>
       </div>
 
-
-
       <div>
         <label>Rent Paid Till Date</label>
         <input type="date" name="rentPaidTillDate" id="rentPaidTillDate" readonly>
@@ -233,7 +246,7 @@
 
       <div>
         <label>Period</label>
-        <input type="text" name="period" id="period" value="12" readonly">
+        <input type="text" name="period" id="period" value="12" readonly>
       </div>
 
       <div>
@@ -335,29 +348,31 @@
         <input type="text" name="debitACName" id="debitACName" readonly>
       </div>
 
-      <!-- Row 3: Transfer By Cheque + Cheque details -->
-      <div style="grid-column: 1 / -1;">
-        <label>Transfer By Cheque</label>
-        <div class="cheque-detail-row" style="margin-top:6px;">
+      <!-- Row 3: Transfer By Cheque + Cheque Detail Fields (Single Row with Background) -->
+      <div style="grid-column: 1 / -1; background-color: #e8e6f5; border-radius: 6px; padding: 12px 16px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
 
-          <!-- Yes / No radio -->
-          <div>
-            <div class="radio-group" style="flex-direction:row; gap:10px;">
-              <label>
+          <!-- Left: Transfer By Cheque Label (top) + Radio Buttons (bottom) -->
+          <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
+            <span style="font-weight: 600; color: #373279; font-size: 13px;">Transfer By Cheque</span>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
                 <input type="radio" name="transferByCheque" value="yes" id="chequeYes"
-                       onchange="toggleChequeFields(this)"> Yes
+                       onchange="toggleChequeFields(this)">
+                <span style="font-size: 12px; color: #333;">Yes</span>
               </label>
-              <label>
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
                 <input type="radio" name="transferByCheque" value="no" id="chequeNo"
-                       onchange="toggleChequeFields(this)" checked> No
+                       onchange="toggleChequeFields(this)" checked>
+                <span style="font-size: 12px; color: #333;">No</span>
               </label>
             </div>
           </div>
 
           <!-- Cheque Type -->
-          <div id="chequeTypeWrapper">
-            <label>Cheque Type</label>
-            <select name="chequeType" id="chequeType" disabled style="min-width:130px;">
+          <div id="chequeTypeWrapper" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            <label style=" font-weight: 600; color: #373279;">Cheque Type</label>
+            <select name="chequeType" id="chequeType" disabled style="height: 28px; min-width: 120px; font-size: 12px;">
               <option value="">-- Select --</option>
               <option value="LOCAL">Local</option>
               <option value="OUTSTATION">Outstation</option>
@@ -366,30 +381,30 @@
           </div>
 
           <!-- Cheque Series -->
-          <div id="chequeSeriesWrapper">
-            <label>Cheque Series</label>
+          <div id="chequeSeriesWrapper" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            <label style=" font-weight: 600; color: #373279;">Cheque Series</label>
             <input type="text" name="chequeSeries" id="chequeSeries" disabled
-                   style="width:110px;"
+                   style="height: 28px; width: 100px; font-size: 12px;"
                    oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();">
           </div>
 
           <!-- Cheque Date -->
-          <div id="chequeDateWrapper">
-            <label>Cheque Date</label>
-            <input type="date" name="chequeDate" id="chequeDate" disabled style="width:145px;">
+          <div id="chequeDateWrapper" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            <label style="font-weight: 600; color: #373279;">Cheque Date</label>
+            <input type="date" name="chequeDate" id="chequeDate" disabled 
+                   style="height: 28px; width: 130px; font-size: 12px;">
           </div>
 
           <!-- Cheque No. -->
-          <div id="chequeNoWrapper">
-            <label>Cheque No.</label>
+          <div id="chequeNoWrapper" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            <label style=" font-weight: 600; color: #373279;">Cheque No.</label>
             <input type="text" name="chequeNo" id="chequeNo" disabled
-                   style="width:120px;"
+                   style="height: 28px; width: 110px; font-size: 12px;"
                    oninput="this.value = this.value.replace(/[^0-9]/g,'');">
           </div>
 
         </div>
       </div>
-
 
     </div>
   </fieldset>
@@ -425,7 +440,6 @@ window.onload = function () {
     var dd = String(today.getDate()).padStart(2,'0');
     var mm = String(today.getMonth()+1).padStart(2,'0');
     var yyyy = today.getFullYear();
-    document.getElementById('metaDate').textContent = dd + '-' + mm + '-' + yyyy;
 
     if (window.parent && window.parent.updateParentBreadcrumb) {
         window.parent.updateParentBreadcrumb(
@@ -503,14 +517,13 @@ function toggleChequeFields(radio) {
 }
 
 function disableChequeFields() {
-    document.getElementById('chequeNo').value = false;
+    document.getElementById('chequeNo').checked = false;
     var ids = ['chequeType','chequeSeries','chequeDate','chequeNo'];
     ids.forEach(function(id) {
         var el = document.getElementById(id);
         el.disabled = true;
-        el.value = (id === 'chequeType') ? '' : '';
+        el.value = '';
     });
-    document.getElementById('chequeNo').checked = false;
 }
 
 // ── Placeholder lookup openers ──────────────────────────────────────
