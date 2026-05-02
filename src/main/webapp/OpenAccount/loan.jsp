@@ -168,12 +168,6 @@
 	    <legend>Application</legend>
 	    <div class="form-grid">
 	      
-	      <!-- ✅ ADD: Display Product Code for verification -->
-	      <div>
-	        <label>Product Code</label>
-	        <input type="text" value="<%= productCode %>" readonly style="background-color: #f0f0f0;">
-	      </div>
-	      
 	      <div>
 	        <label>Customer ID</label>
 	        <div class="input-icon-box">
