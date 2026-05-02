@@ -490,6 +490,10 @@ function addNominee() {
 
     fieldset.appendChild(clone);
     updateNomineeSerials();
+	
+	if (window._formDropdownData) {
+	        fillCloneDropdowns(clone, window._formDropdownData);
+	    }
 }
 
 function removeNominee(btn) {
@@ -646,6 +650,9 @@ function addJointHolder() {
 
     fieldset.appendChild(clone);
     updateJointSerials();
+	
+	if (window._formDropdownData) fillCloneDropdowns(clone, window._formDropdownData);
+
 }
 
 function removeJointHolder(btn) {
@@ -802,6 +809,9 @@ function addCoBorrower() {
 
     fieldset.appendChild(clone);
     updateCoBorrowerSerials();
+	
+	if (window._formDropdownData) fillCloneDropdowns(clone, window._formDropdownData);
+
 }
 
 function removeCoBorrower(btn) {
@@ -970,6 +980,9 @@ function addGuarantor() {
 
     fieldset.appendChild(clone);
     updateGuarantorSerials();
+	
+	if (window._formDropdownData) fillCloneDropdowns(clone, window._formDropdownData);
+
 }
 
 function removeGuarantor(btn) {
@@ -1362,4 +1375,43 @@ function showToast(message, type) {
 	        input.classList.add("error");
 	        return;
 	    }
+	}
+	
+	function fillCloneDropdowns(block, data) {
+
+	    function fillSel(sel, items, codeLabel) {
+	        if (!sel || !Array.isArray(items)) return;
+	        sel.innerHTML = '<option value="">-- Select --</option>';
+	        items.forEach(function(item) {
+	            var opt = document.createElement('option');
+	            opt.value = item.v;
+	            opt.textContent = codeLabel ? item.v + ' — ' + item.l : item.l;
+	            sel.appendChild(opt);
+	        });
+	    }
+
+	    var cfg = [
+	        { name: 'nomineeSalutation[]',    key: 'salutation', codeLabel: false },
+	        { name: 'jointSalutation[]',      key: 'salutation', codeLabel: false },
+	        { name: 'coBorrowerSalutation[]', key: 'salutation', codeLabel: false },
+	        { name: 'guarantorSalutation[]',  key: 'salutation', codeLabel: false },
+	        { name: 'nomineeCountry[]',       key: 'country',    codeLabel: true  },
+	        { name: 'nomineeState[]',         key: 'state',      codeLabel: true  },
+	        { name: 'nomineeCity[]',          key: 'city',       codeLabel: false },
+	        { name: 'nomineeRelation[]',      key: 'relation',   codeLabel: false },
+	        { name: 'jointCountry[]',         key: 'country',    codeLabel: true  },
+	        { name: 'jointState[]',           key: 'state',      codeLabel: true  },
+	        { name: 'jointCity[]',            key: 'city',       codeLabel: false },
+	        { name: 'coBorrowerCountry[]',    key: 'country',    codeLabel: true  },
+	        { name: 'coBorrowerState[]',      key: 'state',      codeLabel: true  },
+	        { name: 'coBorrowerCity[]',       key: 'city',       codeLabel: false },
+	        { name: 'guarantorCountry[]',     key: 'country',    codeLabel: true  },
+	        { name: 'guarantorState[]',       key: 'state',      codeLabel: true  },
+	        { name: 'guarantorCity[]',        key: 'city',       codeLabel: false }
+	    ];
+
+	    cfg.forEach(function(c) {
+	        var sel = block.querySelector('select[name="' + c.name + '"]');
+	        fillSel(sel, data[c.key], c.codeLabel);
+	    });
 	}
