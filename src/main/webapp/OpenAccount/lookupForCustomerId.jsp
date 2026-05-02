@@ -20,9 +20,9 @@
         String excludeRaw   = request.getParameter("excludeCustomerIds");
         String search       = searchParam.trim();
         String pageStr      = request.getParameter("page");
-        int    page         = (pageStr != null && !pageStr.isEmpty()) ? Integer.parseInt(pageStr) : 1;
+        int    pageNum      = (pageStr != null && !pageStr.isEmpty()) ? Integer.parseInt(pageStr) : 1;
         int    pageSize     = 50;
-        int    offset       = (page - 1) * pageSize;
+        int    offset       = (pageNum - 1) * pageSize;
 
         // Build exclusion clause
         String[] exIds = (excludeRaw != null && !excludeRaw.trim().isEmpty())
@@ -102,7 +102,7 @@
             }
 
             sb.append("],\"total\":").append(totalCount)
-              .append(",\"page\":").append(page)
+              .append(",\"page\":").append(pageNum)
               .append(",\"pageSize\":").append(pageSize)
               .append("}");
 
