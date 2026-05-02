@@ -689,87 +689,24 @@
 	      <div>
 	        <label>Country</label>
 	        <select name="coBorrowerCountry[]" required>
-	          <option value="">-- Select --</option>
-	          <%
-	            PreparedStatement psCountryCoBorrower = null;
-	            ResultSet rsCountryCoBorrower = null;
-	            try (Connection connCountryCB = DBConnection.getConnection()) {
-	                String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-	                psCountryCoBorrower = connCountryCB.prepareStatement(sql);
-	                rsCountryCoBorrower = psCountryCoBorrower.executeQuery();
-	                while (rsCountryCoBorrower.next()) {
-	                    String code = rsCountryCoBorrower.getString("COUNTRY_CODE");
-	                    String name = rsCountryCoBorrower.getString("NAME");
-	          %>
-	                <option value="<%= code %>"><%= name %></option>
-	          <%
-	                }
-	            } catch (Exception e) {
-	                out.println("<option disabled>Error loading countries</option>");
-	            } finally {
-	                if (rsCountryCoBorrower != null) rsCountryCoBorrower.close();
-	                if (psCountryCoBorrower != null) psCountryCoBorrower.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 	      <!-- ✅ FIXED: Changed from stateCode to coBorrowerState[] -->
 	      <div>
 	        <label>State</label>
 	        <select name="coBorrowerState[]" required>
-	          <option value="">-- Select --</option>
-	          <%
-	            PreparedStatement psStateCoBorrower = null;
-	            ResultSet rsStateCoBorrower = null;
-	            try (Connection connStateCB = DBConnection.getConnection()) {
-	                String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-	                psStateCoBorrower = connStateCB.prepareStatement(sql);
-	                rsStateCoBorrower = psStateCoBorrower.executeQuery();
-	                while (rsStateCoBorrower.next()) {
-	                    String code = rsStateCoBorrower.getString("STATE_CODE");
-	                    String name = rsStateCoBorrower.getString("NAME");
-	          %>
-	                <option value="<%= code %>"><%= name %></option>
-	          <%
-	                }
-	            } catch (Exception e) {
-	                out.println("<option disabled>Error loading states</option>");
-	            } finally {
-	                if (rsStateCoBorrower != null) rsStateCoBorrower.close();
-	                if (psStateCoBorrower != null) psStateCoBorrower.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 	      <!-- ✅ FIXED: Changed from cityCode to coBorrowerCity[] -->
 	      <div>
 	        <label>City</label>
 	        <select name="coBorrowerCity[]" required>
-	          <option value="">-- Select --</option>
-	          <%
-	            PreparedStatement psCityCoBorrower = null;
-	            ResultSet rsCityCoBorrower = null;
-	            try (Connection connCityCB = DBConnection.getConnection()) {
-	                String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-	                psCityCoBorrower = connCityCB.prepareStatement(sql);
-	                rsCityCoBorrower = psCityCoBorrower.executeQuery();
-	                while (rsCityCoBorrower.next()) {
-	                    String code = rsCityCoBorrower.getString("CITY_CODE");
-	                    String name = rsCityCoBorrower.getString("NAME");
-	          %>
-	                <option value="<%= code %>"><%= name %></option>
-	          <%
-	                }
-	            } catch (Exception e) {
-	                out.println("<option disabled>Error loading cities</option>");
-	            } finally {
-	                if (rsCityCoBorrower != null) rsCityCoBorrower.close();
-	                if (psCityCoBorrower != null) psCityCoBorrower.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 		<div>
@@ -859,89 +796,24 @@
 	      <div>
 	        <label>Country</label>
 	        <select name="guarantorCountry[]" required>
-	          <option value="">-- Select --</option>
-	          <% 
-	            PreparedStatement psCountryGuarantor = null;
-	            ResultSet rsCountryGuarantor = null;
-	            try (Connection connCountryG = DBConnection.getConnection()) {
-	              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-	              psCountryGuarantor = connCountryG.prepareStatement(sql);
-	              rsCountryGuarantor = psCountryGuarantor.executeQuery();
-	              while (rsCountryGuarantor.next()) {
-	                String countryCode = rsCountryGuarantor.getString("COUNTRY_CODE");
-	                String countryName = rsCountryGuarantor.getString("NAME");
-	          %>
-	                <option value="<%= countryCode %>"><%= countryName %></option>
-	          <% 
-	              }
-	            } catch (Exception e) {
-	              out.println("<option disabled>Error loading countries</option>");
-	            } finally {
-	              if (rsCountryGuarantor != null) rsCountryGuarantor.close();
-	              if (psCountryGuarantor != null) psCountryGuarantor.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 	      <!-- ✅ FIXED: Changed from jointState[] to guarantorState[] -->
 	      <div>
 	        <label>State</label>
 	        <select name="guarantorState[]" required>
-	          <option value="">-- Select --</option>
-	          <% 
-	            PreparedStatement psStateGuarantor = null;
-	            ResultSet rsStateGuarantor = null;
-	            try (Connection connStateG = DBConnection.getConnection()) {
-	              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-	              psStateGuarantor = connStateG.prepareStatement(sql);
-	              rsStateGuarantor = psStateGuarantor.executeQuery();
-	              while (rsStateGuarantor.next()) {
-	                String stateCode = rsStateGuarantor.getString("STATE_CODE");
-	                String stateName = rsStateGuarantor.getString("NAME");
-	          %>
-	                <option value="<%= stateCode %>"><%= stateName %></option>
-	          <% 
-	              }
-	            } catch (Exception e) {
-	              out.println("<option disabled>Error loading states</option>");
-	              e.printStackTrace();
-	            } finally {
-	              if (rsStateGuarantor != null) rsStateGuarantor.close();
-	              if (psStateGuarantor != null) psStateGuarantor.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 	      <!-- ✅ FIXED: Changed from jointCity[] to guarantorCity[] -->
 	      <div>
 	        <label>City</label>
 	        <select name="guarantorCity[]" required>
-	          <option value="">-- Select --</option>
-	          <% 
-	            PreparedStatement psCityGuarantor = null;
-	            ResultSet rsCityGuarantor = null;
-	            try (Connection connCityG = DBConnection.getConnection()) {
-	              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-	              psCityGuarantor = connCityG.prepareStatement(sql);
-	              rsCityGuarantor = psCityGuarantor.executeQuery();
-	              while (rsCityGuarantor.next()) {
-	                String cityCode = rsCityGuarantor.getString("CITY_CODE");
-	                String cityName = rsCityGuarantor.getString("NAME");
-	          %>
-	                <option value="<%= cityCode %>"><%= cityName %></option>
-	          <% 
-	              }
-	            } catch (Exception e) {
-	              out.println("<option disabled>Error loading cities</option>");
-	              e.printStackTrace();
-	            } finally {
-	              if (rsCityGuarantor != null) rsCityGuarantor.close();
-	              if (psCityGuarantor != null) psCityGuarantor.close();
-	            }
-	          %>
-	        </select>
+  			<option value="">Loading...</option>
+			</select>
 	      </div>
 	
 		<div>
@@ -1785,29 +1657,8 @@
       <div>
         <label>Country Code</label>
         <select name="salaryCountry[]" required>
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCountrySal = null;
-            ResultSet rsCountrySal = null;
-            try (Connection connCountrySal = DBConnection.getConnection()) {
-              String sql = "SELECT COUNTRY_CODE, NAME FROM GLOBALCONFIG.COUNTRY ORDER BY NAME";
-              psCountrySal = connCountrySal.prepareStatement(sql);
-              rsCountrySal = psCountrySal.executeQuery();
-              while (rsCountrySal.next()) {
-                String code = rsCountrySal.getString("COUNTRY_CODE");
-                String name = rsCountrySal.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading countries</option>");
-            } finally {
-              if (rsCountrySal != null) rsCountrySal.close();
-              if (psCountrySal != null) psCountrySal.close();
-            }
-          %>
-        </select>
+          <option value="">Loading...</option>
+		</select>
       </div>
 
       <div>
@@ -1818,29 +1669,8 @@
       <div>
         <label>State Code</label>
         <select name="salaryState[]" required>
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psStateSal = null;
-            ResultSet rsStateSal = null;
-            try (Connection connStateSal = DBConnection.getConnection()) {
-              String sql = "SELECT STATE_CODE, NAME FROM GLOBALCONFIG.STATE ORDER BY NAME";
-              psStateSal = connStateSal.prepareStatement(sql);
-              rsStateSal = psStateSal.executeQuery();
-              while (rsStateSal.next()) {
-                String code = rsStateSal.getString("STATE_CODE");
-                String name = rsStateSal.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading states</option>");
-            } finally {
-              if (rsStateSal != null) rsStateSal.close();
-              if (psStateSal != null) psStateSal.close();
-            }
-          %>
-        </select>
+          <option value="">Loading...</option>
+		</select>
       </div>
 
       <div>
@@ -1851,29 +1681,8 @@
       <div>
         <label>City Code</label>
         <select name="salaryCity[]" required>
-          <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCitySal = null;
-            ResultSet rsCitySal = null;
-            try (Connection connCitySal = DBConnection.getConnection()) {
-              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-              psCitySal = connCitySal.prepareStatement(sql);
-              rsCitySal = psCitySal.executeQuery();
-              while (rsCitySal.next()) {
-                String code = rsCitySal.getString("CITY_CODE");
-                String name = rsCitySal.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading cities</option>");
-            } finally {
-              if (rsCitySal != null) rsCitySal.close();
-              if (psCitySal != null) psCitySal.close();
-            }
-          %>
-        </select>
+          <option value="">Loading...</option>
+		</select>
       </div>
 
       <div>
