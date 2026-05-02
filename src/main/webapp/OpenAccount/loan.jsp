@@ -877,30 +877,8 @@
 	    <div class="form-grid">
 	      <div>
 	  <label>Security Type Code</label>
-	  <select name="securityTypeCode[]" required>
+	  <select name="securityTypeCode[]" class="js-security-type" required>
 	    <option value="">-- Select --</option>
-	    <%
-	      PreparedStatement psSecType = null;
-	      ResultSet rsSecType = null;
-	      try (Connection connSecType = DBConnection.getConnection()) {
-	        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-	        psSecType = connSecType.prepareStatement(sql);
-	        rsSecType = psSecType.executeQuery();
-	        
-	        while (rsSecType.next()) {
-	          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-	    %>
-	          <option value="<%= securityType %>"><%= securityType %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Security Types</option>");
-	        e.printStackTrace();
-	      } finally {
-	        if (rsSecType != null) rsSecType.close();
-	        if (psSecType != null) psSecType.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -978,30 +956,8 @@
 	
 	      <div>
 	  <label>Security Type Code</label>
-	  <select name="securityTypeCode[]" required>
+	  <select name="securityTypeCode[]" class="js-security-type" required>
 	    <option value="">-- Select --</option>
-	    <%
-	      PreparedStatement psSecType = null;
-	      ResultSet rsSecType = null;
-	      try (Connection connSecType = DBConnection.getConnection()) {
-	        String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-	        psSecType = connSecType.prepareStatement(sql);
-	        rsSecType = psSecType.executeQuery();
-	        
-	        while (rsSecType.next()) {
-	          String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-	    %>
-	          <option value="<%= securityType %>"><%= securityType %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Security Types</option>");
-	        e.printStackTrace();
-	      } finally {
-	        if (rsSecType != null) rsSecType.close();
-	        if (psSecType != null) psSecType.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -1070,31 +1026,9 @@
 	    <div class="form-grid">
 	      <div>
 	        <label>Security Type Code</label>
-	        <select name="gsSecurityType[]" required>
-	          <option value="">-- Select Security Type --</option>
-	          <%
-	            PreparedStatement psSecType = null;
-	            ResultSet rsSecType = null;
-	            try (Connection connSecType = DBConnection.getConnection()) {
-	              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-	              psSecType = connSecType.prepareStatement(sql);
-	              rsSecType = psSecType.executeQuery();
-	              
-	              while (rsSecType.next()) {
-	                String securityType = rsSecType.getString("SECURITYTYPE_CODE");
-	          %>
-	                <option value="<%= securityType %>"><%= securityType %></option>
-	          <%
-	              }
-	            } catch (Exception e) {
-	              out.println("<option disabled>Error loading Security Types</option>");
-	              e.printStackTrace();
-	            } finally {
-	              if (rsSecType != null) rsSecType.close();
-	              if (psSecType != null) psSecType.close();
-	            }
-	          %>
-	        </select>
+	        <select name="gsSecurityType[]" class="js-security-type" required>
+  			<option value="">-- Select --</option>
+			</select>
 	      </div>
 	
 	      <div>
@@ -1175,28 +1109,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="sharesHolderSecurityType[]" required>
+        <select name="sharesHolderSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1267,28 +1181,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="plantSecurityType[]" required>
+        <select name="plantSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1399,28 +1293,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="marketSharesSecurityType[]" required>
+        <select name="marketSharesSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1491,28 +1365,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="stockSecurityType[]" required>
+        <select name="stockSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1629,28 +1483,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="salarySecurityType[]" required>
+        <select name="salarySecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1795,28 +1629,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="officeSecurityType[]" required>
+        <select name="officeSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -1915,28 +1729,8 @@
     <div class="form-grid">
       <div>
         <label>Security Type Code</label>
-        <select name="insSecurityType[]" required>
+        <select name="insSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -2030,28 +1824,8 @@
 
       <div>
         <label>Security Type Code</label>
-        <select name="motorSecurityType[]" required>
+        <select name="motorSecurityType[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <%
-            PreparedStatement psSecType = null;
-            ResultSet rsSecType = null;
-            try (Connection connSecType = DBConnection.getConnection()) {
-              String sql = "SELECT SECURITYTYPE_CODE FROM GLOBALCONFIG.SECURITYTYPE ORDER BY SECURITYTYPE_CODE";
-              psSecType = connSecType.prepareStatement(sql);
-              rsSecType = psSecType.executeQuery();
-              while (rsSecType.next()) {
-                String code = rsSecType.getString("SECURITYTYPE_CODE");
-          %>
-                <option value="<%= code %>"><%= code %></option>
-          <%
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading Security Types</option>");
-            } finally {
-              if (rsSecType != null) rsSecType.close();
-              if (psSecType != null) psSecType.close();
-            }
-          %>
         </select>
       </div>
 
@@ -2249,29 +2023,8 @@
 
       <div>
         <label>City</label>
-        <select name="nonmotorCity[]" required>
+        <select name="nonmotorCity[]" class="js-security-type" required>
           <option value="">-- Select --</option>
-          <% 
-            PreparedStatement psCityNM = null;
-            ResultSet rsCityNM = null;
-            try (Connection connCityNM = DBConnection.getConnection()) {
-              String sql = "SELECT CITY_CODE, NAME FROM GLOBALCONFIG.CITY ORDER BY UPPER(NAME)";
-              psCityNM = connCityNM.prepareStatement(sql);
-              rsCityNM = psCityNM.executeQuery();
-              while (rsCityNM.next()) {
-                String code = rsCityNM.getString("CITY_CODE");
-                String name = rsCityNM.getString("NAME");
-          %>
-                <option value="<%= code %>"><%= name %></option>
-          <% 
-              }
-            } catch (Exception e) {
-              out.println("<option disabled>Error loading cities</option>");
-            } finally {
-              if (rsCityNM != null) rsCityNM.close();
-              if (psCityNM != null) psCityNM.close();
-            }
-          %>
         </select>
       </div>
 
@@ -2457,6 +2210,7 @@
 	<script src="js/application.js"></script>
 	<script src="js/savingAcc.js"></script>
 	<script src="js/application-tabs.js"></script>
+	<script src="js/loan-security-type-fill.js"></script>
 	<script>
 	// Validation function
 	function validateForm() {
