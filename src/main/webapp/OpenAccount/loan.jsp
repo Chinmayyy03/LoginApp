@@ -216,7 +216,7 @@
 	
 	      <div>
 	        <label>Account Operation Capacity</label>
-	        <select name="accountOperationCapacity" id="dd-accountOperationCapacity" required> 
+	        <select name="accountOperationCapacity" id="dd-accountOpCap" required> 
 	        <option value="">Loading...</option></select>
 	      </div>
 	
@@ -387,30 +387,7 @@
 	  <label>Social Section Id</label>
       <select name="socialSectionId" id="dd-socialSection" required>
 		<option value="">Loading...</option>	
-	    <%
-	      PreparedStatement psSocial = null;
-	      ResultSet rsSocial = null;
-	      try (Connection connSocial = DBConnection.getConnection()) {
-	        String sql = "SELECT SOCIALSECTION_ID, DESCRIPTION FROM GLOBALCONFIG.SOCIALSECTION ORDER BY SOCIALSECTION_ID";
-	        psSocial = connSocial.prepareStatement(sql);
-	        rsSocial = psSocial.executeQuery();
-	
-	        while (rsSocial.next()) {
-	          String id = rsSocial.getString("SOCIALSECTION_ID");   // ID to store
-	          String desc = rsSocial.getString("DESCRIPTION");      // Text to show
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Social Section</option>");
-	      } finally {
-	        if (rsSocial != null) rsSocial.close();
-	        if (psSocial != null) psSocial.close();
-	      }
-	    %>
-	
-	  </select>
+	    </select>
 	</div>
 	
 	
@@ -433,29 +410,6 @@
 	    <label>LBR Code</label>
 		<select name="lbrCode" id="dd-lbrCode" required>
 	    <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psMIS = null;
-	      ResultSet rsMIS = null;
-	
-	      try (Connection conMIS = DBConnection.getConnection()) {
-	        String sql = "SELECT MIS_ID, DESCRIPTION FROM HEADOFFICE.MIS ORDER BY DESCRIPTION";
-	        psMIS = conMIS.prepareStatement(sql);
-	        rsMIS = psMIS.executeQuery();
-	
-	        while (rsMIS.next()) {
-	          String id = rsMIS.getString("MIS_ID");
-	          String desc = rsMIS.getString("DESCRIPTION");
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading LBR Code</option>");
-	      } finally {
-	        if (rsMIS != null) rsMIS.close();
-	        if (psMIS != null) psMIS.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -479,29 +433,6 @@
 	  	<label>Purpose Id</label>
 		<select name="purposeId" id="dd-purpose" required>
 	    <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psPurpose = null;
-	      ResultSet rsPurpose = null;
-	      try (Connection connPurpose = DBConnection.getConnection()) {
-	
-	        String sql = "SELECT PURPOSE_ID, DESCRIPTION FROM HEADOFFICE.PURPOSE ORDER BY DESCRIPTION";
-	        psPurpose = connPurpose.prepareStatement(sql);
-	        rsPurpose = psPurpose.executeQuery();
-	
-	        while (rsPurpose.next()) {
-	          String id = rsPurpose.getString("PURPOSE_ID");        // value to store
-	          String desc = rsPurpose.getString("DESCRIPTION");     // text to display
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Purpose</option>");
-	      } finally {
-	        if (rsPurpose != null) rsPurpose.close();
-	        if (psPurpose != null) psPurpose.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -525,31 +456,6 @@
 	  <label>Classification Id</label>
 	  <select name="classificationId" id="dd-classification" required>
 	    <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psClass = null;
-	      ResultSet rsClass = null;
-	
-	      try (Connection connClass = DBConnection.getConnection()) {
-	
-	        String sql = "SELECT CLASSIFICATION_ID, DESCRIPTION FROM HEADOFFICE.CLASSIFICATION ORDER BY DESCRIPTION";
-	        psClass = connClass.prepareStatement(sql);
-	        rsClass = psClass.executeQuery();
-	
-	        while (rsClass.next()) {
-	          String id = rsClass.getString("CLASSIFICATION_ID");     // value to store
-	          String desc = rsClass.getString("DESCRIPTION");         // visible text
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Classification</option>");
-	      } finally {
-	        if (rsClass != null) rsClass.close();
-	        if (psClass != null) psClass.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -557,29 +463,6 @@
 	  <label>Mode Of San. Id</label>
       <select name="modeOfSanId" id="dd-modeOfSanction" required>
 	    <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psMOS = null;
-	      ResultSet rsMOS = null;
-	
-	      try (Connection conMOS = DBConnection.getConnection()) {
-	        String sql = "SELECT MODEOFSANCTION_ID, DESCRIPTION FROM HEADOFFICE.MODEOFSANCTION ORDER BY DESCRIPTION";
-	        psMOS = conMOS.prepareStatement(sql);
-	        rsMOS = psMOS.executeQuery();
-	
-	        while (rsMOS.next()) {
-	          String id = rsMOS.getString("MODEOFSANCTION_ID");
-	          String desc = rsMOS.getString("DESCRIPTION");
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Mode of Sanction</option>");
-	      } finally {
-	        if (rsMOS != null) rsMOS.close();
-	        if (psMOS != null) psMOS.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -588,29 +471,6 @@
 	   <label>Sanction Authority Id</label>
        <select name="sanctionAuthorityId" id="dd-sanctionAuthority" required>
 	    <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psSA = null;
-	      ResultSet rsSA = null;
-	
-	      try (Connection conSA = DBConnection.getConnection()) {
-	        String sql = "SELECT SANCTIONAUTHORITY_ID, DESCRIPTION FROM HEADOFFICE.SANCTIONAUTHORITY ORDER BY DESCRIPTION";
-	        psSA = conSA.prepareStatement(sql);
-	        rsSA = psSA.executeQuery();
-	
-	        while (rsSA.next()) {
-	          String id = rsSA.getString("SANCTIONAUTHORITY_ID");
-	          String desc = rsSA.getString("DESCRIPTION");
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Sanction Authority</option>");
-	      } finally {
-	        if (rsSA != null) rsSA.close();
-	        if (psSA != null) psSA.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -619,29 +479,6 @@
 	   <label>Industry Id</label>
        <select name="industryId" id="dd-industry" required>	    
        <option value="">Loading...</option>
-	    <%
-	      PreparedStatement psInd = null;
-	      ResultSet rsInd = null;
-	
-	      try (Connection conInd = DBConnection.getConnection()) {
-	        String sql = "SELECT INDUSTRY_ID, DESCRIPTION FROM HEADOFFICE.INDUSTRY ORDER BY DESCRIPTION";
-	        psInd = conInd.prepareStatement(sql);
-	        rsInd = psInd.executeQuery();
-	
-	        while (rsInd.next()) {
-	          String id = rsInd.getString("INDUSTRY_ID");
-	          String desc = rsInd.getString("DESCRIPTION");
-	    %>
-	          <option value="<%= id %>"><%= desc %></option>
-	    <%
-	        }
-	      } catch (Exception e) {
-	        out.println("<option disabled>Error loading Industry</option>");
-	      } finally {
-	        if (rsInd != null) rsInd.close();
-	        if (psInd != null) psInd.close();
-	      }
-	    %>
 	  </select>
 	</div>
 	
@@ -3762,6 +3599,84 @@
 	console.log('Show Non-Motor Insurance: <%= showNonMotorInsurance %>');
 	console.log('Show Gov Security: <%= showGovSecurity %>');
 	</script>
-	
+	<script>
+(function loadFormDropdowns() {
+
+    function fillSelect(sel, items, codeLabel) {
+        sel.innerHTML = '<option value="">-- Select --</option>';
+        items.forEach(function(item) {
+            var opt = document.createElement('option');
+            opt.value = item.v;
+            opt.textContent = codeLabel ? item.v + ' — ' + item.l : item.l;
+            sel.appendChild(opt);
+        });
+    }
+
+    function fillAll(data) {
+        var maps = {
+            'dd-accountOpCap'      : { key: 'accountOpCap',      codeLabel: false },
+            'dd-minBalance'        : { key: 'minBalance',         codeLabel: false },
+            'dd-socialSection'     : { key: 'socialSection',      codeLabel: false },
+            'dd-lbrCode'           : { key: 'lbrCode',            codeLabel: false },
+            'dd-purpose'           : { key: 'purpose',            codeLabel: false },
+            'dd-classification'    : { key: 'classification',     codeLabel: false },
+            'dd-modeOfSanction'    : { key: 'modeOfSanction',     codeLabel: false },
+            'dd-sanctionAuthority' : { key: 'sanctionAuthority',  codeLabel: false },
+            'dd-industry'          : { key: 'industry',           codeLabel: false }
+        };
+
+        Object.keys(maps).forEach(function(id) {
+            var sel = document.getElementById(id);
+            if (sel && Array.isArray(data[maps[id].key])) {
+                fillSelect(sel, data[maps[id].key], maps[id].codeLabel);
+            }
+        });
+
+        // Array selects for nominee, guarantor, co-borrower
+        var arrayMaps = [
+            { name: 'nomineeSalutation[]',    key: 'salutation', codeLabel: false },
+            { name: 'coBorrowerSalutation[]', key: 'salutation', codeLabel: false },
+            { name: 'guarantorSalutation[]',  key: 'salutation', codeLabel: false },
+            { name: 'nomineeCountry[]',       key: 'country',    codeLabel: true  },
+            { name: 'nomineeState[]',         key: 'state',      codeLabel: true  },
+            { name: 'nomineeCity[]',          key: 'city',       codeLabel: false },
+            { name: 'nomineeRelation[]',      key: 'relation',   codeLabel: false },
+            { name: 'coBorrowerCountry[]',    key: 'country',    codeLabel: true  },
+            { name: 'coBorrowerState[]',      key: 'state',      codeLabel: true  },
+            { name: 'coBorrowerCity[]',       key: 'city',       codeLabel: false },
+            { name: 'guarantorCountry[]',     key: 'country',    codeLabel: true  },
+            { name: 'guarantorState[]',       key: 'state',      codeLabel: true  },
+            { name: 'guarantorCity[]',        key: 'city',       codeLabel: false }
+        ];
+
+        arrayMaps.forEach(function(cfg) {
+            document.querySelectorAll('select[name="' + cfg.name + '"]').forEach(function(sel) {
+                if (Array.isArray(data[cfg.key])) {
+                    fillSelect(sel, data[cfg.key], cfg.codeLabel);
+                }
+            });
+        });
+
+        window._formDropdownData = data;
+    }
+
+    fetch('<%= request.getContextPath() %>/loaders/OpenAccountFormLoader')
+        .then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
+        .then(function(data) {
+            if (data.error) {
+                console.error('Loader error:', data.error);
+                return;
+            }
+            fillAll(data);
+        })
+        .catch(function(err) {
+            console.error('FormDropdownLoader failed:', err);
+        });
+
+})();
+</script>
 	</body>
 	</html>

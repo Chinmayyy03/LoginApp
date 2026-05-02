@@ -152,7 +152,7 @@
 
       <div>
         <label>Min Balance</label>
-        <select name="minBalanceID" id="dd-minBalanceID" required>
+        <select name="minBalanceID" id="dd-minBalance" required>
 		<option value="">Loading...</option>
 		</select>
       </div>
@@ -327,7 +327,7 @@
       <div class="personal-grid">
         <div>
           <label>Salutation Code</label>
-          <select name="nomineeSalutation" id="dd-nomineeSalutation" required>
+          <select name="nomineeSalutation[]" id="dd-nomineeSalutation" required>
           <option value="">Loading...</option>
           </select>
         </div>

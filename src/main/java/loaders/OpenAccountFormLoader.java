@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.sql.*;
 
 @WebServlet("/loaders/OpenAccountFormLoader")
-public class OpenAcountFormLoader extends HttpServlet {
+public class OpenAccountFormLoader extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
