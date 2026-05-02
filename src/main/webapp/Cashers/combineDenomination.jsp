@@ -23,7 +23,7 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #d4e9f7;
+            background: #e8e4fc;
             min-height:100vh; padding:30px 20px; font-size:13px;
         }
 
