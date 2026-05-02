@@ -176,6 +176,8 @@
             background-color: white;
             border: 2px solid #BBADED;
             border-radius: 12px;
+            justify-content: center;
+            width: 710px;
         }
 
         legend {
@@ -227,19 +229,19 @@
 
         /* Reduced widths for code inputs and descriptions */
         #accountType {
-            width: 135px; /* original 180px - 45px */
+            width: 90px; /* original 180px - 45px */
         }
 
         #productCode {
-            width: 135px; /* original 180px - 45px */
+            width: 90px; /* original 180px - 45px */
         }
 
         #accDescription {
-            width: 160px; /* original 230px - 70px */
+            width: 140px; /* original 230px - 70px */
         }
 
         #prodDescription {
-            width: 160px; /* original 230px - 70px */
+            width: 140px; /* original 230px - 70px */
             color: green;
         }
 
