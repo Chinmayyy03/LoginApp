@@ -20,120 +20,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combine Denomination</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             background: #e8e4fc;
-            min-height:100vh; padding:30px 20px; font-size:13px;
+            min-height: 100vh;
+            color: #1a1a1a;
+            font-size: 13px;
         }
-
+        
         h2 {
-            color: #2b0d73;
-            margin-bottom: 30px;
-            font-size: 24px;
-            font-weight: 700;
+		    color: #2b0d73;
+		    margin: 20px 0;
+		    font-size: 22px;
+		    font-weight: 700;
+		    text-align: center;
+		}
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 30px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .page-wrapper {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 2px;
-        }
-
-        .section-label {
-            padding: 8px 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: #2b0d73;
-            border-bottom: 2px solid #2b0d73;
-            margin-top: 20px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
+        .page-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
             letter-spacing: 0.5px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 6px 30px;
+            font-size: 12px;
+            color: #3D316F;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .header-info span { font-weight: bold; }
+
+        .container {
+            max-width: 1200px;
+            margin: 15px auto;
+            padding: 0 15px;
+        }
+
+        fieldset {
+            background-color: white;
+            border: 2px solid #BBADED;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        legend {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0 8px;
+            color: #3D316F;
         }
 
         .form-row {
             display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
             align-items: flex-end;
-            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .form-group {
             flex: 1;
-            min-width: 140px;
+            min-width: 160px;
         }
 
-        .field-group label {
+        .label {
+            font-weight: bold;
             font-size: 13px;
-            font-weight: 500;
-            color: #333;
+            color: #3D316F;
+            margin-bottom: 5px;
+            display: block;
         }
 
-        .field-group input {
-            padding: 10px 12px;
-            border: 1px solid #999;
-            border-radius: 2px;
-            background: #f5f5f5;
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 8px 10px;
+            border: 2px solid #C8B7F6;
+            border-radius: 6px;
+            background-color: #F4EDFF;
+            outline: none;
             font-size: 13px;
+            width: 100%;
+            color: #1a1a1a;
         }
 
-        .btn-add {
-            padding: 10px 25px;
-            background: #2b0d73;
-            color: #fff;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #8066E8;
+            background-color: #fff;
         }
 
-        .table-container {
-            margin: 15px 0;
-		    border: 1px solid #999;
-		    border-radius: 8px;
-		    overflow: hidden;
-
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 13px;
         }
 
         table thead {
-            background: #2b0d73;
-            color: #fff;
+            background: #373279;
+            color: white;
         }
 
-        table th, table td {
-            padding: 10px;
+        table th {
+            padding: 10px 12px;
             text-align: center;
+            font-weight: 700;
+            border: 1px solid #4a4599;
         }
 
-        .summary-block {
-            padding: 15px;
-            background: #f5f5f5;
-            border: 1px solid #999;
-            margin-top: 20px;
-        }
+        table tbody tr:nth-child(even) { background: #f0ecff; }
+        table tbody tr:nth-child(odd)  { background: #fff; }
+        table tbody tr:hover           { background: #e4deff; }
 
-        .button-container {
+        table td {
+            padding: 10px 12px;
             text-align: center;
-            margin-top: 20px;
+            border: 1px solid #ddd;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .btn {
-            padding: 10px 30px;
-            background: #2b0d73;
-            color: white;
+            padding: 8px 28px;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
-            margin: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(74,158,255,0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(34,197,94,0.4);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(74,158,255,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .form-row { flex-direction: column; }
+            .header-info { flex-direction: column; gap: 4px; text-align: center; }
         }
     </style>
 </head>
@@ -141,84 +225,90 @@
 
 <h2>Combine Denomination - Branch <%= branchCode %></h2>
 
-<div class="page-wrapper">
+<div class="container">
 
-    <div class="section-label">Cash Details</div>
-
-    <div class="form-row">
-        <div class="field-group">
-            <label>Scroll Number</label>
-            <input type="text" id="scrollNo">
+    <!-- Cash Details -->
+    <fieldset>
+        <legend>Cash Details</legend>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="label">Scroll Number</label>
+                <input type="text" id="scrollNo" placeholder="Enter scroll number">
+            </div>
+            <div class="form-group">
+                <label class="label">Amount (₹)</label>
+                <input type="number" id="scrollAmt" placeholder="0.00">
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+                <button class="btn-add" onclick="addScroll()">➕ Add</button>
+            </div>
         </div>
+    </fieldset>
 
-        <div class="field-group">
-            <label>Amount</label>
-            <input type="number" id="scrollAmt">
+    <!-- Scroll List -->
+    <fieldset>
+        <legend>Scroll List</legend>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Scroll Number</th>
+                        <th>Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody id="scrollBody">
+                    <tr>
+                        <td colspan="3" style="color:#999; padding:20px;">No scrolls added yet.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+    </fieldset>
 
-        <button class="btn-add" onclick="addScroll()">Add</button>
-    </div>
-
-    <div class="section-label">Scroll List</div>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Scroll</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody id="scrollBody"></tbody>
-        </table>
-    </div>
-
-    <div class="button-container">
-        <button class="btn" onclick="validateCombine()">Validate</button>
-        <button class="btn" onclick="saveCombine()">Save</button>
+    <!-- Buttons -->
+    <div class="button-row">
+        <button class="btn btn-primary" onclick="validateCombine()">Validate</button>
+        <button class="btn btn-success" onclick="saveCombine()">Save</button>
     </div>
 
 </div>
 
 <script>
+    let scrollList = [];
 
-let scrollList = [];
+    function addScroll() {
+        const no  = document.getElementById('scrollNo').value.trim();
+        const amt = document.getElementById('scrollAmt').value.trim();
 
-function addScroll() {
-    let no = document.getElementById('scrollNo').value;
-    let amt = document.getElementById('scrollAmt').value;
+        if (!no || !amt) { alert('Please enter both Scroll Number and Amount.'); return; }
 
-    scrollList.push({no, amt});
-    render();
-}
+        scrollList.push({ no, amt });
+        render();
 
-function render() {
-    let html = '';
-    scrollList.forEach((s,i)=>{
-        html += `<tr><td>${i+1}</td><td>${s.no}</td><td>${s.amt}</td></tr>`;
-    });
-    document.getElementById('scrollBody').innerHTML = html;
-}
-
-function validateCombine(){
-    alert("Combine Denomination validated successfully");
-}
-
-function saveCombine(){
-    alert("Combine Denomination saved successfully");
-}
-
-window.onload = function() {
-    if (window.parent && window.parent.updateParentBreadcrumb) {
-        window.parent.updateParentBreadcrumb(
-            'Cashers > Combine Denomination',
-            'Cashers/combineDenomination.jsp'
-        );
+        document.getElementById('scrollNo').value  = '';
+        document.getElementById('scrollAmt').value = '';
     }
-};
 
+    function render() {
+        const tbody = document.getElementById('scrollBody');
+        if (scrollList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="color:#999; padding:20px;">No scrolls added yet.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = scrollList.map((s, i) =>
+            '<tr><td>' + (i + 1) + '</td><td>' + s.no + '</td><td>' + parseFloat(s.amt).toLocaleString('en-IN') + '</td></tr>'
+        ).join('');
+    }
+
+    function validateCombine() { alert('Combine Denomination validated successfully.'); }
+    function saveCombine()     { alert('Combine Denomination saved successfully.'); }
+
+    window.onload = function() {
+        if (window.parent && window.parent.updateParentBreadcrumb) {
+            window.parent.updateParentBreadcrumb('Cashers > Combine Denomination', 'Cashers/combineDenomination.jsp');
+        }
+    };
 </script>
-
 </body>
 </html>

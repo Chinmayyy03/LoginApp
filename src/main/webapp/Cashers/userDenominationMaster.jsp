@@ -21,268 +21,312 @@
     <title>User Denomination Master</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             background: #e8e4fc;
             min-height: 100vh;
-            padding: 30px 20px;
+            color: #1a1a1a;
             font-size: 13px;
         }
-
+        
         h2 {
-            color: #2b0d73;
-            margin-bottom: 30px;
-            font-size: 24px;
-            font-weight: 700;
+		    color: #2b0d73;
+		    margin: 20px 0;
+		    font-size: 22px;
+		    font-weight: 700;
+		    text-align: center;
+		}
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 30px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .page-wrapper {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 2px;
-        }
-
-        .section-label {
-            padding: 8px 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: #2b0d73;
-            border-bottom: 2px solid #2b0d73;
-            margin-top: 20px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
+        .page-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
             letter-spacing: 0.5px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 6px 30px;
+            font-size: 12px;
+            color: #3D316F;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .header-info span { font-weight: bold; }
+
+        .container {
+            max-width: 1200px;
+            margin: 15px auto;
+            padding: 0 15px;
+        }
+
+        fieldset {
+            background-color: white;
+            border: 2px solid #BBADED;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        legend {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0 8px;
+            color: #3D316F;
         }
 
         .form-row {
             display: flex;
-            gap: 30px;
+            gap: 15px;
+            margin-bottom: 12px;
+            align-items: flex-end;
             flex-wrap: wrap;
-            margin-bottom: 20px;
         }
 
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .form-group {
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
         }
 
-        .field-group label {
+        .label {
+            font-weight: bold;
             font-size: 13px;
-            font-weight: 500;
-            color: #333;
+            color: #3D316F;
+            margin-bottom: 5px;
+            display: block;
         }
 
-        .field-group input, .field-group select {
-            padding: 10px 12px;
-            border: 1px solid #999;
-            border-radius: 2px;
-            background: #f5f5f5;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .field-group input:focus, .field-group select:focus {
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 8px 10px;
+            border: 2px solid #C8B7F6;
+            border-radius: 6px;
+            background-color: #F4EDFF;
             outline: none;
-            border-color: #2b0d73;
-            background: #fff;
-        }
-
-        .table-container {
-            margin: 15px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #999;
-        }
-
-        table.denom-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .denom-table thead tr {
-            background: #2b0d73;
-            color: #fff;
-        }
-
-        .denom-table thead th {
-            padding: 12px 15px;
-            text-align: center;
             font-size: 13px;
+            width: 100%;
+            color: #1a1a1a;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            border-color: #8066E8;
+            background-color: #fff;
+        }
+
+        input[readonly] {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            border-color: #ddd;
+            color: #3D316F;
             font-weight: 700;
         }
 
-        .denom-table tbody tr:nth-child(even) {
-            background: #e8f1f9;
-        }
-
-        .denom-table tbody tr:nth-child(odd) {
-            background: #fff;
-        }
-
-        .denom-table tbody tr:hover {
-            background: #d4e9f7;
-        }
-
-        .denom-table td {
-            padding: 12px 15px;
-            text-align: center;
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 13px;
+        }
+
+        table thead {
+            background: #373279;
+            color: white;
+        }
+
+        table th {
+            padding: 10px 12px;
+            text-align: center;
+            font-weight: 700;
+            border: 1px solid #4a4599;
+        }
+
+        table tbody tr:nth-child(even) { background: #f0ecff; }
+        table tbody tr:nth-child(odd)  { background: #fff; }
+        table tbody tr:hover           { background: #e4deff; }
+
+        table td {
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid #ddd;
             color: #333;
             font-weight: 500;
-            border-bottom: 1px solid #ddd;
         }
 
-        .denom-table input[type="number"] {
-            width: 100px;
-            padding: 8px 10px;
-            border: 1px solid #999;
-            border-radius: 2px;
+        table input[type="number"] {
+            width: 110px;
+            padding: 6px 8px;
+            border: 2px solid #C8B7F6;
+            border-radius: 6px;
             text-align: center;
             font-size: 13px;
-            background: #fff;
-            color: #333;
+            background: #F4EDFF;
         }
 
-        .denom-table input:focus {
+        table input[type="number"]:focus {
+            border-color: #8066E8;
+            background: #fff;
             outline: none;
-            border-color: #2b0d73;
-            background: #fff;
         }
 
-        .summary-block {
-            padding: 15px;
-            background: #f5f5f5;
-            border: 1px solid #999;
-            border-radius: 0px;
-            margin: 20px 0;
+        /* Summary */
+        .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
+            gap: 15px;
         }
 
         .summary-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-        }
-
-        .summary-item label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
+            gap: 5px;
         }
 
         .summary-item input {
-            padding: 8px 12px;
-            border: 1px solid #999;
-            border-radius: 2px;
-            background: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            color: #2b0d73;
             text-align: right;
+            font-weight: 700;
+            color: #3D316F;
         }
 
-        .button-container {
+        /* Buttons */
+        .button-row {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #999;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .btn {
-            padding: 10px 35px;
+            padding: 8px 28px;
             border: none;
-            border-radius: 2px;
-            font-size: 13px;
-            font-weight: 700;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .btn-validate { background: #2b0d73; }
-        .btn-validate:hover { background: #1f0a52; }
+        .btn-primary {
+            background: linear-gradient(135deg, #4a9eff 0%, #3d85d9 100%);
+            color: white;
+        }
 
-        .btn-save { background: #2b0d73; }
-        .btn-save:hover { background: #1f0a52; }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(74,158,255,0.4);
+        }
 
-        .btn-cancel { background: #999; }
-        .btn-cancel:hover { background: #777; }
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(34,197,94,0.4);
+        }
+
+        .btn-cancel {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-cancel:hover { background: #b91c1c; }
+
+        @media (max-width: 768px) {
+            .form-row { flex-direction: column; }
+            .header-info { flex-direction: column; gap: 4px; text-align: center; }
+        }
     </style>
 </head>
 <body>
 
 <h2>User Denomination Master - Branch <%= branchCode %></h2>
 
-<div class="page-wrapper">
+<div class="container">
 
-    <div class="section-label">Account Details</div>
-    <div class="form-row">
-        <div class="field-group">
-            <label>Cash Handling Date</label>
-            <input type="date" id="cashHandlingDate" name="cashHandlingDate">
+    <!-- Account Details -->
+    <fieldset>
+        <legend>Account Details</legend>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="label">Cash Handling Date</label>
+                <input type="date" id="cashHandlingDate" name="cashHandlingDate">
+            </div>
+            <div class="form-group">
+                <label class="label">Opening Cash (₹)</label>
+                <input type="text" id="openingCash" name="openingCash" readonly placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label class="label">Current Cash (₹)</label>
+                <input type="text" id="currentCash" name="currentCash" readonly placeholder="0.00">
+            </div>
         </div>
-        <div class="field-group">
-            <label>Opening Cash (₹)</label>
-            <input type="text" id="openingCash" name="openingCash" readonly placeholder="0.00">
-        </div>
-        <div class="field-group">
-            <label>Current Cash (₹)</label>
-            <input type="text" id="currentCash" name="currentCash" readonly placeholder="0.00">
-        </div>
-    </div>
+    </fieldset>
 
-    <div class="section-label">Cash Details</div>
-    <div class="table-container">
-        <table class="denom-table" id="denomTable">
-            <thead>
-                <tr>
-                    <th>Denomination (₹)</th>
-                    <th>No. of Notes</th>
-                    <th>Amount (₹)</th>
-                </tr>
-            </thead>
-            <tbody id="denomBody"></tbody>
-        </table>
-    </div>
+    <!-- Cash Details -->
+    <fieldset>
+        <legend>Cash Details</legend>
+        <div style="overflow-x: auto;">
+            <table id="denomTable">
+                <thead>
+                    <tr>
+                        <th>Denomination (₹)</th>
+                        <th>No. of Notes</th>
+                        <th>Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody id="denomBody"></tbody>
+            </table>
+        </div>
+    </fieldset>
 
-    <div class="section-label">Summary</div>
-    <div class="summary-block">
-        <div class="summary-item">
-            <label>Total Amount (₹)</label>
-            <input type="text" id="totalAmt" readonly placeholder="0">
+    <!-- Summary -->
+    <fieldset>
+        <legend>Summary</legend>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <label class="label">Total Amount (₹)</label>
+                <input type="text" id="totalAmt" readonly placeholder="0">
+            </div>
+            <div class="summary-item">
+                <label class="label">Remaining (₹)</label>
+                <input type="text" id="remainingAmt" readonly placeholder="0">
+            </div>
+            <div class="summary-item">
+                <label class="label">Denomination (₹)</label>
+                <input type="text" id="denomAmt" readonly placeholder="0">
+            </div>
         </div>
-        <div class="summary-item">
-            <label>Remaining (₹)</label>
-            <input type="text" id="remainingAmt" readonly placeholder="0">
-        </div>
-        <div class="summary-item">
-            <label>Denomination (₹)</label>
-            <input type="text" id="denomAmt" readonly placeholder="0">
-        </div>
-    </div>
+    </fieldset>
 
-    <div class="button-container">
-        <button class="btn btn-validate" onclick="validateCash()">Validate</button>
-        <button class="btn btn-save" onclick="saveCash()">Save</button>
-        <button class="btn btn-cancel" onclick="cancelCash()">Cancel</button>
+    <!-- Buttons -->
+    <div class="button-row">
+        <button class="btn btn-primary" onclick="validateCash()">Validate</button>
+        <button class="btn btn-success" onclick="saveCash()">Save</button>
+        <button class="btn btn-cancel"  onclick="cancelCash()">Cancel</button>
     </div>
 
 </div>
 
 <script>
     const DENOMS = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+    const tbody  = document.getElementById('denomBody');
 
-    const tbody = document.getElementById('denomBody');
     DENOMS.forEach(function(d) {
         const tr = document.createElement('tr');
         tr.innerHTML =
@@ -292,7 +336,6 @@
         tbody.appendChild(tr);
     });
 
-    // Change row
     const changeRow = document.createElement('tr');
     changeRow.innerHTML =
         '<td><strong>Change</strong></td>' +
@@ -302,30 +345,24 @@
 
     function recalc() {
         let total = 0;
-
-        // Normal denomination rows
         DENOMS.forEach(function(d) {
-            const q = parseInt(document.querySelector('.qty-input[data-denom="' + d + '"]').value) || 0;
+            const q   = parseInt(document.querySelector('.qty-input[data-denom="' + d + '"]').value) || 0;
             const amt = d * q;
             document.getElementById('amt-' + d).textContent = amt.toLocaleString('en-IN');
             total += amt;
         });
-
-        // Change row (value entered directly as amount)
         const changeVal = parseFloat(document.querySelector('.qty-input[data-denom="change"]').value) || 0;
         document.getElementById('amt-change').textContent = changeVal.toLocaleString('en-IN');
         total += changeVal;
-
-        document.getElementById('totalAmt').value    = total.toLocaleString('en-IN');
-        document.getElementById('denomAmt').value    = total.toLocaleString('en-IN');
-        document.getElementById('remainingAmt').value = 0;
+        document.getElementById('totalAmt').value     = total.toLocaleString('en-IN');
+        document.getElementById('denomAmt').value     = total.toLocaleString('en-IN');
+        document.getElementById('remainingAmt').value = '0';
     }
 
     function validateCash() {
         const date = document.getElementById('cashHandlingDate').value;
         if (!date) { alert('Please select Cash Handling Date.'); return; }
-        const total = document.getElementById('totalAmt').value;
-        alert('Validated successfully. Total: ₹ ' + total);
+        alert('Validated successfully. Total: ₹ ' + document.getElementById('totalAmt').value);
     }
 
     function saveCash() {
@@ -336,8 +373,8 @@
 
     function cancelCash() {
         document.querySelectorAll('.qty-input').forEach(i => i.value = 0);
-        document.getElementById('cashHandlingDate').value = '';
-        document.getElementById('amt-change').textContent = '0';
+        document.getElementById('cashHandlingDate').value   = '';
+        document.getElementById('amt-change').textContent   = '0';
         recalc();
     }
 
